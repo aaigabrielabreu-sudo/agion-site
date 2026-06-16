@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agion — Plataforma de Planejamento Financeiro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Lora:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0D232B;--bg2:#102A31;--card:#16333C;--card2:#1A3B45;--card3:#1F4651;
+  --teal:#8FD9CC;--teal-ink:#0A2026;--gold:#C5A059;--gold2:#E8CC8B;
+  --grad-gold:linear-gradient(115deg,#A8853E,#E8CC8B 45%,#C5A059 85%);
+  --grad-hero:linear-gradient(100deg,#8FD9CC,#E8CC8B 50%,#C5A059);
+  --ink:#DCE9E7;--muted:#9DB5B1;--soft:#6E8B88;--line:rgba(143,217,204,.16);--line-gold:rgba(197,160,89,.28);
+  --serif:'Lora',Georgia,serif;--display:'Cinzel',serif;--sans:'DM Sans',-apple-system,sans-serif;
+  --ok:#34d399;--warn:#fbbf24;--bad:#f87171;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:
+ radial-gradient(46% 38% at 12% 8%,rgba(38,110,122,.45),transparent 70%),
+ radial-gradient(40% 34% at 90% 14%,rgba(197,160,89,.10),transparent 70%),
+ radial-gradient(55% 45% at 82% 95%,rgba(38,110,122,.38),transparent 70%)}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit}
+.serif{font-family:var(--serif)}
+.hidden{display:none!important}
+/* botões */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:12px;font-weight:700;font-size:.9rem;transition:.22s;white-space:nowrap}
+.btn-gold{background:var(--grad-gold);color:var(--teal-ink)}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 0 28px rgba(197,160,89,.4)}
+.btn-teal{background:rgba(143,217,204,.1);border:1px solid rgba(143,217,204,.35);color:#BFEAE2}
+.btn-teal:hover{background:rgba(143,217,204,.18)}
+.btn-ghost{border:1px solid var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--gold)}
+.btn-sm{padding:8px 14px;font-size:.8rem;border-radius:9px}
+.btn-ico{padding:8px;width:34px;height:34px;border-radius:9px;border:1px solid var(--line)}
+.btn-ico:hover{border-color:var(--gold);color:var(--gold2)}
+.chip{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:5px 11px;border-radius:999px;background:rgba(197,160,89,.12);border:1px solid var(--line-gold);color:var(--gold2)}
+.chip-teal{background:rgba(143,217,204,.1);border-color:rgba(143,217,204,.3);color:var(--teal)}
+label{display:block;font-size:.78rem;font-weight:600;color:#CFE6E2;margin:0 0 6px}
+input,select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:11px;background:rgba(10,28,34,.5);color:#F2FAF8;font-size:.92rem;outline:none;transition:.2s}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(197,160,89,.14)}
+.field{margin-bottom:14px}
+.note{font-size:.74rem;color:var(--soft);line-height:1.5}
+/* ===== LOGIN ===== */
+#loginView{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.login{width:100%;max-width:440px;background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:26px;padding:42px;box-shadow:0 30px 90px rgba(0,0,0,.55)}
+.login .lg{font-family:var(--display);font-size:1.9rem;letter-spacing:.06em;text-align:center;color:#F2FAF8}
+.login .lg em{font-style:normal;background:var(--grad-hero);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.login .tg{text-align:center;font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:2px 0 22px}
+.tabs{display:flex;background:rgba(10,28,34,.6);border-radius:12px;padding:5px;gap:5px;margin-bottom:22px}
+.tabs button{flex:1;padding:11px;border-radius:9px;font-weight:700;font-size:.84rem;color:var(--muted);transition:.22s}
+.tabs button.on{background:var(--grad-gold);color:var(--teal-ink)}
+/* ===== APP SHELL ===== */
+#app{display:none;min-height:100vh}
+#app.show{display:grid;grid-template-columns:248px 1fr}
+.side{background:rgba(8,22,27,.85);backdrop-filter:blur(16px);border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.side .brand{display:flex;flex-direction:column;line-height:1.1;padding:6px 10px 22px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.side .brand b{font-family:var(--display);font-size:1.4rem;color:#F2FAF8;letter-spacing:.05em}
+.side .brand span{font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.navi{display:flex;flex-direction:column;gap:4px;flex:1}
+.navi a{display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:11px;font-size:.9rem;font-weight:600;color:var(--muted);transition:.2s;cursor:pointer}
+.navi a:hover{background:rgba(143,217,204,.06);color:#E8F4F2}
+.navi a.on{background:rgba(197,160,89,.12);color:var(--gold2);border:1px solid var(--line-gold)}
+.navi a svg{width:18px;height:18px;flex-shrink:0}
+.side .foot{border-top:1px solid var(--line);padding-top:14px;font-size:.78rem;color:var(--soft)}
+.side .foot .u{color:#E8F4F2;font-weight:700;margin-bottom:2px}
+.main{min-height:100vh;overflow-x:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 30px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(13,35,43,.7);backdrop-filter:blur(14px);z-index:30}
+.topbar h1{font-family:var(--serif);font-size:1.35rem;color:#F2FAF8}
+.topbar .crumb{font-size:.78rem;color:var(--soft)}
+.content{padding:28px 30px 80px;max-width:1080px}
+.icon{width:1.2em;height:1.2em;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
+/* cards / KPIs */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-bottom:24px}
+.kpi{background:linear-gradient(165deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:18px;padding:20px}
+.kpi .lab{font-size:.74rem;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.kpi .lab svg{width:15px;height:15px;color:var(--gold)}
+.kpi b{font-family:var(--serif);font-size:1.55rem;color:#F2FAF8;line-height:1}
+.kpi.grad b{background:var(--grad-hero);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.panel{background:linear-gradient(165deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:20px}
+.panel h2{font-family:var(--serif);font-size:1.08rem;color:var(--gold2);margin-bottom:16px;display:flex;align-items:center;gap:9px}
+.panel h2 .right{margin-left:auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 18px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.ccard{background:linear-gradient(165deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:18px;padding:20px;transition:.25s}
+.ccard:hover{border-color:var(--line-gold);transform:translateY(-3px)}
+.ccard h3{font-family:var(--serif);font-size:1.08rem;color:#F2FAF8}
+.ccard .meta{font-size:.76rem;color:var(--soft);margin:4px 0 12px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tag{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:4px 9px;border-radius:999px}
+.tag-main{background:rgba(197,160,89,.15);color:var(--gold2);border:1px solid var(--line-gold)}
+.tag-copy{background:rgba(143,217,204,.12);color:var(--teal);border:1px solid rgba(143,217,204,.3)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:20px}
+.toolbar .sp{flex:1}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--gold2);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em}
+td.r,th.r{text-align:right}
+canvas{width:100%!important;height:280px!important}
+.gauge canvas{height:150px!important}
+.prob{display:inline-flex;align-items:center;gap:8px;font-weight:700;padding:8px 18px;border-radius:999px;font-size:.92rem}
+.gauge{position:relative;width:150px;height:150px;margin:0 auto}
+.disclaimer{font-size:.74rem;color:var(--soft);background:rgba(143,217,204,.05);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-top:16px;line-height:1.6}
+.banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(197,160,89,.08);border:1px solid var(--line-gold);border-radius:14px;padding:13px 16px;margin-bottom:18px;font-size:.85rem;color:#E8E0CC}
+.locked input,.locked select,.locked textarea,.locked .additem,.locked .delrow{pointer-events:none;opacity:.55}
+/* itens (linhas dinâmicas) */
+.item{display:grid;grid-template-columns:1fr 130px 120px 34px;gap:8px;align-items:end;margin-bottom:8px}
+.item.assets{grid-template-columns:1fr 150px 130px 34px}
+.item .delrow{align-self:center;margin-bottom:2px}
+.additem{margin-top:6px}
+.bar{height:8px;border-radius:5px;background:rgba(143,217,204,.1);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;border-radius:5px;background:var(--grad-hero)}
+.flash{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--grad-gold);color:var(--teal-ink);font-weight:700;padding:13px 26px;border-radius:999px;box-shadow:0 12px 30px rgba(0,0,0,.4);z-index:500;opacity:0;transition:.3s;font-size:.9rem}
+.flash.show{opacity:1;bottom:34px}
+.modal-bg{position:fixed;inset:0;background:rgba(4,12,14,.72);backdrop-filter:blur(4px);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line-gold);border-radius:18px;padding:28px;width:100%;max-width:430px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.modal h3{font-family:var(--serif);font-size:1.2rem;color:#F2FAF8;margin-bottom:10px}
+.modal p{color:var(--muted);font-size:.9rem;margin-bottom:10px;line-height:1.5}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.mobnav{display:none}
+@media(max-width:860px){
+  #app.show{grid-template-columns:1fr}
+  .side{display:none}
+  .mobnav{display:flex;gap:6px;overflow-x:auto;padding:10px 14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(13,35,43,.92);z-index:31}
+  .mobnav a{white-space:nowrap;padding:9px 13px;border-radius:999px;font-size:.8rem;font-weight:700;color:var(--muted);border:1px solid var(--line)}
+  .mobnav a.on{color:var(--gold2);border-color:var(--line-gold);background:rgba(197,160,89,.1)}
+  .content{padding:20px 16px 70px}
+  .topbar{padding:14px 16px}
+  .grid2{grid-template-columns:1fr}
+  .item{grid-template-columns:1fr 1fr;}
+  .item .delrow{grid-column:2;justify-self:end}
+}
+@media print{
+  body::before,.side,.mobnav,.topbar .actions,.btn,.toolbar,.disclaimer{display:none!important}
+  #app.show{grid-template-columns:1fr}
+  .panel,.kpi,.ccard{break-inside:avoid}
+  body{background:#fff;color:#111}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="loginView">
+  <div class="login">
+    <div class="lg serif">Agion <em>Wealth</em></div>
+    <div class="tg">Plataforma de Planejamento Financeiro</div>
+    <div class="tabs">
+      <button id="tabA" class="on" onclick="tab('a')">Sou Assessor</button>
+      <button id="tabC" onclick="tab('c')">Sou Cliente</button>
+    </div>
+    <div id="formA">
+      <div class="field"><label>E-mail do assessor</label><input id="aEmail" value="gabriel@agionconsorcios.com.br"></div>
+      <div class="field"><label>Senha</label><input id="aPass" type="password" value="demo"></div>
+      <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="loginAssessor()">Entrar como Assessor</button>
+      <p class="note" style="margin-top:12px">Demo: qualquer senha entra. Você cria, edita e publica os planejamentos.</p>
+    </div>
+    <div id="formC" class="hidden">
+      <div class="field"><label>Cliente (demo)</label><select id="cSelect"></select></div>
+      <div class="field"><label>Senha</label><input id="cPass" type="password" value="demo"></div>
+      <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="loginCliente()">Entrar como Cliente</button>
+      <p class="note" style="margin-top:12px">O cliente vê o Plano Principal (somente leitura), cria simulações e controla seus gastos.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <aside class="side">
+    <div class="brand"><b>Agion</b><span>Wealth Platform</span></div>
+    <nav class="navi" id="navi"></nav>
+    <div class="foot">
+      <div class="u" id="sideUser"></div>
+      <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="logout()">Sair</button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="mobnav" id="mobnav"></div>
+    <div class="topbar">
+      <div><div class="crumb" id="crumb"></div><h1 id="pageTitle">—</h1></div>
+      <div class="actions" id="topActions"></div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div id="modalBg" class="modal-bg hidden">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <p id="modalMsg" class="hidden"></p>
+    <input id="modalInput" class="hidden">
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" id="modalCancel">Cancelar</button>
+      <button class="btn btn-gold btn-sm" id="modalOk">Confirmar</button>
+    </div>
+  </div>
+</div>
+<div class="flash" id="flash"></div>
+
+<script>
+/* ===================== UTIL ===================== */
+const DB_KEY='agion_wealth_v2';
+const BRL=v=>(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const BRL2=v=>(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2});
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function load(){try{return JSON.parse(localStorage.getItem(DB_KEY))}catch(e){return null}}
+function save(){localStorage.setItem(DB_KEY,JSON.stringify(db))}
+function flash(m){const f=document.getElementById('flash');f.textContent=m;f.classList.add('show');setTimeout(()=>f.classList.remove('show'),2200)}
+function ask(o){return new Promise(res=>{const bg=document.getElementById('modalBg');document.getElementById('modalTitle').textContent=o.title||'';const m=document.getElementById('modalMsg');m.textContent=o.msg||'';m.classList.toggle('hidden',!o.msg);const i=document.getElementById('modalInput');i.classList.toggle('hidden',!o.input);i.value=o.value||'';document.getElementById('modalOk').textContent=o.ok||'Confirmar';bg.classList.remove('hidden');if(o.input)setTimeout(()=>i.focus(),50);const done=v=>{bg.classList.add('hidden');res(v)};document.getElementById('modalOk').onclick=()=>done(o.input?(i.value||o.value||''):true);document.getElementById('modalCancel').onclick=()=>done(null)})}
+
+/* ===================== DADOS ===================== */
+function blankPlan(nome){return{id:uid(),titulo:'Plano Principal',main:true,parent:null,criadoEm:Date.now(),
+  nome:nome||'',idade:40,apos:65,vida:90,perfil:'Conservador',rent:6,obs:'',
+  incomes:[{desc:'Salário',valor:10000,freq:'Mensal'}],
+  expenses:[{desc:'Custo de vida',valor:7000,cat:'Moradia',freq:'Mensal'}],
+  assets:[{desc:'Reserva/Investimentos',cat:'Renda Fixa',valor:0}],
+  goals:[],
+  spending:[]
+}}
+function seed(){
+  const p=blankPlan('Eduardo Mendonça');
+  Object.assign(p,{idade:45,apos:65,vida:85,perfil:'Conservador',rent:8.4,
+    incomes:[{desc:'Salário',valor:15000,freq:'Mensal'},{desc:'Aluguel',valor:1000,freq:'Mensal'},{desc:'13º',valor:15000,freq:'Anual'}],
+    expenses:[{desc:'Despesas gerais',valor:15000,cat:'Custo de vida',freq:'Mensal'}],
+    assets:[{desc:'Carteira de investimentos',cat:'Renda Fixa',valor:313704}],
+    goals:[{desc:'Aposentadoria',tipo:'renda',idade:65,valor:25000}],
+  });
+  const p2=blankPlan('Mariana Alves');
+  Object.assign(p2,{idade:34,apos:60,vida:90,perfil:'Moderado',rent:7.5,
+    incomes:[{desc:'Pró-labore',valor:12000,freq:'Mensal'}],
+    expenses:[{desc:'Custo de vida',valor:8000,cat:'Custo de vida',freq:'Mensal'}],
+    assets:[{desc:'CDB',cat:'Renda Fixa',valor:60000},{desc:'Ações',cat:'Renda Variável',valor:30000}],
+    goals:[{desc:'Aposentadoria',tipo:'renda',idade:60,valor:12000},{desc:'Intercâmbio do filho',tipo:'meta',idade:48,valor:120000}],
+  });
+  return {clients:[
+    {id:'c1',nome:'Eduardo Mendonça',email:'eduardo@email.com',tel:'(51) 99999-0001',plans:[p]},
+    {id:'c2',nome:'Mariana Alves',email:'mariana@email.com',tel:'(51) 99999-0002',plans:[p2]}
+  ]};
+}
+let db=load(); if(!db||!db.clients){db=seed();save()}
+
+/* ===================== MOTOR DE PROJEÇÃO ===================== */
+const mensal=(v,f)=>f==='Anual'?v/12:v;
+function totals(p){
+  const renda=(p.incomes||[]).reduce((s,i)=>s+mensal(i.valor,i.freq),0);
+  const desp=(p.expenses||[]).reduce((s,i)=>s+mensal(i.valor,i.freq),0);
+  const patr=(p.assets||[]).reduce((s,i)=>s+(+i.valor||0),0);
+  return{renda,desp,patr,sobra:renda-desp};
+}
+let _z=null;function gauss(){if(_z!==null){const z=_z;_z=null;return z}let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();const m=Math.sqrt(-2*Math.log(u));_z=m*Math.sin(2*Math.PI*v);return m*Math.cos(2*Math.PI*v)}
+function projetar(p){
+  const t=totals(p); const r=(p.rent||0)/100;
+  const aporteAnual=Math.max(0,t.sobra)*12;
+  const apos=p.apos, idade=p.idade, vida=Math.max(apos+1,p.vida);
+  const anosAcum=Math.max(0,apos-idade), anosRenda=Math.max(1,vida-apos);
+  const goalRenda=(p.goals||[]).find(g=>g.tipo==='renda');
+  const saqueAnual=(goalRenda?goalRenda.valor:0)*12;
+  const metas=(p.goals||[]).filter(g=>g.tipo==='meta');
+  // série determinística
+  let pat=t.patr; const idades=[],serie=[];
+  for(let a=idade;a<=apos;a++){ idades.push(a); serie.push(Math.max(0,pat));
+    const gastoMeta=metas.filter(g=>g.idade===a).reduce((s,g)=>s+(+g.valor||0),0);
+    pat=(pat-gastoMeta)*(1+r)+aporteAnual; }
+  const patApos=Math.max(0,serie[serie.length-1]!==undefined?pat:0);
+  let pd=pat;
+  for(let a=apos+1;a<=vida;a++){ pd=pd*(1+r)-saqueAnual; idades.push(a); serie.push(Math.max(0,pd)); }
+  const fatorDep=r>0?(1-Math.pow(1+r,-anosRenda))/r:anosRenda;
+  const alvoConsumo=saqueAnual*fatorDep;
+  const alvoManter=r>0?saqueAnual/r:saqueAnual*anosRenda;
+  const fvFator=r>0?(Math.pow(1+r,anosAcum)-1)/r:anosAcum;
+  const fvPatr=t.patr*Math.pow(1+r,anosAcum);
+  const aporteIdeal=anosAcum>0?Math.max(0,(alvoConsumo-fvPatr)/fvFator):0;
+  // Monte Carlo
+  const vol={Conservador:.05,Moderado:.10,Arrojado:.16}[p.perfil]||.08;
+  let ok=0,N=500;
+  for(let s=0;s<N;s++){let v=t.patr;
+    for(let a=idade;a<apos;a++){const gm=metas.filter(g=>g.idade===a).reduce((x,g)=>x+(+g.valor||0),0);v=(v-gm)*(1+r+gauss()*vol)+aporteAnual;}
+    let alive=true;for(let a=apos;a<vida;a++){v=v*(1+r+gauss()*vol)-saqueAnual;if(v<-1){alive=false;break}}
+    if(alive)ok++;}
+  const reservaIdeal=t.desp*6;
+  const reservaAtual=(p.assets||[]).filter(a=>a.cat==='Renda Fixa').reduce((s,a)=>s+(+a.valor||0),0);
+  const cobertura=alvoConsumo>0?Math.min(100,Math.round(patApos/alvoConsumo*100)):100;
+  return{...t,aporteAnual,anosAcum,anosRenda,saqueAnual,patApos,alvoConsumo,alvoManter,aporteIdeal,prob:Math.round(ok/N*100),idades,serie,metas,reservaIdeal,reservaAtual,cobertura};
+}
+/* ----- DIAGNÓSTICO INTELIGENTE (linguagem de assessor) ----- */
+function diagnostico(p,R){
+  const d=[]; const idealMes=R.aporteIdeal/12;
+  if(R.prob>=80) d.push(['ok',`Plano consistente: cerca de <b>${R.prob}%</b> de chance de manter a renda desejada até os ${p.vida} anos.`]);
+  else if(R.prob>=55) d.push(['warn',`Plano em rota de atenção (<b>${R.prob}%</b>). Pequenos ajustes elevam bastante a segurança.`]);
+  else d.push(['bad',`Risco elevado de o patrimônio não durar (<b>${R.prob}%</b>). Vale revisar aporte, prazo ou meta de renda.`]);
+  if(idealMes>R.sobra+1){const dif=idealMes-Math.max(0,R.sobra);d.push(['warn',`Para atingir a meta no prazo, o aporte ideal é <b>${BRL(idealMes)}/mês</b> — ${BRL(dif)} acima da sua sobra atual.`]);}
+  else if(R.sobra>0) d.push(['ok',`Sua capacidade de aporte (<b>${BRL(R.sobra)}/mês</b>) já cobre o necessário para a meta.`]);
+  if(R.reservaAtual<R.reservaIdeal) d.push(['warn',`Reserva de emergência abaixo do ideal: <b>${BRL(R.reservaAtual)}</b> de ${BRL(R.reservaIdeal)} (6 meses de despesas em renda fixa).`]);
+  else d.push(['ok',`Reserva de emergência adequada — pelo menos 6 meses de despesas em liquidez.`]);
+  if(R.prob<70 && p.apos<70) d.push(['warn',`Cenário alternativo: adiar a aposentadoria para os <b>${p.apos+2}</b> anos tende a elevar bastante a probabilidade de sucesso.`]);
+  const aloc={Conservador:'foco em renda fixa e baixa volatilidade',Moderado:'mix equilibrado entre renda fixa e variável',Arrojado:'maior peso em renda variável e ativos de crescimento'}[p.perfil];
+  if(aloc) d.push(['ok',`Perfil <b>${p.perfil}</b>: alocação sugerida com ${aloc}.`]);
+  return d;
+}
+function diagPanel(p,R){
+  const ic={ok:'✓',warn:'!',bad:'×'};const cor={ok:'var(--ok)',warn:'var(--warn)',bad:'var(--bad)'};
+  return `<div class="panel"><h2>${ICN.spark} Diagnóstico & recomendações</h2>
+   ${diagnostico(p,R).map(([t,txt])=>`<div style="display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)">
+     <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.78rem;background:${cor[t]}22;color:${cor[t]};border:1px solid ${cor[t]}55">${ic[t]}</span>
+     <span style="font-size:.88rem;color:var(--ink);line-height:1.5">${txt}</span></div>`).join('')}</div>`;
+}
+
+/* ===================== NAVEGAÇÃO ===================== */
+const ICN={dash:'<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
+ users:'<svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>',
+ plan:'<svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>',
+ wallet:'<svg class="icon" viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>',
+ cota:'<svg class="icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>',
+ spark:'<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l1.9 5.8L20 10l-5.8 1.9L12 18l-1.9-5.8L4 10l5.8-1.9Z"/></svg>',
+ money:'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9a2.5 2 0 0 0-2.5-1.5c-1.5 0-2.5.8-2.5 2s1 1.7 2.5 2 2.5.8 2.5 2-1 2-2.5 2A2.5 2 0 0 1 9.5 16"/><path d="M12 6v1.5M12 16.5V18"/></svg>',
+ target:'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>'};
+let session={role:null,clientId:null};
+let view={page:null,clientId:null,planId:null,readonly:false};
+let charts=[];
+const client=id=>db.clients.find(c=>c.id===id);
+const plan=(c,p)=>client(c).plans.find(x=>x.id===p);
+const mainPlan=c=>client(c).plans.find(p=>p.main);
+
+function navItems(){
+  if(session.role==='assessor') return [['dash','Painel',ICN.dash],['users','Clientes',ICN.users]];
+  return [['dash','Início',ICN.dash],['plan','Meu Planejamento',ICN.plan],['gastos','Meus Gastos',ICN.money],['cota','Minha Cota',ICN.cota]];
+}
+function renderNav(){
+  const items=navItems();
+  document.getElementById('navi').innerHTML=items.map(([k,l,ic])=>`<a class="${view.page===k?'on':''}" onclick="go('${k}')">${ic}${l}</a>`).join('');
+  document.getElementById('mobnav').innerHTML=items.map(([k,l])=>`<a class="${view.page===k?'on':''}" onclick="go('${k}')">${l}</a>`).join('');
+}
+function go(page){ view.page=page; renderNav(); render(); window.scrollTo(0,0); }
+/* cria um gráfico de forma segura: se faltar canvas ou Chart.js, mostra aviso e nunca quebra o resto da página */
+function mkChart(id,cfg){
+  const el=document.getElementById(id); if(!el) return;
+  if(typeof Chart==='undefined'){ const d=document.createElement('div'); d.className='note'; d.style.cssText='padding:24px;text-align:center'; d.textContent='Gráfico indisponível (sem conexão para carregar a biblioteca).'; el.replaceWith(d); return; }
+  try{ charts.push(new Chart(el,cfg)); }catch(e){ console.warn('chart '+id,e); }
+}
+function setTop(title,crumb,actions){ document.getElementById('pageTitle').textContent=title; document.getElementById('crumb').textContent=crumb||''; document.getElementById('topActions').innerHTML=actions||''; }
+function destroyCharts(){charts.forEach(c=>{try{c.destroy()}catch(e){}});charts=[]}
+
+/* ===================== LOGIN ===================== */
+function tab(w){document.getElementById('tabA').classList.toggle('on',w==='a');document.getElementById('tabC').classList.toggle('on',w==='c');document.getElementById('formA').classList.toggle('hidden',w!=='a');document.getElementById('formC').classList.toggle('hidden',w!=='c');if(w==='c'){document.getElementById('cSelect').innerHTML=db.clients.map(c=>`<option value="${c.id}">${esc(c.nome)}</option>`).join('')}}
+function loginAssessor(){session={role:'assessor'};document.getElementById('sideUser').textContent='Gabriel · Assessor';enterApp('dash')}
+function loginCliente(){const id=document.getElementById('cSelect').value;session={role:'cliente',clientId:id};document.getElementById('sideUser').textContent=client(id).nome.split(' ')[0]+' · Cliente';enterApp('dash')}
+function enterApp(page){document.getElementById('loginView').classList.add('hidden');document.getElementById('app').classList.add('show');view={page};renderNav();render()}
+function logout(){session={role:null};document.getElementById('app').classList.remove('show');document.getElementById('loginView').classList.remove('hidden');destroyCharts()}
+
+/* ===================== RENDER PRINCIPAL ===================== */
+function render(){
+  destroyCharts();
+  const C=document.getElementById('content');
+  if(session.role==='assessor'){
+    if(view.page==='dash') return renderAssessorDash(C);
+    if(view.page==='users') return renderClients(C);
+    if(view.page==='editor') return renderEditor(C);
+    if(view.page==='compare') return renderCompare(C);
+  }else{
+    if(view.page==='dash') return renderClientDash(C);
+    if(view.page==='plan') return renderClientPlan(C);
+    if(view.page==='gastos') return renderGastos(C);
+    if(view.page==='cota') return renderCota(C);
+    if(view.page==='editor') return renderEditor(C);
+    if(view.page==='compare') return renderCompare(C);
+  }
+}
+window.scrollReset=()=>window.scrollTo(0,0);
+
+/* ===================== ASSESSOR: PAINEL ===================== */
+function renderAssessorDash(C){
+  setTop('Painel do Assessor','Visão geral');
+  let totPatr=0,totApos=0,sob=0; db.clients.forEach(c=>{const t=totals(mainPlan(c));totPatr+=t.patr;sob+=t.sobra});
+  const sims=db.clients.reduce((s,c)=>s+c.plans.filter(p=>!p.main).length,0);
+  C.innerHTML=`
+   <div class="kpis">
+     <div class="kpi grad"><div class="lab">${ICN.users}Clientes ativos</div><b>${db.clients.length}</b></div>
+     <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio sob gestão</div><b>${BRL(totPatr)}</b></div>
+     <div class="kpi"><div class="lab">${ICN.money}Capacidade de aporte/mês</div><b>${BRL(sob)}</b></div>
+     <div class="kpi"><div class="lab">${ICN.spark}Simulações dos clientes</div><b>${sims}</b></div>
+   </div>
+   <div class="panel"><h2>${ICN.users} Carteira de clientes <button class="btn btn-gold btn-sm right" onclick="newClient()">+ Novo cliente</button></h2>
+     <table><thead><tr><th>Cliente</th><th class="r">Patrimônio</th><th class="r">Aporte/mês</th><th class="r">Aposentar</th><th></th></tr></thead><tbody>
+     ${db.clients.map(c=>{const m=mainPlan(c),t=totals(m);return `<tr><td><b style="color:#F2FAF8">${esc(c.nome)}</b><br><span style="color:var(--soft);font-size:.78rem">${esc(c.email||'')}</span></td><td class="r">${BRL(t.patr)}</td><td class="r">${BRL(t.sobra)}</td><td class="r">${m.apos} anos</td><td class="r"><button class="btn btn-teal btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Abrir plano</button></td></tr>`}).join('')}
+     </tbody></table>
+   </div>`;
+}
+function renderClients(C){
+  setTop('Clientes','Gestão de carteira', '<button class="btn btn-gold btn-sm" onclick="newClient()">+ Novo cliente</button>');
+  C.innerHTML=`<div class="cards">${db.clients.map(c=>{const m=mainPlan(c),t=totals(c.plans.find(p=>p.main));const copies=c.plans.filter(p=>!p.main).length;
+    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div>
+      <div class="meta">${esc(c.email||'')} · ${esc(c.tel||'')}</div>
+      <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:#F2FAF8">${BRL(t.patr)}</b></div>
+      <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:#F2FAF8">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div>
+      <div class="row" style="gap:8px"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button>
+      <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button></div></div>`}).join('')}</div>`;
+}
+async function newClient(){
+  const nome=await ask({title:'Novo cliente',msg:'Nome completo do cliente:',input:true,ok:'Criar'});
+  if(!nome||!nome.trim())return;
+  const c={id:uid(),nome:nome.trim(),email:'',tel:'',plans:[blankPlan(nome.trim())]};
+  db.clients.push(c);save();flash('Cliente criado');openEditor(c.id,c.plans[0].id,false);
+}
+
+/* ===================== EDITOR DE PLANO ===================== */
+function openEditor(cid,pid,ro){view={page:'editor',clientId:cid,planId:pid,readonly:ro};renderNav();render();window.scrollTo(0,0)}
+function renderEditor(C){
+  const c=client(view.clientId), p=plan(view.clientId,view.planId), ro=view.readonly;
+  setTop((p.main?'Plano Principal':'Simulação')+' — '+esc(p.nome), esc(c.nome),
+    `<button class="btn btn-ghost btn-sm" onclick="goBack()">← Voltar</button>`);
+  const R=projetar(p);
+  C.innerHTML=`
+  ${ro?`<div class="banner">🔒 Plano Principal (somente leitura). Para testar mudanças, crie uma cópia editável.
+     <button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="copyPlan('${c.id}','${p.id}')">Criar cópia para editar</button></div>`:''}
+  <div class="${ro?'locked':''}" id="editForm">
+    <div class="panel"><h2>${ICN.users} Dados do cliente</h2>
+      <div class="grid3">
+        <div class="field"><label>Nome</label><input id="f_nome" value="${esc(p.nome)}"></div>
+        <div class="field"><label>Idade atual</label><input id="f_idade" type="number" value="${p.idade}"></div>
+        <div class="field"><label>Idade de aposentadoria</label><input id="f_apos" type="number" value="${p.apos}"></div>
+        <div class="field"><label>Expectativa de vida</label><input id="f_vida" type="number" value="${p.vida}"></div>
+        <div class="field"><label>Perfil de risco</label><select id="f_perfil">${['Conservador','Moderado','Arrojado'].map(o=>`<option ${o===p.perfil?'selected':''}>${o}</option>`).join('')}</select></div>
+        <div class="field"><label>Rentabilidade real (% a.a.)</label><input id="f_rent" type="number" step="0.1" value="${p.rent}"></div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h2>${ICN.money} Receitas (mensal/anual)</h2><div id="incomes"></div>
+        <button class="btn btn-teal btn-sm additem" onclick="addRow('incomes')">+ Receita</button></div>
+      <div class="panel"><h2>${ICN.wallet} Despesas</h2><div id="expenses"></div>
+        <button class="btn btn-teal btn-sm additem" onclick="addRow('expenses')">+ Despesa</button></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h2>${ICN.dash} Patrimônio investido</h2><div id="assets"></div>
+        <button class="btn btn-teal btn-sm additem" onclick="addRow('assets')">+ Ativo</button></div>
+      <div class="panel"><h2>${ICN.target} Objetivos</h2><div id="goals"></div>
+        <button class="btn btn-teal btn-sm additem" onclick="addRow('goals')">+ Objetivo</button>
+        <p class="note" style="margin-top:8px">Use “Renda” para a aposentadoria (valor mensal) e “Meta” para um gasto pontual numa idade.</p></div>
+    </div>
+    ${ro?'':`<div class="toolbar"><button class="btn btn-teal" onclick="recalc()">Recalcular</button>
+      <button class="btn btn-gold" onclick="saveAndPublish()">${p.main?'Salvar e publicar':'Salvar simulação'}</button>
+      <div class="sp"></div><button class="btn btn-ghost btn-sm" onclick="window.print()">Exportar PDF</button></div>`}
+  </div>
+  <div id="results"></div>
+  <div class="disclaimer">⚠️ <b>Aviso:</b> valores estimados para planejamento, a partir das informações fornecidas. Não constituem garantia de rentabilidade nem recomendação de investimento.</div>`;
+  renderRows(p); renderResults(p,R);
+}
+const ROWS={
+  incomes:(it,i)=>`<div class="item"><div><input data-f="incomes" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div>
+    <div><input type="number" data-f="incomes" data-i="${i}" data-k="valor" value="${it.valor}"></div>
+    <div><select data-f="incomes" data-i="${i}" data-k="freq"><option ${it.freq==='Mensal'?'selected':''}>Mensal</option><option ${it.freq==='Anual'?'selected':''}>Anual</option></select></div>
+    <button class="btn-ico delrow" onclick="delRow('incomes',${i})">✕</button></div>`,
+  expenses:(it,i)=>`<div class="item"><div><input data-f="expenses" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div>
+    <div><input type="number" data-f="expenses" data-i="${i}" data-k="valor" value="${it.valor}"></div>
+    <div><select data-f="expenses" data-i="${i}" data-k="freq"><option ${it.freq==='Mensal'?'selected':''}>Mensal</option><option ${it.freq==='Anual'?'selected':''}>Anual</option></select></div>
+    <button class="btn-ico delrow" onclick="delRow('expenses',${i})">✕</button></div>`,
+  assets:(it,i)=>`<div class="item assets"><div><input data-f="assets" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div>
+    <div><select data-f="assets" data-i="${i}" data-k="cat">${['Renda Fixa','Renda Variável','Imóvel','Multimercado','Internacional','Outros'].map(o=>`<option ${o===it.cat?'selected':''}>${o}</option>`).join('')}</select></div>
+    <div><input type="number" data-f="assets" data-i="${i}" data-k="valor" value="${it.valor}"></div>
+    <button class="btn-ico delrow" onclick="delRow('assets',${i})">✕</button></div>`,
+  goals:(it,i)=>`<div class="item assets"><div><input data-f="goals" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Ex: Aposentadoria"></div>
+    <div><select data-f="goals" data-i="${i}" data-k="tipo"><option value="renda" ${it.tipo==='renda'?'selected':''}>Renda (mensal)</option><option value="meta" ${it.tipo==='meta'?'selected':''}>Meta (pontual)</option></select></div>
+    <div><input type="number" data-f="goals" data-i="${i}" data-k="valor" value="${it.valor}" title="valor"></div>
+    <button class="btn-ico delrow" onclick="delRow('goals',${i})">✕</button>
+    <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center;font-size:.78rem;color:var(--muted)">Idade-alvo:<input type="number" style="width:90px" data-f="goals" data-i="${i}" data-k="idade" value="${it.idade||p_apos()}"></div></div>`
+};
+function p_apos(){return plan(view.clientId,view.planId).apos}
+function renderRows(p){['incomes','expenses','assets','goals'].forEach(f=>{const el=document.getElementById(f);if(el)el.innerHTML=(p[f]||[]).map((it,i)=>ROWS[f](it,i)).join('')||'<p class="note">Nenhum item.</p>';});}
+function collect(){ // lê o formulário para o objeto plano
+  const p=plan(view.clientId,view.planId); if(view.readonly)return p;
+  p.nome=document.getElementById('f_nome').value;
+  ['idade','apos','vida','rent'].forEach(k=>p[k]=parseFloat(document.getElementById('f_'+k).value)||0);
+  p.perfil=document.getElementById('f_perfil').value;
+  document.querySelectorAll('[data-f]').forEach(el=>{const f=el.dataset.f,i=+el.dataset.i,k=el.dataset.k;if(!p[f][i])return;p[f][i][k]=(el.type==='number')?(parseFloat(el.value)||0):el.value;});
+  save();return p;
+}
+function addRow(f){collect();const p=plan(view.clientId,view.planId);const def={incomes:{desc:'',valor:0,freq:'Mensal'},expenses:{desc:'',valor:0,cat:'Custo de vida',freq:'Mensal'},assets:{desc:'',cat:'Renda Fixa',valor:0},goals:{desc:'',tipo:'meta',valor:0,idade:p.apos}}[f];p[f].push({...def});save();renderRows(p);}
+function delRow(f,i){collect();const p=plan(view.clientId,view.planId);p[f].splice(i,1);save();renderRows(p);}
+function recalc(){const p=collect();renderResults(p,projetar(p));flash('Projeção atualizada')}
+function saveAndPublish(){const p=collect();renderResults(p,projetar(p));flash(p.main?'Plano publicado para o cliente ✓':'Simulação salva ✓')}
+function goBack(){ if(session.role==='assessor'){go('users')} else {go(view._from||'plan')} }
+function renderResults(p,R){
+  const col=R.prob>=80?'var(--ok)':R.prob>=55?'var(--warn)':'var(--bad)';
+  document.getElementById('results').innerHTML=`
+   <div class="kpis">
+     <div class="kpi grad"><div class="lab">${ICN.money}Aporte/mês</div><b>${BRL(R.sobra)}</b></div>
+     <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio aos ${p.apos}</div><b>${BRL(R.patApos)}</b></div>
+     <div class="kpi"><div class="lab">${ICN.target}Necessário (consumo)</div><b>${BRL(R.alvoConsumo)}</b></div>
+     <div class="kpi"><div class="lab">${ICN.spark}Aporte ideal/mês</div><b>${BRL(R.aporteIdeal/12)}</b></div>
+   </div>
+   <div class="grid2">
+     <div class="panel" style="text-align:center"><h2 style="justify-content:center">Probabilidade de sucesso</h2>
+       <div class="gauge"><canvas id="gauge"></canvas></div>
+       <div style="margin-top:6px"><span class="prob" style="background:${col}22;color:${col};border:1px solid ${col}55">● ${R.prob}% de sucesso</span></div>
+       <div style="margin-top:16px;text-align:left"><div class="note">Cobertura da meta (patrimônio ÷ necessário)</div>
+         <div class="bar" style="height:10px"><i style="width:${R.cobertura}%"></i></div>
+         <div style="font-size:.8rem;color:var(--muted);margin-top:6px">${R.cobertura}% da meta de ${BRL(R.alvoConsumo)}</div></div>
+     </div>
+     ${diagPanel(p,R)}
+   </div>
+   <div class="panel"><h2>${ICN.plan} Projeção do patrimônio (acumulação → aposentadoria → consumo)</h2><canvas id="chProj"></canvas></div>
+   <div class="grid2">
+     <div class="panel"><h2>Composição do patrimônio</h2><canvas id="chPie"></canvas></div>
+     <div class="panel"><h2>Fluxo mensal</h2><canvas id="chFlow"></canvas></div>
+   </div>`;
+  drawResultCharts(p,R);
+}
+function drawResultCharts(p,R){
+  destroyCharts();
+  const gold='#C5A059',teal='#8FD9CC',grid='rgba(143,217,204,.1)',tick='#9DB5B1';
+  const ax=cb=>({maintainAspectRatio:false,scales:{x:{grid:{color:grid},ticks:{color:tick}},y:{grid:{color:grid},ticks:{color:tick,callback:cb}}}});
+  mkChart('gauge',{type:'doughnut',data:{datasets:[{data:[R.prob,100-R.prob],backgroundColor:[gold,'rgba(143,217,204,.12)'],borderWidth:0,circumference:360}]},options:{maintainAspectRatio:false,cutout:'74%',plugins:{legend:{display:false},tooltip:{enabled:false}}},plugins:[{id:'txt',afterDraw(ch){const{ctx,chartArea}=ch;ctx.save();ctx.fillStyle='#F2FAF8';ctx.font='700 26px Lora';ctx.textAlign='center';ctx.fillText(R.prob+'%',(chartArea.left+chartArea.right)/2,(chartArea.top+chartArea.bottom)/2+9);ctx.restore()}}]});
+  const splitIdx=R.idades.indexOf(p.apos);
+  const markers=R.idades.map((a,i)=>{const g=(R.metas||[]).find(m=>+m.idade===a);return g?R.serie[i]:null;});
+  mkChart('chProj',{type:'line',data:{labels:R.idades,datasets:[
+    {label:'Patrimônio',data:R.serie,backgroundColor:'rgba(197,160,89,.12)',fill:true,tension:.25,pointRadius:0,borderWidth:2.4,borderColor:gold,
+      segment:{borderColor:ctx=>ctx.p0DataIndex>=splitIdx?teal:gold}},
+    {label:'Objetivos',data:markers,showLine:false,pointRadius:6,pointHoverRadius:8,pointBackgroundColor:'#E8CC8B',pointBorderColor:'#0D232B',pointBorderWidth:2}
+  ]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(c.datasetIndex===1?'Objetivo: ':'')+'R$ '+Math.round(c.parsed.y).toLocaleString('pt-BR')}}},scales:ax().scales}});
+  const cats={};(p.assets||[]).forEach(a=>cats[a.cat]=(cats[a.cat]||0)+(+a.valor||0));
+  mkChart('chPie',{type:'doughnut',data:{labels:Object.keys(cats),datasets:[{data:Object.values(cats),backgroundColor:['#C5A059','#8FD9CC','#E8CC8B','#4Fa3a3','#B0875F','#6E8B88'],borderWidth:0}]},options:{maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:tick,font:{size:11}}}}}});
+  mkChart('chFlow',{type:'bar',data:{labels:['Receita','Despesa','Sobra'],datasets:[{data:[R.renda,R.desp,Math.max(0,R.sobra)],backgroundColor:[teal,'#f87171',gold]}]},options:ax(v=>'R$ '+(v/1000).toFixed(0)+'k')});
+}
+
+/* ===================== CÓPIAS / VERSIONAMENTO ===================== */
+async function copyPlan(cid,pid){
+  collect();const src=plan(cid,pid);
+  const sug='Simulação '+(client(cid).plans.filter(p=>!p.main).length+1);
+  const nome=await ask({title:'Nova simulação',msg:'Cria uma cópia editável. O Plano Principal é preservado.',input:true,value:sug,ok:'Criar cópia'});
+  if(nome===null)return;
+  const copy=JSON.parse(JSON.stringify(src));copy.id=uid();copy.main=false;copy.parent=src.id;copy.titulo=(nome.trim()||sug);copy.criadoEm=Date.now();
+  client(cid).plans.push(copy);save();flash('Cópia criada — principal preservado');
+  openEditor(cid,copy.id,false);
+}
+
+/* ===================== COMPARADOR ===================== */
+function openCompare(cid){view={page:'compare',clientId:cid};renderNav();render()}
+function renderCompare(C){
+  const c=client(view.clientId);setTop('Comparar cenários',esc(c.nome),`<button class="btn btn-ghost btn-sm" onclick="goBack()">← Voltar</button>`);
+  const plans=c.plans;
+  const rows=plans.map(p=>({p,R:projetar(p)}));
+  C.innerHTML=`<div class="panel"><h2>${ICN.spark} Plano Principal x Simulações</h2>
+    <table><thead><tr><th>Cenário</th><th class="r">Aporte/mês</th><th class="r">Patrim. aposentadoria</th><th class="r">Meta (consumo)</th><th class="r">Prob.</th></tr></thead><tbody>
+    ${rows.map(({p,R})=>`<tr><td>${p.main?'★ ':''}${esc(p.titulo)}<br><span style="color:var(--soft);font-size:.76rem">aposentar aos ${p.apos}</span></td>
+      <td class="r">${BRL(R.sobra)}</td><td class="r">${BRL(R.patApos)}</td><td class="r">${BRL(R.alvoConsumo)}</td>
+      <td class="r"><b style="color:${R.prob>=80?'var(--ok)':R.prob>=55?'var(--warn)':'var(--bad)'}">${R.prob}%</b></td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="panel"><h2>Projeção comparada</h2><canvas id="chCmp"></canvas></div>`;
+  if(typeof Chart!=='undefined'){destroyCharts();const cols=['#C5A059','#8FD9CC','#E8CC8B','#f87171','#4Fa3a3'];
+    const maxLen=Math.max(...rows.map(r=>r.R.idades.length));const labels=rows[0].R.idades;
+    try{charts.push(new Chart(chCmp,{type:'line',data:{labels,datasets:rows.map((r,i)=>({label:(r.p.main?'★ ':'')+r.p.titulo,data:r.R.serie,borderColor:cols[i%cols.length],borderWidth:2,pointRadius:0,tension:.25,fill:false}))},options:{plugins:{legend:{labels:{color:'#9DB5B1'}}},scales:{x:{grid:{color:'rgba(143,217,204,.1)'},ticks:{color:'#9DB5B1'}},y:{grid:{color:'rgba(143,217,204,.1)'},ticks:{color:'#9DB5B1',callback:v=>'R$ '+(v/1e6).toFixed(1)+'M'}}}}}));}catch(e){console.warn(e)}}
+}
+
+/* ===================== CLIENTE ===================== */
+function renderClientDash(C){
+  const c=client(session.clientId),m=mainPlan(c),R=projetar(m);
+  setTop('Olá, '+c.nome.split(' ')[0],'Seu painel');
+  const col=R.prob>=80?'var(--ok)':R.prob>=55?'var(--warn)':'var(--bad)';
+  C.innerHTML=`
+   <div class="kpis">
+     <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio atual</div><b>${BRL(R.patr)}</b></div>
+     <div class="kpi grad"><div class="lab">${ICN.target}Meta na aposentadoria</div><b>${BRL((m.goals.find(g=>g.tipo==='renda')||{}).valor||0)}/mês</b></div>
+     <div class="kpi"><div class="lab">${ICN.money}Sua sobra/mês</div><b>${BRL(R.sobra)}</b></div>
+     <div class="kpi"><div class="lab">${ICN.spark}Aposentar aos</div><b>${m.apos}</b></div>
+   </div>
+   <div class="grid2">
+     <div class="panel" style="text-align:center"><h2 style="justify-content:center">Probabilidade de sucesso</h2>
+       <div class="gauge"><canvas id="gauge"></canvas></div>
+       <span class="prob" style="background:${col}22;color:${col};border:1px solid ${col}55;margin-top:8px">● ${R.prob}%</span></div>
+     <div class="panel"><h2>${ICN.plan} Projeção do seu patrimônio</h2><canvas id="chProj"></canvas></div>
+   </div>
+   ${diagPanel(m,R)}
+   <div class="panel"><h2>${ICN.spark} Atalhos</h2>
+     <div class="row" style="gap:10px;flex-wrap:wrap">
+       <button class="btn btn-gold btn-sm" onclick="go('plan')">Ver meu planejamento</button>
+       <button class="btn btn-teal btn-sm" onclick="go('gastos')">Controlar meus gastos</button>
+       <button class="btn btn-ghost btn-sm" onclick="go('cota')">Minha cota de consórcio</button>
+     </div></div>`;
+  drawResultCharts(m,R);
+}
+function renderClientPlan(C){
+  const c=client(session.clientId),m=mainPlan(c);
+  setTop('Meu Planejamento','Plano principal e simulações');
+  const sims=c.plans.filter(p=>!p.main);
+  C.innerHTML=`
+   <div class="panel"><h2>★ Plano Principal</h2>
+     <div class="row"><div><b style="color:#F2FAF8">${esc(m.titulo)}</b><div class="meta" style="font-size:.78rem;color:var(--soft)">Feito pelo seu assessor · aposentar aos ${m.apos}</div></div>
+     <button class="btn btn-gold btn-sm" onclick="view._from='plan';openEditor('${c.id}','${m.id}',true)">Ver plano</button></div>
+   </div>
+   <div class="toolbar"><h2 class="serif" style="font-size:1.05rem;color:var(--gold2)">Minhas simulações</h2><div class="sp"></div>
+     <button class="btn btn-teal btn-sm" onclick="view._from='plan';copyPlan('${c.id}','${m.id}')">+ Nova simulação</button></div>
+   <div class="cards">${sims.map(s=>{const R=projetar(s);return `<div class="ccard"><div class="row"><h3>${esc(s.titulo)}</h3><span class="tag tag-copy">Cópia</span></div>
+     <div class="meta">Aposentar aos ${s.apos} · prob. ${R.prob}%</div>
+     <div class="row" style="gap:8px"><button class="btn btn-teal btn-sm" onclick="view._from='plan';openEditor('${c.id}','${s.id}',false)">Editar</button>
+     <button class="btn btn-ghost btn-sm" onclick="delSim('${c.id}','${s.id}')">Excluir</button></div></div>`}).join('')||'<p class="note">Você ainda não criou simulações.</p>'}</div>
+   <div class="toolbar" style="margin-top:14px"><button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar todos os cenários</button></div>`;
+}
+async function delSim(cid,pid){if(!(await ask({title:'Excluir simulação?',msg:'O Plano Principal não é afetado.',ok:'Excluir'})))return;const c=client(cid);c.plans=c.plans.filter(p=>p.id!==pid);save();render();flash('Simulação excluída')}
+
+/* ----- GASTOS (placeholder Open Finance) ----- */
+function renderGastos(C){
+  const c=client(session.clientId),m=mainPlan(c);const t=totals(m);
+  if(!m.spending||!m.spending.length)m.spending=[{cat:'Moradia',valor:0},{cat:'Alimentação',valor:0},{cat:'Transporte',valor:0},{cat:'Lazer',valor:0},{cat:'Outros',valor:0}];
+  const tot=m.spending.reduce((s,x)=>s+(+x.valor||0),0);
+  setTop('Meus Gastos','Controle mensal');
+  C.innerHTML=`
+   <div class="banner">🔗 Em produção, esta tela conecta ao <b>Open Finance</b> e importa seus gastos automaticamente. Por enquanto, lance manualmente para visualizar.</div>
+   <div class="kpis">
+     <div class="kpi grad"><div class="lab">${ICN.money}Gasto do mês</div><b>${BRL(tot)}</b></div>
+     <div class="kpi"><div class="lab">${ICN.wallet}Sua renda/mês</div><b>${BRL(t.renda)}</b></div>
+     <div class="kpi ${tot>t.renda?'':''}"><div class="lab">${ICN.spark}Sobra estimada</div><b style="color:${t.renda-tot>=0?'var(--ok)':'var(--bad)'}">${BRL(t.renda-tot)}</b></div>
+   </div>
+   <div class="grid2">
+     <div class="panel"><h2>${ICN.money} Gastos por categoria</h2><div id="spendRows"></div>
+       <button class="btn btn-teal btn-sm additem" onclick="addSpend()">+ Categoria</button></div>
+     <div class="panel"><h2>Distribuição</h2><canvas id="chSpend"></canvas>
+       <div style="margin-top:12px"><div class="note">Comprometimento da renda</div><div class="bar"><i style="width:${Math.min(100,t.renda?tot/t.renda*100:0).toFixed(0)}%"></i></div>
+       <div style="font-size:.8rem;color:var(--muted);margin-top:6px">${t.renda?(tot/t.renda*100).toFixed(0):0}% da sua renda</div></div></div>
+   </div>`;
+  renderSpendRows(m);drawSpendChart(m);
+}
+function renderSpendRows(m){document.getElementById('spendRows').innerHTML=m.spending.map((s,i)=>`<div class="item"><div><input data-sp="${i}" data-k="cat" value="${esc(s.cat)}"></div><div><input type="number" data-sp="${i}" data-k="valor" value="${s.valor}"></div><div></div><button class="btn-ico delrow" onclick="delSpend(${i})">✕</button></div>`).join('');
+  document.querySelectorAll('[data-sp]').forEach(el=>el.oninput=()=>{const i=+el.dataset.sp,k=el.dataset.k;m.spending[i][k]=el.type==='number'?(parseFloat(el.value)||0):el.value;save();drawSpendChart(m);updGastoKpis(m)})}
+function updGastoKpis(m){const t=totals(m);const tot=m.spending.reduce((s,x)=>s+(+x.valor||0),0);const k=document.querySelectorAll('#content .kpi b');if(k[0])k[0].textContent=BRL(tot);if(k[2]){k[2].textContent=BRL(t.renda-tot);k[2].style.color=t.renda-tot>=0?'var(--ok)':'var(--bad)'}}
+function addSpend(){const m=mainPlan(session.clientId);m.spending.push({cat:'Nova categoria',valor:0});save();renderSpendRows(m)}
+function delSpend(i){const m=mainPlan(session.clientId);m.spending.splice(i,1);save();renderGastos(document.getElementById('content'))}
+function drawSpendChart(m){if(typeof Chart==='undefined')return;destroyCharts();try{charts.push(new Chart(chSpend,{type:'doughnut',data:{labels:m.spending.map(s=>s.cat),datasets:[{data:m.spending.map(s=>+s.valor||0),backgroundColor:['#C5A059','#8FD9CC','#E8CC8B','#f87171','#4Fa3a3','#B0875F','#6E8B88'],borderWidth:0}]},options:{cutout:'58%',plugins:{legend:{position:'bottom',labels:{color:'#9DB5B1',font:{size:11}}}}}}))}catch(e){console.warn(e)}}
+
+/* ----- COTA (placeholder consórcio) ----- */
+function renderCota(C){
+  setTop('Minha Cota','Consórcio');
+  C.innerHTML=`<div class="banner">🔗 Em produção, esta tela traz os dados reais da sua cota (saldo, parcelas, lances, contemplações) a partir da carteira do corretor. Abaixo, um exemplo da experiência.</div>
+   <div class="kpis">
+     <div class="kpi grad"><div class="lab">${ICN.cota}Crédito</div><b>R$ 300.000</b></div>
+     <div class="kpi"><div class="lab">${ICN.wallet}Parcela</div><b>R$ 1.870</b></div>
+     <div class="kpi"><div class="lab">${ICN.spark}Pagas</div><b>14 / 200</b></div>
+     <div class="kpi"><div class="lab">${ICN.target}Situação</div><b style="font-size:1.1rem">Ativo</b></div>
+   </div>
+   <div class="panel"><h2>${ICN.cota} Andamento da cota</h2><div class="bar" style="height:12px"><i style="width:7%"></i></div>
+     <p class="note" style="margin-top:10px">7% do grupo concluído · próxima assembleia: dia 15.</p>
+     <div class="row" style="gap:10px;margin-top:16px;flex-wrap:wrap">
+       <a class="btn btn-gold btn-sm" href="#" onclick="flash('Em produção: leva ao portal oficial da administradora');return false">Emitir boleto</a>
+       <a class="btn btn-teal btn-sm" href="#" onclick="flash('Em produção: oferta de lance pelo canal oficial');return false">Ofertar lance</a>
+       <a class="btn btn-ghost btn-sm" href="#" onclick="flash('Em produção: histórico de assembleias');return false">Ver contemplações</a>
+     </div></div>`;
+}
+
+/* init */
+tab('a');
+</script>
+</body>
+</html>
