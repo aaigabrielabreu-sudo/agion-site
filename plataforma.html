@@ -325,7 +325,7 @@ const ICN={dash:'<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="
 let session={role:null,clientId:null};
 let view={page:null,clientId:null,planId:null,readonly:false};
 let charts=[];
-const client=id=>db.clients.find(c=>c.id===id);
+const client=id=>(typeof id==='object'?id:db.clients.find(c=>c.id===id));
 const plan=(c,p)=>client(c).plans.find(x=>x.id===p);
 const mainPlan=c=>client(c).plans.find(p=>p.main);
 
