@@ -1,0 +1,1818 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agion — Plataforma de Planejamento Financeiro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Lora:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0D232B;--bg2:#102A31;--card:#16333C;--card2:#1A3B45;--card3:#1F4651;
+  --teal:#8FD9CC;--teal-ink:#0A2026;--gold:#C5A059;--gold2:#E8CC8B;
+  --grad-gold:linear-gradient(115deg,#A8853E,#E8CC8B 45%,#C5A059 85%);
+  --grad-hero:linear-gradient(100deg,#8FD9CC,#E8CC8B 50%,#C5A059);
+  --ink:#DCE9E7;--muted:#9DB5B1;--soft:#6E8B88;--line:rgba(143,217,204,.16);--line-gold:rgba(197,160,89,.28);
+  --head:#F2FAF8;
+  --serif:'Lora',Georgia,serif;--display:'Cinzel',serif;--sans:'DM Sans',-apple-system,sans-serif;
+  --ok:#34d399;--warn:#fbbf24;--bad:#f87171;
+}
+body.light{
+  --bg:#EEF3F2;--bg2:#ffffff;--card:#ffffff;--card2:#F7FAF9;--card3:#EEF4F2;
+  --teal:#13707d;--gold:#A8853E;--gold2:#9a7430;
+  --ink:#234048;--muted:#5C7470;--soft:#92A6A2;--line:rgba(16,51,60,.12);--line-gold:rgba(168,133,62,.35);
+  --head:#0E2A31;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+body.light::before{opacity:.4}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:
+ radial-gradient(46% 38% at 12% 8%,rgba(38,110,122,.45),transparent 70%),
+ radial-gradient(40% 34% at 90% 14%,rgba(197,160,89,.10),transparent 70%),
+ radial-gradient(55% 45% at 82% 95%,rgba(38,110,122,.38),transparent 70%)}
+body::after{content:"";position:fixed;inset:-12%;z-index:-1;pointer-events:none;background-image:url('https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png');background-repeat:repeat;background-size:clamp(200px,18vw,290px);filter:blur(.6px);opacity:.06;transform:rotate(-10deg)}
+body.light::after{opacity:.05}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit}
+.serif{font-family:var(--serif)}
+.hidden{display:none!important}
+/* botões */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:12px;font-weight:700;font-size:.9rem;transition:.22s;white-space:nowrap}
+.btn-gold{background:var(--grad-gold);color:var(--teal-ink)}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 0 28px rgba(197,160,89,.4)}
+.btn-teal{background:rgba(143,217,204,.1);border:1px solid rgba(143,217,204,.35);color:#BFEAE2}
+.btn-teal:hover{background:rgba(143,217,204,.18)}
+.btn-ghost{border:1px solid var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--gold)}
+.btn-sm{padding:8px 14px;font-size:.8rem;border-radius:9px}
+.btn-ico{padding:8px;width:34px;height:34px;border-radius:9px;border:1px solid var(--line)}
+.btn-ico:hover{border-color:var(--gold);color:var(--gold2)}
+.chip{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:5px 11px;border-radius:999px;background:rgba(197,160,89,.12);border:1px solid var(--line-gold);color:var(--gold2)}
+.chip-teal{background:rgba(143,217,204,.1);border-color:rgba(143,217,204,.3);color:var(--teal)}
+label{display:block;font-size:.78rem;font-weight:600;color:var(--head);margin:0 0 6px}
+input,select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:11px;background:rgba(10,28,34,.5);color:var(--head);font-size:.92rem;outline:none;transition:.2s}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(197,160,89,.14)}
+.field{margin-bottom:14px}
+.note{font-size:.74rem;color:var(--soft);line-height:1.5}
+/* ===== LOGIN ===== */
+#loginView{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.login{width:100%;max-width:440px;background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:26px;padding:42px;box-shadow:0 30px 90px rgba(0,0,0,.55)}
+.login .lg{font-family:var(--display);font-size:1.9rem;letter-spacing:.06em;text-align:center;color:var(--head)}
+.login .lg em{font-style:normal;background:var(--grad-hero);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.login .tg{text-align:center;font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:2px 0 22px}
+.tabs{display:flex;background:rgba(10,28,34,.6);border-radius:12px;padding:5px;gap:5px;margin-bottom:22px}
+.tabs button{flex:1;padding:11px;border-radius:9px;font-weight:700;font-size:.84rem;color:var(--muted);transition:.22s}
+.tabs button.on{background:var(--grad-gold);color:var(--teal-ink)}
+/* ===== APP SHELL ===== */
+#app{display:none;min-height:100vh}
+#app.show{display:grid;grid-template-columns:248px 1fr}
+.side{background:rgba(8,22,27,.85);backdrop-filter:blur(16px);border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.side .brand{display:flex;flex-direction:column;line-height:1.1;padding:6px 10px 22px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.side .brand b{font-family:var(--display);font-size:1.4rem;color:var(--head);letter-spacing:.05em}
+.side .brand span{font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.navi{display:flex;flex-direction:column;gap:4px;flex:1}
+.navi a{display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:11px;font-size:.9rem;font-weight:600;color:var(--muted);transition:.2s;cursor:pointer}
+.navi a:hover{background:rgba(143,217,204,.06);color:var(--head)}
+.navi a.on{background:rgba(197,160,89,.12);color:var(--gold2);border:1px solid var(--line-gold)}
+.navi a svg{width:18px;height:18px;flex-shrink:0}
+.side .foot{border-top:1px solid var(--line);padding-top:14px;font-size:.78rem;color:var(--soft)}
+.side .foot .u{color:var(--head);font-weight:700;margin-bottom:2px}
+.main{min-height:100vh;overflow-x:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:clamp(12px,1.5vw,16px) clamp(16px,3vw,30px);border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(13,35,43,.82);backdrop-filter:blur(16px);z-index:30;flex-wrap:wrap}
+.topbar h1{font-family:var(--serif);font-size:1.35rem;color:var(--head);line-height:1.15}
+.topbar .crumb{font-size:.72rem;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;font-weight:700}
+.tb-left{min-width:0}
+.tb-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.userchip{display:flex;align-items:center;gap:9px;padding:5px 6px 5px 5px;border:1px solid var(--line);border-radius:999px}
+.userchip .meta{line-height:1.1}
+.userchip .meta .nm{font-size:.82rem;font-weight:700;color:var(--head)}
+.userchip .meta .rl{font-size:.64rem;color:var(--soft)}
+.userchip .out{border:none;background:rgba(143,217,204,.08);color:var(--muted);font-size:.72rem;font-weight:700;padding:6px 11px;border-radius:999px}
+.userchip .out:hover{color:var(--bad);background:rgba(248,113,113,.1)}
+@media(max-width:560px){.userchip .meta{display:none}.topbar h1{font-size:1.15rem}}
+.content{padding:clamp(18px,2.5vw,30px) clamp(16px,3.2vw,34px) 80px;max-width:1120px;margin:0 auto}
+.icon{width:1.2em;height:1.2em;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
+/* cards / KPIs */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-bottom:24px}
+.kpi{background:linear-gradient(165deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:18px;padding:20px}
+.kpi .lab{font-size:.74rem;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.kpi .lab svg{width:15px;height:15px;color:var(--gold)}
+.kpi b{font-family:var(--serif);font-size:1.55rem;color:var(--head);line-height:1}
+.kpi.grad b{background:var(--grad-hero);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.panel{background:linear-gradient(165deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:18px;padding:clamp(16px,2.2vw,24px);margin-bottom:clamp(14px,1.8vw,20px)}
+.panel h2{font-family:var(--serif);font-size:1.08rem;color:var(--gold2);margin-bottom:16px;display:flex;align-items:center;gap:9px}
+.panel h2 .right{margin-left:auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 18px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.ccard{background:linear-gradient(165deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:18px;padding:20px;transition:.25s}
+.ccard:hover{border-color:var(--line-gold);transform:translateY(-3px)}
+.ccard h3{font-family:var(--serif);font-size:1.08rem;color:var(--head)}
+.ccard .meta{font-size:.76rem;color:var(--soft);margin:4px 0 12px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.tag{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:4px 9px;border-radius:999px}
+.tag-main{background:rgba(197,160,89,.15);color:var(--gold2);border:1px solid var(--line-gold)}
+.tag-copy{background:rgba(143,217,204,.12);color:var(--teal);border:1px solid rgba(143,217,204,.3)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:20px}
+.toolbar .sp{flex:1}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--gold2);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em}
+td.r,th.r{text-align:right}
+canvas{width:100%!important;height:280px!important}
+.gauge canvas{height:150px!important}
+.prob{display:inline-flex;align-items:center;gap:8px;font-weight:700;padding:8px 18px;border-radius:999px;font-size:.92rem}
+.gauge{position:relative;width:150px;height:150px;margin:0 auto}
+.disclaimer{font-size:.74rem;color:var(--soft);background:rgba(143,217,204,.05);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-top:16px;line-height:1.6}
+.banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(197,160,89,.08);border:1px solid var(--line-gold);border-radius:14px;padding:13px 16px;margin-bottom:18px;font-size:.85rem;color:#E8E0CC}
+.locked input,.locked select,.locked textarea,.locked .additem,.locked .delrow{pointer-events:none;opacity:.55}
+/* itens (linhas dinâmicas) */
+.item{display:grid;grid-template-columns:1fr 130px 120px 34px;gap:8px;align-items:end;margin-bottom:8px}
+.item.assets{grid-template-columns:1fr 150px 130px 34px}
+.item .delrow{align-self:center;margin-bottom:2px}
+.additem{margin-top:6px}
+.bar{height:8px;border-radius:5px;background:rgba(143,217,204,.1);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;border-radius:5px;background:var(--grad-hero)}
+/* ===== EDITOR EM SEÇÕES ===== */
+.subnav{display:flex;gap:6px;overflow-x:auto;margin:4px 0 20px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.subnav button{white-space:nowrap;padding:9px 14px;border-radius:999px;font-size:.82rem;font-weight:700;color:var(--muted);border:1px solid transparent;transition:.2s}
+.subnav button.on{color:var(--gold2);background:rgba(197,160,89,.12);border-color:var(--line-gold)}
+.subnav button:hover{color:var(--head)}
+.plansec{display:none}
+.plansec.on{display:block;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.netrow{display:flex;justify-content:space-between;align-items:center;padding:11px 2px;border-bottom:1px solid var(--line);font-size:.92rem;color:var(--muted)}
+.netrow b{color:var(--head);font-family:var(--serif);font-size:1.05rem}
+.netrow.tot{border-bottom:none;margin-top:4px}
+.netrow.tot b{background:var(--grad-hero);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-size:1.3rem}
+.tbl-scroll{max-height:440px;overflow:auto;border:1px solid var(--line);border-radius:12px}
+.tbl-scroll table{font-size:.82rem}
+.tbl-scroll thead th{position:sticky;top:0;background:#16333C;z-index:1}
+.lineleg{display:flex;gap:18px;flex-wrap:wrap;font-size:.8rem;margin:0 0 14px}
+.lineleg span{display:inline-flex;align-items:center;gap:7px;color:var(--muted)}
+.lineleg i{width:18px;height:3px;border-radius:2px;display:inline-block}
+.gloss dt{font-weight:700;color:var(--gold2);font-size:.92rem;margin-top:14px}
+.gloss dd{margin:3px 0 0;font-size:.87rem;color:var(--ink);line-height:1.55}
+/* ===== AVATAR / FEED / CHAT / CAPTAÇÃO ===== */
+.av{flex-shrink:0;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#0A2026;font-family:var(--sans)}
+.feed-comp{display:flex;gap:12px;margin-bottom:18px}
+.feed-comp textarea{min-height:46px;resize:vertical}
+.post{display:flex;gap:12px;padding:16px 0;border-bottom:1px solid var(--line)}
+.post .pbody{flex:1}
+.post .phead{display:flex;align-items:baseline;gap:8px}
+.post .pname{font-weight:700;color:var(--head);font-size:.92rem}
+.post .ptime{font-size:.72rem;color:var(--soft)}
+.post .ptext{font-size:.9rem;color:var(--ink);line-height:1.55;margin:4px 0 8px;white-space:pre-wrap}
+.post .pacts{display:flex;gap:16px;font-size:.78rem;color:var(--muted)}
+.post .pacts button{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
+.post .pacts button:hover{color:var(--gold2)}
+.post .pacts button.liked{color:#f87171}
+.post .pacts button.liked svg{fill:#f87171;stroke:#f87171}
+.coment{display:flex;gap:9px;margin-top:10px}
+.coment .cb{flex:1;background:rgba(10,28,34,.45);border:1px solid var(--line);border-radius:10px;padding:8px 11px}
+.coment .cn{font-weight:700;color:var(--head);font-size:.8rem}
+.coment .cx{font-size:.84rem;color:var(--ink);line-height:1.4}
+.chat-wrap{display:grid;grid-template-columns:200px 1fr;gap:0;border:1px solid var(--line);border-radius:16px;overflow:hidden;height:560px}
+.chat-side{background:rgba(10,28,34,.5);border-right:1px solid var(--line);padding:12px;overflow-y:auto}
+.chat-side .ch{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:.88rem;font-weight:600;color:var(--muted)}
+.chat-side .ch:hover{background:rgba(143,217,204,.06)}
+.chat-side .ch.on{background:rgba(197,160,89,.12);color:var(--gold2)}
+.chat-main{display:flex;flex-direction:column;min-width:0}
+.chat-msgs{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+.msg{display:flex;gap:10px;max-width:78%}
+.msg .mbubble{background:var(--card2);border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:9px 13px}
+.msg.me{align-self:flex-end;flex-direction:row-reverse}
+.msg.me .mbubble{background:rgba(197,160,89,.14);border-color:var(--line-gold);border-radius:14px 4px 14px 14px}
+.msg .mn{font-size:.74rem;font-weight:700;color:var(--gold2);margin-bottom:2px}
+.msg .mt{font-size:.88rem;color:var(--ink);line-height:1.4}
+.msg .mtime{font-size:.64rem;color:var(--soft);margin-top:3px}
+.chat-input{display:flex;gap:10px;padding:12px;border-top:1px solid var(--line);background:rgba(10,28,34,.4)}
+.chat-input input{flex:1}
+.intg{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+.intg .src{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:.95rem;flex-shrink:0}
+.src-Google{background:#fff;color:#4285F4;border:1px solid #e0e0e0}
+.src-Meta{background:#0866FF;color:#fff}
+.dot-on{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block;box-shadow:0 0 8px var(--ok)}
+.dot-off{width:8px;height:8px;border-radius:50%;background:var(--soft);display:inline-block}
+.lead-src{font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:5px}
+@media(max-width:860px){.chat-wrap{grid-template-columns:1fr;height:auto}.chat-side{display:flex;gap:6px;overflow-x:auto;border-right:none;border-bottom:1px solid var(--line)}.chat-msgs{height:360px}.msg{max-width:90%}}
+/* ===== CRM KANBAN ===== */
+.kanban{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 10px}
+.kcol{flex:0 0 248px;background:rgba(10,28,34,.5);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column}
+.kcol h4{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--gold2);display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.kcol .ksum{font-size:.72rem;color:var(--soft);margin-bottom:10px}
+.kcol .kbody{display:flex;flex-direction:column;gap:10px;min-height:30px}
+.lead{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:12px;padding:12px;cursor:default;transition:.2s}
+.lead:hover{border-color:var(--line-gold)}
+.lead .nm{font-weight:700;color:var(--head);font-size:.9rem}
+.lead .ct{font-size:.74rem;color:var(--muted);margin:2px 0 8px}
+.lead .vl{font-family:var(--serif);color:var(--gold2);font-size:.95rem}
+.lead .acts{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+.lead .acts button{font-size:.7rem;padding:5px 8px;border-radius:7px;border:1px solid var(--line);color:var(--muted)}
+.lead .acts button:hover{border-color:var(--gold);color:var(--gold2)}
+.ttype{display:inline-block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:999px;margin-bottom:8px}
+.tt-Consórcio{background:rgba(197,160,89,.16);color:var(--gold2);border:1px solid var(--line-gold)}
+.tt-Planejamento{background:rgba(143,217,204,.12);color:var(--teal);border:1px solid rgba(143,217,204,.3)}
+.tt-Consultoria{background:rgba(232,204,139,.1);color:#E8CC8B;border:1px solid rgba(232,204,139,.3)}
+.task{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:linear-gradient(160deg,var(--card2),var(--card))}
+.task.done{opacity:.55}
+.task.done .tk-t{text-decoration:line-through}
+.task .tk-cb{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line-gold);flex-shrink:0;cursor:pointer;display:grid;place-items:center;color:var(--gold2);font-weight:800}
+.task .tk-t{flex:1;font-size:.9rem;color:var(--head)}
+.task .tk-d{font-size:.74rem;color:var(--soft)}
+/* ===== ORGANOGRAMA VERTICAL DE METAS ===== */
+.journey{position:relative;padding:6px 0 6px 4px}
+.j-node{position:relative;padding-left:48px;padding-bottom:30px}
+.j-node:last-child{padding-bottom:0}
+.j-node::before{content:"";position:absolute;left:17px;top:34px;bottom:-4px;width:2px;background:linear-gradient(var(--gold),rgba(143,217,204,.3))}
+.j-node:last-child::before{display:none}
+.j-dot{position:absolute;left:0;top:0;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-weight:700;font-size:.95rem;background:var(--grad-gold);color:var(--teal-ink);box-shadow:0 0 0 4px rgba(197,160,89,.12),0 6px 18px rgba(0,0,0,.35);z-index:1}
+.j-goal{background:linear-gradient(160deg,var(--card3),var(--card2));border:1px solid var(--line-gold);border-radius:15px;padding:15px 18px}
+.j-goal .row{align-items:flex-start}
+.j-goal h3{font-family:var(--serif);font-size:1.06rem;color:var(--head);line-height:1.2}
+.j-goal .when{font-size:.74rem;color:var(--gold2);font-weight:700;white-space:nowrap;margin-left:10px}
+.j-goal .gval{font-size:.82rem;color:var(--teal);font-weight:700;margin-top:2px}
+.j-steps{list-style:none;margin:12px 0 0;display:grid;gap:8px}
+.j-step{display:flex;gap:10px;align-items:flex-start;background:rgba(10,28,34,.4);border:1px solid var(--line);border-radius:11px;padding:9px 12px}
+.j-step .n{flex-shrink:0;width:20px;height:20px;border-radius:50%;background:rgba(143,217,204,.14);color:var(--teal);font-size:.7rem;font-weight:800;display:grid;place-items:center;margin-top:1px}
+.j-step .tx{font-size:.85rem;color:var(--ink);line-height:1.45;flex:1}
+.j-step .x{cursor:pointer;color:var(--soft);font-size:.85rem;padding:0 2px}
+.j-step .x:hover{color:var(--bad)}
+.j-addstep{display:flex;gap:8px;margin-top:10px}
+.j-addstep input{flex:1}
+.flash{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--grad-gold);color:var(--teal-ink);font-weight:700;padding:13px 26px;border-radius:999px;box-shadow:0 12px 30px rgba(0,0,0,.4);z-index:500;opacity:0;transition:.3s;font-size:.9rem}
+.flash.show{opacity:1;bottom:34px}
+/* ===== POLIMENTO GERAL DE UX ===== */
+.kpi{transition:transform .22s,border-color .22s}
+.kpi:hover{transform:translateY(-2px);border-color:var(--line-gold)}
+.panel{transition:border-color .2s}
+.content{animation:pageIn .35s ease}
+@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(143,217,204,.18);border-radius:6px}
+::-webkit-scrollbar-thumb:hover{background:rgba(197,160,89,.45)}
+.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.navi a{transition:background .2s,color .2s,transform .15s}
+.navi a:hover{transform:translateX(2px)}
+.side .brand b{background:var(--grad-hero);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.mob-brand{display:none}
+@media(max-width:860px){
+  .mob-brand{display:flex;align-items:center;gap:8px;font-family:var(--display);font-size:1.05rem;color:var(--head);letter-spacing:.05em;padding-right:6px}
+  .mob-brand span{font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700}
+}
+/* ===== MEUS GASTOS (estilo Mobills) ===== */
+.month-nav{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:16px}
+.month-nav b{font-family:var(--serif);font-size:1.1rem;color:var(--head);min-width:150px;text-align:center}
+.month-nav button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);color:var(--ink)}
+.month-nav button:hover{border-color:var(--gold);color:var(--gold2)}
+.gsum{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:20px}
+.gsum div{background:linear-gradient(165deg,var(--card2),var(--card));padding:16px;text-align:center}
+.gsum .lab{font-size:.72rem;color:var(--muted);margin-bottom:5px}
+.gsum b{font-family:var(--serif);font-size:1.15rem;display:block}
+.catrow{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.catrow .ci{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:1.05rem;flex-shrink:0}
+.catrow .cmid{flex:1;min-width:0}
+.catrow .cn{font-size:.9rem;color:var(--head);font-weight:600}
+.catrow .cbar{height:6px;border-radius:4px;background:rgba(143,217,204,.1);margin-top:5px;overflow:hidden}
+.catrow .cbar i{display:block;height:100%;border-radius:4px}
+.catrow .cval{text-align:right;flex-shrink:0}
+.catrow .cval b{font-size:.9rem;color:var(--head)}
+.catrow .cval span{font-size:.7rem;color:var(--soft);display:block}
+.lanc{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.lanc .li{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:.95rem;flex-shrink:0}
+.lanc .lm{flex:1;min-width:0}
+.lanc .ld{font-size:.88rem;color:var(--head);font-weight:600}
+.lanc .ls{font-size:.72rem;color:var(--soft)}
+.lanc .lv{font-weight:700;font-size:.9rem;white-space:nowrap}
+.lanc .lx{cursor:pointer;color:var(--soft);font-size:.85rem;padding:0 4px}
+.lanc .lx:hover{color:var(--bad)}
+.fab{position:fixed;right:24px;bottom:24px;width:56px;height:56px;border-radius:50%;background:var(--grad-gold);color:var(--teal-ink);font-size:1.7rem;font-weight:700;box-shadow:0 12px 30px rgba(197,160,89,.45);z-index:55;display:grid;place-items:center}
+.fab:hover{transform:scale(1.06)}
+@media(max-width:860px){.fab{bottom:84px}}
+/* sliders */
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:5px;background:rgba(143,217,204,.18);outline:none;margin-top:6px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--grad-gold);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border:none;border-radius:50%;background:#C5A059;cursor:pointer}
+.lever label{display:block;font-size:.85rem;color:var(--ink);font-weight:600;margin-bottom:6px}
+.lever label b{color:var(--gold2);float:right}
+/* sino de notificações */
+.bell{position:relative;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--ink);background:rgba(143,217,204,.05)}
+.bell:hover{border-color:var(--gold);color:var(--gold2)}
+.bell .badge{position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--bad);color:#fff;font-size:.62rem;font-weight:800;display:grid;place-items:center;box-shadow:0 0 0 2px var(--bg)}
+.notif{position:absolute;top:54px;right:0;width:330px;max-width:88vw;background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line-gold);border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.6);z-index:80;overflow:hidden}
+.notif h4{padding:14px 16px;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--gold2);border-bottom:1px solid var(--line)}
+.notif .ni{display:flex;gap:11px;align-items:flex-start;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:.15s}
+.notif .ni:hover{background:rgba(143,217,204,.06)}
+.notif .ni .dot{flex-shrink:0;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:.9rem}
+.notif .ni .tx{font-size:.84rem;color:var(--ink);line-height:1.4}
+.notif .ni .tm{font-size:.7rem;color:var(--soft);margin-top:2px}
+.notif .empty{padding:26px 16px;text-align:center;color:var(--soft);font-size:.85rem}
+/* skeleton */
+.skel{padding:8px 0}
+.skel .sk{background:linear-gradient(90deg,rgba(143,217,204,.06),rgba(143,217,204,.14),rgba(143,217,204,.06));background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:12px;margin-bottom:14px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* drag and drop */
+.lead{cursor:grab}
+.lead.dragging{opacity:.4}
+.kbody.dragover{outline:2px dashed var(--gold);outline-offset:3px;border-radius:10px;background:rgba(197,160,89,.06)}
+/* monograma da marca */
+.logo-mark{width:40px;height:40px;flex-shrink:0}
+.login .logo-mark{width:54px;height:54px;margin:0 auto 10px;display:block}
+.logo-img{height:46px;width:auto;display:block;margin:0 auto 12px;object-fit:contain}
+.side .logo-img{height:34px;margin:0}
+.top-logo{height:30px;width:auto;display:none;margin-right:4px}
+body.light .logo-img,body.light .top-logo{filter:none}
+@media(max-width:860px){.top-logo{display:block}}
+.modal-bg{position:fixed;inset:0;background:rgba(4,12,14,.72);backdrop-filter:blur(4px);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line-gold);border-radius:18px;padding:28px;width:100%;max-width:430px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.modal h3{font-family:var(--serif);font-size:1.2rem;color:var(--head);margin-bottom:10px}
+.modal p{color:var(--muted);font-size:.9rem;margin-bottom:10px;line-height:1.5}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.mobnav{display:none}
+@media(max-width:860px){
+  #app.show{grid-template-columns:1fr}
+  .side{display:none}
+  .mobnav{display:flex;justify-content:space-between;gap:2px;padding:7px 8px calc(7px + env(safe-area-inset-bottom,0px));position:fixed;left:0;right:0;bottom:0;top:auto;background:rgba(8,22,27,.97);backdrop-filter:blur(18px);border-top:1px solid var(--line-gold);z-index:70;overflow-x:auto}
+  .mobnav::-webkit-scrollbar{display:none}
+  .mobnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:54px;padding:5px 4px;border-radius:12px;font-size:.6rem;font-weight:700;color:var(--soft);white-space:nowrap}
+  .mobnav a .icon{width:21px;height:21px;stroke-width:1.8}
+  .mobnav a.on{color:var(--gold2)}
+  .mobnav a.on .icon{filter:drop-shadow(0 0 6px rgba(197,160,89,.5))}
+  .mobnav .mob-brand{display:none}
+  .content{padding:18px 15px 96px}
+  .topbar{padding:13px 16px;position:static}
+  .grid2{grid-template-columns:1fr}
+  .item{grid-template-columns:1fr 1fr;}
+  .item .delrow{grid-column:2;justify-self:end}
+  .panel{padding:18px 16px}
+  .kpi{padding:16px}
+  .btn{padding:13px 20px}.btn-sm{padding:10px 15px}
+  .topbar h1{font-size:1.18rem}
+}
+.print-cover{display:none}
+@media print{
+  body{--bg:#fff;--bg2:#fff;--card:#F3F7F5;--card2:#EEF4F1;--card3:#E7F0EC;--ink:#1c3338;--head:#0C343B;--muted:#4a5e60;--soft:#7d9490;--line:#cfe0da;--line-gold:#cdb98a;--teal:#1A535C;--gold2:#A8853E;background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body::before,.side,.mobnav,.topbar,.subnav,.toolbar,.fab,.bell,.userchip,.banner,.lever,.disclaimer .btn,.j-addstep,.additem,.delrow,.btn{display:none!important}
+  /* marca d'água Agion em todas as páginas */
+  body::after{display:block!important;position:fixed;inset:-6%;z-index:-1;background-image:url('https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png');background-repeat:repeat;background-size:240px;filter:none;opacity:.05;transform:rotate(-10deg)}
+  #app.show{grid-template-columns:1fr;display:block}
+  .content{padding:0}
+  /* mais compacto: menos espaçamento entre tópicos */
+  .plansec{display:block!important;page-break-inside:auto;margin-bottom:4px}
+  .panel{padding:11px 14px;margin-bottom:8px;border-color:var(--line);box-shadow:none}
+  .panel h2{color:var(--teal);font-size:1rem;margin-bottom:7px;border-bottom:1px solid var(--line-gold);padding-bottom:5px}
+  .kpis{gap:8px;margin-bottom:8px}
+  .kpi{padding:10px 12px;border-radius:10px}
+  .kpi b{font-size:1.15rem}
+  .netrow{padding:5px 2px}
+  .grid2{gap:10px}
+  .tbl-scroll{max-height:none;border-color:var(--line)}
+  th{color:var(--teal)}
+  .panel,.kpi,.ccard,.catrow,.lanc,table,.j-node{break-inside:avoid}
+  /* capa com a cara da Agion (verde) */
+  .print-cover{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;height:96vh;page-break-after:always;background:linear-gradient(160deg,#0D232B,#102A31);margin:-1px;border-radius:0}
+  .print-cover h1{font-family:var(--serif);font-size:2rem;color:#F2FAF8;margin:18px 0 6px}
+  .print-cover p{color:#9DB5B1}
+  canvas{max-height:260px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="loginView">
+  <div class="login">
+    <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'">
+    <div class="lg serif">Agion <em>Wealth</em></div>
+    <div class="tg">Plataforma de Planejamento Financeiro</div>
+    <div class="field"><label>E-mail</label><input id="logEmail" placeholder="seu@email.com" value="gabriel@agionconsorcios.com.br"></div>
+    <div class="field"><label>Senha</label><input id="logPass" type="password" value="demo" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button>
+    <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div>
+    <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div>
+    <details style="margin-top:14px"><summary class="note" style="cursor:pointer">Contas de demonstração</summary>
+      <div class="note" style="margin-top:8px;line-height:1.7">
+        <b>Master:</b> gabriel@agionconsorcios.com.br<br>
+        <b>Especialista:</b> marina@agionconsorcios.com.br<br>
+        <b>Cliente:</b> eduardo@email.com<br>
+        Senha de todos: <b>demo</b></div>
+    </details>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <aside class="side">
+    <div class="brand" style="flex-direction:row;align-items:center;gap:10px"><img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion" onerror="this.style.display='none'"><span style="display:flex;flex-direction:column"><b>Wealth</b><span>Plataforma</span></span></div>
+    <nav class="navi" id="navi"></nav>
+    <div class="foot">
+      <div class="u" id="sideUser"></div>
+      <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="logout()">Sair</button>
+    </div>
+  </aside>
+  <div class="main">
+    <div class="mobnav" id="mobnav"></div>
+    <div class="topbar">
+      <div class="tb-left" style="display:flex;align-items:center;gap:10px"><img class="top-logo" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion" onerror="this.style.display='none'"><div><div class="crumb" id="crumb"></div><h1 id="pageTitle">—</h1></div></div>
+      <div class="tb-right">
+        <div class="actions" id="topActions"></div>
+        <button class="bell" id="themeBtn" onclick="toggleTheme()" title="Alternar tema claro/escuro">🌙</button>
+        <div style="position:relative" id="bellWrap"></div>
+        <div class="userchip" id="userChip"></div>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div id="modalBg" class="modal-bg hidden">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <p id="modalMsg" class="hidden"></p>
+    <input id="modalInput" class="hidden">
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" id="modalCancel">Cancelar</button>
+      <button class="btn btn-gold btn-sm" id="modalOk">Confirmar</button>
+    </div>
+  </div>
+</div>
+<div id="leadModal" class="modal-bg hidden">
+  <div class="modal" style="max-width:460px">
+    <h3 id="leadTitle">Novo lead</h3>
+    <input type="hidden" id="le_id">
+    <div class="field"><label>Nome</label><input id="le_nome" placeholder="Nome do lead"></div>
+    <div class="field"><label>Contato (telefone ou e-mail)</label><input id="le_contato" placeholder="(51) 9..."></div>
+    <div class="grid2">
+      <div class="field"><label>Tipo de negócio</label><select id="le_tipo"><option>Consórcio</option><option>Planejamento</option><option>Consultoria</option></select></div>
+      <div class="field"><label>Valor potencial (R$)</label><input id="le_valor" type="number" value="0"></div>
+    </div>
+    <div class="field"><label>Observações</label><textarea id="le_obs" rows="2" placeholder="Anotações..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeLead()">Cancelar</button>
+      <button class="btn btn-gold btn-sm" onclick="saveLead()">Salvar</button>
+    </div>
+  </div>
+</div>
+<div id="lancModal" class="modal-bg hidden">
+  <div class="modal" style="max-width:430px">
+    <h3>Novo lançamento</h3>
+    <div class="grid2">
+      <div class="field"><label>Tipo</label><select id="lanc_tipo"><option value="despesa">Despesa</option><option value="receita">Receita</option></select></div>
+      <div class="field"><label>Categoria</label><select id="lanc_cat"></select></div>
+    </div>
+    <div class="field"><label>Descrição</label><input id="lanc_desc" placeholder="Ex: Supermercado"></div>
+    <div class="grid2">
+      <div class="field"><label>Valor (R$)</label><input id="lanc_valor" type="number"></div>
+      <div class="field"><label>Dia</label><input id="lanc_dia" type="number" value="15"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeLanc()">Cancelar</button>
+      <button class="btn btn-gold btn-sm" onclick="saveLanc()">Adicionar</button>
+    </div>
+  </div>
+</div>
+<div id="budgetModal" class="modal-bg hidden">
+  <div class="modal" style="max-width:420px">
+    <h3>Metas de gasto por categoria</h3>
+    <p>Defina quanto pretende gastar por mês. Avisamos quando estourar.</p>
+    <div id="budgetBody" style="max-height:46vh;overflow:auto"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeBudgets()">Cancelar</button>
+      <button class="btn btn-gold btn-sm" onclick="saveBudgets()">Salvar metas</button>
+    </div>
+  </div>
+</div>
+<div class="flash" id="flash"></div>
+
+<script>
+/* ===================== UTIL ===================== */
+const DB_KEY='agion_wealth_v2';
+const BRL=v=>(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+const BRL2=v=>(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2});
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function load(){try{return JSON.parse(localStorage.getItem(DB_KEY))}catch(e){return null}}
+function save(){localStorage.setItem(DB_KEY,JSON.stringify(db))}
+function flash(m){const f=document.getElementById('flash');f.textContent=m;f.classList.add('show');setTimeout(()=>f.classList.remove('show'),2200)}
+function ask(o){return new Promise(res=>{const bg=document.getElementById('modalBg');document.getElementById('modalTitle').textContent=o.title||'';const m=document.getElementById('modalMsg');m.textContent=o.msg||'';m.classList.toggle('hidden',!o.msg);const i=document.getElementById('modalInput');i.classList.toggle('hidden',!o.input);i.value=o.value||'';document.getElementById('modalOk').textContent=o.ok||'Confirmar';bg.classList.remove('hidden');if(o.input)setTimeout(()=>i.focus(),50);const done=v=>{bg.classList.add('hidden');res(v)};document.getElementById('modalOk').onclick=()=>done(o.input?(i.value||o.value||''):true);document.getElementById('modalCancel').onclick=()=>done(null)})}
+
+/* ===================== DADOS ===================== */
+function blankPlan(nome){return{id:uid(),titulo:'Plano Principal',main:true,parent:null,criadoEm:Date.now(),
+  nome:nome||'',idade:40,apos:65,vida:90,perfil:'Conservador',rent:6,obs:'',
+  incomes:[{desc:'Salário',valor:10000,freq:'Mensal'}],
+  expenses:[{desc:'Custo de vida',valor:7000,cat:'Moradia',freq:'Mensal'}],
+  assets:[{desc:'Reserva/Investimentos',cat:'Renda Fixa',valor:0}],
+  debts:[],
+  consorcios:[],
+  goals:[],
+  seguro:{atual:0},
+  spending:[]
+}}
+function seed(){
+  const p=blankPlan('Eduardo Mendonça');
+  Object.assign(p,{idade:45,apos:65,vida:85,perfil:'Conservador',rent:8.4,
+    incomes:[{desc:'Salário',valor:15000,freq:'Mensal'},{desc:'Aluguel',valor:1000,freq:'Mensal'},{desc:'13º',valor:15000,freq:'Anual'}],
+    expenses:[{desc:'Despesas gerais',valor:15000,cat:'Custo de vida',freq:'Mensal'}],
+    assets:[{desc:'Carteira de investimentos',cat:'Renda Fixa',valor:313704}],
+    goals:[{desc:'Troca de carro',tipo:'meta',idade:50,valor:120000},{desc:'Aposentadoria',tipo:'renda',idade:65,valor:25000}],
+    consorcios:[{desc:'Consórcio imobiliário',tipo:'Imóvel',credito:300000,prazoMeses:200,contemplaMes:12,uso:'capitalizar',aluguel:0.8}],
+  });
+  const p2=blankPlan('Mariana Alves');
+  Object.assign(p2,{idade:34,apos:60,vida:90,perfil:'Moderado',rent:7.5,
+    incomes:[{desc:'Pró-labore',valor:12000,freq:'Mensal'}],
+    expenses:[{desc:'Custo de vida',valor:8000,cat:'Custo de vida',freq:'Mensal'}],
+    assets:[{desc:'CDB',cat:'Renda Fixa',valor:60000},{desc:'Ações',cat:'Renda Variável',valor:30000}],
+    goals:[{desc:'Aposentadoria',tipo:'renda',idade:60,valor:12000},{desc:'Intercâmbio do filho',tipo:'meta',idade:48,valor:120000}],
+  });
+  return {clients:[
+    {id:'c1',nome:'Eduardo Mendonça',email:'eduardo@email.com',tel:'(51) 99999-0001',ownerId:'u1',plans:[p]},
+    {id:'c2',nome:'Mariana Alves',email:'mariana@email.com',tel:'(51) 99999-0002',ownerId:'u2',plans:[p2]}
+  ], accounts: seedAccounts(), crm: seedCRM(), tasks: seedTasks(), feed: seedFeed(), chat: seedChat(), inbox: seedInbox(), integr: seedIntegr()};
+}
+const CRM_STAGES=['Novo lead','Contato feito','Estudo/Simulação','Proposta enviada','Fechado (ganho)'];
+const TIPOS=['Consórcio','Planejamento','Consultoria'];
+function seedCRM(){return [
+  {id:uid(),nome:'Carlos Pereira',contato:'(51) 98888-1010',tipo:'Consórcio',valor:300000,stage:0,perdido:false,ownerId:null,obs:'Interessado em carta de imóvel.',criadoEm:Date.now()},
+  {id:uid(),nome:'Família Souza',contato:'souza@email.com',tipo:'Planejamento',valor:0,stage:1,perdido:false,ownerId:'u2',obs:'Casal, 2 filhos, quer organizar aposentadoria.',criadoEm:Date.now()},
+  {id:uid(),nome:'Dra. Helena Lima',contato:'(51) 97777-2020',tipo:'Consultoria',valor:8000,stage:2,perdido:false,ownerId:'u2',obs:'Consultoria pontual de investimentos.',criadoEm:Date.now()},
+  {id:uid(),nome:'Ricardo Alves',contato:'ricardo@email.com',tipo:'Consórcio',valor:150000,stage:3,perdido:false,ownerId:'u3',obs:'Carta de auto, aguardando proposta.',criadoEm:Date.now()},
+  {id:uid(),nome:'Beatriz Nunes',contato:'(51) 96666-3030',tipo:'Planejamento',valor:0,stage:4,perdido:false,ownerId:'u2',obs:'Fechou planejamento completo.',criadoEm:Date.now()},
+  {id:uid(),nome:'Otávio Ramos',contato:'(51) 95555-4040',tipo:'Consórcio',valor:200000,stage:0,perdido:false,ownerId:null,obs:'Lead novo, ainda não distribuído.',criadoEm:Date.now()}
+];}
+function seedTasks(){return [
+  {id:uid(),titulo:'Ligar para Carlos Pereira sobre carta de imóvel',quando:'Hoje',feito:false},
+  {id:uid(),titulo:'Enviar proposta para Ricardo Alves',quando:'Amanhã',feito:false},
+  {id:uid(),titulo:'Montar estudo da Dra. Helena',quando:'Esta semana',feito:false},
+  {id:uid(),titulo:'Revisar plano do Eduardo Mendonça',quando:'Dia 20',feito:true}
+];}
+const HR=3600000, MIN=60000, DAY=86400000;
+function seedAccounts(){return [
+  {id:'u1',role:'master',nome:'Gabriel Abreu',email:'gabriel@agionconsorcios.com.br',senha:'demo',inicial:'GA',cor:'#C5A059',papel:'Master',ativo:true},
+  {id:'u2',role:'especialista',nome:'Marina Costa',email:'marina@agionconsorcios.com.br',senha:'demo',inicial:'MC',cor:'#8FD9CC',papel:'Planejamento',ativo:true},
+  {id:'u3',role:'especialista',nome:'Rafael Dias',email:'rafael@agionconsorcios.com.br',senha:'demo',inicial:'RD',cor:'#E8CC8B',papel:'Consórcio',ativo:true},
+  {id:'ac1',role:'cliente',nome:'Eduardo Mendonça',email:'eduardo@email.com',senha:'demo',clientId:'c1',ownerId:'u1',inicial:'EM',cor:'#4Fa3a3',papel:'Cliente',ativo:true},
+  {id:'ac2',role:'cliente',nome:'Mariana Alves',email:'mariana@email.com',senha:'demo',clientId:'c2',ownerId:'u2',inicial:'MA',cor:'#B0875F',papel:'Cliente',ativo:true}
+];}
+function seedFeed(){const n=Date.now();return [
+  {id:uid(),autorId:'u2',texto:'Fechei o planejamento completo da família Souza! 🎉 Obrigada pelo apoio, equipe.',quando:n-2*HR,likes:['u1','u3'],coments:[{autorId:'u1',texto:'Mandou bem demais, Marina! 👏',quando:n-1*HR}]},
+  {id:uid(),autorId:'u3',texto:'Entrou uma carta de imóvel de R$300 mil contemplada no grupo 1423. Quem tiver cliente na fila, me chama.',quando:n-5*HR,likes:['u1'],coments:[]},
+  {id:uid(),autorId:'u1',texto:'Meta do mês: 12 novos planejamentos. Já estamos em 7. Bora! 🚀',quando:n-1*DAY,likes:['u2','u3'],coments:[{autorId:'u3',texto:'Tô com 3 propostas na rua, semana que vem fecho.',quando:n-20*HR}]}
+];}
+function seedChat(){const n=Date.now();return {
+  channels:[{id:'geral',nome:'Geral'},{id:'consorcio',nome:'Consórcio'},{id:'planejamento',nome:'Planejamento'}],
+  messages:[
+    {id:uid(),canalId:'geral',autorId:'u1',texto:'Bom dia, equipe! Reunião de pipeline às 14h.',quando:n-3*HR},
+    {id:uid(),canalId:'geral',autorId:'u2',texto:'Combinado!',quando:n-2.8*HR},
+    {id:uid(),canalId:'consorcio',autorId:'u3',texto:'Alguém tem cliente buscando carta de auto até R$80k?',quando:n-90*MIN},
+    {id:uid(),canalId:'planejamento',autorId:'u2',texto:'Atualizei o modelo de relatório, deem uma olhada.',quando:n-40*MIN}
+  ]};}
+function seedInbox(){const n=Date.now();return [
+  {id:uid(),fonte:'Meta',nome:'João Pereira',contato:'(51) 99123-4567',campanha:'Consórcio Imóvel — Instagram Stories',tipo:'Consórcio',quando:n-25*MIN,importado:false},
+  {id:uid(),fonte:'Google',nome:'Ana Beatriz Rocha',contato:'anabeatriz@email.com',campanha:'Pesquisa — "planejamento financeiro POA"',tipo:'Planejamento',quando:n-2*HR,importado:false},
+  {id:uid(),fonte:'Meta',nome:'Lucas Martins',contato:'(51) 98765-1122',campanha:'Lead Ad — Consultoria de investimentos',tipo:'Consultoria',quando:n-6*HR,importado:false},
+  {id:uid(),fonte:'Google',nome:'Patrícia Gomes',contato:'(51) 99000-7788',campanha:'Display — Consórcio de auto',tipo:'Consórcio',quando:n-1*DAY,importado:false}
+];}
+const senhaGen=()=>Math.random().toString(36).slice(2,6)+Math.floor(10+Math.random()*89)+'Ag';
+const acc=id=>(db.accounts||[]).find(a=>a.id===id);
+const accByEmail=e=>(db.accounts||[]).find(a=>(a.email||'').toLowerCase()===(e||'').toLowerCase());
+const isMaster=()=>session.role==='master';
+const meId=()=>session.userId;
+// clientes visíveis para o usuário logado (master vê todos; especialista vê os seus)
+function visibleClients(){return isMaster()?db.clients:db.clients.filter(c=>c.ownerId===meId());}
+function canEditClient(c){return isMaster()||c.ownerId===meId();}
+function visibleLeads(){return isMaster()?db.crm:(db.crm||[]).filter(l=>l.ownerId===meId());}
+function seedIntegr(){return {Google:{conectado:true,conta:'Agion — Google Ads / Lead Forms'},Meta:{conectado:true,conta:'Agion — Facebook & Instagram Lead Ads'}};}
+const user=id=>(db.accounts||[]).find(u=>u.id===id)||{nome:'—',inicial:'?',cor:'#6E8B88'};
+function timeAgo(ts){const d=Date.now()-ts;if(d<MIN)return 'agora';if(d<HR)return 'há '+Math.floor(d/MIN)+' min';if(d<DAY)return 'há '+Math.floor(d/HR)+'h';return 'há '+Math.floor(d/DAY)+'d';}
+function avatar(id,size){const u=user(id);size=size||38;return `<div class="av" style="width:${size}px;height:${size}px;font-size:${size*0.36}px;background:${u.cor}">${esc(u.inicial)}</div>`;}
+let db=load(); if(!db||!db.clients){db=seed();save()}
+if(!db.crm){db.crm=seedCRM();save()} if(!db.tasks){db.tasks=seedTasks();save()}
+if(!db.accounts){db.accounts=seedAccounts();save()} if(!db.feed){db.feed=seedFeed();save()} if(!db.chat){db.chat=seedChat();save()} if(!db.inbox){db.inbox=seedInbox();save()} if(!db.integr){db.integr=seedIntegr();save()}
+db.clients.forEach(c=>{if(!c.ownerId)c.ownerId='u1';}); save();
+
+/* ===================== MOTOR DE PROJEÇÃO ===================== */
+const mensal=(v,f)=>f==='Anual'?v/12:v;
+function totals(p){
+  const renda=(p.incomes||[]).reduce((s,i)=>s+mensal(i.valor,i.freq),0);
+  const desp=(p.expenses||[]).reduce((s,i)=>s+mensal(i.valor,i.freq),0);
+  const patr=(p.assets||[]).reduce((s,i)=>s+(+i.valor||0),0);
+  const passivos=(p.debts||[]).reduce((s,i)=>s+(+i.valor||0),0);
+  return{renda,desp,patr,sobra:renda-desp,passivos,liquido:patr-passivos};
+}
+let _z=null;function gauss(){if(_z!==null){const z=_z;_z=null;return z}let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();const m=Math.sqrt(-2*Math.log(u));_z=m*Math.sin(2*Math.PI*v);return m*Math.cos(2*Math.PI*v)}
+function projetar(p){
+  const t=totals(p); const r=(p.rent||0)/100;
+  const aporteAnual=Math.max(0,t.sobra)*12;
+  const apos=p.apos, idade=p.idade, vida=Math.max(apos+1,p.vida);
+  const anosAcum=Math.max(0,apos-idade), anosRenda=Math.max(1,vida-apos);
+  const goalRenda=(p.goals||[]).find(g=>g.tipo==='renda');
+  const saqueAnual=(goalRenda?goalRenda.valor:0)*12;
+  const metas=(p.goals||[]).filter(g=>g.tipo==='meta');
+  const idades=[]; for(let a=idade;a<=vida;a++) idades.push(a);
+  // consórcio: parcelas pagas (saída) e contemplação da carta (entrada de patrimônio)
+  const cons=(p.consorcios||[]);
+  const consFee=co=>co.tipo==='Auto'?0.16:0.22;
+  // {s: parcela paga, e: carta capitalizada que entra no portfólio, rent: aluguel anual se virar imóvel}
+  function consAt(yr){let s=0,e=0,rent=0;cons.forEach(co=>{const cr=+co.credito||0;const prazo=+co.prazoMeses||200;const cm=+co.contemplaMes||12;const cYr=Math.floor(cm/12);const integral=cr*(1+consFee(co))/prazo;const meia=integral/2;for(let k=0;k<12;k++){const mi=yr*12+k;if(mi>=0&&mi<prazo)s+=(mi<cm?meia:integral);}
+    if(co.uso==='imovel'){ if(yr>=cYr) rent += cr*(((+co.aluguel)||0.8)/100)*12; }   // imóvel: gera aluguel a partir da contemplação
+    else { if(cYr===yr) e+=cr; }                                                       // capitalizar: carta entra no portfólio
+  });return{s,e,rent};}
+  const consImovel=cons.filter(co=>co.uso==='imovel').reduce((s,co)=>s+(+co.credito||0),0);
+  // gera uma série de patrimônio para uma dada taxa (3 cenários: preta/verde/vermelha)
+  function serieFor(rate){
+    const arr=[]; let pat=t.patr;
+    for(let a=idade;a<=apos;a++){ arr.push(Math.max(0,pat));
+      const gm=metas.filter(g=>(g.idade||apos)===a).reduce((s,g)=>s+(+g.valor||0),0);
+      const cc=consAt(a-idade);
+      pat=(pat-gm+cc.e)*(1+rate)+aporteAnual-cc.s+cc.rent; }
+    let pd=pat;
+    for(let a=apos+1;a<=vida;a++){ const cc=consAt(a-idade); pd=(pd+cc.e)*(1+rate)-saqueAnual-cc.s+cc.rent; arr.push(Math.max(0,pd)); }
+    return arr;
+  }
+  const spread=({Conservador:.02,Moderado:.03,Arrojado:.045}[p.perfil]||.025);
+  const serie=serieFor(r);                       // linha preta (cenário atual)
+  const serieOtim=serieFor(r+spread);            // linha verde (otimista)
+  const seriePess=serieFor(Math.max(0,r-spread));// linha vermelha (pessimista)
+  const idxApos=apos-idade;
+  const patApos=serie[idxApos]!==undefined?serie[idxApos]: (serie[serie.length-1]||0);
+  // balanço financeiro ano a ano (receita, despesa, saldo por idade)
+  const rendaAnual=t.renda*12, despAnual=t.desp*12;
+  const balanco=idades.map(a=>{ const work=a<apos;
+    const receita=work?rendaAnual:saqueAnual; const despesa=despAnual;
+    return {idade:a, receita, despesa, saldo:receita-despesa, patrimonio:serie[a-idade]||0}; });
+  const fatorDep=r>0?(1-Math.pow(1+r,-anosRenda))/r:anosRenda;
+  const alvoConsumo=saqueAnual*fatorDep;
+  const alvoManter=r>0?saqueAnual/r:saqueAnual*anosRenda;
+  const fvFator=r>0?(Math.pow(1+r,anosAcum)-1)/r:anosAcum;
+  const fvPatr=t.patr*Math.pow(1+r,anosAcum);
+  const aporteIdeal=anosAcum>0?Math.max(0,(alvoConsumo-fvPatr)/fvFator):0;
+  // Monte Carlo
+  const vol={Conservador:.05,Moderado:.10,Arrojado:.16}[p.perfil]||.08;
+  let ok=0,N=500;
+  for(let s=0;s<N;s++){let v=t.patr;
+    for(let a=idade;a<apos;a++){const gm=metas.filter(g=>(g.idade||apos)===a).reduce((x,g)=>x+(+g.valor||0),0);const cc=consAt(a-idade);v=(v-gm+cc.e)*(1+r+gauss()*vol)+aporteAnual-cc.s+cc.rent;}
+    let alive=true;for(let a=apos;a<vida;a++){const cc=consAt(a-idade);v=(v+cc.e)*(1+r+gauss()*vol)-saqueAnual-cc.s+cc.rent;if(v<-1){alive=false;break}}
+    if(alive)ok++;}
+  const reservaIdeal=t.desp*6;
+  const reservaAtual=(p.assets||[]).filter(a=>a.cat==='Renda Fixa').reduce((s,a)=>s+(+a.valor||0),0);
+  const cobertura=alvoConsumo>0?Math.min(100,Math.round(patApos/alvoConsumo*100)):100;
+  const prob=Math.round(ok/N*100);
+  const clamp=(x)=>Math.max(0,Math.min(1,x));
+  const poupScore=clamp((t.renda>0?t.sobra/t.renda:0)/0.20)*100;
+  const reservaScore=reservaIdeal>0?clamp(reservaAtual/reservaIdeal)*100:100;
+  const saude=Math.round(0.5*prob+0.25*reservaScore+0.25*poupScore);
+  // proteção: necessidade de seguro de vida (cobre dívidas + anos de despesa - ativos líquidos)
+  const protAnos=apos>idade?Math.min(10,apos-idade):5;
+  const seguroIdeal=Math.max(0, t.passivos + despAnual*protAnos - t.patr);
+  const seguroAtual=(+(p.seguro&&p.seguro.atual)||0);
+  const taxaSaque=patApos>0?saqueAnual/patApos*100:0;
+  const consCredito=cons.reduce((s,co)=>s+(+co.credito||0),0);
+  const consParcela=cons.reduce((s,co)=>s+(+co.credito||0)*(1+consFee(co))/((+co.prazoMeses)||200)/2,0);
+  const consAluguel=cons.filter(co=>co.uso==='imovel').reduce((s,co)=>s+(+co.credito||0)*(((+co.aluguel)||0.8)/100),0);
+  return{...t,aporteAnual,anosAcum,anosRenda,saqueAnual,patApos,alvoConsumo,alvoManter,aporteIdeal,prob,idades,serie,serieOtim,seriePess,balanco,rendaAnual,despAnual,metas,reservaIdeal,reservaAtual,cobertura,saude,seguroIdeal,seguroAtual,taxaSaque,consCredito,consParcela,consImovel,consAluguel,poupanca:(t.renda>0?Math.round(t.sobra/t.renda*100):0)};
+}
+/* ----- DIAGNÓSTICO INTELIGENTE (linguagem de assessor) ----- */
+function diagnostico(p,R){
+  const d=[]; const idealMes=R.aporteIdeal/12;
+  if(R.prob>=80) d.push(['ok',`Plano consistente: cerca de <b>${R.prob}%</b> de chance de manter a renda desejada até os ${p.vida} anos.`]);
+  else if(R.prob>=55) d.push(['warn',`Plano em rota de atenção (<b>${R.prob}%</b>). Pequenos ajustes elevam bastante a segurança.`]);
+  else d.push(['bad',`Risco elevado de o patrimônio não durar (<b>${R.prob}%</b>). Vale revisar aporte, prazo ou meta de renda.`]);
+  if(idealMes>R.sobra+1){const dif=idealMes-Math.max(0,R.sobra);d.push(['warn',`Para atingir a meta no prazo, o aporte ideal é <b>${BRL(idealMes)}/mês</b> — ${BRL(dif)} acima da sua sobra atual.`]);}
+  else if(R.sobra>0) d.push(['ok',`Sua capacidade de aporte (<b>${BRL(R.sobra)}/mês</b>) já cobre o necessário para a meta.`]);
+  if(R.reservaAtual<R.reservaIdeal) d.push(['warn',`Reserva de emergência abaixo do ideal: <b>${BRL(R.reservaAtual)}</b> de ${BRL(R.reservaIdeal)} (6 meses de despesas em renda fixa).`]);
+  else d.push(['ok',`Reserva de emergência adequada — pelo menos 6 meses de despesas em liquidez.`]);
+  if(R.prob<70 && p.apos<70) d.push(['warn',`Cenário alternativo: adiar a aposentadoria para os <b>${p.apos+2}</b> anos tende a elevar bastante a probabilidade de sucesso.`]);
+  const aloc={Conservador:'foco em renda fixa e baixa volatilidade',Moderado:'mix equilibrado entre renda fixa e variável',Arrojado:'maior peso em renda variável e ativos de crescimento'}[p.perfil];
+  if(aloc) d.push(['ok',`Perfil <b>${p.perfil}</b>: alocação sugerida com ${aloc}.`]);
+  return d;
+}
+/* ===== ORGANOGRAMA / JORNADA DE METAS ===== */
+function defaultSteps(p,g){
+  const r=projetar(p); const aporte=Math.max(0,r.sobra);
+  if(g.tipo==='renda'){
+    return [
+      `Garantir a reserva de emergência: ${BRL(p.expenses?totals(p).desp*6:0)} (6 meses de despesas) em liquidez.`,
+      `Aportar mensalmente cerca de ${BRL(Math.max(aporte,r.aporteIdeal/12))} em investimentos de longo prazo.`,
+      `Manter a alocação coerente com o perfil ${p.perfil} e diversificar entre classes de ativos.`,
+      `Revisar o plano a cada 12 meses e ajustar aportes conforme a evolução da renda.`,
+      `Aos ${g.idade||p.apos} anos, iniciar os resgates programados para gerar a renda de ${BRL(g.valor)}/mês.`
+    ];
+  }
+  const anos=Math.max(1,(g.idade||p.apos)-p.idade);
+  return [
+    `Definir o valor-alvo: ${BRL(g.valor)} até os ${g.idade||p.apos} anos.`,
+    `Reservar aproximadamente ${BRL((+g.valor||0)/(anos*12))}/mês em uma aplicação separada para este objetivo.`,
+    `Usar investimentos de baixo risco e liquidez compatível com o prazo de ${anos} ano(s).`,
+    `Acompanhar o progresso e corrigir o valor conforme a inflação.`
+  ];
+}
+function ensureSteps(p){ (p.goals||[]).forEach(g=>{ if(!Array.isArray(g.passos)||!g.passos.length) g.passos=defaultSteps(p,g); }); }
+/* ===== ORGANOGRAMA HORIZONTAL (etapas + bifurcação nas metas) ===== */
+function trunc(s,n){s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s;}
+function roadmapSVG(p){
+  const apos=p.apos;
+  const goals=(p.goals||[]).slice().sort((a,b)=>((a.idade||apos)-(b.idade||apos)));
+  const gold='#C5A059',gold2='#E8CC8B',teal='#8FD9CC',cardF='#1A3B45',goldB='rgba(197,160,89,.45)',tealB='rgba(143,217,204,.5)';
+  const phases=[['Diagnóstico','raio-x financeiro hoje'],['Reserva','6 meses de despesas'],['Acumulação','aporte mensal investido'],['Metas','objetivos do cliente'],['Independência','aos '+apos+' anos']];
+  const W=1060, bw=184, by=44, bh=58, n=phases.length;
+  const gap=(W-24-n*bw)/(n-1), x0=12;
+  const bx=i=>x0+i*(bw+gap);
+  const cx=i=>bx(i)+bw/2;
+  const hd=(typeof document!=='undefined'&&document.body&&document.body.classList.contains('light'))?'#0E2A31':'var(--head)';
+  const node=(x,y,w,h,t,s,kind)=>{
+    const stroke=kind==='teal'?tealB:goldB, accent=kind==='teal'?teal:gold2;
+    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="13" fill="${cardF}" stroke="${stroke}" stroke-width="1.4"/>`+
+      `<text x="${x+w/2}" y="${y+24}" text-anchor="middle" fill="${hd}" font-family="Georgia,serif" font-size="14.5" font-weight="700">${esc(trunc(t,24))}</text>`+
+      `<text x="${x+w/2}" y="${y+42}" text-anchor="middle" fill="${accent}" font-family="DM Sans,sans-serif" font-size="10.5">${esc(trunc(s,30))}</text>`;
+  };
+  let svg=`<svg viewBox="0 0 ${W} ${goals.length?300:130}" style="width:100%;min-width:760px" xmlns="http://www.w3.org/2000/svg" role="img"><desc>Organograma horizontal das etapas do plano com bifurcação nas metas.</desc>`;
+  svg+=`<defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M1,1 L8,4.5 L1,8" fill="none" stroke="${gold}" stroke-width="1.6"/></marker></defs>`;
+  // setas da espinha (etapas)
+  for(let i=0;i<n-1;i++){const xa=bx(i)+bw, xb=bx(i+1);svg+=`<line x1="${xa}" y1="${by+bh/2}" x2="${xb-3}" y2="${by+bh/2}" stroke="${gold}" stroke-width="1.8" marker-end="url(#ah)"/>`;}
+  // bifurcação: do nó "Metas" (i=3) para as metas
+  if(goals.length){
+    const mx=cx(3), my=by+bh, gy=196, gh=62, gw=190;
+    const aL=30,aR=W-30,aW=aR-aL,step=aW/goals.length;
+    goals.forEach((g,i)=>{
+      const gx=aL+step*i+(step-gw)/2, gcx=gx+gw/2;
+      const midY=(my+gy)/2;
+      svg+=`<path d="M ${mx} ${my} C ${mx} ${midY}, ${gcx} ${midY}, ${gcx} ${gy}" fill="none" stroke="${tealB}" stroke-width="1.6"/>`;
+      svg+=`<circle cx="${gcx}" cy="${gy}" r="3" fill="${teal}"/>`;
+      const tag=(g.tipo==='renda'?'Renda '+BRL(g.valor)+'/mês':BRL(g.valor))+' · aos '+(g.idade||apos);
+      svg+=node(gx,gy,gw,gh,g.desc||'Objetivo',tag,'teal');
+    });
+  }
+  // nós das etapas por cima
+  phases.forEach((ph,i)=>{ svg+=node(bx(i),by,bw,bh,ph[0],ph[1], i===3&&goals.length?'gold':'gold'); });
+  // rótulo de fase
+  svg+=`<text x="${x0}" y="26" fill="#9DB5B1" font-family="DM Sans,sans-serif" font-size="11" font-weight="700" letter-spacing="1.5">ETAPAS DO PLANO →</text>`;
+  if(goals.length) svg+=`<text x="${x0}" y="180" fill="#6E8B88" font-family="DM Sans,sans-serif" font-size="11" font-weight="700" letter-spacing="1.5">METAS (bifurcação)</text>`;
+  svg+=`</svg>`;
+  return `<div style="overflow-x:auto;padding:4px 0">${svg}</div>`;
+}
+function renderJourney(p,editable){
+  ensureSteps(p);
+  const goals=(p.goals||[]).slice().sort((a,b)=>((a.idade||p.apos)-(b.idade||p.apos)));
+  if(!goals.length) return '<p class="note">Nenhuma meta cadastrada ainda. Adicione objetivos no plano para montar a jornada.</p>';
+  return '<div class="journey">'+goals.map((g,gi)=>{
+    const realIdx=(p.goals||[]).indexOf(g);
+    const tag=g.tipo==='renda'?'Renda / aposentadoria':'Meta';
+    return `<div class="j-node"><div class="j-dot">${gi+1}</div>
+      <div class="j-goal">
+        <div class="row"><div><h3>${esc(g.desc||'Objetivo')}</h3><div class="gval">${tag} · ${BRL(g.valor)}${g.tipo==='renda'?'/mês':''}</div></div>
+        <span class="when">aos ${g.idade||p.apos} anos</span></div>
+        <ul class="j-steps">
+        ${(g.passos||[]).map((s,si)=>`<li class="j-step"><span class="n">${si+1}</span><span class="tx">${esc(s)}</span>${editable?`<span class="x" onclick="delStep(${realIdx},${si})">✕</span>`:''}</li>`).join('')}
+        </ul>
+        ${editable?`<div class="j-addstep"><input id="ns_${realIdx}" placeholder="Novo passo para esta meta..."><button class="btn btn-teal btn-sm" onclick="addStep(${realIdx})">+ Passo</button></div>`:''}
+      </div></div>`;
+  }).join('')+'</div>';
+}
+function addStep(gi){ const inp=document.getElementById('ns_'+gi); const v=(inp&&inp.value.trim())||''; if(!v)return; const p=plan(view.clientId,view.planId); p.goals[gi].passos=p.goals[gi].passos||[]; p.goals[gi].passos.push(v); save(); refreshJourney(); }
+function delStep(gi,si){ const p=plan(view.clientId,view.planId); p.goals[gi].passos.splice(si,1); save(); refreshJourney(); }
+function refreshJourney(){ const el=document.getElementById('journeyBox'); if(el) el.innerHTML=renderJourney(plan(view.clientId,view.planId),true); }
+/* ===== EXPLICAÇÃO DA PROBABILIDADE (material do cliente) ===== */
+function probBand(prob){
+  if(prob>=80) return {cor:'var(--ok)',t:'Confortável',d:'Plano consistente. O caminho está traçado — mantenha os aportes e faça a revisão anual com seu especialista.'};
+  if(prob>=55) return {cor:'var(--warn)',t:'Razoável',d:'Você está no caminho, mas pequenos ajustes deixam o plano bem mais seguro. Veja as alavancas abaixo.'};
+  return {cor:'var(--bad)',t:'Requer atenção',d:'O dinheiro pode não durar todo o período desejado. Vale rever aporte, prazo ou meta de renda — as alavancas abaixo mostram o impacto de cada mudança.'};
+}
+function sakeBlock(p,R){
+  const tx=R.taxaSaque||0, mensal=(R.saqueAnual||0)/12;
+  if(!R.saqueAnual) return '';
+  const scaleMax=Math.max(8,Math.ceil(tx/2)*2+2);
+  const safePct=4/scaleMax*100, markPct=Math.min(98,tx/scaleMax*100);
+  const cor=tx<=4.5?'var(--ok)':tx<=6.5?'var(--warn)':'var(--bad)';
+  return `<div style="margin-top:16px">
+    <h3 class="serif" style="font-size:.98rem;color:var(--gold2);margin:0 0 8px">Sua taxa de saque na aposentadoria</h3>
+    <p style="font-size:.9rem;line-height:1.6;color:var(--ink)">Você planeja retirar <b>${BRL(mensal)}/mês</b> (${BRL(R.saqueAnual)}/ano), o que equivale a <b style="color:${cor}">${tx.toFixed(1)}% do seu patrimônio por ano</b>. A referência de mercado para uma renda durar décadas é em torno de <b>4% ao ano</b>.</p>
+    <div style="position:relative;height:36px;border-radius:9px;background:rgba(143,217,204,.08);border:1px solid var(--line);overflow:hidden;margin-top:10px">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:${safePct}%;background:rgba(52,211,153,.18);border-right:2px dashed var(--ok)"></div>
+      <div style="position:absolute;left:${markPct}%;top:-2px;bottom:-2px;width:3px;background:${cor};box-shadow:0 0 10px ${cor}"></div>
+      <span style="position:absolute;left:7px;top:9px;font-size:.64rem;color:#7fe0b8;font-weight:700">ZONA SEGURA ≤4%</span>
+      <span style="position:absolute;left:calc(${markPct}% + 6px);top:9px;font-size:.66rem;color:${cor};font-weight:800">${tx.toFixed(1)}%</span>
+      <span style="position:absolute;right:7px;bottom:5px;font-size:.62rem;color:var(--soft)">${scaleMax}%</span>
+    </div>
+    ${tx>4.5?`<p class="note" style="margin-top:8px;color:${cor};line-height:1.6">Sua taxa está <b>acima</b> da zona segura — esse é o principal motivo de a probabilidade ficar baixa. Reduzir a renda-alvo, aportar mais ou adiar a aposentadoria traz a taxa para perto de 4% e eleva bastante a chance de sucesso.</p>`:`<p class="note" style="margin-top:8px;color:var(--ok)">Sua taxa está dentro da zona segura. 👏</p>`}
+  </div>`;
+}
+function probExplain(p,R){
+  const b=probBand(R.prob);
+  return `<div class="panel"><h2>${ICN.spark} Entenda a sua probabilidade de sucesso</h2>
+    <p style="font-size:.92rem;line-height:1.65;color:var(--ink)">Para projetar o seu futuro, não usamos um único “chute” de rentabilidade. Rodamos <b>centenas de simulações</b> do seu plano (o chamado método <b>Monte Carlo</b>): em cada uma, sorteamos uma sequência diferente de anos bons e ruins de mercado, de acordo com o seu perfil <b>${esc(p.perfil)}</b>. A sua <b>probabilidade de ${R.prob}%</b> é a fatia dessas simulações em que o patrimônio <b>durou até os ${p.vida} anos</b> sustentando a renda desejada de ${BRL((R.saqueAnual||0)/12)}/mês.</p>
+    <div class="netrow" style="border:1px solid ${b.cor}55;border-radius:12px;padding:12px 14px;background:${b.cor}14;margin-top:6px">
+      <span style="display:flex;align-items:center;gap:10px"><span class="prob" style="background:${b.cor}22;color:${b.cor};border:1px solid ${b.cor}55">● ${R.prob}%</span><b style="color:${b.cor}">${b.t}</b></span></div>
+    <p class="note" style="margin-top:8px;line-height:1.6">${b.d}</p>
+    ${sakeBlock(p,R)}
+    <div class="banner" style="border-color:var(--line);margin-top:14px"><span style="font-size:.88rem;line-height:1.6">💡 <b>Bater a meta na média não é o mesmo que ter segurança.</b> A cobertura (${R.cobertura}%) supõe um rendimento perfeito todo ano; a probabilidade (${R.prob}%) considera os altos e baixos reais do mercado. Quando a margem é pequena e o saque é alto, a probabilidade fica bem abaixo da cobertura — e é nela que confiamos.</span></div>
+    <h3 class="serif" style="font-size:.98rem;color:var(--gold2);margin:18px 0 8px">As três linhas da projeção</h3>
+    <div class="netrow"><span><span style="display:inline-block;width:16px;height:3px;background:#C5A059;vertical-align:middle;margin-right:8px"></span>Linha atual</span><span class="note" style="max-width:62%;text-align:right">Cenário com a rentabilidade real estimada para o seu perfil.</span></div>
+    <div class="netrow"><span><span style="display:inline-block;width:16px;height:3px;background:#34d399;vertical-align:middle;margin-right:8px"></span>Otimista</span><span class="note" style="max-width:62%;text-align:right">Se os investimentos renderem acima do esperado.</span></div>
+    <div class="netrow"><span><span style="display:inline-block;width:16px;height:3px;background:#f87171;vertical-align:middle;margin-right:8px"></span>Pessimista</span><span class="note" style="max-width:62%;text-align:right">Se renderem abaixo do esperado — o cenário de prudência.</span></div>
+    <p class="note" style="margin-top:10px;line-height:1.6">A linha atual é a referência. Um plano saudável mantém a linha pessimista positiva pelo maior tempo possível — é isso que dá segurança real.</p>
+  </div>`;
+}
+function planClone(p){return JSON.parse(JSON.stringify(p));}
+function whatIfPanel(p,R){
+  const base=R.prob;
+  const scn=[];
+  let a=planClone(p); a.apos=p.apos+2; scn.push(['Aposentar 2 anos mais tarde (aos '+(p.apos+2)+')',projetar(a).prob,'+ tempo de acumulação']);
+  let b=planClone(p);(b.incomes=b.incomes||[]).push({desc:'Aporte extra',valor:500,freq:'Mensal'});scn.push(['Aumentar o aporte em R$ 500/mês',projetar(b).prob,'investir mais por mês']);
+  let cP=planClone(p);(cP.incomes=cP.incomes||[]).push({desc:'Aporte extra',valor:1000,freq:'Mensal'});scn.push(['Aumentar o aporte em R$ 1.000/mês',projetar(cP).prob,'investir mais por mês']);
+  const gr=(p.goals||[]).find(x=>x.tipo==='renda');
+  if(gr){let d=planClone(p);d.goals.find(x=>x.tipo==='renda').valor=Math.round(gr.valor*0.9);scn.push(['Reduzir a renda-alvo em 10% ('+BRL(Math.round(gr.valor*0.9))+'/mês)',projetar(d).prob,'meta mais enxuta']);}
+  let e=planClone(p);e.perfil='Arrojado';e.rent=Math.round((p.rent+1.5)*10)/10;scn.push(['Carteira mais arrojada (+1,5% a.a.)',projetar(e).prob,'mais retorno, mais risco']);
+  const arrow=v=>{const d=v-base;if(d>1)return `<span style="color:var(--ok)">▲ +${d}pp</span>`;if(d<-1)return `<span style="color:var(--bad)">▼ ${d}pp</span>`;return '<span style="color:var(--soft)">≈</span>';};
+  return `<div class="panel"><h2>${ICN.target} O que aumenta a sua probabilidade?</h2>
+    <p class="note" style="margin:-6px 0 12px">Simulamos cada ajuste e recalculamos a probabilidade. Compare com a sua situação atual de <b style="color:var(--gold2)">${base}%</b>.</p>
+    <div class="tbl-scroll" style="max-height:none"><table><thead><tr><th>Se você...</th><th class="r">Probabilidade</th><th class="r">Variação</th></tr></thead><tbody>
+    ${scn.map(s=>`<tr><td>${esc(s[0])}<br><span class="note">${esc(s[2])}</span></td><td class="r"><b>${s[1]}%</b></td><td class="r">${arrow(s[1])}</td></tr>`).join('')}
+    </tbody></table></div>
+    <p class="note" style="margin-top:10px">“pp” = pontos percentuais. Converse com seu especialista para combinar a melhor mistura desses ajustes.</p>
+  </div>`;
+}
+function leverRecalc(){
+  if(!edP)return;
+  const p=planClone(edP);
+  const ap=+document.getElementById('lvAporte').value||0;
+  const ad=+document.getElementById('lvIdade').value||0;
+  const rd=+document.getElementById('lvRenda').value||0;
+  if(ap>0)(p.incomes=p.incomes||[]).push({desc:'Aporte extra',valor:ap,freq:'Mensal'});
+  p.apos=(+edP.apos)+ad;
+  const gr=(p.goals||[]).find(g=>g.tipo==='renda'); if(gr&&rd>0) gr.valor=Math.round(gr.valor*(1-rd/100));
+  const R=projetar(p);
+  const set=(id,v,c)=>{const el=document.getElementById(id);if(el){el.textContent=v;if(c)el.style.color=c;}};
+  set('lvAporteV','R$ '+ap.toLocaleString('pt-BR'));
+  set('lvIdadeV','aos '+((+edP.apos)+ad)+(ad?' (+'+ad+')':''));
+  set('lvRendaV',rd?('-'+rd+'%'):'0%');
+  set('lvProb',R.prob+'%',R.prob>=80?'var(--ok)':R.prob>=55?'var(--warn)':'var(--bad)');
+  set('lvTaxa',R.taxaSaque.toFixed(1)+'%',R.taxaSaque<=4.5?'var(--ok)':R.taxaSaque<=6.5?'var(--warn)':'var(--bad)');
+  set('lvPat',BRL(R.patApos));
+}
+function diagPanel(p,R){
+  const ic={ok:'✓',warn:'!',bad:'×'};const cor={ok:'var(--ok)',warn:'var(--warn)',bad:'var(--bad)'};
+  return `<div class="panel"><h2>${ICN.spark} Diagnóstico & recomendações</h2>
+   ${diagnostico(p,R).map(([t,txt])=>`<div style="display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)">
+     <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.78rem;background:${cor[t]}22;color:${cor[t]};border:1px solid ${cor[t]}55">${ic[t]}</span>
+     <span style="font-size:.88rem;color:var(--ink);line-height:1.5">${txt}</span></div>`).join('')}</div>`;
+}
+
+/* ===================== NAVEGAÇÃO ===================== */
+const ICN={dash:'<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
+ users:'<svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>',
+ plan:'<svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>',
+ wallet:'<svg class="icon" viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>',
+ cota:'<svg class="icon" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>',
+ spark:'<svg class="icon" viewBox="0 0 24 24"><path d="M12 3l1.9 5.8L20 10l-5.8 1.9L12 18l-1.9-5.8L4 10l5.8-1.9Z"/></svg>',
+ money:'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.5 9a2.5 2 0 0 0-2.5-1.5c-1.5 0-2.5.8-2.5 2s1 1.7 2.5 2 2.5.8 2.5 2-1 2-2.5 2A2.5 2 0 0 1 9.5 16"/><path d="M12 6v1.5M12 16.5V18"/></svg>',
+ target:'<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>',
+ funnel:'<svg class="icon" viewBox="0 0 24 24"><path d="M3 4h18l-7 8v6l-4 2v-8Z"/></svg>',
+ check:'<svg class="icon" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+ phone:'<svg class="icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>',
+ feed:'<svg class="icon" viewBox="0 0 24 24"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1.5" fill="currentColor"/></svg>',
+ chat:'<svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>',
+ bolt:'<svg class="icon" viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7Z"/></svg>',
+ heart:'<svg class="icon" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>',
+ send:'<svg class="icon" viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>',
+ bell:'<svg class="icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>'};
+let session={role:null,clientId:null};
+let view={page:null,clientId:null,planId:null,readonly:false};
+let charts=[];
+const client=id=>(typeof id==='object'?id:db.clients.find(c=>c.id===id));
+const plan=(c,p)=>client(c).plans.find(x=>x.id===p);
+const mainPlan=c=>client(c).plans.find(p=>p.main);
+
+function navItems(){
+  if(session.role==='master') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users]];
+  if(session.role==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users]];
+  return [['dash','Início',ICN.dash],['plan','Meu Planejamento',ICN.plan],['jornada','Minha Jornada',ICN.target],['gastos','Meus Gastos',ICN.money],['cota','Minha Cota',ICN.cota]];
+}
+function renderNav(){
+  const items=navItems();
+  document.getElementById('navi').innerHTML=items.map(([k,l,ic])=>`<a class="${view.page===k?'on':''}" onclick="go('${k}')">${ic}${l}</a>`).join('');
+  document.getElementById('mobnav').innerHTML=items.map(([k,l,ic])=>`<a class="${view.page===k?'on':''}" onclick="go('${k}')">${ic||''}<span>${l}</span></a>`).join('');
+}
+function go(page){ view.page=page; renderNav(); document.getElementById('content').innerHTML=skeleton(); window.scrollTo(0,0); requestAnimationFrame(()=>setTimeout(render,90)); }
+function skeleton(){return `<div class="skel">
+  <div class="sk" style="height:30px;width:40%"></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin:18px 0">
+   ${'<div class="sk" style="height:92px"></div>'.repeat(4)}</div>
+  <div class="sk" style="height:230px"></div>
+  <div class="sk" style="height:160px"></div></div>`;}
+/* ===== NOTIFICAÇÕES ===== */
+function notifList(){
+  const out=[]; const me=session.userId;
+  if(isMaster()){ (db.crm||[]).filter(l=>!l.ownerId&&!l.perdido).forEach(l=>out.push({ic:'📥',cor:'var(--warn)',tx:`Lead não distribuído: <b>${esc(l.nome)}</b>`,tm:l.fonte?('via '+l.fonte):'',go:'crm'})); }
+  (db.inbox||[]).filter(l=>!l.importado).slice(0,3).forEach(l=>out.push({ic:'⚡',cor:'var(--teal)',tx:`Novo lead de ${l.fonte}: <b>${esc(l.nome)}</b>`,tm:timeAgo(l.quando),go:'captacao'}));
+  (db.tasks||[]).filter(t=>!t.feito).slice(0,3).forEach(t=>out.push({ic:'✓',cor:'var(--gold2)',tx:esc(t.titulo),tm:t.quando||'',go:'tarefas'}));
+  (db.chat&&db.chat.messages||[]).filter(m=>m.autorId!==me && Date.now()-m.quando<DAY).slice(-2).forEach(m=>out.push({ic:'💬',cor:'var(--teal)',tx:`${esc(user(m.autorId).nome.split(' ')[0])} no chat: <b>${esc((m.texto||'').slice(0,32))}</b>`,tm:timeAgo(m.quando),go:'chat'}));
+  return out;
+}
+function updateBell(){
+  const w=document.getElementById('bellWrap'); if(!w) return;
+  if(session.role==='cliente'){w.innerHTML='';return;}
+  const n=notifList().length;
+  w.innerHTML=`<button class="bell" onclick="toggleNotif(event)">${ICN.bell}${n?`<span class="badge">${n>9?'9+':n}</span>`:''}</button>`;
+}
+function toggleNotif(e){
+  e&&e.stopPropagation();
+  const w=document.getElementById('bellWrap'); const open=w.querySelector('.notif');
+  if(open){open.remove();return;}
+  const items=notifList();
+  const html=`<div class="notif"><h4>Notificações</h4>${items.length?items.map(it=>`<div class="ni" onclick="go('${it.go}');closeNotif()"><span class="dot" style="background:${it.cor}22;color:${it.cor}">${it.ic}</span><div><div class="tx">${it.tx}</div>${it.tm?`<div class="tm">${esc(it.tm)}</div>`:''}</div></div>`).join(''):'<div class="empty">Tudo em dia ✨</div>'}</div>`;
+  w.insertAdjacentHTML('beforeend',html);
+  setTimeout(()=>document.addEventListener('click',closeNotifOnce),0);
+}
+function closeNotif(){const n=document.querySelector('.notif');if(n)n.remove();}
+function closeNotifOnce(e){const w=document.getElementById('bellWrap');if(w&&!w.contains(e.target)){closeNotif();document.removeEventListener('click',closeNotifOnce);}}
+/* cria um gráfico de forma segura: se faltar canvas ou Chart.js, mostra aviso e nunca quebra o resto da página */
+function mkChart(id,cfg){
+  const el=document.getElementById(id); if(!el) return;
+  if(typeof Chart==='undefined'){ const d=document.createElement('div'); d.className='note'; d.style.cssText='padding:24px;text-align:center'; d.textContent='Gráfico indisponível (sem conexão para carregar a biblioteca).'; el.replaceWith(d); return; }
+  try{ charts.push(new Chart(el,cfg)); }catch(e){ console.warn('chart '+id,e); }
+}
+function setTop(title,crumb,actions){ document.getElementById('pageTitle').textContent=title; document.getElementById('crumb').textContent=crumb||''; document.getElementById('topActions').innerHTML=actions||''; }
+function destroyCharts(){charts.forEach(c=>{try{c.destroy()}catch(e){}});charts=[]}
+
+/* ===================== LOGIN / AUTENTICAÇÃO ===================== */
+function loginErr(m){const el=document.getElementById('loginMsg');el.textContent=m;el.style.color='var(--bad)';}
+function doLogin(){
+  const email=(document.getElementById('logEmail').value||'').trim();
+  const pass=document.getElementById('logPass').value;
+  const a=accByEmail(email);
+  if(!a||a.ativo===false) return loginErr('Conta não encontrada ou inativa.');
+  if(a.senha!==pass) return loginErr('Senha incorreta.');
+  session={role:a.role,userId:a.id,clientId:a.clientId||null};
+  paintUser(a);
+  document.getElementById('loginMsg').textContent='';
+  enterApp('dash');
+}
+function paintUser(a){
+  const lbl=a.role==='cliente'?'Cliente':(a.role==='master'?'Master':(a.papel||'Especialista'));
+  document.getElementById('sideUser').innerHTML=`<div style="display:flex;align-items:center;gap:8px">${avatar(a.id,26)}<span>${esc((a.nome||'').split(' ')[0])} · ${esc(lbl)}</span></div>`;
+  document.getElementById('userChip').innerHTML=`${avatar(a.id,32)}<div class="meta"><div class="nm">${esc((a.nome||'').split(' ')[0])}</div><div class="rl">${esc(lbl)}</div></div><button class="out" onclick="logout()">Sair</button>`;
+}
+async function forgotPass(){
+  const email=(document.getElementById('logEmail').value||'').trim();
+  const a=accByEmail(email);
+  if(!a) return loginErr('Digite o e-mail da sua conta para redefinir a senha.');
+  const nova=senhaGen(); a.senha=nova; save();
+  await ask({title:'🔑 Redefinição de senha',msg:`Em produção, uma nova senha seria enviada por e-mail para ${a.email}. No teste, sua nova senha é: ${nova}`,ok:'Entendi'});
+  document.getElementById('logPass').value=nova;
+  const el=document.getElementById('loginMsg');el.style.color='var(--ok)';el.textContent='Senha redefinida — preenchemos para você entrar.';
+}
+function enterApp(page){document.getElementById('loginView').classList.add('hidden');document.getElementById('app').classList.add('show');view={page};renderNav();render()}
+function logout(){session={role:null};document.getElementById('app').classList.remove('show');document.getElementById('loginView').classList.remove('hidden');destroyCharts()}
+
+/* ===================== RENDER PRINCIPAL ===================== */
+function render(){
+  destroyCharts();
+  updateBell();
+  const C=document.getElementById('content');
+  if(session.role==='especialista'||session.role==='master'){
+    if(view.page==='dash') return renderAssessorDash(C);
+    if(view.page==='crm') return renderCRM(C);
+    if(view.page==='captacao') return renderCaptacao(C);
+    if(view.page==='feed') return renderFeed(C);
+    if(view.page==='chat') return renderChat(C);
+    if(view.page==='tarefas') return renderTarefas(C);
+    if(view.page==='users') return renderClients(C);
+    if(view.page==='contas'&&isMaster()) return renderContas(C);
+    if(view.page==='editor') return renderEditor(C);
+    if(view.page==='compare') return renderCompare(C);
+  }else{
+    if(view.page==='dash') return renderClientDash(C);
+    if(view.page==='plan') return renderClientPlan(C);
+    if(view.page==='jornada') return renderJornada(C);
+    if(view.page==='gastos') return renderGastos(C);
+    if(view.page==='cota') return renderCota(C);
+    if(view.page==='editor') return renderEditor(C);
+    if(view.page==='compare') return renderCompare(C);
+  }
+}
+window.scrollReset=()=>window.scrollTo(0,0);
+
+/* ===================== CRM (estilo Bitrix) ===================== */
+function crmStats(){
+  const L=visibleLeads();
+  const ativos=L.filter(l=>!l.perdido && l.stage<CRM_STAGES.length-1);
+  const fechados=L.filter(l=>!l.perdido && l.stage===CRM_STAGES.length-1);
+  const perdidos=L.filter(l=>l.perdido);
+  const pipeline=ativos.reduce((s,l)=>s+(+l.valor||0),0);
+  const ganho=fechados.reduce((s,l)=>s+(+l.valor||0),0);
+  const fechaveis=fechados.length+perdidos.length;
+  const conv=fechaveis>0?Math.round(fechados.length/fechaveis*100):0;
+  const porTipo={};TIPOS.forEach(t=>porTipo[t]=L.filter(l=>l.tipo===t&&!l.perdido).length);
+  return {total:L.length,ativos:ativos.length,fechados:fechados.length,perdidos:perdidos.length,pipeline,ganho,conv,porTipo};
+}
+function renderCRM(C){
+  setTop('CRM — Funil de Negócios','Consórcio · Planejamento · Consultoria',
+    '<button class="btn btn-gold btn-sm" onclick="openLead()">+ Novo lead</button>');
+  const s=crmStats();
+  const cards=`<div class="kpis">
+     <div class="kpi grad"><div class="lab">${ICN.funnel}Em pipeline</div><b>${BRL(s.pipeline)}</b></div>
+     <div class="kpi"><div class="lab">${ICN.users}Leads ativos</div><b>${s.ativos}</b></div>
+     <div class="kpi grad"><div class="lab">${ICN.money}Ganho (fechado)</div><b>${BRL(s.ganho)}</b></div>
+     <div class="kpi"><div class="lab">${ICN.spark}Conversão</div><b>${s.conv}%</b></div>
+   </div>`;
+  const VL=visibleLeads();
+  const board=CRM_STAGES.map((st,i)=>{
+    const leads=VL.filter(l=>!l.perdido && l.stage===i);
+    const soma=leads.reduce((a,l)=>a+(+l.valor||0),0);
+    return `<div class="kcol"><h4>${esc(st)} <span style="color:var(--soft)">${leads.length}</span></h4>
+      <div class="ksum">${BRL(soma)}</div>
+      <div class="kbody" ondragover="kbOver(event)" ondragleave="kbLeave(event)" ondrop="kbDrop(event,${i})">${leads.map(l=>leadCard(l,i)).join('')||'<div class="note" style="padding:8px 0">— arraste aqui —</div>'}</div></div>`;
+  }).join('');
+  const perdidos=VL.filter(l=>l.perdido);
+  const naoDistrib=isMaster()?(db.crm||[]).filter(l=>!l.ownerId&&!l.perdido):[];
+  C.innerHTML=cards+
+    (naoDistrib.length?`<div class="banner">📥 ${naoDistrib.length} lead(s) aguardando distribuição. Use o seletor “Distribuir” em cada cartão para encaminhar a um especialista.</div>`:'')+
+    `<div class="kanban">${board}</div>`+
+    (perdidos.length?`<div class="panel"><h2>${ICN.users} Perdidos (${perdidos.length})</h2>
+      ${perdidos.map(l=>`<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line)"><span><b style="color:var(--head)">${esc(l.nome)}</b> <span class="ttype tt-${l.tipo}" style="margin:0 0 0 6px">${l.tipo}</span></span>
+        <button class="btn btn-ghost btn-sm" onclick="crmRecuperar('${l.id}')">Reativar</button></div>`).join('')}</div>`:'');
+}
+function leadCard(l,i){
+  const last=CRM_STAGES.length-1;
+  return `<div class="lead" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><span class="ttype tt-${l.tipo}">${l.tipo}</span>
+    <div class="nm">${esc(l.nome)}</div>
+    <div class="ct">${esc(l.contato||'')}</div>
+    ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''}
+    ${l.obs?`<div class="note" style="margin-top:6px">${esc(l.obs)}</div>`:''}
+    ${(l.atividades&&l.atividades.length)?`<div class="note" style="margin-top:6px;color:var(--soft)">🕘 ${esc(l.atividades[l.atividades.length-1].texto)} · ${timeAgo(l.atividades[l.atividades.length-1].quando)}</div>`:''}
+    <div class="note" style="margin-top:6px;color:var(--soft)">${l.ownerId?'👤 '+esc(user(l.ownerId).nome.split(' ')[0]):'⚠️ não distribuído'}</div>
+    ${isMaster()?`<select onchange="crmAssign('${l.id}',this.value)" style="margin-top:6px;font-size:.74rem;padding:6px 8px"><option value="">— distribuir para —</option>${(db.accounts||[]).filter(a=>a.role==='especialista'||a.role==='master').map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`:''}
+    <div class="acts">
+      ${i>0?`<button onclick="crmMove('${l.id}',-1)" title="Voltar etapa">◀</button>`:''}
+      ${i<last?`<button onclick="crmMove('${l.id}',1)" title="Avançar etapa">▶</button>`:''}
+      <button onclick="crmNote('${l.id}')">📝 Nota</button>
+      <button onclick="openLead('${l.id}')">✎ Editar</button>
+      <button onclick="crmToClient('${l.id}')">→ Cliente</button>
+      <button onclick="crmLose('${l.id}')">Perdeu</button>
+    </div></div>`;
+}
+function crmMove(id,d){const l=(db.crm).find(x=>x.id===id);const ns=Math.max(0,Math.min(CRM_STAGES.length-1,l.stage+d));if(ns!==l.stage){l.stage=ns;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[ns]+'"',quando:Date.now(),autorId:session.userId});}save();renderCRM(document.getElementById('content'));}
+let _dragId=null;
+function dragStart(e,id){_dragId=id;e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
+function dragEnd(e){e.currentTarget.classList.remove('dragging');}
+function kbOver(e){e.preventDefault();e.currentTarget.classList.add('dragover');}
+function kbLeave(e){e.currentTarget.classList.remove('dragover');}
+function kbDrop(e,stage){e.preventDefault();e.currentTarget.classList.remove('dragover');const l=db.crm.find(x=>x.id===_dragId);_dragId=null;if(l&&l.stage!==stage){l.stage=stage;l.perdido=false;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[stage]+'"',quando:Date.now(),autorId:session.userId});save();renderCRM(document.getElementById('content'));flash('Movido para '+CRM_STAGES[stage]);}}
+async function crmNote(id){const t=await ask({title:'Nova atividade',msg:'Registre um contato, observação ou próximo passo:',input:true,ok:'Salvar'});if(!t||!t.trim())return;const l=db.crm.find(x=>x.id===id);l.atividades=l.atividades||[];l.atividades.push({texto:t.trim(),quando:Date.now(),autorId:session.userId});save();renderCRM(document.getElementById('content'));flash('Atividade registrada');}
+function crmLose(id){const l=(db.crm).find(x=>x.id===id);l.perdido=true;save();renderCRM(document.getElementById('content'));flash('Lead marcado como perdido');}
+function crmRecuperar(id){const l=(db.crm).find(x=>x.id===id);l.perdido=false;save();renderCRM(document.getElementById('content'));flash('Lead reativado');}
+async function crmDel(id){if(!(await ask({title:'Excluir lead?',ok:'Excluir'})))return;db.crm=db.crm.filter(x=>x.id!==id);save();renderCRM(document.getElementById('content'));}
+function crmAssign(id,uid){const l=db.crm.find(x=>x.id===id);l.ownerId=uid||null;l.atividades=l.atividades||[];if(uid)l.atividades.push({texto:'Distribuído para '+user(uid).nome,quando:Date.now(),autorId:session.userId});save();renderCRM(document.getElementById('content'));flash(uid?'Lead distribuído para '+user(uid).nome.split(' ')[0]:'Distribuição removida');}
+function initialsOf(nome){return (nome||'').split(' ').filter(Boolean).map(x=>x[0]).slice(0,2).join('').toUpperCase()||'CL';}
+function createClientAccount(c){
+  let email=(c.email||'').trim();
+  if(!email) email=(c.nome.split(' ')[0]||'cliente').toLowerCase()+'@cliente.agion';
+  const ex=accByEmail(email); if(ex) return ex;
+  const a={id:'ac'+uid(),role:'cliente',nome:c.nome,email,senha:senhaGen(),clientId:c.id,ownerId:meId(),inicial:initialsOf(c.nome),cor:'#4Fa3a3',papel:'Cliente',ativo:true};
+  db.accounts.push(a); save(); return a;
+}
+async function crmToClient(id){
+  const l=(db.crm).find(x=>x.id===id);
+  if(!(await ask({title:'Converter em cliente?',msg:`Cria a ficha de "${l.nome}", gera a conta de acesso do cliente e abre o planejamento.`,ok:'Converter'})))return;
+  const c={id:uid(),nome:l.nome,email:l.contato.includes('@')?l.contato:'',tel:l.contato.includes('@')?'':l.contato,ownerId:meId(),plans:[blankPlan(l.nome)]};
+  db.clients.push(c); l.stage=CRM_STAGES.length-1; l.perdido=false; if(!l.ownerId)l.ownerId=meId(); save();
+  const a=createClientAccount(c);
+  await ask({title:'✅ Cliente e conta criados',msg:`Acesso do cliente — e-mail: ${a.email} · senha: ${a.senha}. Em produção, é enviado por e-mail ao cliente.`,ok:'Ok'});
+  flash('Cliente criado a partir do lead'); view._from='crm'; openEditor(c.id,c.plans[0].id,false);
+}
+function openLead(id){
+  const l=id?(db.crm).find(x=>x.id===id):null;
+  document.getElementById('leadTitle').textContent=l?'Editar lead':'Novo lead';
+  document.getElementById('le_id').value=l?l.id:'';
+  document.getElementById('le_nome').value=l?l.nome:'';
+  document.getElementById('le_contato').value=l?(l.contato||''):'';
+  document.getElementById('le_tipo').value=l?l.tipo:'Consórcio';
+  document.getElementById('le_valor').value=l?(l.valor||0):0;
+  document.getElementById('le_obs').value=l?(l.obs||''):'';
+  document.getElementById('leadModal').classList.remove('hidden');
+}
+function closeLead(){document.getElementById('leadModal').classList.add('hidden');}
+function saveLead(){
+  const id=document.getElementById('le_id').value;
+  const data={nome:document.getElementById('le_nome').value.trim(),contato:document.getElementById('le_contato').value.trim(),
+    tipo:document.getElementById('le_tipo').value,valor:parseFloat(document.getElementById('le_valor').value)||0,obs:document.getElementById('le_obs').value.trim()};
+  if(!data.nome){flash('Informe o nome');return;}
+  if(id){Object.assign((db.crm).find(x=>x.id===id),data);}
+  else{db.crm.push({id:uid(),stage:0,perdido:false,criadoEm:Date.now(),...data});}
+  save();closeLead();renderCRM(document.getElementById('content'));flash('Lead salvo');
+}
+/* ----- TAREFAS ----- */
+function renderTarefas(C){
+  setTop('Tarefas','Sua agenda de follow-ups','<button class="btn btn-gold btn-sm" onclick="taskAdd()">+ Nova tarefa</button>');
+  const T=db.tasks||[]; const pend=T.filter(t=>!t.feito), done=T.filter(t=>t.feito);
+  C.innerHTML=`<div class="kpis">
+     <div class="kpi grad"><div class="lab">${ICN.check}Pendentes</div><b>${pend.length}</b></div>
+     <div class="kpi"><div class="lab">${ICN.check}Concluídas</div><b>${done.length}</b></div>
+   </div>
+   <div class="panel"><h2>${ICN.check} A fazer</h2>${pend.map(taskRow).join('')||'<p class="note">Nenhuma tarefa pendente 🎉</p>'}</div>
+   ${done.length?`<div class="panel"><h2>${ICN.check} Concluídas</h2>${done.map(taskRow).join('')}</div>`:''}`;
+}
+function taskRow(t){return `<div class="task ${t.feito?'done':''}"><div class="tk-cb" onclick="taskToggle('${t.id}')">${t.feito?'✓':''}</div>
+   <div class="tk-t">${esc(t.titulo)}</div><div class="tk-d">${esc(t.quando||'')}</div>
+   <button class="btn-ico" onclick="taskDel('${t.id}')">✕</button></div>`;}
+async function taskAdd(){const tt=await ask({title:'Nova tarefa',msg:'O que precisa ser feito?',input:true,ok:'Adicionar'});if(!tt||!tt.trim())return;
+   const q=await ask({title:'Quando?',msg:'Prazo (ex.: Hoje, Amanhã, Dia 20):',input:true,value:'Hoje',ok:'Salvar'});
+   db.tasks.push({id:uid(),titulo:tt.trim(),quando:(q||'').trim(),feito:false});save();renderTarefas(document.getElementById('content'));flash('Tarefa criada');}
+function taskToggle(id){const t=(db.tasks).find(x=>x.id===id);t.feito=!t.feito;save();renderTarefas(document.getElementById('content'));}
+async function taskDel(id){db.tasks=db.tasks.filter(x=>x.id!==id);save();renderTarefas(document.getElementById('content'));}
+
+/* ===================== FEED COLABORATIVO ===================== */
+function renderFeed(C){
+  setTop('Feed da equipe','Mural compartilhado entre especialistas');
+  C.innerHTML=`<div class="panel">
+     <div class="feed-comp">${avatar(session.userId,40)}
+       <div style="flex:1"><textarea id="feedTxt" placeholder="Compartilhe uma novidade, vitória ou aviso com a equipe..."></textarea>
+       <div style="text-align:right;margin-top:8px"><button class="btn btn-gold btn-sm" onclick="feedPost()">Publicar</button></div></div>
+     </div>
+     <div id="feedList">${feedList()}</div></div>`;
+}
+function feedList(){
+  return (db.feed||[]).slice().sort((a,b)=>b.quando-a.quando).map(p=>{
+    const liked=(p.likes||[]).includes(session.userId);
+    return `<div class="post">${avatar(p.autorId,42)}
+      <div class="pbody">
+        <div class="phead"><span class="pname">${esc(user(p.autorId).nome)}</span><span class="ptime">${timeAgo(p.quando)}</span></div>
+        <div class="ptext">${esc(p.texto)}</div>
+        <div class="pacts">
+          <button class="${liked?'liked':''}" onclick="feedLike('${p.id}')">${ICN.heart}${(p.likes||[]).length||''} Curtir</button>
+          <button onclick="feedToggleC('${p.id}')">💬 ${(p.coments||[]).length||''} Comentar</button>
+        </div>
+        ${(p.coments||[]).map(c=>`<div class="coment">${avatar(c.autorId,28)}<div class="cb"><div class="cn">${esc(user(c.autorId).nome)}</div><div class="cx">${esc(c.texto)}</div></div></div>`).join('')}
+        <div id="cform_${p.id}" class="coment hidden">${avatar(session.userId,28)}<input id="ci_${p.id}" placeholder="Escreva um comentário..." onkeydown="if(event.key==='Enter')feedComment('${p.id}')"><button class="btn btn-teal btn-sm" onclick="feedComment('${p.id}')">Enviar</button></div>
+      </div></div>`;
+  }).join('');
+}
+function feedPost(){const t=document.getElementById('feedTxt').value.trim();if(!t)return;db.feed.push({id:uid(),autorId:session.userId,texto:t,quando:Date.now(),likes:[],coments:[]});save();document.getElementById('feedList').innerHTML=feedList();document.getElementById('feedTxt').value='';flash('Publicado no feed');}
+function feedLike(id){const p=db.feed.find(x=>x.id===id);const i=p.likes.indexOf(session.userId);if(i<0)p.likes.push(session.userId);else p.likes.splice(i,1);save();document.getElementById('feedList').innerHTML=feedList();}
+function feedToggleC(id){const el=document.getElementById('cform_'+id);if(el){el.classList.toggle('hidden');const inp=document.getElementById('ci_'+id);if(inp&&!el.classList.contains('hidden'))inp.focus();}}
+function feedComment(id){const inp=document.getElementById('ci_'+id);const t=(inp.value||'').trim();if(!t)return;db.feed.find(x=>x.id===id).coments.push({autorId:session.userId,texto:t,quando:Date.now()});save();document.getElementById('feedList').innerHTML=feedList();}
+
+/* ===================== CHAT INTERNO ===================== */
+let chatCh='geral';
+function renderChat(C){
+  setTop('Chat da equipe','Mensagens por canal');
+  if(!(db.chat.channels||[]).some(c=>c.id===chatCh)) chatCh=db.chat.channels[0].id;
+  C.innerHTML=`<div class="chat-wrap">
+     <div class="chat-side">${(db.chat.channels).map(ch=>`<div class="ch ${ch.id===chatCh?'on':''}" onclick="chatOpen('${ch.id}')"># ${esc(ch.nome)}</div>`).join('')}</div>
+     <div class="chat-main">
+       <div class="chat-msgs" id="chatMsgs">${chatMsgs()}</div>
+       <div class="chat-input"><input id="chatInput" placeholder="Mensagem em #${esc(chName())}..." onkeydown="if(event.key==='Enter')chatSend()"><button class="btn btn-gold btn-sm" onclick="chatSend()">${ICN.send}</button></div>
+     </div></div>`;
+  scrollChat();
+}
+function chName(){return (db.chat.channels.find(c=>c.id===chatCh)||{}).nome||'';}
+function chatMsgs(){return (db.chat.messages||[]).filter(m=>m.canalId===chatCh).map(m=>{const me=m.autorId===session.userId;return `<div class="msg ${me?'me':''}">${avatar(m.autorId,30)}<div class="mbubble"><div class="mn">${esc(user(m.autorId).nome.split(' ')[0])}</div><div class="mt">${esc(m.texto)}</div><div class="mtime">${timeAgo(m.quando)}</div></div></div>`;}).join('')||'<p class="note">Sem mensagens neste canal ainda. Diga olá! 👋</p>';}
+function chatOpen(id){chatCh=id;renderChat(document.getElementById('content'));}
+function chatSend(){const inp=document.getElementById('chatInput');const t=(inp.value||'').trim();if(!t)return;db.chat.messages.push({id:uid(),canalId:chatCh,autorId:session.userId,texto:t,quando:Date.now()});save();document.getElementById('chatMsgs').innerHTML=chatMsgs();inp.value='';scrollChat();}
+function scrollChat(){const m=document.getElementById('chatMsgs');if(m)m.scrollTop=m.scrollHeight;}
+
+/* ===================== CAPTAÇÃO (Google + Meta) ===================== */
+function renderCaptacao(C){
+  setTop('Captação de Leads','Google & Meta → seu funil');
+  const pend=(db.inbox||[]).filter(l=>!l.importado);
+  C.innerHTML=`
+   <div class="banner">⚡ Os leads dos seus anúncios do <b>Google</b> e da <b>Meta</b> (Facebook/Instagram) caem aqui automaticamente; importe para o funil com um clique. <span style="opacity:.7">No protótipo os leads são simulados — em produção chegam por webhook/API (Meta Lead Ads & Google Lead Form Extensions).</span></div>
+   <div class="kpis">
+     <div class="kpi grad"><div class="lab">${ICN.bolt}Leads aguardando</div><b>${pend.length}</b></div>
+     <div class="kpi"><div class="lab">${ICN.funnel}Já importados</div><b>${(db.inbox||[]).filter(l=>l.importado).length}</b></div>
+   </div>
+   <div class="grid2">
+     ${['Google','Meta'].map(src=>{const it=db.integr[src]||{};return `<div class="intg"><div class="src src-${src}">${src==='Google'?'G':'∞'}</div>
+       <div style="flex:1"><div style="font-weight:700;color:var(--head)">${src} ${src==='Meta'?'(Facebook/Instagram)':'Ads'}</div>
+         <div class="note">${esc(it.conta||'')}</div>
+         <div style="font-size:.78rem;margin-top:4px;color:${it.conectado?'var(--ok)':'var(--soft)'}"><span class="${it.conectado?'dot-on':'dot-off'}"></span> ${it.conectado?'Conectado':'Desconectado'}</div></div>
+       <button class="btn btn-ghost btn-sm" onclick="toggleIntegr('${src}')">${it.conectado?'Desconectar':'Conectar'}</button></div>`;}).join('')}
+   </div>
+   <div class="panel"><h2>${ICN.bolt} Caixa de entrada de leads <button class="btn btn-teal btn-sm right" onclick="simulLead()">Simular chegada de lead</button></h2>
+     ${pend.map(l=>`<div class="row" style="padding:11px 0;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:180px"><span class="lead-src src-${l.fonte}">${l.fonte}</span> <b style="color:var(--head);margin-left:6px">${esc(l.nome)}</b>
+          <div class="note">${esc(l.contato)} · ${esc(l.campanha)}</div></div>
+        <span class="ttype tt-${l.tipo}">${l.tipo}</span>
+        <span class="note">${timeAgo(l.quando)}</span>
+        <button class="btn btn-gold btn-sm" onclick="importLead('${l.id}')">Importar p/ funil</button>
+        <button class="btn btn-ghost btn-sm" onclick="discardLead('${l.id}')">Descartar</button>
+      </div>`).join('')||'<p class="note">Nenhum lead novo aguardando. 🎉</p>'}
+   </div>`;
+}
+function toggleIntegr(src){db.integr[src].conectado=!db.integr[src].conectado;save();renderCaptacao(document.getElementById('content'));flash(src+(db.integr[src].conectado?' conectado':' desconectado'));}
+function importLead(id){const l=db.inbox.find(x=>x.id===id);l.importado=true;db.crm.push({id:uid(),nome:l.nome,contato:l.contato,tipo:l.tipo,valor:0,stage:0,perdido:false,ownerId:isMaster()?null:meId(),criadoEm:Date.now(),obs:'Origem: '+l.fonte+' — '+l.campanha,atividades:[{texto:'Lead recebido via '+l.fonte,quando:Date.now(),autorId:session.userId}]});save();renderCaptacao(document.getElementById('content'));flash(isMaster()?'Lead importado — distribua no CRM':'Lead importado para o seu funil ✓');}
+function discardLead(id){db.inbox=db.inbox.filter(x=>x.id!==id);save();renderCaptacao(document.getElementById('content'));}
+function simulLead(){const nomes=['Pedro Henrique','Juliana Reis','Marcos Vinícius','Camila Duarte','Felipe Andrade','Sofia Carvalho'];const tps=['Consórcio','Planejamento','Consultoria'];const f=Math.random()<0.5?'Google':'Meta';db.inbox.push({id:uid(),fonte:f,nome:nomes[Math.floor(Math.random()*nomes.length)],contato:'(51) 9'+Math.floor(1000+Math.random()*8999)+'-'+Math.floor(1000+Math.random()*8999),campanha:f==='Meta'?'Lead Ad — Instagram/Facebook':'Pesquisa — Google Ads',tipo:tps[Math.floor(Math.random()*3)],quando:Date.now(),importado:false});save();renderCaptacao(document.getElementById('content'));flash('⚡ Novo lead recebido de '+f+'!');}
+
+/* ===================== ASSESSOR: PAINEL ===================== */
+function renderAssessorDash(C){
+  setTop(isMaster()?'Painel do Master':'Painel do Especialista','Visão geral');
+  const VC=visibleClients(); const VL=visibleLeads();
+  let totPatr=0,totApos=0,sob=0; VC.forEach(c=>{const t=totals(mainPlan(c));totPatr+=t.patr;sob+=t.sobra});
+  const sims=VC.reduce((a,c)=>a+c.plans.filter(p=>!p.main).length,0);
+  const cs=crmStats(); const ativosCrm=VL.filter(l=>!l.perdido).length; const pendentes=(db.tasks||[]).filter(t=>!t.feito);
+  C.innerHTML=`
+   <div class="kpis">
+     <div class="kpi grad"><div class="lab">${ICN.users}${isMaster()?'Clientes (empresa)':'Meus clientes'}</div><b>${VC.length}</b></div>
+     <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio sob gestão</div><b>${BRL(totPatr)}</b></div>
+     <div class="kpi"><div class="lab">${ICN.funnel}Pipeline (CRM)</div><b>${BRL(cs.pipeline)}</b></div>
+     <div class="kpi"><div class="lab">${ICN.check}Tarefas pendentes</div><b>${pendentes.length}</b></div>
+   </div>
+   <div class="grid2">
+     <div class="panel"><h2>${ICN.funnel} Funil de negócios <button class="btn btn-teal btn-sm right" onclick="go('crm')">Abrir CRM</button></h2>
+       ${CRM_STAGES.map((st,i)=>{const n=VL.filter(l=>!l.perdido&&l.stage===i).length;const pct=ativosCrm?Math.round(n/ativosCrm*100):0;
+         return `<div style="margin-bottom:10px"><div class="row" style="font-size:.82rem"><span style="color:var(--head)">${esc(st)}</span><span style="color:var(--muted)">${n}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`}).join('')}
+     </div>
+     <div class="panel"><h2>${ICN.check} Tarefas de hoje <button class="btn btn-teal btn-sm right" onclick="go('tarefas')">Ver todas</button></h2>
+       ${pendentes.slice(0,5).map(t=>`<div class="task"><div class="tk-cb" onclick="taskToggle('${t.id}');go('dash')">${t.feito?'✓':''}</div><div class="tk-t">${esc(t.titulo)}</div><div class="tk-d">${esc(t.quando||'')}</div></div>`).join('')||'<p class="note">Sem tarefas pendentes 🎉</p>'}
+     </div>
+   </div>
+   <div class="panel"><h2>${ICN.users} Carteira de clientes <button class="btn btn-gold btn-sm right" onclick="newClient()">+ Novo cliente</button></h2>
+     <table><thead><tr><th>Cliente</th><th class="r">Patrimônio</th><th class="r">Aporte/mês</th><th class="r">Aposentar</th><th></th></tr></thead><tbody>
+     ${VC.map(c=>{const m=mainPlan(c),t=totals(m);return `<tr><td><b style="color:var(--head)">${esc(c.nome)}</b><br><span style="color:var(--soft);font-size:.78rem">${esc(c.email||'')}${isMaster()?' · '+esc(user(c.ownerId).nome.split(' ')[0]):''}</span></td><td class="r">${BRL(t.patr)}</td><td class="r">${BRL(t.sobra)}</td><td class="r">${m.apos} anos</td><td class="r"><button class="btn btn-teal btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Abrir plano</button></td></tr>`}).join('')||'<tr><td colspan="5" class="note">Nenhum cliente ainda.</td></tr>'}
+     </tbody></table>
+   </div>`;
+}
+function renderClients(C){
+  setTop(isMaster()?'Clientes (empresa)':'Meus clientes','Gestão de carteira', '<button class="btn btn-gold btn-sm" onclick="newClient()">+ Novo cliente</button>');
+  const VC=visibleClients();
+  C.innerHTML=`<div class="cards">${VC.map(c=>{const m=mainPlan(c),t=totals(c.plans.find(p=>p.main));const copies=c.plans.filter(p=>!p.main).length;
+    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div>
+      <div class="meta">${esc(c.email||'')}${isMaster()?' · 👤 '+esc(user(c.ownerId).nome.split(' ')[0]):''}</div>
+      <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div>
+      <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div>
+      <div class="row" style="gap:8px"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button>
+      <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button></div></div>`}).join('')||'<p class="note">Você ainda não tem clientes. Crie um cliente ou converta um lead no CRM.</p>'}</div>`;
+}
+/* ===================== CONTAS (somente master) ===================== */
+function renderContas(C){
+  setTop('Contas & Permissões','Somente o Master gerencia contas',
+    '<button class="btn btn-gold btn-sm" onclick="openAccount()">+ Nova conta</button>');
+  const esps=(db.accounts||[]).filter(a=>a.role==='master'||a.role==='especialista');
+  const clis=(db.accounts||[]).filter(a=>a.role==='cliente');
+  const rowAcc=a=>`<div class="netrow"><span style="display:flex;align-items:center;gap:10px">${avatar(a.id,30)}<span><b style="color:var(--head)">${esc(a.nome)}</b> ${a.role==='master'?'<span class="chip" style="margin-left:4px">MASTER</span>':''}<br><span class="note">${esc(a.email)} · ${esc(a.papel||a.role)}${a.role==='cliente'&&a.ownerId?' · de '+esc(user(a.ownerId).nome.split(' ')[0]):''}${a.ativo===false?' · INATIVO':''}</span></span></span>
+     <span style="display:flex;gap:6px">${a.role!=='master'?`<button class="btn btn-ghost btn-sm" onclick="resetAccount('${a.id}')">Resetar senha</button><button class="btn btn-ghost btn-sm" onclick="toggleAccount('${a.id}')">${a.ativo===false?'Ativar':'Desativar'}</button>`:'<span class="note">você</span>'}</span></div>`;
+  C.innerHTML=`
+   <div class="banner">🔐 Apenas você (Master) cria contas, distribui leads e mexe nos sistemas da empresa. Cada especialista vê só os próprios clientes e leads; cada cliente vê só o próprio planejamento.</div>
+   <div class="kpis">
+     <div class="kpi grad"><div class="lab">${ICN.users}Especialistas</div><b>${esps.length}</b></div>
+     <div class="kpi"><div class="lab">${ICN.users}Clientes com acesso</div><b>${clis.length}</b></div>
+   </div>
+   <div class="panel"><h2>${ICN.users} Especialistas & Master</h2>${esps.map(rowAcc).join('')}</div>
+   <div class="panel"><h2>${ICN.users} Clientes</h2>${clis.map(rowAcc).join('')||'<p class="note">Nenhuma conta de cliente ainda.</p>'}</div>`;
+}
+async function openAccount(){
+  const tipo=await ask({title:'Nova conta',msg:'Qual o tipo? Digite: especialista ou cliente',input:true,value:'especialista',ok:'Próximo'});
+  if(!tipo)return; const role=tipo.toLowerCase().indexOf('cli')>=0?'cliente':'especialista';
+  const nome=await ask({title:'Nome',msg:'Nome completo:',input:true,ok:'Próximo'}); if(!nome||!nome.trim())return;
+  const email=await ask({title:'E-mail',msg:'E-mail de acesso (login):',input:true,ok:'Criar'}); if(!email||!email.trim())return;
+  if(accByEmail(email.trim())){flash('Já existe conta com esse e-mail');return;}
+  const cores=['#8FD9CC','#E8CC8B','#B0875F','#4Fa3a3','#C5A059'];
+  const a={id:'u'+uid(),role,nome:nome.trim(),email:email.trim(),senha:senhaGen(),inicial:initialsOf(nome),cor:cores[Math.floor(Math.random()*cores.length)],papel:role==='cliente'?'Cliente':'Especialista',ativo:true};
+  if(role==='cliente'){const c={id:uid(),nome:nome.trim(),email:email.trim(),tel:'',ownerId:meId(),plans:[blankPlan(nome.trim())]};db.clients.push(c);a.clientId=c.id;a.ownerId=meId();a.cor='#4Fa3a3';}
+  db.accounts.push(a);save();
+  await ask({title:'✅ Conta criada',msg:`${a.nome} (${role}) — e-mail: ${a.email} · senha: ${a.senha}. Em produção, enviada por e-mail.`,ok:'Ok'});
+  renderContas(document.getElementById('content'));
+}
+async function resetAccount(id){const a=acc(id);if(!(await ask({title:'Resetar senha?',msg:`Gera uma nova senha para ${a.nome}.`,ok:'Resetar'})))return;a.senha=senhaGen();save();await ask({title:'🔑 Nova senha',msg:`Senha de ${a.nome}: ${a.senha}. Em produção, enviada por e-mail para ${a.email}.`,ok:'Ok'});}
+function toggleAccount(id){const a=acc(id);a.ativo=a.ativo===false?true:false;save();renderContas(document.getElementById('content'));flash(a.ativo?'Conta ativada':'Conta desativada');}
+async function newClient(){
+  const nome=await ask({title:'Novo cliente',msg:'Nome completo do cliente:',input:true,ok:'Próximo'});
+  if(!nome||!nome.trim())return;
+  const email=await ask({title:'E-mail do cliente',msg:'Será o login de acesso do cliente:',input:true,ok:'Criar conta'});
+  if(email===null)return;
+  const c={id:uid(),nome:nome.trim(),email:(email||'').trim(),tel:'',ownerId:meId(),plans:[blankPlan(nome.trim())]};
+  db.clients.push(c);save();
+  const a=createClientAccount(c);
+  await ask({title:'✅ Cliente e conta criados',msg:`Acesso do cliente — e-mail: ${a.email} · senha: ${a.senha}. Em produção é enviado por e-mail.`,ok:'Ok'});
+  flash('Cliente criado');openEditor(c.id,c.plans[0].id,false);
+}
+
+/* ===================== EDITOR DE PLANO (SEÇÕES) ===================== */
+let curSec='resumo', edP=null, edR=null;
+const SECS=[['resumo','Resumo'],['dados','Dados & Premissas'],['patrimonio','Patrimônio'],['consorcio','Consórcio'],['fluxo','Receitas & Despesas'],['balanco','Balanço ano a ano'],['objetivos','Objetivos'],['projecao','Projeção'],['protecao','Proteção'],['cenarios','Cenários'],['acao','Plano de Ação'],['diagnostico','Diagnóstico'],['glossario','Glossário']];
+function consorcioImpacto(p){
+  const lista=p.consorcios||[];
+  if(!lista.length) return `<p class="note">Nenhum consórcio adicionado ainda. Inclua uma carta acima para ver o impacto da contemplação no patrimônio.</p>`;
+  const semC=planClone(p); semC.consorcios=[]; const Rsem=projetar(semC);
+  const linhas=[6,12,24].map(m=>{const c=planClone(p);(c.consorcios||[]).forEach(x=>x.contemplaMes=m);const R=projetar(c);return{m,R};});
+  const dPat=v=>{const d=v-Rsem.patApos;return d>=0?`<span style="color:var(--ok)">+${BRL(d)}</span>`:`<span style="color:var(--bad)">${BRL(d)}</span>`;};
+  return `<p class="note" style="margin:-6px 0 12px">A carta contemplada entra no seu patrimônio e passa a render junto com seus investimentos (estratégia Agion de capitalização). Veja o efeito de antecipar a contemplação por lance:</p>
+   <div class="tbl-scroll" style="max-height:none"><table><thead><tr><th>Cenário</th><th class="r">Patrimônio aos ${p.apos}</th><th class="r">vs. sem consórcio</th><th class="r">Probabilidade</th></tr></thead><tbody>
+   <tr><td>Sem consórcio</td><td class="r">${BRL(Rsem.patApos)}</td><td class="r">—</td><td class="r">${Rsem.prob}%</td></tr>
+   ${linhas.map(l=>`<tr><td><b>Contemplação em ${l.m} meses</b></td><td class="r"><b>${BRL(l.R.patApos)}</b></td><td class="r">${dPat(l.R.patApos)}</td><td class="r"><b style="color:${l.R.prob>=80?'var(--ok)':l.R.prob>=55?'var(--warn)':'var(--bad)'}">${l.R.prob}%</b></td></tr>`).join('')}
+   </tbody></table></div>
+   <p class="note" style="margin-top:10px">Quanto antes a contemplação (via lance), mais tempo a carta rende — por isso 6 meses supera 12 e 24. O especialista combina seus investimentos para potencializar o lance.</p>`;
+}
+function openEditor(cid,pid,ro){view={page:'editor',clientId:cid,planId:pid,readonly:ro};curSec='resumo';renderNav();render();window.scrollTo(0,0)}
+function sec(id,html){return `<section class="plansec" data-sec="${id}">${html}</section>`;}
+function renderEditor(C){
+  const c=client(view.clientId), p=plan(view.clientId,view.planId), ro=view.readonly;
+  edP=p; edR=projetar(p); const R=edR;
+  const isCli=session.role==='cliente';
+  setTop(isCli?'Meu Planejamento':((p.main?'Plano Principal':'Simulação')+' — '+esc(p.nome)),
+    isCli?esc(p.titulo):esc(c.nome),
+    isCli?`<button class="btn btn-gold btn-sm" onclick="copyPlan('${c.id}','${mainPlan(c).id}')">+ Novo planejamento</button>`
+         :`<button class="btn btn-ghost btn-sm" onclick="goBack()">← Voltar</button>`);
+  const col=R.prob>=80?'var(--ok)':R.prob>=55?'var(--warn)':'var(--bad)';
+  const cats={};(p.assets||[]).forEach(a=>cats[a.cat]=(cats[a.cat]||0)+(+a.valor||0));
+  let head='';
+  if(isCli){
+    head=`<div class="toolbar" style="flex-wrap:wrap;gap:8px">${c.plans.map(pl=>`<button class="btn btn-sm ${pl.id===view.planId?'btn-gold':'btn-ghost'}" onclick="selCliPlan('${pl.id}')">${pl.main?'★ Plano Principal':esc(pl.titulo)}</button>`).join('')}</div>`;
+    head+= ro?`<div class="banner">🔒 Este é o seu <b>Plano Principal</b>, feito pelo seu especialista. Para simular mudanças sem alterá-lo, crie um novo planejamento.<button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="copyPlan('${c.id}','${p.id}')">Criar novo planejamento</button></div>`
+      :`<div class="banner" style="border-color:var(--line)">✏️ Você está editando <b>${esc(p.titulo)}</b> — uma cópia sua. O Plano Principal continua intacto.</div>
+        <div class="toolbar"><button class="btn btn-teal btn-sm" onclick="recalc()">↻ Recalcular</button><button class="btn btn-gold btn-sm" onclick="saveAndPublish()">Salvar</button><div class="sp"></div><button class="btn btn-ghost btn-sm" onclick="window.print()">Exportar PDF</button><button class="btn btn-ghost btn-sm" onclick="delSim('${c.id}','${p.id}')">Excluir</button></div>`;
+  } else {
+    head= ro?`<div class="banner">🔒 Plano Principal (somente leitura). Para testar mudanças, crie uma cópia editável.<button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="copyPlan('${c.id}','${p.id}')">Criar cópia para editar</button></div>`
+      :`<div class="toolbar"><button class="btn btn-teal btn-sm" onclick="recalc()">↻ Recalcular</button><button class="btn btn-gold btn-sm" onclick="saveAndPublish()">${p.main?'Salvar e publicar':'Salvar simulação'}</button><div class="sp"></div><button class="btn btn-ghost btn-sm" onclick="window.print()">Exportar PDF</button></div>`;
+  }
+  C.innerHTML=`
+  <div class="print-cover">
+    <span style="background:#0D232B;padding:16px 26px;border-radius:16px;display:inline-block"><img src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" style="height:54px;width:auto" onerror="this.style.display='none'"></span>
+    <h1>Relatório de Planejamento Financeiro</h1>
+    <p>${esc(c.nome)} · ${esc(p.titulo)}</p>
+    <p style="margin-top:4px">Agion Wealth — Consórcio · Planejamento · Consultoria</p>
+    <p style="margin-top:10px;font-size:.8rem">Emitido em ${new Date().toLocaleDateString('pt-BR')}</p>
+  </div>
+  ${head}
+  <div class="subnav">${(isCli?SECS.filter(s=>!['balanco','glossario'].includes(s[0])):SECS).map(s=>`<button id="tabsec_${s[0]}" onclick="showSec('${s[0]}')">${s[1]}</button>`).join('')}</div>
+  <div class="${ro?'locked':''}" id="editForm">
+
+  ${sec('resumo',`
+    <div class="kpis">
+      <div class="kpi grad"><div class="lab">${ICN.spark}Saúde financeira</div><b>${R.saude}/100</b></div>
+      <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio líquido</div><b>${BRL(R.liquido)}</b></div>
+      <div class="kpi"><div class="lab">${ICN.money}Aporte/mês · poupança</div><b>${BRL(R.sobra)} <span style="font-size:.9rem;color:var(--muted)">· ${R.poupanca}%</span></b></div>
+      <div class="kpi"><div class="lab">${ICN.target}Prob. da aposentadoria</div><b style="color:${col}">${R.prob}%</b></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h2>${ICN.users} Olá, ${esc((p.nome||'').split(' ')[0])}</h2>
+        <div class="netrow"><span>Idade atual</span><b>${p.idade} anos</b></div>
+        <div class="netrow"><span>Aposentadoria prevista</span><b>${p.apos} anos</b></div>
+        <div class="netrow"><span>Receita média anual</span><b>${BRL(R.rendaAnual)}</b></div>
+        <div class="netrow"><span>Despesa média anual</span><b>${BRL(R.despAnual)}</b></div>
+        <div class="netrow"><span>Aporte médio anual</span><b>${BRL(R.aporteAnual)}</b></div>
+        <div class="netrow tot"><span>Patrimônio investido</span><b>${BRL(R.patr)}</b></div>
+      </div>
+      <div class="panel" style="text-align:center"><h2 style="justify-content:center">Probabilidade de sucesso</h2>
+        <div class="gauge"><canvas id="gauge"></canvas></div>
+        <div style="margin-top:6px"><span class="prob" style="background:${col}22;color:${col};border:1px solid ${col}55">● ${R.prob}% de sucesso</span></div>
+        <div style="margin-top:16px;text-align:left"><div class="note">Cobertura da meta (patrimônio ÷ necessário)</div>
+          <div class="bar" style="height:10px"><i style="width:${R.cobertura}%"></i></div>
+          <div style="font-size:.8rem;color:var(--muted);margin-top:6px">${R.cobertura}% da meta de ${BRL(R.alvoConsumo)}</div></div>
+      </div>
+    </div>`)}
+
+  ${sec('dados',`<div class="panel"><h2>${ICN.users} Dados do cliente & premissas</h2>
+      <div class="grid3">
+        <div class="field"><label>Nome</label><input id="f_nome" value="${esc(p.nome)}"></div>
+        <div class="field"><label>Idade atual</label><input id="f_idade" type="number" value="${p.idade}"></div>
+        <div class="field"><label>Idade de aposentadoria</label><input id="f_apos" type="number" value="${p.apos}"></div>
+        <div class="field"><label>Expectativa de vida</label><input id="f_vida" type="number" value="${p.vida}"></div>
+        <div class="field"><label>Perfil de risco</label><select id="f_perfil">${['Conservador','Moderado','Arrojado'].map(o=>`<option ${o===p.perfil?'selected':''}>${o}</option>`).join('')}</select></div>
+        <div class="field"><label>Rentabilidade real (% a.a.)</label><input id="f_rent" type="number" step="0.1" value="${p.rent}"></div>
+      </div>
+      <p class="note" style="margin-top:6px">A rentabilidade real é o retorno acima da inflação. O perfil define a volatilidade usada nas simulações.</p>
+    </div>`)}
+
+  ${sec('patrimonio',`
+    <div class="grid2">
+      <div class="panel"><h2>${ICN.dash} Patrimônio investido</h2><div id="assets"></div>
+        <button class="btn btn-teal btn-sm additem" onclick="addRow('assets')">+ Ativo</button></div>
+      <div class="panel"><h2>Composição</h2><canvas id="chPie"></canvas></div>
+    </div>
+    <div class="panel"><h2>${ICN.wallet} Dívidas / passivos</h2><div id="debts"></div>
+      <button class="btn btn-teal btn-sm additem" onclick="addRow('debts')">+ Dívida</button></div>
+    <div class="panel"><h2>${ICN.money} Balanço patrimonial</h2>
+      <div class="netrow"><span>Total de ativos</span><b>${BRL(R.patr)}</b></div>
+      <div class="netrow"><span>Total de passivos (dívidas)</span><b>− ${BRL(R.passivos)}</b></div>
+      <div class="netrow tot"><span>Patrimônio líquido</span><b>${BRL(R.liquido)}</b></div>
+      ${R.consCredito>0?`<div class="netrow"><span>+ Consórcio a contemplar (carta)</span><b style="color:var(--gold2)">${BRL(R.consCredito)}</b></div>`:''}
+    </div>`)}
+
+  ${sec('consorcio',`
+    <div class="banner">🏆 <b>O diferencial Agion:</b> unimos consórcio + planejamento + consultoria. A carta de crédito entra como patrimônio na contemplação e é capitalizada — acelerando os seus objetivos sem os juros de um financiamento.</div>
+    <div class="kpis">
+      <div class="kpi grad"><div class="lab">${ICN.cota}Crédito (cartas)</div><b>${BRL(R.consCredito)}</b></div>
+      <div class="kpi"><div class="lab">${ICN.money}Parcela (meia) estimada</div><b>${BRL(R.consParcela)}/mês</b></div>
+      ${R.consAluguel>0?`<div class="kpi grad"><div class="lab">${ICN.cota}Aluguel gerado</div><b>${BRL(R.consAluguel)}/mês</b></div>`:`<div class="kpi"><div class="lab">${ICN.wallet}Patrimônio aos ${p.apos}</div><b>${BRL(R.patApos)}</b></div>`}
+      <div class="kpi"><div class="lab">${ICN.spark}Probabilidade</div><b>${R.prob}%</b></div>
+    </div>
+    <div class="panel"><h2>${ICN.cota} Cartas de consórcio do cliente</h2><div id="consorcios"></div>
+      <button class="btn btn-teal btn-sm additem" onclick="addRow('consorcios')">+ Adicionar consórcio</button>
+      <p class="note" style="margin-top:8px">Meia parcela = crédito × (1 + taxa adm.) ÷ prazo ÷ 2. Imóvel: 22% · Auto: 16% (taxas de referência).</p>
+    </div>
+    <div class="panel"><h2>${ICN.plan} Patrimônio com x sem consórcio</h2><canvas id="chCons"></canvas></div>
+    <div class="panel"><h2>${ICN.spark} Impacto da contemplação (6 · 12 · 24 meses)</h2>${consorcioImpacto(p)}</div>`)}
+
+  ${sec('fluxo',`
+    <div class="kpis">
+      <div class="kpi grad"><div class="lab">${ICN.money}Receita média anual</div><b>${BRL(R.rendaAnual)}</b></div>
+      <div class="kpi"><div class="lab">${ICN.wallet}Despesa média anual</div><b>${BRL(R.despAnual)}</b></div>
+      <div class="kpi grad"><div class="lab">${ICN.spark}Aporte médio anual</div><b>${BRL(R.aporteAnual)}</b></div>
+      <div class="kpi"><div class="lab">${ICN.target}Taxa de poupança</div><b>${R.poupanca}%</b></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h2>${ICN.money} Receitas</h2><div id="incomes"></div>
+        <button class="btn btn-teal btn-sm additem" onclick="addRow('incomes')">+ Receita</button></div>
+      <div class="panel"><h2>${ICN.wallet} Despesas</h2><div id="expenses"></div>
+        <button class="btn btn-teal btn-sm additem" onclick="addRow('expenses')">+ Despesa</button></div>
+    </div>
+    <div class="panel"><h2>Fluxo mensal</h2><canvas id="chFlow"></canvas></div>`)}
+
+  ${sec('balanco',`<div class="panel"><h2>${ICN.plan} Balanço financeiro ano a ano</h2>
+    <p class="note" style="margin:-6px 0 12px">Projeção de receita, despesa e saldo por idade (fase de acumulação e de aposentadoria).</p>
+    <div class="tbl-scroll"><table><thead><tr><th>Idade</th><th class="r">Receita</th><th class="r">Despesa</th><th class="r">Saldo</th><th class="r">Patrimônio</th></tr></thead><tbody>
+    ${R.balanco.map(b=>`<tr><td>${b.idade}</td><td class="r">${BRL(b.receita)}</td><td class="r">${BRL(b.despesa)}</td><td class="r" style="color:${b.saldo>=0?'var(--ok)':'var(--bad)'}">${BRL(b.saldo)}</td><td class="r">${BRL(b.patrimonio)}</td></tr>`).join('')}
+    </tbody></table></div></div>`)}
+
+  ${sec('objetivos',`<div class="panel"><h2>${ICN.target} Objetivos do cliente</h2><div id="goals"></div>
+      <button class="btn btn-teal btn-sm additem" onclick="addRow('goals')">+ Objetivo</button>
+      <p class="note" style="margin-top:8px">Use “Renda (mensal)” para a aposentadoria e “Meta (pontual)” para um gasto numa idade específica (ex.: troca de carro, intercâmbio).</p></div>`)}
+
+  ${sec('projecao',`
+    <div class="kpis">
+      <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio aos ${p.apos}</div><b>${BRL(R.patApos)}</b></div>
+      <div class="kpi"><div class="lab">${ICN.target}Necessário (consumo)</div><b>${BRL(R.alvoConsumo)}</b></div>
+      <div class="kpi"><div class="lab">${ICN.spark}Aporte ideal/mês</div><b>${BRL(R.aporteIdeal/12)}</b></div>
+      <div class="kpi grad"><div class="lab">${ICN.target}Probabilidade</div><b style="color:${col}">${R.prob}%</b></div>
+    </div>
+    <div class="panel"><h2>${ICN.plan} Projeção do planejamento</h2>
+      <div class="lineleg"><span><i style="background:#C5A059"></i> Atual (linha preta)</span><span><i style="background:#34d399"></i> Otimista (verde)</span><span><i style="background:#f87171"></i> Pessimista (vermelha)</span></div>
+      <canvas id="chProj"></canvas>
+    </div>
+    ${probExplain(p,R)}
+    <div class="panel lever"><h2>${ICN.spark} Simulador ao vivo</h2>
+      <p class="note" style="margin:-6px 0 14px">Arraste os controles e veja a probabilidade, a taxa de saque e o patrimônio mudarem na hora.</p>
+      <label>Aporte extra por mês <b id="lvAporteV">R$ 0</b><input type="range" id="lvAporte" min="0" max="4000" step="100" value="0" oninput="leverRecalc()"></label>
+      <label style="margin-top:12px">Adiar aposentadoria <b id="lvIdadeV">aos ${p.apos}</b><input type="range" id="lvIdade" min="0" max="8" step="1" value="0" oninput="leverRecalc()"></label>
+      <label style="margin-top:12px">Reduzir renda-alvo <b id="lvRendaV">0%</b><input type="range" id="lvRenda" min="0" max="40" step="5" value="0" oninput="leverRecalc()"></label>
+      <div class="kpis" style="margin-top:16px">
+        <div class="kpi grad"><div class="lab">${ICN.target}Probabilidade</div><b id="lvProb">${R.prob}%</b></div>
+        <div class="kpi"><div class="lab">${ICN.wallet}Taxa de saque</div><b id="lvTaxa">${R.taxaSaque.toFixed(1)}%</b></div>
+        <div class="kpi"><div class="lab">${ICN.money}Patrimônio aos ${p.apos}</div><b id="lvPat">${BRL(R.patApos)}</b></div>
+      </div>
+    </div>
+    ${whatIfPanel(p,R)}
+    <div class="panel"><h2>Tabela de projeção financeira</h2>
+      <div class="tbl-scroll"><table><thead><tr><th>Idade</th><th class="r">Atual</th><th class="r">Otimista</th><th class="r">Pessimista</th></tr></thead><tbody>
+      ${R.idades.map((a,i)=>`<tr><td>${a}</td><td class="r">${BRL(R.serie[i])}</td><td class="r" style="color:var(--ok)">${BRL(R.serieOtim[i])}</td><td class="r" style="color:var(--bad)">${BRL(R.seriePess[i])}</td></tr>`).join('')}
+      </tbody></table></div></div>`)}
+
+  ${sec('protecao',`
+    <div class="panel"><h2>${ICN.wallet} Reserva de emergência</h2>
+      <div class="netrow"><span>Reserva ideal (6 meses de despesas)</span><b>${BRL(R.reservaIdeal)}</b></div>
+      <div class="netrow tot"><span>Reserva atual (renda fixa)</span><b style="color:${R.reservaAtual>=R.reservaIdeal?'var(--ok)':'var(--warn)'}">${BRL(R.reservaAtual)}</b></div>
+      <div class="bar" style="height:10px;margin-top:8px"><i style="width:${R.reservaIdeal?Math.min(100,Math.round(R.reservaAtual/R.reservaIdeal*100)):100}%"></i></div>
+    </div>
+    <div class="panel"><h2>${ICN.users} Proteção da família (seguro de vida)</h2>
+      <p class="note" style="margin:-6px 0 12px">Cobertura sugerida para quitar dívidas e sustentar a família por alguns anos, descontando o patrimônio já existente.</p>
+      <div class="netrow"><span>Cobertura sugerida</span><b>${BRL(R.seguroIdeal)}</b></div>
+      <div class="field" style="max-width:280px;margin-top:10px"><label>Cobertura atual de seguro (R$)</label><input id="f_seguro" type="number" value="${(p.seguro&&p.seguro.atual)||0}"></div>
+      ${R.seguroAtual>=R.seguroIdeal?'<p class="note" style="color:var(--ok)">✓ Proteção adequada.</p>':`<p class="note" style="color:var(--warn)">Faltam ${BRL(Math.max(0,R.seguroIdeal-R.seguroAtual))} de cobertura.</p>`}
+    </div>`)}
+
+  ${sec('cenarios',`<div class="panel"><h2>${ICN.spark} Cenários</h2>
+      <p class="note" style="margin:-6px 0 14px">Compare o Plano Principal com simulações alternativas (aposentar antes, aportar mais, etc.).</p>
+      <button class="btn btn-gold btn-sm" onclick="openCompare('${c.id}')">Abrir comparação de cenários</button>
+      ${!p.main?'':`<div style="margin-top:14px">${client(c.id).plans.filter(x=>!x.main).map(x=>`<div class="netrow"><span>${esc(x.titulo)}</span><b>${projetar(x).prob}% · ${BRL(projetar(x).patApos)}</b></div>`).join('')||'<p class="note">Nenhuma simulação criada ainda.</p>'}</div>`}
+    </div>`)}
+
+  ${sec('acao',`<div class="panel"><h2>${ICN.target} Plano de ação — etapas e metas
+      ${ro?'':'<span class="chip chip-teal right">edite os passos de cada meta</span>'}</h2>
+      <p class="note" style="margin:-6px 0 14px">Organograma horizontal: as etapas do plano fluem da esquerda para a direita e bifurcam nas metas do cliente.</p>
+      ${roadmapSVG(p)}
+      <h3 class="serif" style="font-size:1rem;color:var(--gold2);margin:22px 0 12px">Passos por meta</h3>
+      <div id="journeyBox">${renderJourney(p,!ro)}</div></div>`)}
+
+  ${sec('diagnostico',diagPanel(p,R))}
+
+  ${sec('glossario',`<div class="panel"><h2>${ICN.plan} Glossário</h2><dl class="gloss">${GLOSS.map(g=>`<dt>${esc(g[0])}</dt><dd>${esc(g[1])}</dd>`).join('')}</dl></div>`)}
+
+  </div>
+  <div class="disclaimer">⚠️ <b>Aviso:</b> valores estimados para planejamento, a partir das informações fornecidas. Não constituem garantia de rentabilidade nem recomendação de investimento.</div>`;
+  renderRows(p);
+  showSec(curSec);
+}
+const GLOSS=[
+ ['Aporte','Valor investido periodicamente (mensal ou anual) para construir patrimônio ao longo do tempo.'],
+ ['Aporte ideal','Quanto seria necessário aportar por mês para atingir a meta no prazo planejado.'],
+ ['Patrimônio líquido','Soma de todos os ativos menos as dívidas (passivos).'],
+ ['Reserva de emergência','Recurso de alta liquidez equivalente a cerca de 6 meses de despesas, para imprevistos.'],
+ ['Rentabilidade nominal','Retorno bruto do investimento, sem descontar a inflação.'],
+ ['Rentabilidade real','Retorno acima da inflação — o que de fato aumenta o poder de compra.'],
+ ['Rentabilidade líquida','Retorno após descontar impostos e taxas.'],
+ ['Linha preta (cenário atual)','Projeção usando a rentabilidade real estimada para o perfil.'],
+ ['Linha verde (otimista)','Cenário em que a rentabilidade fica acima do esperado.'],
+ ['Linha vermelha (pessimista)','Cenário em que a rentabilidade fica abaixo do esperado.'],
+ ['Probabilidade de sucesso','Chance de o patrimônio sustentar a renda desejada até a expectativa de vida, medida por simulações de Monte Carlo.'],
+ ['Independência financeira','Momento em que a renda dos investimentos cobre as despesas, sem depender do trabalho.'],
+ ['Objetivo de renda','Renda mensal desejada na aposentadoria, sustentada pelo patrimônio acumulado.'],
+ ['Meta pontual','Gasto específico planejado para uma idade (ex.: troca de carro, intercâmbio).'],
+ ['Cenários','Variações do plano criadas para comparar decisões antes de tomá-las.']
+];
+function showSec(s){curSec=s;document.querySelectorAll('.plansec').forEach(el=>el.classList.toggle('on',el.dataset.sec===s));SECS.forEach(x=>{const b=document.getElementById('tabsec_'+x[0]);if(b)b.classList.toggle('on',x[0]===s);});drawSectionCharts(s);window.scrollTo(0,0);}
+function drawSectionCharts(s){
+  if(!edP||!edR)return; destroyCharts();
+  const p=edP,R=edR,gold='#C5A059',teal='#8FD9CC',grid='rgba(143,217,204,.1)',tick='#9DB5B1';
+  const ax=cb=>({maintainAspectRatio:false,scales:{x:{grid:{color:grid},ticks:{color:tick,maxTicksLimit:12}},y:{grid:{color:grid},ticks:{color:tick,callback:cb}}}});
+  if(s==='resumo'){
+    mkChart('gauge',{type:'doughnut',data:{datasets:[{data:[R.prob,100-R.prob],backgroundColor:[gold,'rgba(143,217,204,.12)'],borderWidth:0,circumference:360}]},options:{maintainAspectRatio:false,cutout:'74%',plugins:{legend:{display:false},tooltip:{enabled:false}}},plugins:[{id:'txt',afterDraw(ch){const{ctx,chartArea}=ch;ctx.save();ctx.fillStyle='#C5A059';ctx.font='700 26px Lora';ctx.textAlign='center';ctx.fillText(R.prob+'%',(chartArea.left+chartArea.right)/2,(chartArea.top+chartArea.bottom)/2+9);ctx.restore()}}]});
+  } else if(s==='patrimonio'){
+    const cats={};(p.assets||[]).forEach(a=>cats[a.cat]=(cats[a.cat]||0)+(+a.valor||0));
+    mkChart('chPie',{type:'doughnut',data:{labels:Object.keys(cats),datasets:[{data:Object.values(cats),backgroundColor:['#C5A059','#8FD9CC','#E8CC8B','#4Fa3a3','#B0875F','#6E8B88'],borderWidth:0}]},options:{maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:tick,font:{size:11}}}}}});
+  } else if(s==='fluxo'){
+    mkChart('chFlow',{type:'bar',data:{labels:['Receita','Despesa','Sobra'],datasets:[{data:[R.renda,R.desp,Math.max(0,R.sobra)],backgroundColor:[teal,'#f87171',gold]}]},options:ax(v=>'R$ '+(v/1000).toFixed(0)+'k')});
+  } else if(s==='projecao'){
+    const splitIdx=R.idades.indexOf(p.apos);
+    const markers=R.idades.map((a,i)=>{const g=(R.metas||[]).find(m=>(+m.idade||p.apos)===a);return g?R.serie[i]:null;});
+    mkChart('chProj',{type:'line',data:{labels:R.idades,datasets:[
+      {label:'Otimista',data:R.serieOtim,borderColor:'#34d399',borderWidth:1.6,pointRadius:0,tension:.25,borderDash:[5,4]},
+      {label:'Pessimista',data:R.seriePess,borderColor:'#f87171',borderWidth:1.6,pointRadius:0,tension:.25,borderDash:[5,4]},
+      {label:'Atual',data:R.serie,backgroundColor:'rgba(197,160,89,.12)',fill:true,tension:.25,pointRadius:0,borderWidth:2.6,borderColor:gold,
+        segment:{borderColor:ctx=>ctx.p0DataIndex>=splitIdx?teal:gold}},
+      {label:'Objetivos',data:markers,showLine:false,pointRadius:6,pointBackgroundColor:'#E8CC8B',pointBorderColor:'#0D232B',pointBorderWidth:2}
+    ]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': R$ '+Math.round(c.parsed.y).toLocaleString('pt-BR')}}},scales:ax(v=>'R$ '+(v/1e6).toFixed(1)+'M').scales}});
+  } else if(s==='consorcio'){
+    const sem=planClone(p); sem.consorcios=[]; const Rs=projetar(sem);
+    mkChart('chCons',{type:'line',data:{labels:R.idades,datasets:[
+      {label:'Sem consórcio',data:Rs.serie,borderColor:'#6E8B88',borderWidth:1.8,pointRadius:0,tension:.25,borderDash:[5,4]},
+      {label:'Com consórcio',data:R.serie,borderColor:gold,backgroundColor:'rgba(197,160,89,.12)',fill:true,borderWidth:2.6,pointRadius:0,tension:.25}
+    ]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{color:tick}},tooltip:{callbacks:{label:c=>c.dataset.label+': R$ '+Math.round(c.parsed.y).toLocaleString('pt-BR')}}},scales:ax(v=>'R$ '+(v/1e6).toFixed(1)+'M').scales}});
+  }
+}
+const ROWS={
+  incomes:(it,i)=>`<div class="item"><div><input data-f="incomes" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div>
+    <div><input type="number" data-f="incomes" data-i="${i}" data-k="valor" value="${it.valor}"></div>
+    <div><select data-f="incomes" data-i="${i}" data-k="freq"><option ${it.freq==='Mensal'?'selected':''}>Mensal</option><option ${it.freq==='Anual'?'selected':''}>Anual</option></select></div>
+    <button class="btn-ico delrow" onclick="delRow('incomes',${i})">✕</button></div>`,
+  expenses:(it,i)=>`<div class="item"><div><input data-f="expenses" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div>
+    <div><input type="number" data-f="expenses" data-i="${i}" data-k="valor" value="${it.valor}"></div>
+    <div><select data-f="expenses" data-i="${i}" data-k="freq"><option ${it.freq==='Mensal'?'selected':''}>Mensal</option><option ${it.freq==='Anual'?'selected':''}>Anual</option></select></div>
+    <button class="btn-ico delrow" onclick="delRow('expenses',${i})">✕</button></div>`,
+  assets:(it,i)=>`<div class="item assets"><div><input data-f="assets" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div>
+    <div><select data-f="assets" data-i="${i}" data-k="cat">${['Renda Fixa','Renda Variável','Imóvel','Previdência','Multimercado','Internacional','Outros'].map(o=>`<option ${o===it.cat?'selected':''}>${o}</option>`).join('')}</select></div>
+    <div><input type="number" data-f="assets" data-i="${i}" data-k="valor" value="${it.valor}"></div>
+    <button class="btn-ico delrow" onclick="delRow('assets',${i})">✕</button></div>`,
+  debts:(it,i)=>`<div class="item assets"><div><input data-f="debts" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Ex: Financiamento imóvel"></div>
+    <div><select data-f="debts" data-i="${i}" data-k="cat">${['Financiamento','Empréstimo','Cartão','Consórcio','Outros'].map(o=>`<option ${o===it.cat?'selected':''}>${o}</option>`).join('')}</select></div>
+    <div><input type="number" data-f="debts" data-i="${i}" data-k="valor" value="${it.valor}"></div>
+    <button class="btn-ico delrow" onclick="delRow('debts',${i})">✕</button></div>`,
+  consorcios:(it,i)=>`<div class="item assets" style="margin-bottom:14px"><div><input data-f="consorcios" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Ex: Consórcio imobiliário"></div>
+    <div><select data-f="consorcios" data-i="${i}" data-k="tipo"><option ${it.tipo==='Imóvel'?'selected':''}>Imóvel</option><option ${it.tipo==='Auto'?'selected':''}>Auto</option></select></div>
+    <div><input type="number" data-f="consorcios" data-i="${i}" data-k="credito" value="${it.credito}" title="Crédito (carta)"></div>
+    <button class="btn-ico delrow" onclick="delRow('consorcios',${i})">✕</button>
+    <div style="grid-column:1/-1;display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;font-size:.78rem;color:var(--muted)">Prazo:<input type="number" style="width:80px" data-f="consorcios" data-i="${i}" data-k="prazoMeses" value="${it.prazoMeses||200}">meses · Contemplação:<select data-f="consorcios" data-i="${i}" data-k="contemplaMes"><option value="6" ${(+it.contemplaMes)===6?'selected':''}>6 meses</option><option value="12" ${(+it.contemplaMes)===12?'selected':''}>12 meses</option><option value="24" ${(+it.contemplaMes)===24?'selected':''}>24 meses</option></select> · Uso da carta:<select data-f="consorcios" data-i="${i}" data-k="uso" onchange="collect();renderRows(plan(view.clientId,view.planId))"><option value="capitalizar" ${(it.uso||'capitalizar')==='capitalizar'?'selected':''}>Capitalizar (rende como investimento)</option><option value="imovel" ${it.uso==='imovel'?'selected':''}>Comprar imóvel (aluguel)</option></select>${it.uso==='imovel'?`<span>Aluguel:<input type="number" step="0.1" style="width:64px;margin-left:6px" data-f="consorcios" data-i="${i}" data-k="aluguel" value="${it.aluguel||0.8}">%/mês</span>`:''}</div></div>`,
+  goals:(it,i)=>`<div class="item assets"><div><input data-f="goals" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Ex: Aposentadoria"></div>
+    <div><select data-f="goals" data-i="${i}" data-k="tipo"><option value="renda" ${it.tipo==='renda'?'selected':''}>Renda (mensal)</option><option value="meta" ${it.tipo==='meta'?'selected':''}>Meta (pontual)</option></select></div>
+    <div><input type="number" data-f="goals" data-i="${i}" data-k="valor" value="${it.valor}" title="valor"></div>
+    <button class="btn-ico delrow" onclick="delRow('goals',${i})">✕</button>
+    <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center;font-size:.78rem;color:var(--muted)">Idade-alvo:<input type="number" style="width:90px" data-f="goals" data-i="${i}" data-k="idade" value="${it.idade||p_apos()}"></div></div>`
+};
+function p_apos(){return plan(view.clientId,view.planId).apos}
+function renderRows(p){['incomes','expenses','assets','debts','consorcios','goals'].forEach(f=>{const el=document.getElementById(f);if(el)el.innerHTML=(p[f]||[]).map((it,i)=>ROWS[f](it,i)).join('')||'<p class="note">Nenhum item.</p>';});}
+function collect(){ // lê o formulário para o objeto plano
+  const p=plan(view.clientId,view.planId); if(view.readonly)return p;
+  p.nome=document.getElementById('f_nome').value;
+  ['idade','apos','vida','rent'].forEach(k=>p[k]=parseFloat(document.getElementById('f_'+k).value)||0);
+  p.perfil=document.getElementById('f_perfil').value;
+  const sg=document.getElementById('f_seguro'); if(sg){p.seguro=p.seguro||{};p.seguro.atual=parseFloat(sg.value)||0;}
+  document.querySelectorAll('[data-f]').forEach(el=>{const f=el.dataset.f,i=+el.dataset.i,k=el.dataset.k;if(!p[f]||!p[f][i])return;p[f][i][k]=(el.type==='number')?(parseFloat(el.value)||0):el.value;});
+  save();return p;
+}
+function addRow(f){collect();const p=plan(view.clientId,view.planId);if(!p[f])p[f]=[];const def={incomes:{desc:'',valor:0,freq:'Mensal'},expenses:{desc:'',valor:0,cat:'Custo de vida',freq:'Mensal'},assets:{desc:'',cat:'Renda Fixa',valor:0},debts:{desc:'',cat:'Financiamento',valor:0},consorcios:{desc:'Consórcio imobiliário',tipo:'Imóvel',credito:100000,prazoMeses:200,contemplaMes:12,uso:'capitalizar',aluguel:0.8},goals:{desc:'',tipo:'meta',valor:0,idade:p.apos}}[f];p[f].push({...def});save();renderRows(p);}
+function delRow(f,i){collect();const p=plan(view.clientId,view.planId);p[f].splice(i,1);save();renderRows(p);}
+function recalc(){collect();renderEditor(document.getElementById('content'));flash('Projeção atualizada')}
+function saveAndPublish(){const p=collect();renderEditor(document.getElementById('content'));flash(p.main?'Plano publicado para o cliente ✓':'Simulação salva ✓')}
+function goBack(){ if(session.role==='especialista'){go(view._from||'users')} else {go(view._from||'plan')} }
+/* desenho de gráficos para painéis NÃO seccionados (painel do cliente) */
+function drawResultCharts(p,R){
+  destroyCharts();
+  const gold='#C5A059',teal='#8FD9CC',grid='rgba(143,217,204,.1)',tick='#9DB5B1';
+  const ax=cb=>({maintainAspectRatio:false,scales:{x:{grid:{color:grid},ticks:{color:tick}},y:{grid:{color:grid},ticks:{color:tick,callback:cb}}}});
+  mkChart('gauge',{type:'doughnut',data:{datasets:[{data:[R.prob,100-R.prob],backgroundColor:[gold,'rgba(143,217,204,.12)'],borderWidth:0,circumference:360}]},options:{maintainAspectRatio:false,cutout:'74%',plugins:{legend:{display:false},tooltip:{enabled:false}}},plugins:[{id:'txt',afterDraw(ch){const{ctx,chartArea}=ch;ctx.save();ctx.fillStyle='#C5A059';ctx.font='700 26px Lora';ctx.textAlign='center';ctx.fillText(R.prob+'%',(chartArea.left+chartArea.right)/2,(chartArea.top+chartArea.bottom)/2+9);ctx.restore()}}]});
+  const splitIdx=R.idades.indexOf(p.apos);
+  const markers=R.idades.map((a,i)=>{const g=(R.metas||[]).find(m=>+m.idade===a);return g?R.serie[i]:null;});
+  mkChart('chProj',{type:'line',data:{labels:R.idades,datasets:[
+    {label:'Patrimônio',data:R.serie,backgroundColor:'rgba(197,160,89,.12)',fill:true,tension:.25,pointRadius:0,borderWidth:2.4,borderColor:gold,
+      segment:{borderColor:ctx=>ctx.p0DataIndex>=splitIdx?teal:gold}},
+    {label:'Objetivos',data:markers,showLine:false,pointRadius:6,pointHoverRadius:8,pointBackgroundColor:'#E8CC8B',pointBorderColor:'#0D232B',pointBorderWidth:2}
+  ]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(c.datasetIndex===1?'Objetivo: ':'')+'R$ '+Math.round(c.parsed.y).toLocaleString('pt-BR')}}},scales:ax().scales}});
+  const cats={};(p.assets||[]).forEach(a=>cats[a.cat]=(cats[a.cat]||0)+(+a.valor||0));
+  mkChart('chPie',{type:'doughnut',data:{labels:Object.keys(cats),datasets:[{data:Object.values(cats),backgroundColor:['#C5A059','#8FD9CC','#E8CC8B','#4Fa3a3','#B0875F','#6E8B88'],borderWidth:0}]},options:{maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:tick,font:{size:11}}}}}});
+  mkChart('chFlow',{type:'bar',data:{labels:['Receita','Despesa','Sobra'],datasets:[{data:[R.renda,R.desp,Math.max(0,R.sobra)],backgroundColor:[teal,'#f87171',gold]}]},options:ax(v=>'R$ '+(v/1000).toFixed(0)+'k')});
+}
+
+/* ===================== CÓPIAS / VERSIONAMENTO ===================== */
+async function copyPlan(cid,pid){
+  collect();const src=plan(cid,pid);
+  const isCli=session.role==='cliente';
+  const sug=(isCli?'Novo planejamento ':'Simulação ')+(client(cid).plans.filter(p=>!p.main).length+1);
+  const nome=await ask({title:isCli?'Criar novo planejamento':'Nova simulação',msg:'Cria uma cópia editável. O Plano Principal é sempre preservado.',input:true,value:sug,ok:'Criar'});
+  if(nome===null)return;
+  const copy=JSON.parse(JSON.stringify(src));copy.id=uid();copy.main=false;copy.parent=src.id;copy.titulo=(nome.trim()||sug);copy.criadoEm=Date.now();
+  client(cid).plans.push(copy);save();flash(isCli?'Novo planejamento criado':'Cópia criada — principal preservado');
+  if(isCli){view.planId=copy.id;view.readonly=false;render();}
+  else openEditor(cid,copy.id,false);
+}
+
+/* ===================== COMPARADOR ===================== */
+function openCompare(cid){view={page:'compare',clientId:cid};renderNav();render()}
+function renderCompare(C){
+  const c=client(view.clientId);setTop('Comparar cenários',esc(c.nome),`<button class="btn btn-ghost btn-sm" onclick="goBack()">← Voltar</button>`);
+  const plans=c.plans;
+  const rows=plans.map(p=>({p,R:projetar(p)}));
+  C.innerHTML=`<div class="panel"><h2>${ICN.spark} Plano Principal x Simulações</h2>
+    <table><thead><tr><th>Cenário</th><th class="r">Aporte/mês</th><th class="r">Patrim. aposentadoria</th><th class="r">Meta (consumo)</th><th class="r">Prob.</th></tr></thead><tbody>
+    ${rows.map(({p,R})=>`<tr><td>${p.main?'★ ':''}${esc(p.titulo)}<br><span style="color:var(--soft);font-size:.76rem">aposentar aos ${p.apos}</span></td>
+      <td class="r">${BRL(R.sobra)}</td><td class="r">${BRL(R.patApos)}</td><td class="r">${BRL(R.alvoConsumo)}</td>
+      <td class="r"><b style="color:${R.prob>=80?'var(--ok)':R.prob>=55?'var(--warn)':'var(--bad)'}">${R.prob}%</b></td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="panel"><h2>Projeção comparada</h2><canvas id="chCmp"></canvas></div>`;
+  if(typeof Chart!=='undefined'){destroyCharts();const cols=['#C5A059','#8FD9CC','#E8CC8B','#f87171','#4Fa3a3'];
+    const maxLen=Math.max(...rows.map(r=>r.R.idades.length));const labels=rows[0].R.idades;
+    try{charts.push(new Chart(chCmp,{type:'line',data:{labels,datasets:rows.map((r,i)=>({label:(r.p.main?'★ ':'')+r.p.titulo,data:r.R.serie,borderColor:cols[i%cols.length],borderWidth:2,pointRadius:0,tension:.25,fill:false}))},options:{plugins:{legend:{labels:{color:'#9DB5B1'}}},scales:{x:{grid:{color:'rgba(143,217,204,.1)'},ticks:{color:'#9DB5B1'}},y:{grid:{color:'rgba(143,217,204,.1)'},ticks:{color:'#9DB5B1',callback:v=>'R$ '+(v/1e6).toFixed(1)+'M'}}}}}));}catch(e){console.warn(e)}}
+}
+
+/* ===================== CLIENTE ===================== */
+function renderClientDash(C){
+  const c=client(session.clientId),m=mainPlan(c),R=projetar(m);
+  setTop('Olá, '+c.nome.split(' ')[0]+' 👋', R.saude>=75?'Seu plano está num bom caminho':R.saude>=50?'Seu plano está em construção':'Vamos fortalecer seu plano juntos');
+  const col=R.prob>=80?'var(--ok)':R.prob>=55?'var(--warn)':'var(--bad)';
+  const m2=R.reservaIdeal?Math.min(100,Math.round(R.reservaAtual/R.reservaIdeal*100)):100;
+  const ncats=new Set((m.assets||[]).filter(a=>(+a.valor||0)>0).map(a=>a.cat)).size;
+  C.innerHTML=`
+   <div class="banner" style="align-items:center">📊 <span style="flex:1;line-height:1.55">Em resumo: hoje seu plano tem <b style="color:${col}">${R.prob}% de chance</b> de sustentar sua renda até os ${m.vida} anos. ${R.prob>=80?'Está num ótimo caminho — siga firme com os aportes.':R.prob>=55?'Está no caminho; pequenos ajustes deixam mais seguro.':'Dá para melhorar bastante — veja as alavancas no seu planejamento.'}</span>
+     <button class="btn btn-gold btn-sm" onclick="curSec='projecao';go('plan')">Como melhorar</button></div>
+   <div class="kpis">
+     <div class="kpi grad"><div class="lab">${ICN.spark}Saúde financeira</div><b>${R.saude}/100</b></div>
+     <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio líquido</div><b>${BRL(R.liquido)}</b></div>
+     <div class="kpi"><div class="lab">${ICN.target}Patrimônio aos ${m.apos}</div><b>${BRL(R.patApos)}</b></div>
+     <div class="kpi"><div class="lab">${ICN.money}Sobra/mês · poupança</div><b>${BRL(R.sobra)} <span style="font-size:.9rem;color:var(--muted)">· ${R.poupanca}%</span></b></div>
+   </div>
+   <div class="grid2">
+     <div class="panel" style="text-align:center"><h2 style="justify-content:center">Probabilidade de sucesso</h2>
+       <div class="gauge"><canvas id="gauge"></canvas></div>
+       <span class="prob" style="background:${col}22;color:${col};border:1px solid ${col}55;margin-top:8px">● ${R.prob}%</span>
+       <p class="note" style="margin-top:10px;line-height:1.55">Chance de o seu patrimônio sustentar a renda desejada até os ${m.vida} anos, medida por centenas de simulações de mercado.</p>
+       <button class="btn btn-teal btn-sm" style="margin-top:8px" onclick="curSec='projecao';go('plan')">Entender e melhorar minha probabilidade</button></div>
+     <div class="panel"><h2>${ICN.plan} Projeção do seu patrimônio</h2><canvas id="chProj"></canvas></div>
+   </div>
+   <div class="grid2">
+     ${ncats>=2?`<div class="panel"><h2>${ICN.dash} Composição do patrimônio</h2><div style="height:230px"><canvas id="chPie"></canvas></div></div>`:`<div class="panel"><h2>${ICN.dash} Composição do patrimônio</h2><p class="note" style="line-height:1.65;margin-top:4px">Seu patrimônio está concentrado em <b style="color:var(--head)">${esc(((m.assets||[]).find(a=>(+a.valor||0)>0)||{}).cat||'um único ativo')}</b>. Diversificar entre classes (renda fixa, variável, imóvel, internacional) reduz risco e melhora o retorno ajustado. Converse com seu especialista sobre uma alocação adequada ao seu perfil <b>${esc(m.perfil)}</b>.</p></div>`}
+     <div class="panel"><h2>${ICN.money} Fluxo mensal</h2><div style="height:230px"><canvas id="chFlow"></canvas></div></div>
+   </div>
+   <div class="panel"><h2>${ICN.target} Indicadores-chave</h2>
+     <div class="netrow"><span>Cobertura da meta (patrimônio ÷ necessário)</span><b>${R.cobertura}%</b></div>
+     <div class="bar" style="height:8px;margin-top:2px"><i style="width:${R.cobertura}%"></i></div>
+     <div class="netrow" style="margin-top:12px"><span>Reserva de emergência</span><b style="color:${R.reservaAtual>=R.reservaIdeal?'var(--ok)':'var(--warn)'}">${BRL(R.reservaAtual)} de ${BRL(R.reservaIdeal)}</b></div>
+     <div class="bar" style="height:8px;margin-top:2px"><i style="width:${m2}%"></i></div>
+     <div class="netrow" style="margin-top:12px"><span>Taxa de saque na aposentadoria</span><b style="color:${R.taxaSaque<=4.5?'var(--ok)':R.taxaSaque<=6.5?'var(--warn)':'var(--bad)'}">${R.taxaSaque.toFixed(1)}% ao ano</b></div>
+     <div class="netrow"><span>Aporte ideal por mês</span><b>${BRL(R.aporteIdeal/12)}</b></div>
+     ${R.consCredito>0?`<div class="netrow"><span>Consórcio no plano (carta)</span><b style="color:var(--gold2)">${BRL(R.consCredito)}</b></div>`:''}
+   </div>
+   ${diagPanel(m,R)}
+   <div class="panel"><h2>${ICN.spark} Atalhos</h2>
+     <div class="row" style="gap:10px;flex-wrap:wrap">
+       <button class="btn btn-gold btn-sm" onclick="go('jornada')">Ver minha jornada de metas</button>
+       <button class="btn btn-teal btn-sm" onclick="go('plan')">Meu planejamento</button>
+       <button class="btn btn-teal btn-sm" onclick="go('gastos')">Controlar meus gastos</button>
+       <button class="btn btn-ghost btn-sm" onclick="go('cota')">Minha cota de consórcio</button>
+     </div></div>`;
+  drawResultCharts(m,R);
+}
+function renderClientPlan(C){
+  const c=client(session.clientId);
+  if(!view.planId || !c.plans.some(p=>p.id===view.planId)) view.planId=mainPlan(c).id;
+  view.clientId=c.id; view.readonly=!!plan(c.id,view.planId).main;
+  renderEditor(C);
+}
+function selCliPlan(pid){view.planId=pid;view.readonly=!!plan(view.clientId,pid).main;renderEditor(document.getElementById('content'));}
+async function delSim(cid,pid){if(!(await ask({title:'Excluir este planejamento?',msg:'O Plano Principal não é afetado.',ok:'Excluir'})))return;const c=client(cid);c.plans=c.plans.filter(p=>p.id!==pid);if(view.planId===pid)view.planId=mainPlan(c).id;save();render();flash('Planejamento excluído')}
+
+/* ----- JORNADA DE METAS (cliente) ----- */
+function renderJornada(C){
+  const c=client(session.clientId),m=mainPlan(c);
+  setTop('Minha Jornada','Metas e passos para realizá-las');
+  const nMetas=(m.goals||[]).length;
+  C.innerHTML=`
+   <div class="banner">🎯 Este é o seu mapa: cada meta na ordem em que vai acontecer, com os passos que o seu especialista definiu para você chegar lá.</div>
+   <div class="panel"><h2>${ICN.target} Sua jornada (${nMetas} meta${nMetas===1?'':'s'})</h2>
+     <p class="note" style="margin:-6px 0 14px">Da esquerda para a direita: as etapas do seu plano. Embaixo, as metas em que ele se desdobra.</p>
+     ${roadmapSVG(m)}
+     <h3 class="serif" style="font-size:1rem;color:var(--gold2);margin:22px 0 12px">Passos de cada meta</h3>
+     ${renderJourney(m,false)}
+   </div>`;
+}
+
+/* ----- GASTOS (placeholder Open Finance) ----- */
+const CATS_GASTO=[['Moradia','🏠','#C5A059'],['Alimentação','🍽️','#8FD9CC'],['Transporte','🚗','#E8CC8B'],['Lazer','🎉','#f87171'],['Saúde','⚕️','#4Fa3a3'],['Educação','📚','#B0875F'],['Contas','💡','#9DB5B1'],['Compras','🛍️','#E8A0A0'],['Outros','💳','#6E8B88'],['Receita','💰','#34d399']];
+const catMetaG=c=>CATS_GASTO.find(x=>x[0]===c)||['Outros','💳','#6E8B88'];
+function seedLanc(){return [
+  {id:uid(),tipo:'despesa',desc:'Aluguel/condomínio',cat:'Moradia',valor:3200,dia:5},
+  {id:uid(),tipo:'despesa',desc:'Supermercado',cat:'Alimentação',valor:1800,dia:8},
+  {id:uid(),tipo:'despesa',desc:'Combustível',cat:'Transporte',valor:650,dia:10},
+  {id:uid(),tipo:'despesa',desc:'Restaurantes',cat:'Lazer',valor:900,dia:14},
+  {id:uid(),tipo:'despesa',desc:'Plano de saúde',cat:'Saúde',valor:1200,dia:15},
+  {id:uid(),tipo:'despesa',desc:'Energia + internet',cat:'Contas',valor:520,dia:18},
+  {id:uid(),tipo:'receita',desc:'Salário',cat:'Receita',valor:15000,dia:5}
+];}
+function renderGastos(C){
+  const c=client(session.clientId),m=mainPlan(c);
+  if(!Array.isArray(m.lancamentos)) m.lancamentos=seedLanc();
+  if(!m.budgets) m.budgets={Moradia:3500,'Alimentação':1500,Transporte:700,Lazer:600,'Saúde':1200,Contas:600};
+  if(!Array.isArray(m.histGastos)) m.histGastos=[['Jan',7200],['Fev',8100],['Mar',7600],['Abr',8800],['Mai',7900]];
+  if(!Array.isArray(m.contas)) m.contas=[{nome:'Conta Corrente',tipo:'Conta',saldo:12400},{nome:'Cartão de crédito',tipo:'Cartão',saldo:-2300},{nome:'Investimentos',tipo:'Conta',saldo:313704}];
+  const L=m.lancamentos;
+  const desp=L.filter(x=>x.tipo==='despesa'), rec=L.filter(x=>x.tipo==='receita');
+  const totDesp=desp.reduce((s,x)=>s+(+x.valor||0),0), totRec=rec.reduce((s,x)=>s+(+x.valor||0),0), saldo=totRec-totDesp;
+  const cats={}; desp.forEach(x=>cats[x.cat]=(cats[x.cat]||0)+(+x.valor||0));
+  const catArr=Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const estourou=catArr.filter(([cat,v])=>m.budgets[cat]&&v>m.budgets[cat]);
+  const totSaldoContas=m.contas.reduce((s,x)=>s+(+x.saldo||0),0);
+  setTop('Meus Gastos','Controle do mês');
+  C.innerHTML=`
+   <div class="banner">🔗 Em produção, conectamos ao <b>Open Finance</b> e seus lançamentos entram sozinhos. Aqui você também pode lançar manualmente.</div>
+   ${estourou.length?`<div class="banner" style="border-color:var(--bad);background:rgba(248,113,113,.1)">⚠️ Você estourou a meta em <b>${estourou.map(e=>esc(e[0])).join(', ')}</b>. Vale rever esses gastos.</div>`:''}
+   <div class="month-nav"><button onclick="flash('Demonstração: mês fixo')">‹</button><b>Junho 2026</b><button onclick="flash('Demonstração: mês fixo')">›</button></div>
+   <div class="gsum">
+     <div><div class="lab">Receitas</div><b style="color:var(--ok)">${BRL(totRec)}</b></div>
+     <div><div class="lab">Despesas</div><b style="color:var(--bad)">${BRL(totDesp)}</b></div>
+     <div><div class="lab">Saldo</div><b style="color:${saldo>=0?'var(--gold2)':'var(--bad)'}">${BRL(saldo)}</b></div>
+   </div>
+   <div class="grid2">
+     <div class="panel"><h2>${ICN.money} Despesas por categoria</h2>
+       <div style="max-width:230px;margin:0 auto;height:230px"><canvas id="chSpend"></canvas></div>
+       <div style="text-align:center;margin-top:6px"><div class="note">Comprometimento da renda</div>
+         <div class="bar" style="height:8px;margin-top:6px"><i style="width:${totRec?Math.min(100,Math.round(totDesp/totRec*100)):0}%"></i></div>
+         <div style="font-size:.8rem;color:var(--muted);margin-top:6px">${totRec?Math.round(totDesp/totRec*100):0}% da sua renda</div></div>
+     </div>
+     <div class="panel"><h2>Categorias <button class="btn btn-teal btn-sm right" onclick="openBudgets()">Definir metas</button></h2>
+       ${catArr.map(([cat,v])=>{const me=catMetaG(cat);const pct=totDesp?Math.round(v/totDesp*100):0;const meta=m.budgets[cat]||0;const over=meta&&v>meta;const usoPct=meta?Math.min(100,Math.round(v/meta*100)):pct;return `<div class="catrow"><div class="ci" style="background:${me[2]}22">${me[1]}</div><div class="cmid"><div class="cn">${esc(cat)} ${over?'<span style="color:var(--bad);font-size:.7rem;font-weight:700">⚠ estourou</span>':''}</div><div class="cbar"><i style="width:${usoPct}%;background:${over?'var(--bad)':me[2]}"></i></div>${meta?`<div style="font-size:.68rem;color:${over?'var(--bad)':'var(--soft)'};margin-top:3px">${BRL(v)} de ${BRL(meta)}</div>`:''}</div><div class="cval"><b>${BRL(v)}</b><span>${pct}%</span></div></div>`;}).join('')||'<p class="note">Sem despesas lançadas.</p>'}
+     </div>
+   </div>
+   <div class="panel"><h2>${ICN.plan} Evolução dos gastos</h2><div style="height:240px"><canvas id="chEvol"></canvas></div></div>
+   <div class="panel"><h2>${ICN.wallet} Contas & Cartões <span class="chip chip-teal right">Total: ${BRL(totSaldoContas)}</span></h2>
+     <div class="cards" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">${m.contas.map(ct=>`<div class="ccard"><div class="row"><span style="font-size:1.3rem">${ct.tipo==='Cartão'?'💳':'🏦'}</span><span class="tag ${ct.saldo>=0?'tag-main':'tag-copy'}">${esc(ct.tipo)}</span></div><div style="font-weight:700;color:var(--head);margin-top:6px">${esc(ct.nome)}</div><div style="font-family:var(--serif);font-size:1.2rem;color:${ct.saldo>=0?'var(--gold2)':'var(--bad)'};margin-top:2px">${BRL(ct.saldo)}</div></div>`).join('')}</div>
+   </div>
+   <div class="panel"><h2>${ICN.money} Lançamentos <button class="btn btn-gold btn-sm right" onclick="openLanc()">+ Lançamento</button></h2>
+     ${L.slice().sort((a,b)=>b.dia-a.dia).map(x=>{const me=catMetaG(x.cat);const dn=x.tipo==='receita';return `<div class="lanc"><div class="li" style="background:${me[2]}22">${me[1]}</div><div class="lm"><div class="ld">${esc(x.desc)}</div><div class="ls">${esc(x.cat)} · dia ${x.dia}</div></div><div class="lv" style="color:${dn?'var(--ok)':'var(--bad)'}">${dn?'+':'−'} ${BRL(x.valor)}</div><span class="lx" onclick="delLanc('${x.id}')">✕</span></div>`;}).join('')||'<p class="note">Nenhum lançamento ainda.</p>'}
+   </div>
+   <button class="fab" onclick="openLanc()" title="Novo lançamento">+</button>`;
+  drawGastosCharts(catArr, m.histGastos.concat([['Jun',totDesp]]));
+}
+function drawGastosCharts(catArr,hist){if(typeof Chart==='undefined')return;destroyCharts();const gold='#C5A059',tick='#9DB5B1',grid='rgba(143,217,204,.1)';
+  try{charts.push(new Chart(chSpend,{type:'doughnut',data:{labels:catArr.map(c=>c[0]),datasets:[{data:catArr.map(c=>c[1]),backgroundColor:catArr.map(c=>catMetaG(c[0])[2]),borderWidth:0}]},options:{maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false}}}}))}catch(e){console.warn(e)}
+  try{charts.push(new Chart(chEvol,{type:'bar',data:{labels:hist.map(h=>h[0]),datasets:[{data:hist.map(h=>h[1]),backgroundColor:hist.map((h,i)=>i===hist.length-1?gold:'rgba(143,217,204,.35)'),borderRadius:6}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tick}},y:{grid:{color:grid},ticks:{color:tick,callback:v=>'R$ '+(v/1000).toFixed(0)+'k'}}}}}))}catch(e){console.warn(e)}}
+function openBudgets(){const m=mainPlan(session.clientId);document.getElementById('budgetBody').innerHTML=CATS_GASTO.filter(c=>c[0]!=='Receita').map(c=>`<div class="field" style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:120px">${c[1]} ${c[0]}</span><input type="number" id="bud_${c[0]}" value="${(m.budgets&&m.budgets[c[0]])||0}" style="flex:1"></div>`).join('');document.getElementById('budgetModal').classList.remove('hidden');}
+function closeBudgets(){document.getElementById('budgetModal').classList.add('hidden');}
+function saveBudgets(){const m=mainPlan(session.clientId);m.budgets=m.budgets||{};CATS_GASTO.filter(c=>c[0]!=='Receita').forEach(c=>{const el=document.getElementById('bud_'+c[0]);if(el)m.budgets[c[0]]=parseFloat(el.value)||0;});save();closeBudgets();renderGastos(document.getElementById('content'));flash('Metas salvas');}
+function openLanc(){document.getElementById('lancCat').innerHTML=CATS_GASTO.map(c=>`<option>${c[0]}</option>`).join('');document.getElementById('lanc_desc').value='';document.getElementById('lanc_valor').value='';document.getElementById('lanc_tipo').value='despesa';document.getElementById('lanc_dia').value='15';document.getElementById('lancModal').classList.remove('hidden');setTimeout(()=>document.getElementById('lanc_desc').focus(),50);}
+function closeLanc(){document.getElementById('lancModal').classList.add('hidden');}
+function saveLanc(){const m=mainPlan(session.clientId);const desc=document.getElementById('lanc_desc').value.trim();const valor=parseFloat(document.getElementById('lanc_valor').value)||0;if(!desc||!valor){flash('Preencha descrição e valor');return;}m.lancamentos=m.lancamentos||[];m.lancamentos.push({id:uid(),tipo:document.getElementById('lanc_tipo').value,desc,cat:document.getElementById('lanc_cat').value,valor,dia:parseInt(document.getElementById('lanc_dia').value)||15});save();closeLanc();renderGastos(document.getElementById('content'));flash('Lançamento adicionado');}
+function delLanc(id){const m=mainPlan(session.clientId);m.lancamentos=(m.lancamentos||[]).filter(x=>x.id!==id);save();renderGastos(document.getElementById('content'));}
+
+/* ----- COTA (consórcio do cliente) ----- */
+function renderCota(C){
+  const c=client(session.clientId),m=mainPlan(c);const lista=m.consorcios||[];
+  setTop('Minha Cota','Consórcio');
+  if(!lista.length){
+    C.innerHTML=`<div class="banner">🏆 O consórcio é o diferencial do Método Agion: uma carta de crédito sem juros que vira patrimônio e acelera seus objetivos.</div>
+     <div class="panel" style="text-align:center;padding:40px 20px"><div style="font-size:2rem">🏠</div>
+       <h2 style="justify-content:center">Você ainda não tem um consórcio no seu plano</h2>
+       <p class="note" style="max-width:460px;margin:8px auto 16px">Fale com o seu especialista para incluir uma carta de consórcio ao seu planejamento — e veja no gráfico o quanto isso antecipa seus sonhos.</p>
+       <a class="btn btn-gold btn-sm" target="_blank" href="https://wa.me/5551993078590?text=${encodeURIComponent('Quero incluir um consórcio no meu planejamento Agion')}">Falar com meu especialista</a></div>`;
+    return;
+  }
+  const fee=co=>co.tipo==='Auto'?0.16:0.22;
+  C.innerHTML=`<div class="banner">🔗 Em produção, os dados da assembleia, boletos e lances vêm da administradora em tempo real. Abaixo, a sua(s) carta(s) conforme o planejamento.</div>
+   ${lista.map(co=>{const integral=(+co.credito)*(1+fee(co))/((+co.prazoMeses)||200);const meia=integral/2;const pct=Math.min(100,Math.round((+co.contemplaMes||12)/((+co.prazoMeses)||200)*100));
+    return `<div class="panel"><h2>${ICN.cota} ${esc(co.desc||'Consórcio')} · ${esc(co.tipo||'')}</h2>
+     <div class="kpis">
+       <div class="kpi grad"><div class="lab">${ICN.cota}Crédito (carta)</div><b>${BRL(co.credito)}</b></div>
+       <div class="kpi"><div class="lab">${ICN.money}Meia parcela</div><b>${BRL(meia)}</b></div>
+       <div class="kpi"><div class="lab">${ICN.spark}Prazo</div><b>${co.prazoMeses||200} meses</b></div>
+       <div class="kpi"><div class="lab">${ICN.target}Contemplação alvo</div><b>${co.contemplaMes||12} meses</b></div>
+     </div>
+     <div class="note" style="margin-bottom:6px">Estratégia de contemplação por lance (meta: ${co.contemplaMes||12} meses)</div>
+     <div class="bar" style="height:12px"><i style="width:${pct}%"></i></div>
+     <div class="row" style="gap:10px;margin-top:16px;flex-wrap:wrap">
+       <a class="btn btn-gold btn-sm" href="#" onclick="flash('Em produção: leva ao portal oficial da administradora');return false">Emitir boleto</a>
+       <a class="btn btn-teal btn-sm" href="#" onclick="flash('Em produção: oferta de lance pelo canal oficial');return false">Ofertar lance</a>
+       <a class="btn btn-ghost btn-sm" href="#" onclick="flash('Em produção: histórico de assembleias');return false">Ver contemplações</a>
+     </div></div>`;}).join('')}`;
+}
+
+/* tema */
+function applyTheme(t){document.body.classList.toggle('light',t==='light');const b=document.getElementById('themeBtn');if(b)b.textContent=t==='light'?'☀️':'🌙';try{localStorage.setItem('agion_theme',t)}catch(e){}}
+function toggleTheme(){applyTheme(document.body.classList.contains('light')?'dark':'light');if(view&&view.page)render();}
+/* init */
+try{applyTheme(localStorage.getItem('agion_theme')||'dark')}catch(e){}
+document.getElementById('logEmail').focus();
+</script>
+</body>
+</html>
