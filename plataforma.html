@@ -93,7 +93,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 
 .userchip .out{border:none;background:rgba(143,217,204,.08);color:var(--muted);font-size:.72rem;font-weight:700;padding:6px 11px;border-radius:999px}
 .userchip .out:hover{color:var(--bad);background:rgba(248,113,113,.1)}
 @media(max-width:560px){.userchip .meta{display:none}.topbar h1{font-size:1.15rem}}
-.content{padding:clamp(18px,2.5vw,30px) clamp(16px,3.2vw,34px) 80px;max-width:1120px;margin:0 auto}
+.content{padding:clamp(18px,2.5vw,30px) clamp(18px,3vw,48px) 80px;max-width:none;width:100%}
 .icon{width:1.2em;height:1.2em;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round}
 /* cards / KPIs */
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-bottom:24px}
@@ -201,7 +201,7 @@ canvas{width:100%!important;height:280px!important}
 @media(max-width:860px){.chat-wrap{grid-template-columns:1fr;height:auto}.chat-side{display:flex;gap:6px;overflow-x:auto;border-right:none;border-bottom:1px solid var(--line)}.chat-msgs{height:360px}.msg{max-width:90%}}
 /* ===== CRM KANBAN ===== */
 .kanban{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 10px}
-.kcol{flex:0 0 248px;background:rgba(10,28,34,.5);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column}
+.kcol{flex:1 0 232px;background:rgba(10,28,34,.5);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column}
 .kcol h4{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--gold2);display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
 .kcol .ksum{font-size:.72rem;color:var(--soft);margin-bottom:10px}
 .kcol .kbody{display:flex;flex-direction:column;gap:10px;min-height:30px}
@@ -352,6 +352,45 @@ body.light .logo-img,body.light .top-logo{filter:none}
   .kpi{padding:16px}
   .btn{padding:13px 20px}.btn-sm{padding:10px 15px}
   .topbar h1{font-size:1.18rem}
+  .topbar{gap:8px 10px}
+  .tb-right{gap:9px}
+  /* tabelas roláveis horizontalmente: nada de coluna espremida */
+  table{display:block;max-width:100%;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+  .tbl-scroll table{display:table;white-space:nowrap}
+  .grid3{grid-template-columns:1fr}
+  .cards{grid-template-columns:1fr}
+  .toolbar{gap:8px}
+  .toolbar .btn-sm{flex:1 1 auto}
+  .modal{padding:22px 20px}
+}
+@media(max-width:560px){
+  .kpis{grid-template-columns:1fr 1fr;gap:11px}
+  .kpi{padding:14px 13px}
+  .kpi b{font-size:1.24rem}
+  .kpi .lab{font-size:.68rem}
+  .gsum{grid-template-columns:repeat(3,1fr)}
+  .gsum div{padding:12px 7px}
+  .gsum .lab{font-size:.62rem}
+  .gsum b{font-size:.92rem}
+  .panel{padding:16px 14px;border-radius:15px}
+  .panel h2{font-size:1rem;gap:7px}
+  .netrow{font-size:.86rem}
+  .netrow b{font-size:.96rem}
+  .netrow.tot b{font-size:1.12rem}
+  .catrow .ci{width:34px;height:34px}
+  .lanc .lv,.catrow .cval b{font-size:.84rem}
+  .month-nav b{font-size:1rem;min-width:120px}
+  .banner{font-size:.8rem;padding:11px 13px;gap:9px}
+  .disclaimer{font-size:.7rem}
+  .prob{font-size:.82rem;padding:7px 14px}
+  .j-goal{padding:13px 14px}
+  .j-goal h3{font-size:.98rem}
+  .j-goal .row{flex-wrap:wrap}
+  .j-goal .when{margin-left:0;margin-top:3px}
+  .fab{right:16px;width:52px;height:52px;font-size:1.5rem}
+  .login{padding:30px 22px}
+  .login .lg{font-size:1.6rem}
+  canvas{height:240px!important}
 }
 .print-cover{display:none}
 @media print{
@@ -381,114 +420,19 @@ body.light .logo-img,body.light .top-logo{filter:none}
 }
 </style>
 </head>
-<body>
-
-<!-- ===================== LOGIN ===================== -->
-<div id="loginView">
-  <div class="login">
-    <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'">
-    <div class="lg serif">Agion <em>Wealth</em></div>
-    <div class="tg">Plataforma de Planejamento Financeiro</div>
-    <div class="field"><label>E-mail</label><input id="logEmail" placeholder="seu@email.com" value="gabriel@agionconsorcios.com.br"></div>
-    <div class="field"><label>Senha</label><input id="logPass" type="password" value="demo" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button>
-    <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div>
-    <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div>
-    <details style="margin-top:14px"><summary class="note" style="cursor:pointer">Contas de demonstração</summary>
-      <div class="note" style="margin-top:8px;line-height:1.7">
-        <b>Master:</b> gabriel@agionconsorcios.com.br<br>
-        <b>Especialista:</b> marina@agionconsorcios.com.br<br>
-        <b>Cliente:</b> eduardo@email.com<br>
-        Senha de todos: <b>demo</b></div>
-    </details>
-  </div>
+<body> <!-- ===================== LOGIN ===================== -->
+<div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" placeholder="seu@email.com" value="gabriel@agionconsorcios.com.br"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="demo" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> <details style="margin-top:14px"><summary class="note" style="cursor:pointer">Contas de demonstração</summary> <div class="note" style="margin-top:8px;line-height:1.7"> <b>Master:</b> gabriel@agionconsorcios.com.br<br> <b>Especialista:</b> marina@agionconsorcios.com.br<br> <b>Cliente:</b> eduardo@email.com<br> Senha de todos: <b>demo</b></div> </details> </div>
+</div> <!-- ===================== APP ===================== -->
+<div id="app"> <aside class="side"> <div class="brand" style="flex-direction:row;align-items:center;gap:10px"><img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion" onerror="this.style.display='none'"><span style="display:flex;flex-direction:column"><b>Wealth</b><span>Plataforma</span></span></div> <nav class="navi" id="navi"></nav> <div class="foot"> <div class="u" id="sideUser"></div> <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="logout()">Sair</button> </div> </aside> <div class="main"> <div class="mobnav" id="mobnav"></div> <div class="topbar"> <div class="tb-left" style="display:flex;align-items:center;gap:10px"><img class="top-logo" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion" onerror="this.style.display='none'"><div><div class="crumb" id="crumb"></div><h1 id="pageTitle">—</h1></div></div> <div class="tb-right"> <div class="actions" id="topActions"></div> <button class="bell" id="themeBtn" onclick="toggleTheme()" title="Alternar tema claro/escuro"></button> <div style="position:relative" id="bellWrap"></div> <div class="userchip" id="userChip"></div> </div> </div> <div class="content" id="content"></div> </div>
+</div> <div id="modalBg" class="modal-bg hidden"> <div class="modal"> <h3 id="modalTitle"></h3> <p id="modalMsg" class="hidden"></p> <input id="modalInput" class="hidden"> <div class="modal-actions"> <button class="btn btn-ghost btn-sm" id="modalCancel">Cancelar</button> <button class="btn btn-gold btn-sm" id="modalOk">Confirmar</button> </div> </div>
 </div>
-
-<!-- ===================== APP ===================== -->
-<div id="app">
-  <aside class="side">
-    <div class="brand" style="flex-direction:row;align-items:center;gap:10px"><img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion" onerror="this.style.display='none'"><span style="display:flex;flex-direction:column"><b>Wealth</b><span>Plataforma</span></span></div>
-    <nav class="navi" id="navi"></nav>
-    <div class="foot">
-      <div class="u" id="sideUser"></div>
-      <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="logout()">Sair</button>
-    </div>
-  </aside>
-  <div class="main">
-    <div class="mobnav" id="mobnav"></div>
-    <div class="topbar">
-      <div class="tb-left" style="display:flex;align-items:center;gap:10px"><img class="top-logo" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion" onerror="this.style.display='none'"><div><div class="crumb" id="crumb"></div><h1 id="pageTitle">—</h1></div></div>
-      <div class="tb-right">
-        <div class="actions" id="topActions"></div>
-        <button class="bell" id="themeBtn" onclick="toggleTheme()" title="Alternar tema claro/escuro">🌙</button>
-        <div style="position:relative" id="bellWrap"></div>
-        <div class="userchip" id="userChip"></div>
-      </div>
-    </div>
-    <div class="content" id="content"></div>
-  </div>
+<div id="leadModal" class="modal-bg hidden"> <div class="modal" style="max-width:460px"> <h3 id="leadTitle">Novo lead</h3> <input type="hidden" id="le_id"> <div class="field"><label>Nome</label><input id="le_nome" placeholder="Nome do lead"></div> <div class="field"><label>Contato (telefone ou e-mail)</label><input id="le_contato" placeholder="(51) 9..."></div> <div class="grid2"> <div class="field"><label>Tipo de negócio</label><select id="le_tipo"><option>Consórcio</option><option>Planejamento</option><option>Consultoria</option></select></div> <div class="field"><label>Valor potencial (R$)</label><input id="le_valor" type="number" value="0"></div> </div> <div class="field"><label>Observações</label><textarea id="le_obs" rows="2" placeholder="Anotações..."></textarea></div> <div class="modal-actions"> <button class="btn btn-ghost btn-sm" onclick="closeLead()">Cancelar</button> <button class="btn btn-gold btn-sm" onclick="saveLead()">Salvar</button> </div> </div>
 </div>
-
-<div id="modalBg" class="modal-bg hidden">
-  <div class="modal">
-    <h3 id="modalTitle"></h3>
-    <p id="modalMsg" class="hidden"></p>
-    <input id="modalInput" class="hidden">
-    <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" id="modalCancel">Cancelar</button>
-      <button class="btn btn-gold btn-sm" id="modalOk">Confirmar</button>
-    </div>
-  </div>
+<div id="lancModal" class="modal-bg hidden"> <div class="modal" style="max-width:430px"> <h3>Novo lançamento</h3> <div class="grid2"> <div class="field"><label>Tipo</label><select id="lanc_tipo"><option value="despesa">Despesa</option><option value="receita">Receita</option></select></div> <div class="field"><label>Categoria</label><select id="lanc_cat"></select></div> </div> <div class="field"><label>Descrição</label><input id="lanc_desc" placeholder="Ex: Supermercado"></div> <div class="grid2"> <div class="field"><label>Valor (R$)</label><input id="lanc_valor" type="number"></div> <div class="field"><label>Dia</label><input id="lanc_dia" type="number" value="15"></div> </div> <div class="modal-actions"> <button class="btn btn-ghost btn-sm" onclick="closeLanc()">Cancelar</button> <button class="btn btn-gold btn-sm" onclick="saveLanc()">Adicionar</button> </div> </div>
 </div>
-<div id="leadModal" class="modal-bg hidden">
-  <div class="modal" style="max-width:460px">
-    <h3 id="leadTitle">Novo lead</h3>
-    <input type="hidden" id="le_id">
-    <div class="field"><label>Nome</label><input id="le_nome" placeholder="Nome do lead"></div>
-    <div class="field"><label>Contato (telefone ou e-mail)</label><input id="le_contato" placeholder="(51) 9..."></div>
-    <div class="grid2">
-      <div class="field"><label>Tipo de negócio</label><select id="le_tipo"><option>Consórcio</option><option>Planejamento</option><option>Consultoria</option></select></div>
-      <div class="field"><label>Valor potencial (R$)</label><input id="le_valor" type="number" value="0"></div>
-    </div>
-    <div class="field"><label>Observações</label><textarea id="le_obs" rows="2" placeholder="Anotações..."></textarea></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" onclick="closeLead()">Cancelar</button>
-      <button class="btn btn-gold btn-sm" onclick="saveLead()">Salvar</button>
-    </div>
-  </div>
+<div id="budgetModal" class="modal-bg hidden"> <div class="modal" style="max-width:420px"> <h3>Metas de gasto por categoria</h3> <p>Defina quanto pretende gastar por mês. Avisamos quando estourar.</p> <div id="budgetBody" style="max-height:46vh;overflow:auto"></div> <div class="modal-actions"> <button class="btn btn-ghost btn-sm" onclick="closeBudgets()">Cancelar</button> <button class="btn btn-gold btn-sm" onclick="saveBudgets()">Salvar metas</button> </div> </div>
 </div>
-<div id="lancModal" class="modal-bg hidden">
-  <div class="modal" style="max-width:430px">
-    <h3>Novo lançamento</h3>
-    <div class="grid2">
-      <div class="field"><label>Tipo</label><select id="lanc_tipo"><option value="despesa">Despesa</option><option value="receita">Receita</option></select></div>
-      <div class="field"><label>Categoria</label><select id="lanc_cat"></select></div>
-    </div>
-    <div class="field"><label>Descrição</label><input id="lanc_desc" placeholder="Ex: Supermercado"></div>
-    <div class="grid2">
-      <div class="field"><label>Valor (R$)</label><input id="lanc_valor" type="number"></div>
-      <div class="field"><label>Dia</label><input id="lanc_dia" type="number" value="15"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" onclick="closeLanc()">Cancelar</button>
-      <button class="btn btn-gold btn-sm" onclick="saveLanc()">Adicionar</button>
-    </div>
-  </div>
-</div>
-<div id="budgetModal" class="modal-bg hidden">
-  <div class="modal" style="max-width:420px">
-    <h3>Metas de gasto por categoria</h3>
-    <p>Defina quanto pretende gastar por mês. Avisamos quando estourar.</p>
-    <div id="budgetBody" style="max-height:46vh;overflow:auto"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" onclick="closeBudgets()">Cancelar</button>
-      <button class="btn btn-gold btn-sm" onclick="saveBudgets()">Salvar metas</button>
-    </div>
-  </div>
-</div>
-<div class="flash" id="flash"></div>
-
-<script>
+<div class="flash" id="flash"></div> <script>
 /* ===================== UTIL ===================== */
 const DB_KEY='agion_wealth_v2';
 const BRL=v=>(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
@@ -558,7 +502,7 @@ function seedAccounts(){return [
   {id:'ac2',role:'cliente',nome:'Mariana Alves',email:'mariana@email.com',senha:'demo',clientId:'c2',ownerId:'u2',inicial:'MA',cor:'#B0875F',papel:'Cliente',ativo:true}
 ];}
 function seedFeed(){const n=Date.now();return [
-  {id:uid(),autorId:'u2',texto:'Fechei o planejamento completo da família Souza! 🎉 Obrigada pelo apoio, equipe.',quando:n-2*HR,likes:['u1','u3'],coments:[{autorId:'u1',texto:'Mandou bem demais, Marina! 👏',quando:n-1*HR}]},
+  {id:uid(),autorId:'u2',texto:'Fechei o planejamento completo da família Souza!  Obrigada pelo apoio, equipe.',quando:n-2*HR,likes:['u1','u3'],coments:[{autorId:'u1',texto:'Mandou bem demais, Marina! 👏',quando:n-1*HR}]},
   {id:uid(),autorId:'u3',texto:'Entrou uma carta de imóvel de R$300 mil contemplada no grupo 1423. Quem tiver cliente na fila, me chama.',quando:n-5*HR,likes:['u1'],coments:[]},
   {id:uid(),autorId:'u1',texto:'Meta do mês: 12 novos planejamentos. Já estamos em 7. Bora! 🚀',quando:n-1*DAY,likes:['u2','u3'],coments:[{autorId:'u3',texto:'Tô com 3 propostas na rua, semana que vem fecho.',quando:n-20*HR}]}
 ];}
@@ -603,6 +547,13 @@ function totals(p){
   const passivos=(p.debts||[]).reduce((s,i)=>s+(+i.valor||0),0);
   return{renda,desp,patr,sobra:renda-desp,passivos,liquido:patr-passivos};
 }
+/* Alocação sugerida por perfil (modelo IPS, adaptado ao mercado BR) */
+const ALOC={
+  Conservador:{'Renda Fixa':75,'Multimercado':8,'Renda Variável':7,'Imóvel':5,'Internacional':5},
+  Moderado:{'Renda Fixa':50,'Renda Variável':22,'Internacional':12,'Multimercado':8,'Imóvel':8},
+  Arrojado:{'Renda Fixa':28,'Renda Variável':40,'Internacional':18,'Multimercado':9,'Imóvel':5}
+};
+const COR_CLASSE={'Renda Fixa':'#C5A059','Renda Variável':'#8FD9CC','Internacional':'#E8CC8B','Multimercado':'#4Fa3a3','Imóvel':'#B0875F','Previdência':'#7FB0A9','Outros':'#6E8B88'};
 let _z=null;function gauss(){if(_z!==null){const z=_z;_z=null;return z}let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();const m=Math.sqrt(-2*Math.log(u));_z=m*Math.sin(2*Math.PI*v);return m*Math.cos(2*Math.PI*v)}
 function projetar(p){
   const t=totals(p); const r=(p.rent||0)/100;
@@ -673,7 +624,9 @@ function projetar(p){
   const consCredito=cons.reduce((s,co)=>s+(+co.credito||0),0);
   const consParcela=cons.reduce((s,co)=>s+(+co.credito||0)*(1+consFee(co))/((+co.prazoMeses)||200)/2,0);
   const consAluguel=cons.filter(co=>co.uso==='imovel').reduce((s,co)=>s+(+co.credito||0)*(((+co.aluguel)||0.8)/100),0);
-  return{...t,aporteAnual,anosAcum,anosRenda,saqueAnual,patApos,alvoConsumo,alvoManter,aporteIdeal,prob,idades,serie,serieOtim,seriePess,balanco,rendaAnual,despAnual,metas,reservaIdeal,reservaAtual,cobertura,saude,seguroIdeal,seguroAtual,taxaSaque,consCredito,consParcela,consImovel,consAluguel,poupanca:(t.renda>0?Math.round(t.sobra/t.renda*100):0)};
+  const numIndep=(saqueAnual||despAnual)/0.04;
+  const indepPct=numIndep>0?Math.min(100,Math.round(t.patr/numIndep*100)):0;
+  return{...t,aporteAnual,anosAcum,anosRenda,saqueAnual,patApos,alvoConsumo,alvoManter,aporteIdeal,prob,idades,serie,serieOtim,seriePess,balanco,rendaAnual,despAnual,metas,reservaIdeal,reservaAtual,cobertura,saude,seguroIdeal,seguroAtual,taxaSaque,consCredito,consParcela,consImovel,consAluguel,numIndep,indepPct,poupanca:(t.renda>0?Math.round(t.sobra/t.renda*100):0)};
 }
 /* ----- DIAGNÓSTICO INTELIGENTE (linguagem de assessor) ----- */
 function diagnostico(p,R){
@@ -761,14 +714,8 @@ function renderJourney(p,editable){
   return '<div class="journey">'+goals.map((g,gi)=>{
     const realIdx=(p.goals||[]).indexOf(g);
     const tag=g.tipo==='renda'?'Renda / aposentadoria':'Meta';
-    return `<div class="j-node"><div class="j-dot">${gi+1}</div>
-      <div class="j-goal">
-        <div class="row"><div><h3>${esc(g.desc||'Objetivo')}</h3><div class="gval">${tag} · ${BRL(g.valor)}${g.tipo==='renda'?'/mês':''}</div></div>
-        <span class="when">aos ${g.idade||p.apos} anos</span></div>
-        <ul class="j-steps">
-        ${(g.passos||[]).map((s,si)=>`<li class="j-step"><span class="n">${si+1}</span><span class="tx">${esc(s)}</span>${editable?`<span class="x" onclick="delStep(${realIdx},${si})">✕</span>`:''}</li>`).join('')}
-        </ul>
-        ${editable?`<div class="j-addstep"><input id="ns_${realIdx}" placeholder="Novo passo para esta meta..."><button class="btn btn-teal btn-sm" onclick="addStep(${realIdx})">+ Passo</button></div>`:''}
+    return `<div class="j-node"><div class="j-dot">${gi+1}</div> <div class="j-goal"> <div class="row"><div><h3>${esc(g.desc||'Objetivo')}</h3><div class="gval">${tag} · ${BRL(g.valor)}${g.tipo==='renda'?'/mês':''}</div></div> <span class="when">aos ${g.idade||p.apos} anos</span></div> <ul class="j-steps"> ${(g.passos||[]).map((s,si)=>`<li class="j-step"><span class="n">${si+1}</span><span class="tx">${esc(s)}</span>${editable?`<span class="x" onclick="delStep(${realIdx},${si})">✕</span>`:''}</li>`).join('')}
+        </ul> ${editable?`<div class="j-addstep"><input id="ns_${realIdx}" placeholder="Novo passo para esta meta..."><button class="btn btn-teal btn-sm" onclick="addStep(${realIdx})">+ Passo</button></div>`:''}
       </div></div>`;
   }).join('')+'</div>';
 }
@@ -787,34 +734,13 @@ function sakeBlock(p,R){
   const scaleMax=Math.max(8,Math.ceil(tx/2)*2+2);
   const safePct=4/scaleMax*100, markPct=Math.min(98,tx/scaleMax*100);
   const cor=tx<=4.5?'var(--ok)':tx<=6.5?'var(--warn)':'var(--bad)';
-  return `<div style="margin-top:16px">
-    <h3 class="serif" style="font-size:.98rem;color:var(--gold2);margin:0 0 8px">Sua taxa de saque na aposentadoria</h3>
-    <p style="font-size:.9rem;line-height:1.6;color:var(--ink)">Você planeja retirar <b>${BRL(mensal)}/mês</b> (${BRL(R.saqueAnual)}/ano), o que equivale a <b style="color:${cor}">${tx.toFixed(1)}% do seu patrimônio por ano</b>. A referência de mercado para uma renda durar décadas é em torno de <b>4% ao ano</b>.</p>
-    <div style="position:relative;height:36px;border-radius:9px;background:rgba(143,217,204,.08);border:1px solid var(--line);overflow:hidden;margin-top:10px">
-      <div style="position:absolute;left:0;top:0;bottom:0;width:${safePct}%;background:rgba(52,211,153,.18);border-right:2px dashed var(--ok)"></div>
-      <div style="position:absolute;left:${markPct}%;top:-2px;bottom:-2px;width:3px;background:${cor};box-shadow:0 0 10px ${cor}"></div>
-      <span style="position:absolute;left:7px;top:9px;font-size:.64rem;color:#7fe0b8;font-weight:700">ZONA SEGURA ≤4%</span>
-      <span style="position:absolute;left:calc(${markPct}% + 6px);top:9px;font-size:.66rem;color:${cor};font-weight:800">${tx.toFixed(1)}%</span>
-      <span style="position:absolute;right:7px;bottom:5px;font-size:.62rem;color:var(--soft)">${scaleMax}%</span>
-    </div>
-    ${tx>4.5?`<p class="note" style="margin-top:8px;color:${cor};line-height:1.6">Sua taxa está <b>acima</b> da zona segura — esse é o principal motivo de a probabilidade ficar baixa. Reduzir a renda-alvo, aportar mais ou adiar a aposentadoria traz a taxa para perto de 4% e eleva bastante a chance de sucesso.</p>`:`<p class="note" style="margin-top:8px;color:var(--ok)">Sua taxa está dentro da zona segura. 👏</p>`}
+  return `<div style="margin-top:16px"> <h3 class="serif" style="font-size:.98rem;color:var(--gold2);margin:0 0 8px">Sua taxa de saque na aposentadoria</h3> <p style="font-size:.9rem;line-height:1.6;color:var(--ink)">Você planeja retirar <b>${BRL(mensal)}/mês</b> (${BRL(R.saqueAnual)}/ano), o que equivale a <b style="color:${cor}">${tx.toFixed(1)}% do seu patrimônio por ano</b>. A referência de mercado para uma renda durar décadas é em torno de <b>4% ao ano</b>.</p> <div style="position:relative;height:36px;border-radius:9px;background:rgba(143,217,204,.08);border:1px solid var(--line);overflow:hidden;margin-top:10px"> <div style="position:absolute;left:0;top:0;bottom:0;width:${safePct}%;background:rgba(52,211,153,.18);border-right:2px dashed var(--ok)"></div> <div style="position:absolute;left:${markPct}%;top:-2px;bottom:-2px;width:3px;background:${cor};box-shadow:0 0 10px ${cor}"></div> <span style="position:absolute;left:7px;top:9px;font-size:.64rem;color:#7fe0b8;font-weight:700">ZONA SEGURA ≤4%</span> <span style="position:absolute;left:calc(${markPct}% + 6px);top:9px;font-size:.66rem;color:${cor};font-weight:800">${tx.toFixed(1)}%</span> <span style="position:absolute;right:7px;bottom:5px;font-size:.62rem;color:var(--soft)">${scaleMax}%</span> </div> ${tx>4.5?`<p class="note" style="margin-top:8px;color:${cor};line-height:1.6">Sua taxa está <b>acima</b> da zona segura — esse é o principal motivo de a probabilidade ficar baixa. Reduzir a renda-alvo, aportar mais ou adiar a aposentadoria traz a taxa para perto de 4% e eleva bastante a chance de sucesso.</p>`:`<p class="note" style="margin-top:8px;color:var(--ok)">Sua taxa está dentro da zona segura.</p>`}
   </div>`;
 }
 function probExplain(p,R){
   const b=probBand(R.prob);
-  return `<div class="panel"><h2>${ICN.spark} Entenda a sua probabilidade de sucesso</h2>
-    <p style="font-size:.92rem;line-height:1.65;color:var(--ink)">Para projetar o seu futuro, não usamos um único “chute” de rentabilidade. Rodamos <b>centenas de simulações</b> do seu plano (o chamado método <b>Monte Carlo</b>): em cada uma, sorteamos uma sequência diferente de anos bons e ruins de mercado, de acordo com o seu perfil <b>${esc(p.perfil)}</b>. A sua <b>probabilidade de ${R.prob}%</b> é a fatia dessas simulações em que o patrimônio <b>durou até os ${p.vida} anos</b> sustentando a renda desejada de ${BRL((R.saqueAnual||0)/12)}/mês.</p>
-    <div class="netrow" style="border:1px solid ${b.cor}55;border-radius:12px;padding:12px 14px;background:${b.cor}14;margin-top:6px">
-      <span style="display:flex;align-items:center;gap:10px"><span class="prob" style="background:${b.cor}22;color:${b.cor};border:1px solid ${b.cor}55">● ${R.prob}%</span><b style="color:${b.cor}">${b.t}</b></span></div>
-    <p class="note" style="margin-top:8px;line-height:1.6">${b.d}</p>
-    ${sakeBlock(p,R)}
-    <div class="banner" style="border-color:var(--line);margin-top:14px"><span style="font-size:.88rem;line-height:1.6">💡 <b>Bater a meta na média não é o mesmo que ter segurança.</b> A cobertura (${R.cobertura}%) supõe um rendimento perfeito todo ano; a probabilidade (${R.prob}%) considera os altos e baixos reais do mercado. Quando a margem é pequena e o saque é alto, a probabilidade fica bem abaixo da cobertura — e é nela que confiamos.</span></div>
-    <h3 class="serif" style="font-size:.98rem;color:var(--gold2);margin:18px 0 8px">As três linhas da projeção</h3>
-    <div class="netrow"><span><span style="display:inline-block;width:16px;height:3px;background:#C5A059;vertical-align:middle;margin-right:8px"></span>Linha atual</span><span class="note" style="max-width:62%;text-align:right">Cenário com a rentabilidade real estimada para o seu perfil.</span></div>
-    <div class="netrow"><span><span style="display:inline-block;width:16px;height:3px;background:#34d399;vertical-align:middle;margin-right:8px"></span>Otimista</span><span class="note" style="max-width:62%;text-align:right">Se os investimentos renderem acima do esperado.</span></div>
-    <div class="netrow"><span><span style="display:inline-block;width:16px;height:3px;background:#f87171;vertical-align:middle;margin-right:8px"></span>Pessimista</span><span class="note" style="max-width:62%;text-align:right">Se renderem abaixo do esperado — o cenário de prudência.</span></div>
-    <p class="note" style="margin-top:10px;line-height:1.6">A linha atual é a referência. Um plano saudável mantém a linha pessimista positiva pelo maior tempo possível — é isso que dá segurança real.</p>
-  </div>`;
+  return `<div class="panel"><h2>${ICN.spark} Entenda a sua probabilidade de sucesso</h2> <p style="font-size:.92rem;line-height:1.65;color:var(--ink)">Para projetar o seu futuro, não usamos um único “chute” de rentabilidade. Rodamos <b>centenas de simulações</b> do seu plano (o chamado método <b>Monte Carlo</b>): em cada uma, sorteamos uma sequência diferente de anos bons e ruins de mercado, de acordo com o seu perfil <b>${esc(p.perfil)}</b>. A sua <b>probabilidade de ${R.prob}%</b> é a fatia dessas simulações em que o patrimônio <b>durou até os ${p.vida} anos</b> sustentando a renda desejada de ${BRL((R.saqueAnual||0)/12)}/mês.</p> <div class="netrow" style="border:1px solid ${b.cor}55;border-radius:12px;padding:12px 14px;background:${b.cor}14;margin-top:6px"> <span style="display:flex;align-items:center;gap:10px"><span class="prob" style="background:${b.cor}22;color:${b.cor};border:1px solid ${b.cor}55">● ${R.prob}%</span><b style="color:${b.cor}">${b.t}</b></span></div> <p class="note" style="margin-top:8px;line-height:1.6">${b.d}</p> ${sakeBlock(p,R)}
+    <div class="banner" style="border-color:var(--line);margin-top:14px"><span style="font-size:.88rem;line-height:1.6"> <b>Bater a meta na média não é o mesmo que ter segurança.</b> A cobertura (${R.cobertura}%) supõe um rendimento perfeito todo ano; a probabilidade (${R.prob}%) considera os altos e baixos reais do mercado. Quando a margem é pequena e o saque é alto, a probabilidade fica bem abaixo da cobertura — e é nela que confiamos.</span></div> <h3 class="serif" style="font-size:.98rem;color:var(--gold2);margin:18px 0 8px">As três linhas da projeção</h3> <div class="netrow"><span><span style="display:inline-block;width:16px;height:3px;background:#C5A059;vertical-align:middle;margin-right:8px"></span>Linha atual</span><span class="note" style="max-width:62%;text-align:right">Cenário com a rentabilidade real estimada para o seu perfil.</span></div> <div class="netrow"><span><span style="display:inline-block;width:16px;height:3px;background:#34d399;vertical-align:middle;margin-right:8px"></span>Otimista</span><span class="note" style="max-width:62%;text-align:right">Se os investimentos renderem acima do esperado.</span></div> <div class="netrow"><span><span style="display:inline-block;width:16px;height:3px;background:#f87171;vertical-align:middle;margin-right:8px"></span>Pessimista</span><span class="note" style="max-width:62%;text-align:right">Se renderem abaixo do esperado — o cenário de prudência.</span></div> <p class="note" style="margin-top:10px;line-height:1.6">A linha atual é a referência. Um plano saudável mantém a linha pessimista positiva pelo maior tempo possível — é isso que dá segurança real.</p> </div>`;
 }
 function planClone(p){return JSON.parse(JSON.stringify(p));}
 function whatIfPanel(p,R){
@@ -827,13 +753,8 @@ function whatIfPanel(p,R){
   if(gr){let d=planClone(p);d.goals.find(x=>x.tipo==='renda').valor=Math.round(gr.valor*0.9);scn.push(['Reduzir a renda-alvo em 10% ('+BRL(Math.round(gr.valor*0.9))+'/mês)',projetar(d).prob,'meta mais enxuta']);}
   let e=planClone(p);e.perfil='Arrojado';e.rent=Math.round((p.rent+1.5)*10)/10;scn.push(['Carteira mais arrojada (+1,5% a.a.)',projetar(e).prob,'mais retorno, mais risco']);
   const arrow=v=>{const d=v-base;if(d>1)return `<span style="color:var(--ok)">▲ +${d}pp</span>`;if(d<-1)return `<span style="color:var(--bad)">▼ ${d}pp</span>`;return '<span style="color:var(--soft)">≈</span>';};
-  return `<div class="panel"><h2>${ICN.target} O que aumenta a sua probabilidade?</h2>
-    <p class="note" style="margin:-6px 0 12px">Simulamos cada ajuste e recalculamos a probabilidade. Compare com a sua situação atual de <b style="color:var(--gold2)">${base}%</b>.</p>
-    <div class="tbl-scroll" style="max-height:none"><table><thead><tr><th>Se você...</th><th class="r">Probabilidade</th><th class="r">Variação</th></tr></thead><tbody>
-    ${scn.map(s=>`<tr><td>${esc(s[0])}<br><span class="note">${esc(s[2])}</span></td><td class="r"><b>${s[1]}%</b></td><td class="r">${arrow(s[1])}</td></tr>`).join('')}
-    </tbody></table></div>
-    <p class="note" style="margin-top:10px">“pp” = pontos percentuais. Converse com seu especialista para combinar a melhor mistura desses ajustes.</p>
-  </div>`;
+  return `<div class="panel"><h2>${ICN.target} O que aumenta a sua probabilidade?</h2> <p class="note" style="margin:-6px 0 12px">Simulamos cada ajuste e recalculamos a probabilidade. Compare com a sua situação atual de <b style="color:var(--gold2)">${base}%</b>.</p> <div class="tbl-scroll" style="max-height:none"><table><thead><tr><th>Se você...</th><th class="r">Probabilidade</th><th class="r">Variação</th></tr></thead><tbody> ${scn.map(s=>`<tr><td>${esc(s[0])}<br><span class="note">${esc(s[2])}</span></td><td class="r"><b>${s[1]}%</b></td><td class="r">${arrow(s[1])}</td></tr>`).join('')}
+    </tbody></table></div> <p class="note" style="margin-top:10px">“pp” = pontos percentuais. Converse com seu especialista para combinar a melhor mistura desses ajustes.</p> </div>`;
 }
 function leverRecalc(){
   if(!edP)return;
@@ -855,10 +776,7 @@ function leverRecalc(){
 }
 function diagPanel(p,R){
   const ic={ok:'✓',warn:'!',bad:'×'};const cor={ok:'var(--ok)',warn:'var(--warn)',bad:'var(--bad)'};
-  return `<div class="panel"><h2>${ICN.spark} Diagnóstico & recomendações</h2>
-   ${diagnostico(p,R).map(([t,txt])=>`<div style="display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)">
-     <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.78rem;background:${cor[t]}22;color:${cor[t]};border:1px solid ${cor[t]}55">${ic[t]}</span>
-     <span style="font-size:.88rem;color:var(--ink);line-height:1.5">${txt}</span></div>`).join('')}</div>`;
+  return `<div class="panel"><h2>${ICN.spark} Diagnóstico & recomendações</h2> ${diagnostico(p,R).map(([t,txt])=>`<div style="display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)"> <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.78rem;background:${cor[t]}22;color:${cor[t]};border:1px solid ${cor[t]}55">${ic[t]}</span> <span style="font-size:.88rem;color:var(--ink);line-height:1.5">${txt}</span></div>`).join('')}</div>`;
 }
 
 /* ===================== NAVEGAÇÃO ===================== */
@@ -897,19 +815,14 @@ function renderNav(){
   document.getElementById('mobnav').innerHTML=items.map(([k,l,ic])=>`<a class="${view.page===k?'on':''}" onclick="go('${k}')">${ic||''}<span>${l}</span></a>`).join('');
 }
 function go(page){ view.page=page; renderNav(); document.getElementById('content').innerHTML=skeleton(); window.scrollTo(0,0); requestAnimationFrame(()=>setTimeout(render,90)); }
-function skeleton(){return `<div class="skel">
-  <div class="sk" style="height:30px;width:40%"></div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin:18px 0">
-   ${'<div class="sk" style="height:92px"></div>'.repeat(4)}</div>
-  <div class="sk" style="height:230px"></div>
-  <div class="sk" style="height:160px"></div></div>`;}
+function skeleton(){return `<div class="skel"> <div class="sk" style="height:30px;width:40%"></div> <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin:18px 0"> ${'<div class="sk" style="height:92px"></div>'.repeat(4)}</div> <div class="sk" style="height:230px"></div> <div class="sk" style="height:160px"></div></div>`;}
 /* ===== NOTIFICAÇÕES ===== */
 function notifList(){
   const out=[]; const me=session.userId;
-  if(isMaster()){ (db.crm||[]).filter(l=>!l.ownerId&&!l.perdido).forEach(l=>out.push({ic:'📥',cor:'var(--warn)',tx:`Lead não distribuído: <b>${esc(l.nome)}</b>`,tm:l.fonte?('via '+l.fonte):'',go:'crm'})); }
-  (db.inbox||[]).filter(l=>!l.importado).slice(0,3).forEach(l=>out.push({ic:'⚡',cor:'var(--teal)',tx:`Novo lead de ${l.fonte}: <b>${esc(l.nome)}</b>`,tm:timeAgo(l.quando),go:'captacao'}));
+  if(isMaster()){ (db.crm||[]).filter(l=>!l.ownerId&&!l.perdido).forEach(l=>out.push({ic:'',cor:'var(--warn)',tx:`Lead não distribuído: <b>${esc(l.nome)}</b>`,tm:l.fonte?('via '+l.fonte):'',go:'crm'})); }
+  (db.inbox||[]).filter(l=>!l.importado).slice(0,3).forEach(l=>out.push({ic:'',cor:'var(--teal)',tx:`Novo lead de ${l.fonte}: <b>${esc(l.nome)}</b>`,tm:timeAgo(l.quando),go:'captacao'}));
   (db.tasks||[]).filter(t=>!t.feito).slice(0,3).forEach(t=>out.push({ic:'✓',cor:'var(--gold2)',tx:esc(t.titulo),tm:t.quando||'',go:'tarefas'}));
-  (db.chat&&db.chat.messages||[]).filter(m=>m.autorId!==me && Date.now()-m.quando<DAY).slice(-2).forEach(m=>out.push({ic:'💬',cor:'var(--teal)',tx:`${esc(user(m.autorId).nome.split(' ')[0])} no chat: <b>${esc((m.texto||'').slice(0,32))}</b>`,tm:timeAgo(m.quando),go:'chat'}));
+  (db.chat&&db.chat.messages||[]).filter(m=>m.autorId!==me && Date.now()-m.quando<DAY).slice(-2).forEach(m=>out.push({ic:'',cor:'var(--teal)',tx:`${esc(user(m.autorId).nome.split(' ')[0])} no chat: <b>${esc((m.texto||'').slice(0,32))}</b>`,tm:timeAgo(m.quando),go:'chat'}));
   return out;
 }
 function updateBell(){
@@ -923,7 +836,7 @@ function toggleNotif(e){
   const w=document.getElementById('bellWrap'); const open=w.querySelector('.notif');
   if(open){open.remove();return;}
   const items=notifList();
-  const html=`<div class="notif"><h4>Notificações</h4>${items.length?items.map(it=>`<div class="ni" onclick="go('${it.go}');closeNotif()"><span class="dot" style="background:${it.cor}22;color:${it.cor}">${it.ic}</span><div><div class="tx">${it.tx}</div>${it.tm?`<div class="tm">${esc(it.tm)}</div>`:''}</div></div>`).join(''):'<div class="empty">Tudo em dia ✨</div>'}</div>`;
+  const html=`<div class="notif"><h4>Notificações</h4>${items.length?items.map(it=>`<div class="ni" onclick="go('${it.go}');closeNotif()"><span class="dot" style="background:${it.cor}22;color:${it.cor}">${it.ic}</span><div><div class="tx">${it.tx}</div>${it.tm?`<div class="tm">${esc(it.tm)}</div>`:''}</div></div>`).join(''):'<div class="empty">Tudo em dia </div>'}</div>`;
   w.insertAdjacentHTML('beforeend',html);
   setTimeout(()=>document.addEventListener('click',closeNotifOnce),0);
 }
@@ -961,7 +874,7 @@ async function forgotPass(){
   const a=accByEmail(email);
   if(!a) return loginErr('Digite o e-mail da sua conta para redefinir a senha.');
   const nova=senhaGen(); a.senha=nova; save();
-  await ask({title:'🔑 Redefinição de senha',msg:`Em produção, uma nova senha seria enviada por e-mail para ${a.email}. No teste, sua nova senha é: ${nova}`,ok:'Entendi'});
+  await ask({title:' Redefinição de senha',msg:`Em produção, uma nova senha seria enviada por e-mail para ${a.email}. No teste, sua nova senha é: ${nova}`,ok:'Entendi'});
   document.getElementById('logPass').value=nova;
   const el=document.getElementById('loginMsg');el.style.color='var(--ok)';el.textContent='Senha redefinida — preenchemos para você entrar.';
 }
@@ -1013,47 +926,29 @@ function renderCRM(C){
   setTop('CRM — Funil de Negócios','Consórcio · Planejamento · Consultoria',
     '<button class="btn btn-gold btn-sm" onclick="openLead()">+ Novo lead</button>');
   const s=crmStats();
-  const cards=`<div class="kpis">
-     <div class="kpi grad"><div class="lab">${ICN.funnel}Em pipeline</div><b>${BRL(s.pipeline)}</b></div>
-     <div class="kpi"><div class="lab">${ICN.users}Leads ativos</div><b>${s.ativos}</b></div>
-     <div class="kpi grad"><div class="lab">${ICN.money}Ganho (fechado)</div><b>${BRL(s.ganho)}</b></div>
-     <div class="kpi"><div class="lab">${ICN.spark}Conversão</div><b>${s.conv}%</b></div>
-   </div>`;
+  const cards=`<div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.funnel}Em pipeline</div><b>${BRL(s.pipeline)}</b></div> <div class="kpi"><div class="lab">${ICN.users}Leads ativos</div><b>${s.ativos}</b></div> <div class="kpi grad"><div class="lab">${ICN.money}Ganho (fechado)</div><b>${BRL(s.ganho)}</b></div> <div class="kpi"><div class="lab">${ICN.spark}Conversão</div><b>${s.conv}%</b></div> </div>`;
   const VL=visibleLeads();
   const board=CRM_STAGES.map((st,i)=>{
     const leads=VL.filter(l=>!l.perdido && l.stage===i);
     const soma=leads.reduce((a,l)=>a+(+l.valor||0),0);
-    return `<div class="kcol"><h4>${esc(st)} <span style="color:var(--soft)">${leads.length}</span></h4>
-      <div class="ksum">${BRL(soma)}</div>
-      <div class="kbody" ondragover="kbOver(event)" ondragleave="kbLeave(event)" ondrop="kbDrop(event,${i})">${leads.map(l=>leadCard(l,i)).join('')||'<div class="note" style="padding:8px 0">— arraste aqui —</div>'}</div></div>`;
+    return `<div class="kcol"><h4>${esc(st)} <span style="color:var(--soft)">${leads.length}</span></h4> <div class="ksum">${BRL(soma)}</div> <div class="kbody" ondragover="kbOver(event)" ondragleave="kbLeave(event)" ondrop="kbDrop(event,${i})">${leads.map(l=>leadCard(l,i)).join('')||'<div class="note" style="padding:8px 0">— arraste aqui —</div>'}</div></div>`;
   }).join('');
   const perdidos=VL.filter(l=>l.perdido);
   const naoDistrib=isMaster()?(db.crm||[]).filter(l=>!l.ownerId&&!l.perdido):[];
   C.innerHTML=cards+
-    (naoDistrib.length?`<div class="banner">📥 ${naoDistrib.length} lead(s) aguardando distribuição. Use o seletor “Distribuir” em cada cartão para encaminhar a um especialista.</div>`:'')+
+    (naoDistrib.length?`<div class="banner"> ${naoDistrib.length} lead(s) aguardando distribuição. Use o seletor “Distribuir” em cada cartão para encaminhar a um especialista.</div>`:'')+
     `<div class="kanban">${board}</div>`+
-    (perdidos.length?`<div class="panel"><h2>${ICN.users} Perdidos (${perdidos.length})</h2>
-      ${perdidos.map(l=>`<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line)"><span><b style="color:var(--head)">${esc(l.nome)}</b> <span class="ttype tt-${l.tipo}" style="margin:0 0 0 6px">${l.tipo}</span></span>
-        <button class="btn btn-ghost btn-sm" onclick="crmRecuperar('${l.id}')">Reativar</button></div>`).join('')}</div>`:'');
+    (perdidos.length?`<div class="panel"><h2>${ICN.users} Perdidos (${perdidos.length})</h2> ${perdidos.map(l=>`<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line)"><span><b style="color:var(--head)">${esc(l.nome)}</b> <span class="ttype tt-${l.tipo}" style="margin:0 0 0 6px">${l.tipo}</span></span> <button class="btn btn-ghost btn-sm" onclick="crmRecuperar('${l.id}')">Reativar</button></div>`).join('')}</div>`:'');
 }
 function leadCard(l,i){
   const last=CRM_STAGES.length-1;
-  return `<div class="lead" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><span class="ttype tt-${l.tipo}">${l.tipo}</span>
-    <div class="nm">${esc(l.nome)}</div>
-    <div class="ct">${esc(l.contato||'')}</div>
-    ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''}
+  return `<div class="lead" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><span class="ttype tt-${l.tipo}">${l.tipo}</span> <div class="nm">${esc(l.nome)}</div> <div class="ct">${esc(l.contato||'')}</div> ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''}
     ${l.obs?`<div class="note" style="margin-top:6px">${esc(l.obs)}</div>`:''}
-    ${(l.atividades&&l.atividades.length)?`<div class="note" style="margin-top:6px;color:var(--soft)">🕘 ${esc(l.atividades[l.atividades.length-1].texto)} · ${timeAgo(l.atividades[l.atividades.length-1].quando)}</div>`:''}
-    <div class="note" style="margin-top:6px;color:var(--soft)">${l.ownerId?'👤 '+esc(user(l.ownerId).nome.split(' ')[0]):'⚠️ não distribuído'}</div>
-    ${isMaster()?`<select onchange="crmAssign('${l.id}',this.value)" style="margin-top:6px;font-size:.74rem;padding:6px 8px"><option value="">— distribuir para —</option>${(db.accounts||[]).filter(a=>a.role==='especialista'||a.role==='master').map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`:''}
-    <div class="acts">
-      ${i>0?`<button onclick="crmMove('${l.id}',-1)" title="Voltar etapa">◀</button>`:''}
+    ${(l.atividades&&l.atividades.length)?`<div class="note" style="margin-top:6px;color:var(--soft)"> ${esc(l.atividades[l.atividades.length-1].texto)} · ${timeAgo(l.atividades[l.atividades.length-1].quando)}</div>`:''}
+    <div class="note" style="margin-top:6px;color:var(--soft)">${l.ownerId?''+esc(user(l.ownerId).nome.split(' ')[0]):'⚠️ não distribuído'}</div> ${isMaster()?`<select onchange="crmAssign('${l.id}',this.value)" style="margin-top:6px;font-size:.74rem;padding:6px 8px"><option value="">— distribuir para —</option>${(db.accounts||[]).filter(a=>a.role==='especialista'||a.role==='master').map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`:''}
+    <div class="acts"> ${i>0?`<button onclick="crmMove('${l.id}',-1)" title="Voltar etapa">◀</button>`:''}
       ${i<last?`<button onclick="crmMove('${l.id}',1)" title="Avançar etapa">▶</button>`:''}
-      <button onclick="crmNote('${l.id}')">📝 Nota</button>
-      <button onclick="openLead('${l.id}')">✎ Editar</button>
-      <button onclick="crmToClient('${l.id}')">→ Cliente</button>
-      <button onclick="crmLose('${l.id}')">Perdeu</button>
-    </div></div>`;
+      <button onclick="crmNote('${l.id}')"> Nota</button> <button onclick="openLead('${l.id}')">✎ Editar</button> <button onclick="crmToClient('${l.id}')">→ Cliente</button> <button onclick="crmLose('${l.id}')">Perdeu</button> </div></div>`;
 }
 function crmMove(id,d){const l=(db.crm).find(x=>x.id===id);const ns=Math.max(0,Math.min(CRM_STAGES.length-1,l.stage+d));if(ns!==l.stage){l.stage=ns;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[ns]+'"',quando:Date.now(),autorId:session.userId});}save();renderCRM(document.getElementById('content'));}
 let _dragId=null;
@@ -1081,7 +976,7 @@ async function crmToClient(id){
   const c={id:uid(),nome:l.nome,email:l.contato.includes('@')?l.contato:'',tel:l.contato.includes('@')?'':l.contato,ownerId:meId(),plans:[blankPlan(l.nome)]};
   db.clients.push(c); l.stage=CRM_STAGES.length-1; l.perdido=false; if(!l.ownerId)l.ownerId=meId(); save();
   const a=createClientAccount(c);
-  await ask({title:'✅ Cliente e conta criados',msg:`Acesso do cliente — e-mail: ${a.email} · senha: ${a.senha}. Em produção, é enviado por e-mail ao cliente.`,ok:'Ok'});
+  await ask({title:'Cliente e conta criados',msg:`Acesso do cliente — e-mail: ${a.email} · senha: ${a.senha}. Em produção, é enviado por e-mail ao cliente.`,ok:'Ok'});
   flash('Cliente criado a partir do lead'); view._from='crm'; openEditor(c.id,c.plans[0].id,false);
 }
 function openLead(id){
@@ -1109,16 +1004,9 @@ function saveLead(){
 function renderTarefas(C){
   setTop('Tarefas','Sua agenda de follow-ups','<button class="btn btn-gold btn-sm" onclick="taskAdd()">+ Nova tarefa</button>');
   const T=db.tasks||[]; const pend=T.filter(t=>!t.feito), done=T.filter(t=>t.feito);
-  C.innerHTML=`<div class="kpis">
-     <div class="kpi grad"><div class="lab">${ICN.check}Pendentes</div><b>${pend.length}</b></div>
-     <div class="kpi"><div class="lab">${ICN.check}Concluídas</div><b>${done.length}</b></div>
-   </div>
-   <div class="panel"><h2>${ICN.check} A fazer</h2>${pend.map(taskRow).join('')||'<p class="note">Nenhuma tarefa pendente 🎉</p>'}</div>
-   ${done.length?`<div class="panel"><h2>${ICN.check} Concluídas</h2>${done.map(taskRow).join('')}</div>`:''}`;
+  C.innerHTML=`<div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.check}Pendentes</div><b>${pend.length}</b></div> <div class="kpi"><div class="lab">${ICN.check}Concluídas</div><b>${done.length}</b></div> </div> <div class="panel"><h2>${ICN.check} A fazer</h2>${pend.map(taskRow).join('')||'<p class="note">Nenhuma tarefa pendente </p>'}</div> ${done.length?`<div class="panel"><h2>${ICN.check} Concluídas</h2>${done.map(taskRow).join('')}</div>`:''}`;
 }
-function taskRow(t){return `<div class="task ${t.feito?'done':''}"><div class="tk-cb" onclick="taskToggle('${t.id}')">${t.feito?'✓':''}</div>
-   <div class="tk-t">${esc(t.titulo)}</div><div class="tk-d">${esc(t.quando||'')}</div>
-   <button class="btn-ico" onclick="taskDel('${t.id}')">✕</button></div>`;}
+function taskRow(t){return `<div class="task ${t.feito?'done':''}"><div class="tk-cb" onclick="taskToggle('${t.id}')">${t.feito?'✓':''}</div> <div class="tk-t">${esc(t.titulo)}</div><div class="tk-d">${esc(t.quando||'')}</div> <button class="btn-ico" onclick="taskDel('${t.id}')">✕</button></div>`;}
 async function taskAdd(){const tt=await ask({title:'Nova tarefa',msg:'O que precisa ser feito?',input:true,ok:'Adicionar'});if(!tt||!tt.trim())return;
    const q=await ask({title:'Quando?',msg:'Prazo (ex.: Hoje, Amanhã, Dia 20):',input:true,value:'Hoje',ok:'Salvar'});
    db.tasks.push({id:uid(),titulo:tt.trim(),quando:(q||'').trim(),feito:false});save();renderTarefas(document.getElementById('content'));flash('Tarefa criada');}
@@ -1128,27 +1016,15 @@ async function taskDel(id){db.tasks=db.tasks.filter(x=>x.id!==id);save();renderT
 /* ===================== FEED COLABORATIVO ===================== */
 function renderFeed(C){
   setTop('Feed da equipe','Mural compartilhado entre especialistas');
-  C.innerHTML=`<div class="panel">
-     <div class="feed-comp">${avatar(session.userId,40)}
-       <div style="flex:1"><textarea id="feedTxt" placeholder="Compartilhe uma novidade, vitória ou aviso com a equipe..."></textarea>
-       <div style="text-align:right;margin-top:8px"><button class="btn btn-gold btn-sm" onclick="feedPost()">Publicar</button></div></div>
-     </div>
-     <div id="feedList">${feedList()}</div></div>`;
+  C.innerHTML=`<div class="panel"> <div class="feed-comp">${avatar(session.userId,40)}
+       <div style="flex:1"><textarea id="feedTxt" placeholder="Compartilhe uma novidade, vitória ou aviso com a equipe..."></textarea> <div style="text-align:right;margin-top:8px"><button class="btn btn-gold btn-sm" onclick="feedPost()">Publicar</button></div></div> </div> <div id="feedList">${feedList()}</div></div>`;
 }
 function feedList(){
   return (db.feed||[]).slice().sort((a,b)=>b.quando-a.quando).map(p=>{
     const liked=(p.likes||[]).includes(session.userId);
     return `<div class="post">${avatar(p.autorId,42)}
-      <div class="pbody">
-        <div class="phead"><span class="pname">${esc(user(p.autorId).nome)}</span><span class="ptime">${timeAgo(p.quando)}</span></div>
-        <div class="ptext">${esc(p.texto)}</div>
-        <div class="pacts">
-          <button class="${liked?'liked':''}" onclick="feedLike('${p.id}')">${ICN.heart}${(p.likes||[]).length||''} Curtir</button>
-          <button onclick="feedToggleC('${p.id}')">💬 ${(p.coments||[]).length||''} Comentar</button>
-        </div>
-        ${(p.coments||[]).map(c=>`<div class="coment">${avatar(c.autorId,28)}<div class="cb"><div class="cn">${esc(user(c.autorId).nome)}</div><div class="cx">${esc(c.texto)}</div></div></div>`).join('')}
-        <div id="cform_${p.id}" class="coment hidden">${avatar(session.userId,28)}<input id="ci_${p.id}" placeholder="Escreva um comentário..." onkeydown="if(event.key==='Enter')feedComment('${p.id}')"><button class="btn btn-teal btn-sm" onclick="feedComment('${p.id}')">Enviar</button></div>
-      </div></div>`;
+      <div class="pbody"> <div class="phead"><span class="pname">${esc(user(p.autorId).nome)}</span><span class="ptime">${timeAgo(p.quando)}</span></div> <div class="ptext">${esc(p.texto)}</div> <div class="pacts"> <button class="${liked?'liked':''}" onclick="feedLike('${p.id}')">${ICN.heart}${(p.likes||[]).length||''} Curtir</button> <button onclick="feedToggleC('${p.id}')"> ${(p.coments||[]).length||''} Comentar</button> </div> ${(p.coments||[]).map(c=>`<div class="coment">${avatar(c.autorId,28)}<div class="cb"><div class="cn">${esc(user(c.autorId).nome)}</div><div class="cx">${esc(c.texto)}</div></div></div>`).join('')}
+        <div id="cform_${p.id}" class="coment hidden">${avatar(session.userId,28)}<input id="ci_${p.id}" placeholder="Escreva um comentário..." onkeydown="if(event.key==='Enter')feedComment('${p.id}')"><button class="btn btn-teal btn-sm" onclick="feedComment('${p.id}')">Enviar</button></div> </div></div>`;
   }).join('');
 }
 function feedPost(){const t=document.getElementById('feedTxt').value.trim();if(!t)return;db.feed.push({id:uid(),autorId:session.userId,texto:t,quando:Date.now(),likes:[],coments:[]});save();document.getElementById('feedList').innerHTML=feedList();document.getElementById('feedTxt').value='';flash('Publicado no feed');}
@@ -1161,16 +1037,11 @@ let chatCh='geral';
 function renderChat(C){
   setTop('Chat da equipe','Mensagens por canal');
   if(!(db.chat.channels||[]).some(c=>c.id===chatCh)) chatCh=db.chat.channels[0].id;
-  C.innerHTML=`<div class="chat-wrap">
-     <div class="chat-side">${(db.chat.channels).map(ch=>`<div class="ch ${ch.id===chatCh?'on':''}" onclick="chatOpen('${ch.id}')"># ${esc(ch.nome)}</div>`).join('')}</div>
-     <div class="chat-main">
-       <div class="chat-msgs" id="chatMsgs">${chatMsgs()}</div>
-       <div class="chat-input"><input id="chatInput" placeholder="Mensagem em #${esc(chName())}..." onkeydown="if(event.key==='Enter')chatSend()"><button class="btn btn-gold btn-sm" onclick="chatSend()">${ICN.send}</button></div>
-     </div></div>`;
+  C.innerHTML=`<div class="chat-wrap"> <div class="chat-side">${(db.chat.channels).map(ch=>`<div class="ch ${ch.id===chatCh?'on':''}" onclick="chatOpen('${ch.id}')"># ${esc(ch.nome)}</div>`).join('')}</div> <div class="chat-main"> <div class="chat-msgs" id="chatMsgs">${chatMsgs()}</div> <div class="chat-input"><input id="chatInput" placeholder="Mensagem em #${esc(chName())}..." onkeydown="if(event.key==='Enter')chatSend()"><button class="btn btn-gold btn-sm" onclick="chatSend()">${ICN.send}</button></div> </div></div>`;
   scrollChat();
 }
 function chName(){return (db.chat.channels.find(c=>c.id===chatCh)||{}).nome||'';}
-function chatMsgs(){return (db.chat.messages||[]).filter(m=>m.canalId===chatCh).map(m=>{const me=m.autorId===session.userId;return `<div class="msg ${me?'me':''}">${avatar(m.autorId,30)}<div class="mbubble"><div class="mn">${esc(user(m.autorId).nome.split(' ')[0])}</div><div class="mt">${esc(m.texto)}</div><div class="mtime">${timeAgo(m.quando)}</div></div></div>`;}).join('')||'<p class="note">Sem mensagens neste canal ainda. Diga olá! 👋</p>';}
+function chatMsgs(){return (db.chat.messages||[]).filter(m=>m.canalId===chatCh).map(m=>{const me=m.autorId===session.userId;return `<div class="msg ${me?'me':''}">${avatar(m.autorId,30)}<div class="mbubble"><div class="mn">${esc(user(m.autorId).nome.split(' ')[0])}</div><div class="mt">${esc(m.texto)}</div><div class="mtime">${timeAgo(m.quando)}</div></div></div>`;}).join('')||'<p class="note">Sem mensagens neste canal ainda. Diga olá! </p>';}
 function chatOpen(id){chatCh=id;renderChat(document.getElementById('content'));}
 function chatSend(){const inp=document.getElementById('chatInput');const t=(inp.value||'').trim();if(!t)return;db.chat.messages.push({id:uid(),canalId:chatCh,autorId:session.userId,texto:t,quando:Date.now()});save();document.getElementById('chatMsgs').innerHTML=chatMsgs();inp.value='';scrollChat();}
 function scrollChat(){const m=document.getElementById('chatMsgs');if(m)m.scrollTop=m.scrollHeight;}
@@ -1180,33 +1051,14 @@ function renderCaptacao(C){
   setTop('Captação de Leads','Google & Meta → seu funil');
   const pend=(db.inbox||[]).filter(l=>!l.importado);
   C.innerHTML=`
-   <div class="banner">⚡ Os leads dos seus anúncios do <b>Google</b> e da <b>Meta</b> (Facebook/Instagram) caem aqui automaticamente; importe para o funil com um clique. <span style="opacity:.7">No protótipo os leads são simulados — em produção chegam por webhook/API (Meta Lead Ads & Google Lead Form Extensions).</span></div>
-   <div class="kpis">
-     <div class="kpi grad"><div class="lab">${ICN.bolt}Leads aguardando</div><b>${pend.length}</b></div>
-     <div class="kpi"><div class="lab">${ICN.funnel}Já importados</div><b>${(db.inbox||[]).filter(l=>l.importado).length}</b></div>
-   </div>
-   <div class="grid2">
-     ${['Google','Meta'].map(src=>{const it=db.integr[src]||{};return `<div class="intg"><div class="src src-${src}">${src==='Google'?'G':'∞'}</div>
-       <div style="flex:1"><div style="font-weight:700;color:var(--head)">${src} ${src==='Meta'?'(Facebook/Instagram)':'Ads'}</div>
-         <div class="note">${esc(it.conta||'')}</div>
-         <div style="font-size:.78rem;margin-top:4px;color:${it.conectado?'var(--ok)':'var(--soft)'}"><span class="${it.conectado?'dot-on':'dot-off'}"></span> ${it.conectado?'Conectado':'Desconectado'}</div></div>
-       <button class="btn btn-ghost btn-sm" onclick="toggleIntegr('${src}')">${it.conectado?'Desconectar':'Conectar'}</button></div>`;}).join('')}
-   </div>
-   <div class="panel"><h2>${ICN.bolt} Caixa de entrada de leads <button class="btn btn-teal btn-sm right" onclick="simulLead()">Simular chegada de lead</button></h2>
-     ${pend.map(l=>`<div class="row" style="padding:11px 0;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap">
-        <div style="flex:1;min-width:180px"><span class="lead-src src-${l.fonte}">${l.fonte}</span> <b style="color:var(--head);margin-left:6px">${esc(l.nome)}</b>
-          <div class="note">${esc(l.contato)} · ${esc(l.campanha)}</div></div>
-        <span class="ttype tt-${l.tipo}">${l.tipo}</span>
-        <span class="note">${timeAgo(l.quando)}</span>
-        <button class="btn btn-gold btn-sm" onclick="importLead('${l.id}')">Importar p/ funil</button>
-        <button class="btn btn-ghost btn-sm" onclick="discardLead('${l.id}')">Descartar</button>
-      </div>`).join('')||'<p class="note">Nenhum lead novo aguardando. 🎉</p>'}
+   <div class="banner"> Os leads dos seus anúncios do <b>Google</b> e da <b>Meta</b> (Facebook/Instagram) caem aqui automaticamente; importe para o funil com um clique. <span style="opacity:.7">No protótipo os leads são simulados — em produção chegam por webhook/API (Meta Lead Ads & Google Lead Form Extensions).</span></div> <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.bolt}Leads aguardando</div><b>${pend.length}</b></div> <div class="kpi"><div class="lab">${ICN.funnel}Já importados</div><b>${(db.inbox||[]).filter(l=>l.importado).length}</b></div> </div> <div class="grid2"> ${['Google','Meta'].map(src=>{const it=db.integr[src]||{};return `<div class="intg"><div class="src src-${src}">${src==='Google'?'G':'∞'}</div> <div style="flex:1"><div style="font-weight:700;color:var(--head)">${src} ${src==='Meta'?'(Facebook/Instagram)':'Ads'}</div> <div class="note">${esc(it.conta||'')}</div> <div style="font-size:.78rem;margin-top:4px;color:${it.conectado?'var(--ok)':'var(--soft)'}"><span class="${it.conectado?'dot-on':'dot-off'}"></span> ${it.conectado?'Conectado':'Desconectado'}</div></div> <button class="btn btn-ghost btn-sm" onclick="toggleIntegr('${src}')">${it.conectado?'Desconectar':'Conectar'}</button></div>`;}).join('')}
+   </div> <div class="panel"><h2>${ICN.bolt} Caixa de entrada de leads <button class="btn btn-teal btn-sm right" onclick="simulLead()">Simular chegada de lead</button></h2> ${pend.map(l=>`<div class="row" style="padding:11px 0;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap"> <div style="flex:1;min-width:180px"><span class="lead-src src-${l.fonte}">${l.fonte}</span> <b style="color:var(--head);margin-left:6px">${esc(l.nome)}</b> <div class="note">${esc(l.contato)} · ${esc(l.campanha)}</div></div> <span class="ttype tt-${l.tipo}">${l.tipo}</span> <span class="note">${timeAgo(l.quando)}</span> <button class="btn btn-gold btn-sm" onclick="importLead('${l.id}')">Importar p/ funil</button> <button class="btn btn-ghost btn-sm" onclick="discardLead('${l.id}')">Descartar</button> </div>`).join('')||'<p class="note">Nenhum lead novo aguardando. </p>'}
    </div>`;
 }
 function toggleIntegr(src){db.integr[src].conectado=!db.integr[src].conectado;save();renderCaptacao(document.getElementById('content'));flash(src+(db.integr[src].conectado?' conectado':' desconectado'));}
 function importLead(id){const l=db.inbox.find(x=>x.id===id);l.importado=true;db.crm.push({id:uid(),nome:l.nome,contato:l.contato,tipo:l.tipo,valor:0,stage:0,perdido:false,ownerId:isMaster()?null:meId(),criadoEm:Date.now(),obs:'Origem: '+l.fonte+' — '+l.campanha,atividades:[{texto:'Lead recebido via '+l.fonte,quando:Date.now(),autorId:session.userId}]});save();renderCaptacao(document.getElementById('content'));flash(isMaster()?'Lead importado — distribua no CRM':'Lead importado para o seu funil ✓');}
 function discardLead(id){db.inbox=db.inbox.filter(x=>x.id!==id);save();renderCaptacao(document.getElementById('content'));}
-function simulLead(){const nomes=['Pedro Henrique','Juliana Reis','Marcos Vinícius','Camila Duarte','Felipe Andrade','Sofia Carvalho'];const tps=['Consórcio','Planejamento','Consultoria'];const f=Math.random()<0.5?'Google':'Meta';db.inbox.push({id:uid(),fonte:f,nome:nomes[Math.floor(Math.random()*nomes.length)],contato:'(51) 9'+Math.floor(1000+Math.random()*8999)+'-'+Math.floor(1000+Math.random()*8999),campanha:f==='Meta'?'Lead Ad — Instagram/Facebook':'Pesquisa — Google Ads',tipo:tps[Math.floor(Math.random()*3)],quando:Date.now(),importado:false});save();renderCaptacao(document.getElementById('content'));flash('⚡ Novo lead recebido de '+f+'!');}
+function simulLead(){const nomes=['Pedro Henrique','Juliana Reis','Marcos Vinícius','Camila Duarte','Felipe Andrade','Sofia Carvalho'];const tps=['Consórcio','Planejamento','Consultoria'];const f=Math.random()<0.5?'Google':'Meta';db.inbox.push({id:uid(),fonte:f,nome:nomes[Math.floor(Math.random()*nomes.length)],contato:'(51) 9'+Math.floor(1000+Math.random()*8999)+'-'+Math.floor(1000+Math.random()*8999),campanha:f==='Meta'?'Lead Ad — Instagram/Facebook':'Pesquisa — Google Ads',tipo:tps[Math.floor(Math.random()*3)],quando:Date.now(),importado:false});save();renderCaptacao(document.getElementById('content'));flash(' Novo lead recebido de '+f+'!');}
 
 /* ===================== ASSESSOR: PAINEL ===================== */
 function renderAssessorDash(C){
@@ -1216,37 +1068,17 @@ function renderAssessorDash(C){
   const sims=VC.reduce((a,c)=>a+c.plans.filter(p=>!p.main).length,0);
   const cs=crmStats(); const ativosCrm=VL.filter(l=>!l.perdido).length; const pendentes=(db.tasks||[]).filter(t=>!t.feito);
   C.innerHTML=`
-   <div class="kpis">
-     <div class="kpi grad"><div class="lab">${ICN.users}${isMaster()?'Clientes (empresa)':'Meus clientes'}</div><b>${VC.length}</b></div>
-     <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio sob gestão</div><b>${BRL(totPatr)}</b></div>
-     <div class="kpi"><div class="lab">${ICN.funnel}Pipeline (CRM)</div><b>${BRL(cs.pipeline)}</b></div>
-     <div class="kpi"><div class="lab">${ICN.check}Tarefas pendentes</div><b>${pendentes.length}</b></div>
-   </div>
-   <div class="grid2">
-     <div class="panel"><h2>${ICN.funnel} Funil de negócios <button class="btn btn-teal btn-sm right" onclick="go('crm')">Abrir CRM</button></h2>
-       ${CRM_STAGES.map((st,i)=>{const n=VL.filter(l=>!l.perdido&&l.stage===i).length;const pct=ativosCrm?Math.round(n/ativosCrm*100):0;
+   <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.users}${isMaster()?'Clientes (empresa)':'Meus clientes'}</div><b>${VC.length}</b></div> <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio sob gestão</div><b>${BRL(totPatr)}</b></div> <div class="kpi"><div class="lab">${ICN.funnel}Pipeline (CRM)</div><b>${BRL(cs.pipeline)}</b></div> <div class="kpi"><div class="lab">${ICN.check}Tarefas pendentes</div><b>${pendentes.length}</b></div> </div> <div class="grid2"> <div class="panel"><h2>${ICN.funnel} Funil de negócios <button class="btn btn-teal btn-sm right" onclick="go('crm')">Abrir CRM</button></h2> ${CRM_STAGES.map((st,i)=>{const n=VL.filter(l=>!l.perdido&&l.stage===i).length;const pct=ativosCrm?Math.round(n/ativosCrm*100):0;
          return `<div style="margin-bottom:10px"><div class="row" style="font-size:.82rem"><span style="color:var(--head)">${esc(st)}</span><span style="color:var(--muted)">${n}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`}).join('')}
-     </div>
-     <div class="panel"><h2>${ICN.check} Tarefas de hoje <button class="btn btn-teal btn-sm right" onclick="go('tarefas')">Ver todas</button></h2>
-       ${pendentes.slice(0,5).map(t=>`<div class="task"><div class="tk-cb" onclick="taskToggle('${t.id}');go('dash')">${t.feito?'✓':''}</div><div class="tk-t">${esc(t.titulo)}</div><div class="tk-d">${esc(t.quando||'')}</div></div>`).join('')||'<p class="note">Sem tarefas pendentes 🎉</p>'}
-     </div>
-   </div>
-   <div class="panel"><h2>${ICN.users} Carteira de clientes <button class="btn btn-gold btn-sm right" onclick="newClient()">+ Novo cliente</button></h2>
-     <table><thead><tr><th>Cliente</th><th class="r">Patrimônio</th><th class="r">Aporte/mês</th><th class="r">Aposentar</th><th></th></tr></thead><tbody>
-     ${VC.map(c=>{const m=mainPlan(c),t=totals(m);return `<tr><td><b style="color:var(--head)">${esc(c.nome)}</b><br><span style="color:var(--soft);font-size:.78rem">${esc(c.email||'')}${isMaster()?' · '+esc(user(c.ownerId).nome.split(' ')[0]):''}</span></td><td class="r">${BRL(t.patr)}</td><td class="r">${BRL(t.sobra)}</td><td class="r">${m.apos} anos</td><td class="r"><button class="btn btn-teal btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Abrir plano</button></td></tr>`}).join('')||'<tr><td colspan="5" class="note">Nenhum cliente ainda.</td></tr>'}
-     </tbody></table>
-   </div>`;
+     </div> <div class="panel"><h2>${ICN.check} Tarefas de hoje <button class="btn btn-teal btn-sm right" onclick="go('tarefas')">Ver todas</button></h2> ${pendentes.slice(0,5).map(t=>`<div class="task"><div class="tk-cb" onclick="taskToggle('${t.id}');go('dash')">${t.feito?'✓':''}</div><div class="tk-t">${esc(t.titulo)}</div><div class="tk-d">${esc(t.quando||'')}</div></div>`).join('')||'<p class="note">Sem tarefas pendentes </p>'}
+     </div> </div> <div class="panel"><h2>${ICN.users} Carteira de clientes <button class="btn btn-gold btn-sm right" onclick="newClient()">+ Novo cliente</button></h2> <table><thead><tr><th>Cliente</th><th class="r">Patrimônio</th><th class="r">Aporte/mês</th><th class="r">Aposentar</th><th></th></tr></thead><tbody> ${VC.map(c=>{const m=mainPlan(c),t=totals(m);return `<tr><td><b style="color:var(--head)">${esc(c.nome)}</b><br><span style="color:var(--soft);font-size:.78rem">${esc(c.email||'')}${isMaster()?' · '+esc(user(c.ownerId).nome.split(' ')[0]):''}</span></td><td class="r">${BRL(t.patr)}</td><td class="r">${BRL(t.sobra)}</td><td class="r">${m.apos} anos</td><td class="r"><button class="btn btn-teal btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Abrir plano</button></td></tr>`}).join('')||'<tr><td colspan="5" class="note">Nenhum cliente ainda.</td></tr>'}
+     </tbody></table> </div>`;
 }
 function renderClients(C){
   setTop(isMaster()?'Clientes (empresa)':'Meus clientes','Gestão de carteira', '<button class="btn btn-gold btn-sm" onclick="newClient()">+ Novo cliente</button>');
   const VC=visibleClients();
   C.innerHTML=`<div class="cards">${VC.map(c=>{const m=mainPlan(c),t=totals(c.plans.find(p=>p.main));const copies=c.plans.filter(p=>!p.main).length;
-    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div>
-      <div class="meta">${esc(c.email||'')}${isMaster()?' · 👤 '+esc(user(c.ownerId).nome.split(' ')[0]):''}</div>
-      <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div>
-      <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div>
-      <div class="row" style="gap:8px"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button>
-      <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button></div></div>`}).join('')||'<p class="note">Você ainda não tem clientes. Crie um cliente ou converta um lead no CRM.</p>'}</div>`;
+    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div> <div class="meta">${esc(c.email||'')}${isMaster()?' · 👤 '+esc(user(c.ownerId).nome.split(' ')[0]):''}</div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div> <div class="row" style="gap:8px"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button> <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button></div></div>`}).join('')||'<p class="note">Você ainda não tem clientes. Crie um cliente ou converta um lead no CRM.</p>'}</div>`;
 }
 /* ===================== CONTAS (somente master) ===================== */
 function renderContas(C){
@@ -1254,16 +1086,9 @@ function renderContas(C){
     '<button class="btn btn-gold btn-sm" onclick="openAccount()">+ Nova conta</button>');
   const esps=(db.accounts||[]).filter(a=>a.role==='master'||a.role==='especialista');
   const clis=(db.accounts||[]).filter(a=>a.role==='cliente');
-  const rowAcc=a=>`<div class="netrow"><span style="display:flex;align-items:center;gap:10px">${avatar(a.id,30)}<span><b style="color:var(--head)">${esc(a.nome)}</b> ${a.role==='master'?'<span class="chip" style="margin-left:4px">MASTER</span>':''}<br><span class="note">${esc(a.email)} · ${esc(a.papel||a.role)}${a.role==='cliente'&&a.ownerId?' · de '+esc(user(a.ownerId).nome.split(' ')[0]):''}${a.ativo===false?' · INATIVO':''}</span></span></span>
-     <span style="display:flex;gap:6px">${a.role!=='master'?`<button class="btn btn-ghost btn-sm" onclick="resetAccount('${a.id}')">Resetar senha</button><button class="btn btn-ghost btn-sm" onclick="toggleAccount('${a.id}')">${a.ativo===false?'Ativar':'Desativar'}</button>`:'<span class="note">você</span>'}</span></div>`;
+  const rowAcc=a=>`<div class="netrow"><span style="display:flex;align-items:center;gap:10px">${avatar(a.id,30)}<span><b style="color:var(--head)">${esc(a.nome)}</b> ${a.role==='master'?'<span class="chip" style="margin-left:4px">MASTER</span>':''}<br><span class="note">${esc(a.email)} · ${esc(a.papel||a.role)}${a.role==='cliente'&&a.ownerId?' · de '+esc(user(a.ownerId).nome.split(' ')[0]):''}${a.ativo===false?' · INATIVO':''}</span></span></span> <span style="display:flex;gap:6px">${a.role!=='master'?`<button class="btn btn-ghost btn-sm" onclick="resetAccount('${a.id}')">Resetar senha</button><button class="btn btn-ghost btn-sm" onclick="toggleAccount('${a.id}')">${a.ativo===false?'Ativar':'Desativar'}</button>`:'<span class="note">você</span>'}</span></div>`;
   C.innerHTML=`
-   <div class="banner">🔐 Apenas você (Master) cria contas, distribui leads e mexe nos sistemas da empresa. Cada especialista vê só os próprios clientes e leads; cada cliente vê só o próprio planejamento.</div>
-   <div class="kpis">
-     <div class="kpi grad"><div class="lab">${ICN.users}Especialistas</div><b>${esps.length}</b></div>
-     <div class="kpi"><div class="lab">${ICN.users}Clientes com acesso</div><b>${clis.length}</b></div>
-   </div>
-   <div class="panel"><h2>${ICN.users} Especialistas & Master</h2>${esps.map(rowAcc).join('')}</div>
-   <div class="panel"><h2>${ICN.users} Clientes</h2>${clis.map(rowAcc).join('')||'<p class="note">Nenhuma conta de cliente ainda.</p>'}</div>`;
+   <div class="banner">Apenas você (Master) cria contas, distribui leads e mexe nos sistemas da empresa. Cada especialista vê só os próprios clientes e leads; cada cliente vê só o próprio planejamento.</div> <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.users}Especialistas</div><b>${esps.length}</b></div> <div class="kpi"><div class="lab">${ICN.users}Clientes com acesso</div><b>${clis.length}</b></div> </div> <div class="panel"><h2>${ICN.users} Especialistas & Master</h2>${esps.map(rowAcc).join('')}</div> <div class="panel"><h2>${ICN.users} Clientes</h2>${clis.map(rowAcc).join('')||'<p class="note">Nenhuma conta de cliente ainda.</p>'}</div>`;
 }
 async function openAccount(){
   const tipo=await ask({title:'Nova conta',msg:'Qual o tipo? Digite: especialista ou cliente',input:true,value:'especialista',ok:'Próximo'});
@@ -1275,10 +1100,10 @@ async function openAccount(){
   const a={id:'u'+uid(),role,nome:nome.trim(),email:email.trim(),senha:senhaGen(),inicial:initialsOf(nome),cor:cores[Math.floor(Math.random()*cores.length)],papel:role==='cliente'?'Cliente':'Especialista',ativo:true};
   if(role==='cliente'){const c={id:uid(),nome:nome.trim(),email:email.trim(),tel:'',ownerId:meId(),plans:[blankPlan(nome.trim())]};db.clients.push(c);a.clientId=c.id;a.ownerId=meId();a.cor='#4Fa3a3';}
   db.accounts.push(a);save();
-  await ask({title:'✅ Conta criada',msg:`${a.nome} (${role}) — e-mail: ${a.email} · senha: ${a.senha}. Em produção, enviada por e-mail.`,ok:'Ok'});
+  await ask({title:'Conta criada',msg:`${a.nome} (${role}) — e-mail: ${a.email} · senha: ${a.senha}. Em produção, enviada por e-mail.`,ok:'Ok'});
   renderContas(document.getElementById('content'));
 }
-async function resetAccount(id){const a=acc(id);if(!(await ask({title:'Resetar senha?',msg:`Gera uma nova senha para ${a.nome}.`,ok:'Resetar'})))return;a.senha=senhaGen();save();await ask({title:'🔑 Nova senha',msg:`Senha de ${a.nome}: ${a.senha}. Em produção, enviada por e-mail para ${a.email}.`,ok:'Ok'});}
+async function resetAccount(id){const a=acc(id);if(!(await ask({title:'Resetar senha?',msg:`Gera uma nova senha para ${a.nome}.`,ok:'Resetar'})))return;a.senha=senhaGen();save();await ask({title:' Nova senha',msg:`Senha de ${a.nome}: ${a.senha}. Em produção, enviada por e-mail para ${a.email}.`,ok:'Ok'});}
 function toggleAccount(id){const a=acc(id);a.ativo=a.ativo===false?true:false;save();renderContas(document.getElementById('content'));flash(a.ativo?'Conta ativada':'Conta desativada');}
 async function newClient(){
   const nome=await ask({title:'Novo cliente',msg:'Nome completo do cliente:',input:true,ok:'Próximo'});
@@ -1288,7 +1113,7 @@ async function newClient(){
   const c={id:uid(),nome:nome.trim(),email:(email||'').trim(),tel:'',ownerId:meId(),plans:[blankPlan(nome.trim())]};
   db.clients.push(c);save();
   const a=createClientAccount(c);
-  await ask({title:'✅ Cliente e conta criados',msg:`Acesso do cliente — e-mail: ${a.email} · senha: ${a.senha}. Em produção é enviado por e-mail.`,ok:'Ok'});
+  await ask({title:'Cliente e conta criados',msg:`Acesso do cliente — e-mail: ${a.email} · senha: ${a.senha}. Em produção é enviado por e-mail.`,ok:'Ok'});
   flash('Cliente criado');openEditor(c.id,c.plans[0].id,false);
 }
 
@@ -1301,12 +1126,8 @@ function consorcioImpacto(p){
   const semC=planClone(p); semC.consorcios=[]; const Rsem=projetar(semC);
   const linhas=[6,12,24].map(m=>{const c=planClone(p);(c.consorcios||[]).forEach(x=>x.contemplaMes=m);const R=projetar(c);return{m,R};});
   const dPat=v=>{const d=v-Rsem.patApos;return d>=0?`<span style="color:var(--ok)">+${BRL(d)}</span>`:`<span style="color:var(--bad)">${BRL(d)}</span>`;};
-  return `<p class="note" style="margin:-6px 0 12px">A carta contemplada entra no seu patrimônio e passa a render junto com seus investimentos (estratégia Agion de capitalização). Veja o efeito de antecipar a contemplação por lance:</p>
-   <div class="tbl-scroll" style="max-height:none"><table><thead><tr><th>Cenário</th><th class="r">Patrimônio aos ${p.apos}</th><th class="r">vs. sem consórcio</th><th class="r">Probabilidade</th></tr></thead><tbody>
-   <tr><td>Sem consórcio</td><td class="r">${BRL(Rsem.patApos)}</td><td class="r">—</td><td class="r">${Rsem.prob}%</td></tr>
-   ${linhas.map(l=>`<tr><td><b>Contemplação em ${l.m} meses</b></td><td class="r"><b>${BRL(l.R.patApos)}</b></td><td class="r">${dPat(l.R.patApos)}</td><td class="r"><b style="color:${l.R.prob>=80?'var(--ok)':l.R.prob>=55?'var(--warn)':'var(--bad)'}">${l.R.prob}%</b></td></tr>`).join('')}
-   </tbody></table></div>
-   <p class="note" style="margin-top:10px">Quanto antes a contemplação (via lance), mais tempo a carta rende — por isso 6 meses supera 12 e 24. O especialista combina seus investimentos para potencializar o lance.</p>`;
+  return `<p class="note" style="margin:-6px 0 12px">A carta contemplada entra no seu patrimônio e passa a render junto com seus investimentos (estratégia Agion de capitalização). Veja o efeito de antecipar a contemplação por lance:</p> <div class="tbl-scroll" style="max-height:none"><table><thead><tr><th>Cenário</th><th class="r">Patrimônio aos ${p.apos}</th><th class="r">vs. sem consórcio</th><th class="r">Probabilidade</th></tr></thead><tbody> <tr><td>Sem consórcio</td><td class="r">${BRL(Rsem.patApos)}</td><td class="r">—</td><td class="r">${Rsem.prob}%</td></tr> ${linhas.map(l=>`<tr><td><b>Contemplação em ${l.m} meses</b></td><td class="r"><b>${BRL(l.R.patApos)}</b></td><td class="r">${dPat(l.R.patApos)}</td><td class="r"><b style="color:${l.R.prob>=80?'var(--ok)':l.R.prob>=55?'var(--warn)':'var(--bad)'}">${l.R.prob}%</b></td></tr>`).join('')}
+   </tbody></table></div> <p class="note" style="margin-top:10px">Quanto antes a contemplação (via lance), mais tempo a carta rende — por isso 6 meses supera 12 e 24. O especialista combina seus investimentos para potencializar o lance.</p>`;
 }
 function openEditor(cid,pid,ro){view={page:'editor',clientId:cid,planId:pid,readonly:ro};curSec='resumo';renderNav();render();window.scrollTo(0,0)}
 function sec(id,html){return `<section class="plansec" data-sec="${id}">${html}</section>`;}
@@ -1323,178 +1144,57 @@ function renderEditor(C){
   let head='';
   if(isCli){
     head=`<div class="toolbar" style="flex-wrap:wrap;gap:8px">${c.plans.map(pl=>`<button class="btn btn-sm ${pl.id===view.planId?'btn-gold':'btn-ghost'}" onclick="selCliPlan('${pl.id}')">${pl.main?'★ Plano Principal':esc(pl.titulo)}</button>`).join('')}</div>`;
-    head+= ro?`<div class="banner">🔒 Este é o seu <b>Plano Principal</b>, feito pelo seu especialista. Para simular mudanças sem alterá-lo, crie um novo planejamento.<button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="copyPlan('${c.id}','${p.id}')">Criar novo planejamento</button></div>`
-      :`<div class="banner" style="border-color:var(--line)">✏️ Você está editando <b>${esc(p.titulo)}</b> — uma cópia sua. O Plano Principal continua intacto.</div>
-        <div class="toolbar"><button class="btn btn-teal btn-sm" onclick="recalc()">↻ Recalcular</button><button class="btn btn-gold btn-sm" onclick="saveAndPublish()">Salvar</button><div class="sp"></div><button class="btn btn-ghost btn-sm" onclick="window.print()">Exportar PDF</button><button class="btn btn-ghost btn-sm" onclick="delSim('${c.id}','${p.id}')">Excluir</button></div>`;
+    head+= ro?`<div class="banner"> Este é o seu <b>Plano Principal</b>, feito pelo seu especialista. Para simular mudanças sem alterá-lo, crie um novo planejamento.<button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="copyPlan('${c.id}','${p.id}')">Criar novo planejamento</button></div>`
+      :`<div class="banner" style="border-color:var(--line)">Você está editando <b>${esc(p.titulo)}</b> — uma cópia sua. O Plano Principal continua intacto.</div> <div class="toolbar"><button class="btn btn-teal btn-sm" onclick="recalc()">↻ Recalcular</button><button class="btn btn-gold btn-sm" onclick="saveAndPublish()">Salvar</button><div class="sp"></div><button class="btn btn-ghost btn-sm" onclick="window.print()">Exportar PDF</button><button class="btn btn-ghost btn-sm" onclick="delSim('${c.id}','${p.id}')">Excluir</button></div>`;
   } else {
-    head= ro?`<div class="banner">🔒 Plano Principal (somente leitura). Para testar mudanças, crie uma cópia editável.<button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="copyPlan('${c.id}','${p.id}')">Criar cópia para editar</button></div>`
+    head= ro?`<div class="banner"> Plano Principal (somente leitura). Para testar mudanças, crie uma cópia editável.<button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="copyPlan('${c.id}','${p.id}')">Criar cópia para editar</button></div>`
       :`<div class="toolbar"><button class="btn btn-teal btn-sm" onclick="recalc()">↻ Recalcular</button><button class="btn btn-gold btn-sm" onclick="saveAndPublish()">${p.main?'Salvar e publicar':'Salvar simulação'}</button><div class="sp"></div><button class="btn btn-ghost btn-sm" onclick="window.print()">Exportar PDF</button></div>`;
   }
   C.innerHTML=`
-  <div class="print-cover">
-    <span style="background:#0D232B;padding:16px 26px;border-radius:16px;display:inline-block"><img src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" style="height:54px;width:auto" onerror="this.style.display='none'"></span>
-    <h1>Relatório de Planejamento Financeiro</h1>
-    <p>${esc(c.nome)} · ${esc(p.titulo)}</p>
-    <p style="margin-top:4px">Agion Wealth — Consórcio · Planejamento · Consultoria</p>
-    <p style="margin-top:10px;font-size:.8rem">Emitido em ${new Date().toLocaleDateString('pt-BR')}</p>
-  </div>
-  ${head}
-  <div class="subnav">${(isCli?SECS.filter(s=>!['balanco','glossario'].includes(s[0])):SECS).map(s=>`<button id="tabsec_${s[0]}" onclick="showSec('${s[0]}')">${s[1]}</button>`).join('')}</div>
-  <div class="${ro?'locked':''}" id="editForm">
+  <div class="print-cover"> <span style="background:#0D232B;padding:16px 26px;border-radius:16px;display:inline-block"><img src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" style="height:54px;width:auto" onerror="this.style.display='none'"></span> <h1>Relatório de Planejamento Financeiro</h1> <p>${esc(c.nome)} · ${esc(p.titulo)}</p> <p style="margin-top:4px">Agion Wealth — Consórcio · Planejamento · Consultoria</p> <p style="margin-top:10px;font-size:.8rem">Emitido em ${new Date().toLocaleDateString('pt-BR')}</p> </div> ${head}
+  <div class="subnav">${(isCli?SECS.filter(s=>!['balanco','glossario'].includes(s[0])):SECS).map(s=>`<button id="tabsec_${s[0]}" onclick="showSec('${s[0]}')">${s[1]}</button>`).join('')}</div> <div class="${ro?'locked':''}" id="editForm"> ${sec('resumo',`
+    <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.spark}Saúde financeira</div><b>${R.saude}/100</b></div> <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio líquido</div><b>${BRL(R.liquido)}</b></div> <div class="kpi"><div class="lab">${ICN.money}Aporte/mês · poupança</div><b>${BRL(R.sobra)} <span style="font-size:.9rem;color:var(--muted)">· ${R.poupanca}%</span></b></div> <div class="kpi"><div class="lab">${ICN.target}Prob. da aposentadoria</div><b style="color:${col}">${R.prob}%</b></div> </div> <div class="grid2"> <div class="panel"><h2>${ICN.users} Olá, ${esc((p.nome||'').split(' ')[0])}</h2> <div class="netrow"><span>Idade atual</span><b>${p.idade} anos</b></div> <div class="netrow"><span>Aposentadoria prevista</span><b>${p.apos} anos</b></div> <div class="netrow"><span>Receita média anual</span><b>${BRL(R.rendaAnual)}</b></div> <div class="netrow"><span>Despesa média anual</span><b>${BRL(R.despAnual)}</b></div> <div class="netrow"><span>Aporte médio anual</span><b>${BRL(R.aporteAnual)}</b></div> <div class="netrow tot"><span>Patrimônio investido</span><b>${BRL(R.patr)}</b></div> </div> <div class="panel" style="text-align:center"><h2 style="justify-content:center">Probabilidade de sucesso</h2> <div class="gauge"><canvas id="gauge"></canvas></div> <div style="margin-top:6px"><span class="prob" style="background:${col}22;color:${col};border:1px solid ${col}55">● ${R.prob}% de sucesso</span></div> <div style="margin-top:16px;text-align:left"><div class="note">Cobertura da meta (patrimônio ÷ necessário)</div> <div class="bar" style="height:10px"><i style="width:${R.cobertura}%"></i></div> <div style="font-size:.8rem;color:var(--muted);margin-top:6px">${R.cobertura}% da meta de ${BRL(R.alvoConsumo)}</div></div> </div> </div>`)}
 
-  ${sec('resumo',`
-    <div class="kpis">
-      <div class="kpi grad"><div class="lab">${ICN.spark}Saúde financeira</div><b>${R.saude}/100</b></div>
-      <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio líquido</div><b>${BRL(R.liquido)}</b></div>
-      <div class="kpi"><div class="lab">${ICN.money}Aporte/mês · poupança</div><b>${BRL(R.sobra)} <span style="font-size:.9rem;color:var(--muted)">· ${R.poupanca}%</span></b></div>
-      <div class="kpi"><div class="lab">${ICN.target}Prob. da aposentadoria</div><b style="color:${col}">${R.prob}%</b></div>
-    </div>
-    <div class="grid2">
-      <div class="panel"><h2>${ICN.users} Olá, ${esc((p.nome||'').split(' ')[0])}</h2>
-        <div class="netrow"><span>Idade atual</span><b>${p.idade} anos</b></div>
-        <div class="netrow"><span>Aposentadoria prevista</span><b>${p.apos} anos</b></div>
-        <div class="netrow"><span>Receita média anual</span><b>${BRL(R.rendaAnual)}</b></div>
-        <div class="netrow"><span>Despesa média anual</span><b>${BRL(R.despAnual)}</b></div>
-        <div class="netrow"><span>Aporte médio anual</span><b>${BRL(R.aporteAnual)}</b></div>
-        <div class="netrow tot"><span>Patrimônio investido</span><b>${BRL(R.patr)}</b></div>
-      </div>
-      <div class="panel" style="text-align:center"><h2 style="justify-content:center">Probabilidade de sucesso</h2>
-        <div class="gauge"><canvas id="gauge"></canvas></div>
-        <div style="margin-top:6px"><span class="prob" style="background:${col}22;color:${col};border:1px solid ${col}55">● ${R.prob}% de sucesso</span></div>
-        <div style="margin-top:16px;text-align:left"><div class="note">Cobertura da meta (patrimônio ÷ necessário)</div>
-          <div class="bar" style="height:10px"><i style="width:${R.cobertura}%"></i></div>
-          <div style="font-size:.8rem;color:var(--muted);margin-top:6px">${R.cobertura}% da meta de ${BRL(R.alvoConsumo)}</div></div>
-      </div>
-    </div>`)}
-
-  ${sec('dados',`<div class="panel"><h2>${ICN.users} Dados do cliente & premissas</h2>
-      <div class="grid3">
-        <div class="field"><label>Nome</label><input id="f_nome" value="${esc(p.nome)}"></div>
-        <div class="field"><label>Idade atual</label><input id="f_idade" type="number" value="${p.idade}"></div>
-        <div class="field"><label>Idade de aposentadoria</label><input id="f_apos" type="number" value="${p.apos}"></div>
-        <div class="field"><label>Expectativa de vida</label><input id="f_vida" type="number" value="${p.vida}"></div>
-        <div class="field"><label>Perfil de risco</label><select id="f_perfil">${['Conservador','Moderado','Arrojado'].map(o=>`<option ${o===p.perfil?'selected':''}>${o}</option>`).join('')}</select></div>
-        <div class="field"><label>Rentabilidade real (% a.a.)</label><input id="f_rent" type="number" step="0.1" value="${p.rent}"></div>
-      </div>
-      <p class="note" style="margin-top:6px">A rentabilidade real é o retorno acima da inflação. O perfil define a volatilidade usada nas simulações.</p>
-    </div>`)}
+  ${sec('dados',`<div class="panel"><h2>${ICN.users} Dados do cliente & premissas</h2> <div class="grid3"> <div class="field"><label>Nome</label><input id="f_nome" value="${esc(p.nome)}"></div> <div class="field"><label>Idade atual</label><input id="f_idade" type="number" value="${p.idade}"></div> <div class="field"><label>Idade de aposentadoria</label><input id="f_apos" type="number" value="${p.apos}"></div> <div class="field"><label>Expectativa de vida</label><input id="f_vida" type="number" value="${p.vida}"></div> <div class="field"><label>Perfil de risco</label><select id="f_perfil">${['Conservador','Moderado','Arrojado'].map(o=>`<option ${o===p.perfil?'selected':''}>${o}</option>`).join('')}</select></div> <div class="field"><label>Rentabilidade real (% a.a.)</label><input id="f_rent" type="number" step="0.1" value="${p.rent}"></div> </div> <p class="note" style="margin-top:6px">A rentabilidade real é o retorno acima da inflação. O perfil define a volatilidade usada nas simulações.</p> </div>`)}
 
   ${sec('patrimonio',`
-    <div class="grid2">
-      <div class="panel"><h2>${ICN.dash} Patrimônio investido</h2><div id="assets"></div>
-        <button class="btn btn-teal btn-sm additem" onclick="addRow('assets')">+ Ativo</button></div>
-      <div class="panel"><h2>Composição</h2><canvas id="chPie"></canvas></div>
-    </div>
-    <div class="panel"><h2>${ICN.wallet} Dívidas / passivos</h2><div id="debts"></div>
-      <button class="btn btn-teal btn-sm additem" onclick="addRow('debts')">+ Dívida</button></div>
-    <div class="panel"><h2>${ICN.money} Balanço patrimonial</h2>
-      <div class="netrow"><span>Total de ativos</span><b>${BRL(R.patr)}</b></div>
-      <div class="netrow"><span>Total de passivos (dívidas)</span><b>− ${BRL(R.passivos)}</b></div>
-      <div class="netrow tot"><span>Patrimônio líquido</span><b>${BRL(R.liquido)}</b></div>
-      ${R.consCredito>0?`<div class="netrow"><span>+ Consórcio a contemplar (carta)</span><b style="color:var(--gold2)">${BRL(R.consCredito)}</b></div>`:''}
+    <div class="grid2"> <div class="panel"><h2>${ICN.dash} Patrimônio investido</h2><div id="assets"></div> <button class="btn btn-teal btn-sm additem" onclick="addRow('assets')">+ Ativo</button></div> <div class="panel"><h2>Composição</h2><canvas id="chPie"></canvas></div> </div> <div class="panel"><h2>${ICN.wallet} Dívidas / passivos</h2><div id="debts"></div> <button class="btn btn-teal btn-sm additem" onclick="addRow('debts')">+ Dívida</button></div> <div class="panel"><h2>${ICN.money} Balanço patrimonial</h2> <div class="netrow"><span>Total de ativos</span><b>${BRL(R.patr)}</b></div> <div class="netrow"><span>Total de passivos (dívidas)</span><b>− ${BRL(R.passivos)}</b></div> <div class="netrow tot"><span>Patrimônio líquido</span><b>${BRL(R.liquido)}</b></div> ${R.consCredito>0?`<div class="netrow"><span>+ Consórcio a contemplar (carta)</span><b style="color:var(--gold2)">${BRL(R.consCredito)}</b></div>`:''}
     </div>`)}
 
   ${sec('consorcio',`
-    <div class="banner">🏆 <b>O diferencial Agion:</b> unimos consórcio + planejamento + consultoria. A carta de crédito entra como patrimônio na contemplação e é capitalizada — acelerando os seus objetivos sem os juros de um financiamento.</div>
-    <div class="kpis">
-      <div class="kpi grad"><div class="lab">${ICN.cota}Crédito (cartas)</div><b>${BRL(R.consCredito)}</b></div>
-      <div class="kpi"><div class="lab">${ICN.money}Parcela (meia) estimada</div><b>${BRL(R.consParcela)}/mês</b></div>
-      ${R.consAluguel>0?`<div class="kpi grad"><div class="lab">${ICN.cota}Aluguel gerado</div><b>${BRL(R.consAluguel)}/mês</b></div>`:`<div class="kpi"><div class="lab">${ICN.wallet}Patrimônio aos ${p.apos}</div><b>${BRL(R.patApos)}</b></div>`}
-      <div class="kpi"><div class="lab">${ICN.spark}Probabilidade</div><b>${R.prob}%</b></div>
-    </div>
-    <div class="panel"><h2>${ICN.cota} Cartas de consórcio do cliente</h2><div id="consorcios"></div>
-      <button class="btn btn-teal btn-sm additem" onclick="addRow('consorcios')">+ Adicionar consórcio</button>
-      <p class="note" style="margin-top:8px">Meia parcela = crédito × (1 + taxa adm.) ÷ prazo ÷ 2. Imóvel: 22% · Auto: 16% (taxas de referência).</p>
-    </div>
-    <div class="panel"><h2>${ICN.plan} Patrimônio com x sem consórcio</h2><canvas id="chCons"></canvas></div>
-    <div class="panel"><h2>${ICN.spark} Impacto da contemplação (6 · 12 · 24 meses)</h2>${consorcioImpacto(p)}</div>`)}
+    <div class="banner"> <b>O diferencial Agion:</b> unimos consórcio + planejamento + consultoria. A carta de crédito entra como patrimônio na contemplação e é capitalizada — acelerando os seus objetivos sem os juros de um financiamento.</div> <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.cota}Crédito (cartas)</div><b>${BRL(R.consCredito)}</b></div> <div class="kpi"><div class="lab">${ICN.money}Parcela (meia) estimada</div><b>${BRL(R.consParcela)}/mês</b></div> ${R.consAluguel>0?`<div class="kpi grad"><div class="lab">${ICN.cota}Aluguel gerado</div><b>${BRL(R.consAluguel)}/mês</b></div>`:`<div class="kpi"><div class="lab">${ICN.wallet}Patrimônio aos ${p.apos}</div><b>${BRL(R.patApos)}</b></div>`}
+      <div class="kpi"><div class="lab">${ICN.spark}Probabilidade</div><b>${R.prob}%</b></div> </div> <div class="panel"><h2>${ICN.cota} Cartas de consórcio do cliente</h2><div id="consorcios"></div> <button class="btn btn-teal btn-sm additem" onclick="addRow('consorcios')">+ Adicionar consórcio</button> <p class="note" style="margin-top:8px">Meia parcela = crédito × (1 + taxa adm.) ÷ prazo ÷ 2. Imóvel: 22% · Auto: 16% (taxas de referência).</p> </div> <div class="panel"><h2>${ICN.plan} Patrimônio com x sem consórcio</h2><canvas id="chCons"></canvas></div> <div class="panel"><h2>${ICN.spark} Impacto da contemplação (6 · 12 · 24 meses)</h2>${consorcioImpacto(p)}</div>`)}
 
   ${sec('fluxo',`
-    <div class="kpis">
-      <div class="kpi grad"><div class="lab">${ICN.money}Receita média anual</div><b>${BRL(R.rendaAnual)}</b></div>
-      <div class="kpi"><div class="lab">${ICN.wallet}Despesa média anual</div><b>${BRL(R.despAnual)}</b></div>
-      <div class="kpi grad"><div class="lab">${ICN.spark}Aporte médio anual</div><b>${BRL(R.aporteAnual)}</b></div>
-      <div class="kpi"><div class="lab">${ICN.target}Taxa de poupança</div><b>${R.poupanca}%</b></div>
-    </div>
-    <div class="grid2">
-      <div class="panel"><h2>${ICN.money} Receitas</h2><div id="incomes"></div>
-        <button class="btn btn-teal btn-sm additem" onclick="addRow('incomes')">+ Receita</button></div>
-      <div class="panel"><h2>${ICN.wallet} Despesas</h2><div id="expenses"></div>
-        <button class="btn btn-teal btn-sm additem" onclick="addRow('expenses')">+ Despesa</button></div>
-    </div>
-    <div class="panel"><h2>Fluxo mensal</h2><canvas id="chFlow"></canvas></div>`)}
+    <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.money}Receita média anual</div><b>${BRL(R.rendaAnual)}</b></div> <div class="kpi"><div class="lab">${ICN.wallet}Despesa média anual</div><b>${BRL(R.despAnual)}</b></div> <div class="kpi grad"><div class="lab">${ICN.spark}Aporte médio anual</div><b>${BRL(R.aporteAnual)}</b></div> <div class="kpi"><div class="lab">${ICN.target}Taxa de poupança</div><b>${R.poupanca}%</b></div> </div> <div class="grid2"> <div class="panel"><h2>${ICN.money} Receitas</h2><div id="incomes"></div> <button class="btn btn-teal btn-sm additem" onclick="addRow('incomes')">+ Receita</button></div> <div class="panel"><h2>${ICN.wallet} Despesas</h2><div id="expenses"></div> <button class="btn btn-teal btn-sm additem" onclick="addRow('expenses')">+ Despesa</button></div> </div> <div class="panel"><h2>Fluxo mensal</h2><canvas id="chFlow"></canvas></div>`)}
 
-  ${sec('balanco',`<div class="panel"><h2>${ICN.plan} Balanço financeiro ano a ano</h2>
-    <p class="note" style="margin:-6px 0 12px">Projeção de receita, despesa e saldo por idade (fase de acumulação e de aposentadoria).</p>
-    <div class="tbl-scroll"><table><thead><tr><th>Idade</th><th class="r">Receita</th><th class="r">Despesa</th><th class="r">Saldo</th><th class="r">Patrimônio</th></tr></thead><tbody>
-    ${R.balanco.map(b=>`<tr><td>${b.idade}</td><td class="r">${BRL(b.receita)}</td><td class="r">${BRL(b.despesa)}</td><td class="r" style="color:${b.saldo>=0?'var(--ok)':'var(--bad)'}">${BRL(b.saldo)}</td><td class="r">${BRL(b.patrimonio)}</td></tr>`).join('')}
+  ${sec('balanco',`<div class="panel"><h2>${ICN.plan} Balanço financeiro ano a ano</h2> <p class="note" style="margin:-6px 0 12px">Projeção de receita, despesa e saldo por idade (fase de acumulação e de aposentadoria).</p> <div class="tbl-scroll"><table><thead><tr><th>Idade</th><th class="r">Receita</th><th class="r">Despesa</th><th class="r">Saldo</th><th class="r">Patrimônio</th></tr></thead><tbody> ${R.balanco.map(b=>`<tr><td>${b.idade}</td><td class="r">${BRL(b.receita)}</td><td class="r">${BRL(b.despesa)}</td><td class="r" style="color:${b.saldo>=0?'var(--ok)':'var(--bad)'}">${BRL(b.saldo)}</td><td class="r">${BRL(b.patrimonio)}</td></tr>`).join('')}
     </tbody></table></div></div>`)}
 
-  ${sec('objetivos',`<div class="panel"><h2>${ICN.target} Objetivos do cliente</h2><div id="goals"></div>
-      <button class="btn btn-teal btn-sm additem" onclick="addRow('goals')">+ Objetivo</button>
-      <p class="note" style="margin-top:8px">Use “Renda (mensal)” para a aposentadoria e “Meta (pontual)” para um gasto numa idade específica (ex.: troca de carro, intercâmbio).</p></div>`)}
+  ${sec('objetivos',`<div class="panel"><h2>${ICN.target} Objetivos do cliente</h2><div id="goals"></div> <button class="btn btn-teal btn-sm additem" onclick="addRow('goals')">+ Objetivo</button> <p class="note" style="margin-top:8px">Use “Renda (mensal)” para a aposentadoria e “Meta (pontual)” para um gasto numa idade específica (ex.: troca de carro, intercâmbio).</p></div>`)}
 
   ${sec('projecao',`
-    <div class="kpis">
-      <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio aos ${p.apos}</div><b>${BRL(R.patApos)}</b></div>
-      <div class="kpi"><div class="lab">${ICN.target}Necessário (consumo)</div><b>${BRL(R.alvoConsumo)}</b></div>
-      <div class="kpi"><div class="lab">${ICN.spark}Aporte ideal/mês</div><b>${BRL(R.aporteIdeal/12)}</b></div>
-      <div class="kpi grad"><div class="lab">${ICN.target}Probabilidade</div><b style="color:${col}">${R.prob}%</b></div>
-    </div>
-    <div class="panel"><h2>${ICN.plan} Projeção do planejamento</h2>
-      <div class="lineleg"><span><i style="background:#C5A059"></i> Atual (linha preta)</span><span><i style="background:#34d399"></i> Otimista (verde)</span><span><i style="background:#f87171"></i> Pessimista (vermelha)</span></div>
-      <canvas id="chProj"></canvas>
-    </div>
-    ${probExplain(p,R)}
-    <div class="panel lever"><h2>${ICN.spark} Simulador ao vivo</h2>
-      <p class="note" style="margin:-6px 0 14px">Arraste os controles e veja a probabilidade, a taxa de saque e o patrimônio mudarem na hora.</p>
-      <label>Aporte extra por mês <b id="lvAporteV">R$ 0</b><input type="range" id="lvAporte" min="0" max="4000" step="100" value="0" oninput="leverRecalc()"></label>
-      <label style="margin-top:12px">Adiar aposentadoria <b id="lvIdadeV">aos ${p.apos}</b><input type="range" id="lvIdade" min="0" max="8" step="1" value="0" oninput="leverRecalc()"></label>
-      <label style="margin-top:12px">Reduzir renda-alvo <b id="lvRendaV">0%</b><input type="range" id="lvRenda" min="0" max="40" step="5" value="0" oninput="leverRecalc()"></label>
-      <div class="kpis" style="margin-top:16px">
-        <div class="kpi grad"><div class="lab">${ICN.target}Probabilidade</div><b id="lvProb">${R.prob}%</b></div>
-        <div class="kpi"><div class="lab">${ICN.wallet}Taxa de saque</div><b id="lvTaxa">${R.taxaSaque.toFixed(1)}%</b></div>
-        <div class="kpi"><div class="lab">${ICN.money}Patrimônio aos ${p.apos}</div><b id="lvPat">${BRL(R.patApos)}</b></div>
-      </div>
-    </div>
-    ${whatIfPanel(p,R)}
-    <div class="panel"><h2>Tabela de projeção financeira</h2>
-      <div class="tbl-scroll"><table><thead><tr><th>Idade</th><th class="r">Atual</th><th class="r">Otimista</th><th class="r">Pessimista</th></tr></thead><tbody>
-      ${R.idades.map((a,i)=>`<tr><td>${a}</td><td class="r">${BRL(R.serie[i])}</td><td class="r" style="color:var(--ok)">${BRL(R.serieOtim[i])}</td><td class="r" style="color:var(--bad)">${BRL(R.seriePess[i])}</td></tr>`).join('')}
+    <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio aos ${p.apos}</div><b>${BRL(R.patApos)}</b></div> <div class="kpi"><div class="lab">${ICN.target}Necessário (consumo)</div><b>${BRL(R.alvoConsumo)}</b></div> <div class="kpi"><div class="lab">${ICN.spark}Aporte ideal/mês</div><b>${BRL(R.aporteIdeal/12)}</b></div> <div class="kpi grad"><div class="lab">${ICN.target}Probabilidade</div><b style="color:${col}">${R.prob}%</b></div> </div> <div class="panel"><h2>${ICN.plan} Projeção do planejamento</h2> <div class="lineleg"><span><i style="background:#C5A059"></i> Atual (linha preta)</span><span><i style="background:#34d399"></i> Otimista (verde)</span><span><i style="background:#f87171"></i> Pessimista (vermelha)</span></div> <canvas id="chProj"></canvas> </div> ${probExplain(p,R)}
+    <div class="panel lever"><h2>${ICN.spark} Simulador ao vivo</h2> <p class="note" style="margin:-6px 0 14px">Arraste os controles e veja a probabilidade, a taxa de saque e o patrimônio mudarem na hora.</p> <label>Aporte extra por mês <b id="lvAporteV">R$ 0</b><input type="range" id="lvAporte" min="0" max="4000" step="100" value="0" oninput="leverRecalc()"></label> <label style="margin-top:12px">Adiar aposentadoria <b id="lvIdadeV">aos ${p.apos}</b><input type="range" id="lvIdade" min="0" max="8" step="1" value="0" oninput="leverRecalc()"></label> <label style="margin-top:12px">Reduzir renda-alvo <b id="lvRendaV">0%</b><input type="range" id="lvRenda" min="0" max="40" step="5" value="0" oninput="leverRecalc()"></label> <div class="kpis" style="margin-top:16px"> <div class="kpi grad"><div class="lab">${ICN.target}Probabilidade</div><b id="lvProb">${R.prob}%</b></div> <div class="kpi"><div class="lab">${ICN.wallet}Taxa de saque</div><b id="lvTaxa">${R.taxaSaque.toFixed(1)}%</b></div> <div class="kpi"><div class="lab">${ICN.money}Patrimônio aos ${p.apos}</div><b id="lvPat">${BRL(R.patApos)}</b></div> </div> </div> ${whatIfPanel(p,R)}
+    <div class="panel"><h2>Tabela de projeção financeira</h2> <div class="tbl-scroll"><table><thead><tr><th>Idade</th><th class="r">Atual</th><th class="r">Otimista</th><th class="r">Pessimista</th></tr></thead><tbody> ${R.idades.map((a,i)=>`<tr><td>${a}</td><td class="r">${BRL(R.serie[i])}</td><td class="r" style="color:var(--ok)">${BRL(R.serieOtim[i])}</td><td class="r" style="color:var(--bad)">${BRL(R.seriePess[i])}</td></tr>`).join('')}
       </tbody></table></div></div>`)}
 
   ${sec('protecao',`
-    <div class="panel"><h2>${ICN.wallet} Reserva de emergência</h2>
-      <div class="netrow"><span>Reserva ideal (6 meses de despesas)</span><b>${BRL(R.reservaIdeal)}</b></div>
-      <div class="netrow tot"><span>Reserva atual (renda fixa)</span><b style="color:${R.reservaAtual>=R.reservaIdeal?'var(--ok)':'var(--warn)'}">${BRL(R.reservaAtual)}</b></div>
-      <div class="bar" style="height:10px;margin-top:8px"><i style="width:${R.reservaIdeal?Math.min(100,Math.round(R.reservaAtual/R.reservaIdeal*100)):100}%"></i></div>
-    </div>
-    <div class="panel"><h2>${ICN.users} Proteção da família (seguro de vida)</h2>
-      <p class="note" style="margin:-6px 0 12px">Cobertura sugerida para quitar dívidas e sustentar a família por alguns anos, descontando o patrimônio já existente.</p>
-      <div class="netrow"><span>Cobertura sugerida</span><b>${BRL(R.seguroIdeal)}</b></div>
-      <div class="field" style="max-width:280px;margin-top:10px"><label>Cobertura atual de seguro (R$)</label><input id="f_seguro" type="number" value="${(p.seguro&&p.seguro.atual)||0}"></div>
-      ${R.seguroAtual>=R.seguroIdeal?'<p class="note" style="color:var(--ok)">✓ Proteção adequada.</p>':`<p class="note" style="color:var(--warn)">Faltam ${BRL(Math.max(0,R.seguroIdeal-R.seguroAtual))} de cobertura.</p>`}
+    <div class="panel"><h2>${ICN.wallet} Reserva de emergência</h2> <div class="netrow"><span>Reserva ideal (6 meses de despesas)</span><b>${BRL(R.reservaIdeal)}</b></div> <div class="netrow tot"><span>Reserva atual (renda fixa)</span><b style="color:${R.reservaAtual>=R.reservaIdeal?'var(--ok)':'var(--warn)'}">${BRL(R.reservaAtual)}</b></div> <div class="bar" style="height:10px;margin-top:8px"><i style="width:${R.reservaIdeal?Math.min(100,Math.round(R.reservaAtual/R.reservaIdeal*100)):100}%"></i></div> </div> <div class="panel"><h2>${ICN.users} Proteção da família (seguro de vida)</h2> <p class="note" style="margin:-6px 0 12px">Cobertura sugerida para quitar dívidas e sustentar a família por alguns anos, descontando o patrimônio já existente.</p> <div class="netrow"><span>Cobertura sugerida</span><b>${BRL(R.seguroIdeal)}</b></div> <div class="field" style="max-width:280px;margin-top:10px"><label>Cobertura atual de seguro (R$)</label><input id="f_seguro" type="number" value="${(p.seguro&&p.seguro.atual)||0}"></div> ${R.seguroAtual>=R.seguroIdeal?'<p class="note" style="color:var(--ok)">✓ Proteção adequada.</p>':`<p class="note" style="color:var(--warn)">Faltam ${BRL(Math.max(0,R.seguroIdeal-R.seguroAtual))} de cobertura.</p>`}
     </div>`)}
 
-  ${sec('cenarios',`<div class="panel"><h2>${ICN.spark} Cenários</h2>
-      <p class="note" style="margin:-6px 0 14px">Compare o Plano Principal com simulações alternativas (aposentar antes, aportar mais, etc.).</p>
-      <button class="btn btn-gold btn-sm" onclick="openCompare('${c.id}')">Abrir comparação de cenários</button>
-      ${!p.main?'':`<div style="margin-top:14px">${client(c.id).plans.filter(x=>!x.main).map(x=>`<div class="netrow"><span>${esc(x.titulo)}</span><b>${projetar(x).prob}% · ${BRL(projetar(x).patApos)}</b></div>`).join('')||'<p class="note">Nenhuma simulação criada ainda.</p>'}</div>`}
+  ${sec('cenarios',`<div class="panel"><h2>${ICN.spark} Cenários</h2> <p class="note" style="margin:-6px 0 14px">Compare o Plano Principal com simulações alternativas (aposentar antes, aportar mais, etc.).</p> <button class="btn btn-gold btn-sm" onclick="openCompare('${c.id}')">Abrir comparação de cenários</button> ${!p.main?'':`<div style="margin-top:14px">${client(c.id).plans.filter(x=>!x.main).map(x=>`<div class="netrow"><span>${esc(x.titulo)}</span><b>${projetar(x).prob}% · ${BRL(projetar(x).patApos)}</b></div>`).join('')||'<p class="note">Nenhuma simulação criada ainda.</p>'}</div>`}
     </div>`)}
 
   ${sec('acao',`<div class="panel"><h2>${ICN.target} Plano de ação — etapas e metas
-      ${ro?'':'<span class="chip chip-teal right">edite os passos de cada meta</span>'}</h2>
-      <p class="note" style="margin:-6px 0 14px">Organograma horizontal: as etapas do plano fluem da esquerda para a direita e bifurcam nas metas do cliente.</p>
-      ${roadmapSVG(p)}
-      <h3 class="serif" style="font-size:1rem;color:var(--gold2);margin:22px 0 12px">Passos por meta</h3>
-      <div id="journeyBox">${renderJourney(p,!ro)}</div></div>`)}
+      ${ro?'':'<span class="chip chip-teal right">edite os passos de cada meta</span>'}</h2> <p class="note" style="margin:-6px 0 14px">Organograma horizontal: as etapas do plano fluem da esquerda para a direita e bifurcam nas metas do cliente.</p> ${roadmapSVG(p)}
+      <h3 class="serif" style="font-size:1rem;color:var(--gold2);margin:22px 0 12px">Passos por meta</h3> <div id="journeyBox">${renderJourney(p,!ro)}</div></div>`)}
 
   ${sec('diagnostico',diagPanel(p,R))}
 
   ${sec('glossario',`<div class="panel"><h2>${ICN.plan} Glossário</h2><dl class="gloss">${GLOSS.map(g=>`<dt>${esc(g[0])}</dt><dd>${esc(g[1])}</dd>`).join('')}</dl></div>`)}
 
-  </div>
-  <div class="disclaimer">⚠️ <b>Aviso:</b> valores estimados para planejamento, a partir das informações fornecidas. Não constituem garantia de rentabilidade nem recomendação de investimento.</div>`;
+  </div> <div class="disclaimer">⚠️ <b>Aviso:</b> valores estimados para planejamento, a partir das informações fornecidas. Não constituem garantia de rentabilidade nem recomendação de investimento.</div>`;
   renderRows(p);
   showSec(curSec);
 }
@@ -1546,32 +1246,12 @@ function drawSectionCharts(s){
   }
 }
 const ROWS={
-  incomes:(it,i)=>`<div class="item"><div><input data-f="incomes" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div>
-    <div><input type="number" data-f="incomes" data-i="${i}" data-k="valor" value="${it.valor}"></div>
-    <div><select data-f="incomes" data-i="${i}" data-k="freq"><option ${it.freq==='Mensal'?'selected':''}>Mensal</option><option ${it.freq==='Anual'?'selected':''}>Anual</option></select></div>
-    <button class="btn-ico delrow" onclick="delRow('incomes',${i})">✕</button></div>`,
-  expenses:(it,i)=>`<div class="item"><div><input data-f="expenses" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div>
-    <div><input type="number" data-f="expenses" data-i="${i}" data-k="valor" value="${it.valor}"></div>
-    <div><select data-f="expenses" data-i="${i}" data-k="freq"><option ${it.freq==='Mensal'?'selected':''}>Mensal</option><option ${it.freq==='Anual'?'selected':''}>Anual</option></select></div>
-    <button class="btn-ico delrow" onclick="delRow('expenses',${i})">✕</button></div>`,
-  assets:(it,i)=>`<div class="item assets"><div><input data-f="assets" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div>
-    <div><select data-f="assets" data-i="${i}" data-k="cat">${['Renda Fixa','Renda Variável','Imóvel','Previdência','Multimercado','Internacional','Outros'].map(o=>`<option ${o===it.cat?'selected':''}>${o}</option>`).join('')}</select></div>
-    <div><input type="number" data-f="assets" data-i="${i}" data-k="valor" value="${it.valor}"></div>
-    <button class="btn-ico delrow" onclick="delRow('assets',${i})">✕</button></div>`,
-  debts:(it,i)=>`<div class="item assets"><div><input data-f="debts" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Ex: Financiamento imóvel"></div>
-    <div><select data-f="debts" data-i="${i}" data-k="cat">${['Financiamento','Empréstimo','Cartão','Consórcio','Outros'].map(o=>`<option ${o===it.cat?'selected':''}>${o}</option>`).join('')}</select></div>
-    <div><input type="number" data-f="debts" data-i="${i}" data-k="valor" value="${it.valor}"></div>
-    <button class="btn-ico delrow" onclick="delRow('debts',${i})">✕</button></div>`,
-  consorcios:(it,i)=>`<div class="item assets" style="margin-bottom:14px"><div><input data-f="consorcios" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Ex: Consórcio imobiliário"></div>
-    <div><select data-f="consorcios" data-i="${i}" data-k="tipo"><option ${it.tipo==='Imóvel'?'selected':''}>Imóvel</option><option ${it.tipo==='Auto'?'selected':''}>Auto</option></select></div>
-    <div><input type="number" data-f="consorcios" data-i="${i}" data-k="credito" value="${it.credito}" title="Crédito (carta)"></div>
-    <button class="btn-ico delrow" onclick="delRow('consorcios',${i})">✕</button>
-    <div style="grid-column:1/-1;display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;font-size:.78rem;color:var(--muted)">Prazo:<input type="number" style="width:80px" data-f="consorcios" data-i="${i}" data-k="prazoMeses" value="${it.prazoMeses||200}">meses · Contemplação:<select data-f="consorcios" data-i="${i}" data-k="contemplaMes"><option value="6" ${(+it.contemplaMes)===6?'selected':''}>6 meses</option><option value="12" ${(+it.contemplaMes)===12?'selected':''}>12 meses</option><option value="24" ${(+it.contemplaMes)===24?'selected':''}>24 meses</option></select> · Uso da carta:<select data-f="consorcios" data-i="${i}" data-k="uso" onchange="collect();renderRows(plan(view.clientId,view.planId))"><option value="capitalizar" ${(it.uso||'capitalizar')==='capitalizar'?'selected':''}>Capitalizar (rende como investimento)</option><option value="imovel" ${it.uso==='imovel'?'selected':''}>Comprar imóvel (aluguel)</option></select>${it.uso==='imovel'?`<span>Aluguel:<input type="number" step="0.1" style="width:64px;margin-left:6px" data-f="consorcios" data-i="${i}" data-k="aluguel" value="${it.aluguel||0.8}">%/mês</span>`:''}</div></div>`,
-  goals:(it,i)=>`<div class="item assets"><div><input data-f="goals" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Ex: Aposentadoria"></div>
-    <div><select data-f="goals" data-i="${i}" data-k="tipo"><option value="renda" ${it.tipo==='renda'?'selected':''}>Renda (mensal)</option><option value="meta" ${it.tipo==='meta'?'selected':''}>Meta (pontual)</option></select></div>
-    <div><input type="number" data-f="goals" data-i="${i}" data-k="valor" value="${it.valor}" title="valor"></div>
-    <button class="btn-ico delrow" onclick="delRow('goals',${i})">✕</button>
-    <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center;font-size:.78rem;color:var(--muted)">Idade-alvo:<input type="number" style="width:90px" data-f="goals" data-i="${i}" data-k="idade" value="${it.idade||p_apos()}"></div></div>`
+  incomes:(it,i)=>`<div class="item"><div><input data-f="incomes" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div> <div><input type="number" data-f="incomes" data-i="${i}" data-k="valor" value="${it.valor}"></div> <div><select data-f="incomes" data-i="${i}" data-k="freq"><option ${it.freq==='Mensal'?'selected':''}>Mensal</option><option ${it.freq==='Anual'?'selected':''}>Anual</option></select></div> <button class="btn-ico delrow" onclick="delRow('incomes',${i})">✕</button></div>`,
+  expenses:(it,i)=>`<div class="item"><div><input data-f="expenses" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div> <div><input type="number" data-f="expenses" data-i="${i}" data-k="valor" value="${it.valor}"></div> <div><select data-f="expenses" data-i="${i}" data-k="freq"><option ${it.freq==='Mensal'?'selected':''}>Mensal</option><option ${it.freq==='Anual'?'selected':''}>Anual</option></select></div> <button class="btn-ico delrow" onclick="delRow('expenses',${i})">✕</button></div>`,
+  assets:(it,i)=>`<div class="item assets"><div><input data-f="assets" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div> <div><select data-f="assets" data-i="${i}" data-k="cat">${['Renda Fixa','Renda Variável','Imóvel','Previdência','Multimercado','Internacional','Outros'].map(o=>`<option ${o===it.cat?'selected':''}>${o}</option>`).join('')}</select></div> <div><input type="number" data-f="assets" data-i="${i}" data-k="valor" value="${it.valor}"></div> <button class="btn-ico delrow" onclick="delRow('assets',${i})">✕</button></div>`,
+  debts:(it,i)=>`<div class="item assets"><div><input data-f="debts" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Ex: Financiamento imóvel"></div> <div><select data-f="debts" data-i="${i}" data-k="cat">${['Financiamento','Empréstimo','Cartão','Consórcio','Outros'].map(o=>`<option ${o===it.cat?'selected':''}>${o}</option>`).join('')}</select></div> <div><input type="number" data-f="debts" data-i="${i}" data-k="valor" value="${it.valor}"></div> <button class="btn-ico delrow" onclick="delRow('debts',${i})">✕</button></div>`,
+  consorcios:(it,i)=>`<div class="item assets" style="margin-bottom:14px"><div><input data-f="consorcios" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Ex: Consórcio imobiliário"></div> <div><select data-f="consorcios" data-i="${i}" data-k="tipo"><option ${it.tipo==='Imóvel'?'selected':''}>Imóvel</option><option ${it.tipo==='Auto'?'selected':''}>Auto</option></select></div> <div><input type="number" data-f="consorcios" data-i="${i}" data-k="credito" value="${it.credito}" title="Crédito (carta)"></div> <button class="btn-ico delrow" onclick="delRow('consorcios',${i})">✕</button> <div style="grid-column:1/-1;display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;font-size:.78rem;color:var(--muted)">Prazo:<input type="number" style="width:80px" data-f="consorcios" data-i="${i}" data-k="prazoMeses" value="${it.prazoMeses||200}">meses · Contemplação:<select data-f="consorcios" data-i="${i}" data-k="contemplaMes"><option value="6" ${(+it.contemplaMes)===6?'selected':''}>6 meses</option><option value="12" ${(+it.contemplaMes)===12?'selected':''}>12 meses</option><option value="24" ${(+it.contemplaMes)===24?'selected':''}>24 meses</option></select> · Uso da carta:<select data-f="consorcios" data-i="${i}" data-k="uso" onchange="collect();renderRows(plan(view.clientId,view.planId))"><option value="capitalizar" ${(it.uso||'capitalizar')==='capitalizar'?'selected':''}>Capitalizar (rende como investimento)</option><option value="imovel" ${it.uso==='imovel'?'selected':''}>Comprar imóvel (aluguel)</option></select>${it.uso==='imovel'?`<span>Aluguel:<input type="number" step="0.1" style="width:64px;margin-left:6px" data-f="consorcios" data-i="${i}" data-k="aluguel" value="${it.aluguel||0.8}">%/mês</span>`:''}</div></div>`,
+  goals:(it,i)=>`<div class="item assets"><div><input data-f="goals" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Ex: Aposentadoria"></div> <div><select data-f="goals" data-i="${i}" data-k="tipo"><option value="renda" ${it.tipo==='renda'?'selected':''}>Renda (mensal)</option><option value="meta" ${it.tipo==='meta'?'selected':''}>Meta (pontual)</option></select></div> <div><input type="number" data-f="goals" data-i="${i}" data-k="valor" value="${it.valor}" title="valor"></div> <button class="btn-ico delrow" onclick="delRow('goals',${i})">✕</button> <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center;font-size:.78rem;color:var(--muted)">Idade-alvo:<input type="number" style="width:90px" data-f="goals" data-i="${i}" data-k="idade" value="${it.idade||p_apos()}"></div></div>`
 };
 function p_apos(){return plan(view.clientId,view.planId).apos}
 function renderRows(p){['incomes','expenses','assets','debts','consorcios','goals'].forEach(f=>{const el=document.getElementById(f);if(el)el.innerHTML=(p[f]||[]).map((it,i)=>ROWS[f](it,i)).join('')||'<p class="note">Nenhum item.</p>';});}
@@ -1603,8 +1283,12 @@ function drawResultCharts(p,R){
     {label:'Objetivos',data:markers,showLine:false,pointRadius:6,pointHoverRadius:8,pointBackgroundColor:'#E8CC8B',pointBorderColor:'#0D232B',pointBorderWidth:2}
   ]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(c.datasetIndex===1?'Objetivo: ':'')+'R$ '+Math.round(c.parsed.y).toLocaleString('pt-BR')}}},scales:ax().scales}});
   const cats={};(p.assets||[]).forEach(a=>cats[a.cat]=(cats[a.cat]||0)+(+a.valor||0));
-  mkChart('chPie',{type:'doughnut',data:{labels:Object.keys(cats),datasets:[{data:Object.values(cats),backgroundColor:['#C5A059','#8FD9CC','#E8CC8B','#4Fa3a3','#B0875F','#6E8B88'],borderWidth:0}]},options:{maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:tick,font:{size:11}}}}}});
-  mkChart('chFlow',{type:'bar',data:{labels:['Receita','Despesa','Sobra'],datasets:[{data:[R.renda,R.desp,Math.max(0,R.sobra)],backgroundColor:[teal,'#f87171',gold]}]},options:ax(v=>'R$ '+(v/1000).toFixed(0)+'k')});
+  const ck=Object.keys(cats);
+  const dpct=(ctx)=>{const arr=ctx.dataset.data,t=arr.reduce((s,v)=>s+(+v||0),0)||1;return ctx.label+': '+Math.round(ctx.parsed/t*100)+'% ('+BRL(ctx.parsed)+')';};
+  mkChart('chPie',{type:'doughnut',data:{labels:ck,datasets:[{data:ck.map(k=>cats[k]),backgroundColor:ck.map(k=>(typeof COR_CLASSE!=='undefined'&&COR_CLASSE[k])||'#6E8B88'),borderWidth:0,hoverOffset:8}]},options:{maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{color:tick,font:{size:11}}},tooltip:{callbacks:{label:dpct}}}}});
+  const al=(typeof ALOC!=='undefined'&&ALOC[p.perfil])||{};const alk=Object.keys(al);
+  mkChart('chAlloc',{type:'doughnut',data:{labels:alk,datasets:[{data:alk.map(k=>al[k]),backgroundColor:alk.map(k=>(COR_CLASSE[k])||'#6E8B88'),borderWidth:0,hoverOffset:8}]},options:{maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{color:tick,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+c.parsed+'%'}}}}});
+  mkChart('chFlow',{type:'bar',data:{labels:['Receita','Despesa','Sobra'],datasets:[{data:[R.renda,R.desp,Math.max(0,R.sobra)],backgroundColor:[teal,'#f87171',gold],borderRadius:8,hoverBackgroundColor:[teal,'#f87171',gold]}]},options:ax(v=>'R$ '+(v/1000).toFixed(0)+'k')});
 }
 
 /* ===================== CÓPIAS / VERSIONAMENTO ===================== */
@@ -1626,63 +1310,40 @@ function renderCompare(C){
   const c=client(view.clientId);setTop('Comparar cenários',esc(c.nome),`<button class="btn btn-ghost btn-sm" onclick="goBack()">← Voltar</button>`);
   const plans=c.plans;
   const rows=plans.map(p=>({p,R:projetar(p)}));
-  C.innerHTML=`<div class="panel"><h2>${ICN.spark} Plano Principal x Simulações</h2>
-    <table><thead><tr><th>Cenário</th><th class="r">Aporte/mês</th><th class="r">Patrim. aposentadoria</th><th class="r">Meta (consumo)</th><th class="r">Prob.</th></tr></thead><tbody>
-    ${rows.map(({p,R})=>`<tr><td>${p.main?'★ ':''}${esc(p.titulo)}<br><span style="color:var(--soft);font-size:.76rem">aposentar aos ${p.apos}</span></td>
-      <td class="r">${BRL(R.sobra)}</td><td class="r">${BRL(R.patApos)}</td><td class="r">${BRL(R.alvoConsumo)}</td>
-      <td class="r"><b style="color:${R.prob>=80?'var(--ok)':R.prob>=55?'var(--warn)':'var(--bad)'}">${R.prob}%</b></td></tr>`).join('')}
-    </tbody></table></div>
-    <div class="panel"><h2>Projeção comparada</h2><canvas id="chCmp"></canvas></div>`;
+  C.innerHTML=`<div class="panel"><h2>${ICN.spark} Plano Principal x Simulações</h2> <table><thead><tr><th>Cenário</th><th class="r">Aporte/mês</th><th class="r">Patrim. aposentadoria</th><th class="r">Meta (consumo)</th><th class="r">Prob.</th></tr></thead><tbody> ${rows.map(({p,R})=>`<tr><td>${p.main?'★ ':''}${esc(p.titulo)}<br><span style="color:var(--soft);font-size:.76rem">aposentar aos ${p.apos}</span></td> <td class="r">${BRL(R.sobra)}</td><td class="r">${BRL(R.patApos)}</td><td class="r">${BRL(R.alvoConsumo)}</td> <td class="r"><b style="color:${R.prob>=80?'var(--ok)':R.prob>=55?'var(--warn)':'var(--bad)'}">${R.prob}%</b></td></tr>`).join('')}
+    </tbody></table></div> <div class="panel"><h2>Projeção comparada</h2><canvas id="chCmp"></canvas></div>`;
   if(typeof Chart!=='undefined'){destroyCharts();const cols=['#C5A059','#8FD9CC','#E8CC8B','#f87171','#4Fa3a3'];
     const maxLen=Math.max(...rows.map(r=>r.R.idades.length));const labels=rows[0].R.idades;
     try{charts.push(new Chart(chCmp,{type:'line',data:{labels,datasets:rows.map((r,i)=>({label:(r.p.main?'★ ':'')+r.p.titulo,data:r.R.serie,borderColor:cols[i%cols.length],borderWidth:2,pointRadius:0,tension:.25,fill:false}))},options:{plugins:{legend:{labels:{color:'#9DB5B1'}}},scales:{x:{grid:{color:'rgba(143,217,204,.1)'},ticks:{color:'#9DB5B1'}},y:{grid:{color:'rgba(143,217,204,.1)'},ticks:{color:'#9DB5B1',callback:v=>'R$ '+(v/1e6).toFixed(1)+'M'}}}}}));}catch(e){console.warn(e)}}
 }
 
 /* ===================== CLIENTE ===================== */
+function allocComparePanel(m,R){
+  const aloc=ALOC[m.perfil]||ALOC.Conservador;
+  const cur={}; (m.assets||[]).forEach(a=>cur[a.cat]=(cur[a.cat]||0)+(+a.valor||0));
+  const tot=Object.values(cur).reduce((s,v)=>s+v,0)||1;
+  const classes=[...new Set([...Object.keys(aloc),...Object.keys(cur)])];
+  const rows=classes.map(c=>{const a=Math.round((cur[c]||0)/tot*100);const s=aloc[c]||0;return{c,a,s,d:s-a};});
+  const arrow=d=>d>4?'<span style="color:var(--teal)">▲ aumentar</span>':d<-4?'<span style="color:var(--gold2)">▼ reduzir</span>':'<span style="color:var(--ok)">✓ no ponto</span>';
+  return `<div class="panel"><h2>${ICN.dash} Sua carteira: hoje × ideal para o perfil ${esc(m.perfil)}</h2> <p class="note" style="margin:-6px 0 14px;line-height:1.6">Esta é a base da sua política de investimentos (IPS): comparamos como seu dinheiro está distribuído hoje com a alocação que faz sentido para o seu perfil. Diversificar entre classes dilui o risco e melhora o retorno ao longo do tempo.</p> <div class="grid2"> <div style="text-align:center"><div class="note" style="margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em">Hoje</div><div style="height:200px"><canvas id="chPie"></canvas></div></div> <div style="text-align:center"><div class="note" style="margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em">Sugerida</div><div style="height:200px"><canvas id="chAlloc"></canvas></div></div> </div> <div class="tbl-scroll" style="max-height:none;margin-top:14px"><table><thead><tr><th>Classe de ativo</th><th class="r">Hoje</th><th class="r">Ideal</th><th class="r">O que fazer</th></tr></thead><tbody> ${rows.map(r=>`<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${COR_CLASSE[r.c]||'#6E8B88'};margin-right:9px;vertical-align:middle"></span>${esc(r.c)}</td><td class="r">${r.a}%</td><td class="r"><b>${r.s}%</b></td><td class="r">${arrow(r.d)}</td></tr>`).join('')}
+   </tbody></table></div></div>`;
+}
+function independenciaPanel(m,R){
+  const mensal=(R.saqueAnual||R.despAnual)/12;
+  return `<div class="panel"><h2>${ICN.target} Quanto falta para você viver de renda</h2> <p style="font-size:.92rem;line-height:1.65">Para sustentar <b>${BRL(mensal)}/mês</b> só com seus investimentos — sem depender do trabalho — a referência de mercado (consumir ~4% ao ano) aponta um patrimônio de cerca de <b style="color:var(--gold2)">${BRL(R.numIndep)}</b>. Você já construiu <b>${BRL(R.patr)}</b>.</p> <div class="netrow" style="margin-top:8px"><span>Progresso rumo à independência</span><b style="color:${R.indepPct>=100?'var(--ok)':'var(--gold2)'}">${R.indepPct}%</b></div> <div class="bar" style="height:10px;margin-top:2px"><i style="width:${R.indepPct}%"></i></div> <p class="note" style="margin-top:8px">${R.indepPct>=100?'Você já tem patrimônio para viver de renda. Foco agora em preservar e proteger.':'Faltam '+BRL(Math.max(0,R.numIndep-R.patr))+'. Mantendo os aportes, seu plano caminha para lá — acompanhe na aba Projeção.'}</p></div>`;
+}
 function renderClientDash(C){
   const c=client(session.clientId),m=mainPlan(c),R=projetar(m);
-  setTop('Olá, '+c.nome.split(' ')[0]+' 👋', R.saude>=75?'Seu plano está num bom caminho':R.saude>=50?'Seu plano está em construção':'Vamos fortalecer seu plano juntos');
+  setTop('Olá, '+c.nome.split(' ')[0]+' ', R.saude>=75?'Seu plano está num bom caminho':R.saude>=50?'Seu plano está em construção':'Vamos fortalecer seu plano juntos');
   const col=R.prob>=80?'var(--ok)':R.prob>=55?'var(--warn)':'var(--bad)';
   const m2=R.reservaIdeal?Math.min(100,Math.round(R.reservaAtual/R.reservaIdeal*100)):100;
   const ncats=new Set((m.assets||[]).filter(a=>(+a.valor||0)>0).map(a=>a.cat)).size;
   C.innerHTML=`
-   <div class="banner" style="align-items:center">📊 <span style="flex:1;line-height:1.55">Em resumo: hoje seu plano tem <b style="color:${col}">${R.prob}% de chance</b> de sustentar sua renda até os ${m.vida} anos. ${R.prob>=80?'Está num ótimo caminho — siga firme com os aportes.':R.prob>=55?'Está no caminho; pequenos ajustes deixam mais seguro.':'Dá para melhorar bastante — veja as alavancas no seu planejamento.'}</span>
-     <button class="btn btn-gold btn-sm" onclick="curSec='projecao';go('plan')">Como melhorar</button></div>
-   <div class="kpis">
-     <div class="kpi grad"><div class="lab">${ICN.spark}Saúde financeira</div><b>${R.saude}/100</b></div>
-     <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio líquido</div><b>${BRL(R.liquido)}</b></div>
-     <div class="kpi"><div class="lab">${ICN.target}Patrimônio aos ${m.apos}</div><b>${BRL(R.patApos)}</b></div>
-     <div class="kpi"><div class="lab">${ICN.money}Sobra/mês · poupança</div><b>${BRL(R.sobra)} <span style="font-size:.9rem;color:var(--muted)">· ${R.poupanca}%</span></b></div>
-   </div>
-   <div class="grid2">
-     <div class="panel" style="text-align:center"><h2 style="justify-content:center">Probabilidade de sucesso</h2>
-       <div class="gauge"><canvas id="gauge"></canvas></div>
-       <span class="prob" style="background:${col}22;color:${col};border:1px solid ${col}55;margin-top:8px">● ${R.prob}%</span>
-       <p class="note" style="margin-top:10px;line-height:1.55">Chance de o seu patrimônio sustentar a renda desejada até os ${m.vida} anos, medida por centenas de simulações de mercado.</p>
-       <button class="btn btn-teal btn-sm" style="margin-top:8px" onclick="curSec='projecao';go('plan')">Entender e melhorar minha probabilidade</button></div>
-     <div class="panel"><h2>${ICN.plan} Projeção do seu patrimônio</h2><canvas id="chProj"></canvas></div>
-   </div>
-   <div class="grid2">
-     ${ncats>=2?`<div class="panel"><h2>${ICN.dash} Composição do patrimônio</h2><div style="height:230px"><canvas id="chPie"></canvas></div></div>`:`<div class="panel"><h2>${ICN.dash} Composição do patrimônio</h2><p class="note" style="line-height:1.65;margin-top:4px">Seu patrimônio está concentrado em <b style="color:var(--head)">${esc(((m.assets||[]).find(a=>(+a.valor||0)>0)||{}).cat||'um único ativo')}</b>. Diversificar entre classes (renda fixa, variável, imóvel, internacional) reduz risco e melhora o retorno ajustado. Converse com seu especialista sobre uma alocação adequada ao seu perfil <b>${esc(m.perfil)}</b>.</p></div>`}
-     <div class="panel"><h2>${ICN.money} Fluxo mensal</h2><div style="height:230px"><canvas id="chFlow"></canvas></div></div>
-   </div>
-   <div class="panel"><h2>${ICN.target} Indicadores-chave</h2>
-     <div class="netrow"><span>Cobertura da meta (patrimônio ÷ necessário)</span><b>${R.cobertura}%</b></div>
-     <div class="bar" style="height:8px;margin-top:2px"><i style="width:${R.cobertura}%"></i></div>
-     <div class="netrow" style="margin-top:12px"><span>Reserva de emergência</span><b style="color:${R.reservaAtual>=R.reservaIdeal?'var(--ok)':'var(--warn)'}">${BRL(R.reservaAtual)} de ${BRL(R.reservaIdeal)}</b></div>
-     <div class="bar" style="height:8px;margin-top:2px"><i style="width:${m2}%"></i></div>
-     <div class="netrow" style="margin-top:12px"><span>Taxa de saque na aposentadoria</span><b style="color:${R.taxaSaque<=4.5?'var(--ok)':R.taxaSaque<=6.5?'var(--warn)':'var(--bad)'}">${R.taxaSaque.toFixed(1)}% ao ano</b></div>
-     <div class="netrow"><span>Aporte ideal por mês</span><b>${BRL(R.aporteIdeal/12)}</b></div>
-     ${R.consCredito>0?`<div class="netrow"><span>Consórcio no plano (carta)</span><b style="color:var(--gold2)">${BRL(R.consCredito)}</b></div>`:''}
-   </div>
-   ${diagPanel(m,R)}
-   <div class="panel"><h2>${ICN.spark} Atalhos</h2>
-     <div class="row" style="gap:10px;flex-wrap:wrap">
-       <button class="btn btn-gold btn-sm" onclick="go('jornada')">Ver minha jornada de metas</button>
-       <button class="btn btn-teal btn-sm" onclick="go('plan')">Meu planejamento</button>
-       <button class="btn btn-teal btn-sm" onclick="go('gastos')">Controlar meus gastos</button>
-       <button class="btn btn-ghost btn-sm" onclick="go('cota')">Minha cota de consórcio</button>
-     </div></div>`;
+   <div class="banner" style="align-items:center"> <span style="flex:1;line-height:1.55">Em resumo: hoje seu plano tem <b style="color:${col}">${R.prob}% de chance</b> de sustentar sua renda até os ${m.vida} anos. ${R.prob>=80?'Está num ótimo caminho — siga firme com os aportes.':R.prob>=55?'Está no caminho; pequenos ajustes deixam mais seguro.':'Dá para melhorar bastante — veja as alavancas no seu planejamento.'}</span> <button class="btn btn-gold btn-sm" onclick="curSec='projecao';go('plan')">Como melhorar</button></div> <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.spark}Saúde financeira</div><b>${R.saude}/100</b></div> <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio líquido</div><b>${BRL(R.liquido)}</b></div> <div class="kpi"><div class="lab">${ICN.target}Patrimônio aos ${m.apos}</div><b>${BRL(R.patApos)}</b></div> <div class="kpi"><div class="lab">${ICN.money}Sobra/mês · poupança</div><b>${BRL(R.sobra)} <span style="font-size:.9rem;color:var(--muted)">· ${R.poupanca}%</span></b></div> </div> <div class="grid2"> <div class="panel" style="text-align:center"><h2 style="justify-content:center">Probabilidade de sucesso</h2> <div class="gauge"><canvas id="gauge"></canvas></div> <span class="prob" style="background:${col}22;color:${col};border:1px solid ${col}55;margin-top:8px">● ${R.prob}%</span> <p class="note" style="margin-top:10px;line-height:1.55">Chance de o seu patrimônio sustentar a renda desejada até os ${m.vida} anos, medida por centenas de simulações de mercado.</p> <button class="btn btn-teal btn-sm" style="margin-top:8px" onclick="curSec='projecao';go('plan')">Entender e melhorar minha probabilidade</button></div> <div class="panel"><h2>${ICN.plan} Projeção do seu patrimônio</h2><canvas id="chProj"></canvas></div> </div> ${allocComparePanel(m,R)}
+   <div class="grid2"> ${independenciaPanel(m,R)}
+     <div class="panel"><h2>${ICN.money} Seu mês: o que entra e o que sai</h2><div style="height:230px"><canvas id="chFlow"></canvas></div></div> </div> <div class="panel"><h2>${ICN.target} Indicadores-chave</h2> <div class="netrow"><span>Cobertura da meta (patrimônio ÷ necessário)</span><b>${R.cobertura}%</b></div> <div class="bar" style="height:8px;margin-top:2px"><i style="width:${R.cobertura}%"></i></div> <div class="netrow" style="margin-top:12px"><span>Reserva de emergência</span><b style="color:${R.reservaAtual>=R.reservaIdeal?'var(--ok)':'var(--warn)'}">${BRL(R.reservaAtual)} de ${BRL(R.reservaIdeal)}</b></div> <div class="bar" style="height:8px;margin-top:2px"><i style="width:${m2}%"></i></div> <div class="netrow" style="margin-top:12px"><span>Taxa de saque na aposentadoria</span><b style="color:${R.taxaSaque<=4.5?'var(--ok)':R.taxaSaque<=6.5?'var(--warn)':'var(--bad)'}">${R.taxaSaque.toFixed(1)}% ao ano</b></div> <div class="netrow"><span>Aporte ideal por mês</span><b>${BRL(R.aporteIdeal/12)}</b></div> ${R.consCredito>0?`<div class="netrow"><span>Consórcio no plano (carta)</span><b style="color:var(--gold2)">${BRL(R.consCredito)}</b></div>`:''}
+   </div> ${diagPanel(m,R)}
+   <div class="panel"><h2>${ICN.spark} Atalhos</h2> <div class="row" style="gap:10px;flex-wrap:wrap"> <button class="btn btn-gold btn-sm" onclick="go('jornada')">Ver minha jornada de metas</button> <button class="btn btn-teal btn-sm" onclick="go('plan')">Meu planejamento</button> <button class="btn btn-teal btn-sm" onclick="go('gastos')">Controlar meus gastos</button> <button class="btn btn-ghost btn-sm" onclick="go('cota')">Minha cota de consórcio</button> </div></div>`;
   drawResultCharts(m,R);
 }
 function renderClientPlan(C){
@@ -1700,18 +1361,25 @@ function renderJornada(C){
   setTop('Minha Jornada','Metas e passos para realizá-las');
   const nMetas=(m.goals||[]).length;
   C.innerHTML=`
-   <div class="banner">🎯 Este é o seu mapa: cada meta na ordem em que vai acontecer, com os passos que o seu especialista definiu para você chegar lá.</div>
-   <div class="panel"><h2>${ICN.target} Sua jornada (${nMetas} meta${nMetas===1?'':'s'})</h2>
-     <p class="note" style="margin:-6px 0 14px">Da esquerda para a direita: as etapas do seu plano. Embaixo, as metas em que ele se desdobra.</p>
-     ${roadmapSVG(m)}
-     <h3 class="serif" style="font-size:1rem;color:var(--gold2);margin:22px 0 12px">Passos de cada meta</h3>
-     ${renderJourney(m,false)}
+   <div class="banner"> Este é o seu mapa: cada meta na ordem em que vai acontecer, com os passos que o seu especialista definiu para você chegar lá.</div> <div class="panel"><h2>${ICN.target} Sua jornada (${nMetas} meta${nMetas===1?'':'s'})</h2> <p class="note" style="margin:-6px 0 14px">Da esquerda para a direita: as etapas do seu plano. Embaixo, as metas em que ele se desdobra.</p> ${roadmapSVG(m)}
+     <h3 class="serif" style="font-size:1rem;color:var(--gold2);margin:22px 0 12px">Passos de cada meta</h3> ${renderJourney(m,false)}
    </div>`;
 }
 
 /* ----- GASTOS (placeholder Open Finance) ----- */
-const CATS_GASTO=[['Moradia','🏠','#C5A059'],['Alimentação','🍽️','#8FD9CC'],['Transporte','🚗','#E8CC8B'],['Lazer','🎉','#f87171'],['Saúde','⚕️','#4Fa3a3'],['Educação','📚','#B0875F'],['Contas','💡','#9DB5B1'],['Compras','🛍️','#E8A0A0'],['Outros','💳','#6E8B88'],['Receita','💰','#34d399']];
-const catMetaG=c=>CATS_GASTO.find(x=>x[0]===c)||['Outros','💳','#6E8B88'];
+const CATS_GASTO=[
+ ['Moradia','M3 10.5 12 4l9 6.5M5 9.5V20h14V9.5','#C5A059'],
+ ['Alimentação','M5 3v7a2 2 0 0 0 4 0V3M7 3v18M16 3c-1.3 1-2 3-2 5s.7 4 2 5v8','#8FD9CC'],
+ ['Transporte','M5 13l1.5-4.5A2 2 0 0 1 8.4 7h7.2a2 2 0 0 1 1.9 1.5L19 13M5 13h14v4H5zM8 17v2M16 17v2','#E8CC8B'],
+ ['Lazer','M12 3l2.4 5.9 6.4.5-4.9 4.1L17.6 20 12 16.6 6.4 20l1.7-6.4L3.2 9.4l6.4-.5Z','#f87171'],
+ ['Saúde','M20.8 8.6a5 5 0 0 0-8.8-2 5 5 0 0 0-8.8 2c0 5.5 8.8 10.4 8.8 10.4s8.8-4.9 8.8-10.4Z','#4Fa3a3'],
+ ['Educação','M3 8l9-4 9 4-9 4ZM7 10.5V15c0 1.6 2.7 3 5 3s5-1.4 5-3v-4.5','#B0875F'],
+ ['Contas','M5 3h14v18l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3L5 21ZM8.5 8h7M8.5 12h7','#9DB5B1'],
+ ['Compras','M6 8h12l-1 12H7ZM9 8a3 3 0 0 1 6 0','#E8A0A0'],
+ ['Outros','M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM12 8v4l2.5 1.5','#6E8B88'],
+ ['Receita','M12 2v20M16 6.5C16 5 14.2 4 12 4S8 5 8 7s2 2.5 4 3 4 1.5 4 3.5-1.8 3-4 3-4-1-4-2.5','#34d399']];
+const catMetaG=c=>CATS_GASTO.find(x=>x[0]===c)||['Outros','M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM12 8v4l2.5 1.5','#6E8B88'];
+function catIcon(c,sz){const m=catMetaG(c);return `<svg viewBox="0 0 24 24" style="width:${sz||20}px;height:${sz||20}px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle">${m[1]}</svg>`;}
 function seedLanc(){return [
   {id:uid(),tipo:'despesa',desc:'Aluguel/condomínio',cat:'Moradia',valor:3200,dia:5},
   {id:uid(),tipo:'despesa',desc:'Supermercado',cat:'Alimentação',valor:1800,dia:8},
@@ -1736,39 +1404,16 @@ function renderGastos(C){
   const totSaldoContas=m.contas.reduce((s,x)=>s+(+x.saldo||0),0);
   setTop('Meus Gastos','Controle do mês');
   C.innerHTML=`
-   <div class="banner">🔗 Em produção, conectamos ao <b>Open Finance</b> e seus lançamentos entram sozinhos. Aqui você também pode lançar manualmente.</div>
-   ${estourou.length?`<div class="banner" style="border-color:var(--bad);background:rgba(248,113,113,.1)">⚠️ Você estourou a meta em <b>${estourou.map(e=>esc(e[0])).join(', ')}</b>. Vale rever esses gastos.</div>`:''}
-   <div class="month-nav"><button onclick="flash('Demonstração: mês fixo')">‹</button><b>Junho 2026</b><button onclick="flash('Demonstração: mês fixo')">›</button></div>
-   <div class="gsum">
-     <div><div class="lab">Receitas</div><b style="color:var(--ok)">${BRL(totRec)}</b></div>
-     <div><div class="lab">Despesas</div><b style="color:var(--bad)">${BRL(totDesp)}</b></div>
-     <div><div class="lab">Saldo</div><b style="color:${saldo>=0?'var(--gold2)':'var(--bad)'}">${BRL(saldo)}</b></div>
-   </div>
-   <div class="grid2">
-     <div class="panel"><h2>${ICN.money} Despesas por categoria</h2>
-       <div style="max-width:230px;margin:0 auto;height:230px"><canvas id="chSpend"></canvas></div>
-       <div style="text-align:center;margin-top:6px"><div class="note">Comprometimento da renda</div>
-         <div class="bar" style="height:8px;margin-top:6px"><i style="width:${totRec?Math.min(100,Math.round(totDesp/totRec*100)):0}%"></i></div>
-         <div style="font-size:.8rem;color:var(--muted);margin-top:6px">${totRec?Math.round(totDesp/totRec*100):0}% da sua renda</div></div>
-     </div>
-     <div class="panel"><h2>Categorias <button class="btn btn-teal btn-sm right" onclick="openBudgets()">Definir metas</button></h2>
-       ${catArr.map(([cat,v])=>{const me=catMetaG(cat);const pct=totDesp?Math.round(v/totDesp*100):0;const meta=m.budgets[cat]||0;const over=meta&&v>meta;const usoPct=meta?Math.min(100,Math.round(v/meta*100)):pct;return `<div class="catrow"><div class="ci" style="background:${me[2]}22">${me[1]}</div><div class="cmid"><div class="cn">${esc(cat)} ${over?'<span style="color:var(--bad);font-size:.7rem;font-weight:700">⚠ estourou</span>':''}</div><div class="cbar"><i style="width:${usoPct}%;background:${over?'var(--bad)':me[2]}"></i></div>${meta?`<div style="font-size:.68rem;color:${over?'var(--bad)':'var(--soft)'};margin-top:3px">${BRL(v)} de ${BRL(meta)}</div>`:''}</div><div class="cval"><b>${BRL(v)}</b><span>${pct}%</span></div></div>`;}).join('')||'<p class="note">Sem despesas lançadas.</p>'}
-     </div>
-   </div>
-   <div class="panel"><h2>${ICN.plan} Evolução dos gastos</h2><div style="height:240px"><canvas id="chEvol"></canvas></div></div>
-   <div class="panel"><h2>${ICN.wallet} Contas & Cartões <span class="chip chip-teal right">Total: ${BRL(totSaldoContas)}</span></h2>
-     <div class="cards" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">${m.contas.map(ct=>`<div class="ccard"><div class="row"><span style="font-size:1.3rem">${ct.tipo==='Cartão'?'💳':'🏦'}</span><span class="tag ${ct.saldo>=0?'tag-main':'tag-copy'}">${esc(ct.tipo)}</span></div><div style="font-weight:700;color:var(--head);margin-top:6px">${esc(ct.nome)}</div><div style="font-family:var(--serif);font-size:1.2rem;color:${ct.saldo>=0?'var(--gold2)':'var(--bad)'};margin-top:2px">${BRL(ct.saldo)}</div></div>`).join('')}</div>
-   </div>
-   <div class="panel"><h2>${ICN.money} Lançamentos <button class="btn btn-gold btn-sm right" onclick="openLanc()">+ Lançamento</button></h2>
-     ${L.slice().sort((a,b)=>b.dia-a.dia).map(x=>{const me=catMetaG(x.cat);const dn=x.tipo==='receita';return `<div class="lanc"><div class="li" style="background:${me[2]}22">${me[1]}</div><div class="lm"><div class="ld">${esc(x.desc)}</div><div class="ls">${esc(x.cat)} · dia ${x.dia}</div></div><div class="lv" style="color:${dn?'var(--ok)':'var(--bad)'}">${dn?'+':'−'} ${BRL(x.valor)}</div><span class="lx" onclick="delLanc('${x.id}')">✕</span></div>`;}).join('')||'<p class="note">Nenhum lançamento ainda.</p>'}
-   </div>
-   <button class="fab" onclick="openLanc()" title="Novo lançamento">+</button>`;
+   <div class="banner"> Em produção, conectamos ao <b>Open Finance</b> e seus lançamentos entram sozinhos. Aqui você também pode lançar manualmente.</div> ${estourou.length?`<div class="banner" style="border-color:var(--bad);background:rgba(248,113,113,.1)">⚠️ Você estourou a meta em <b>${estourou.map(e=>esc(e[0])).join(', ')}</b>. Vale rever esses gastos.</div>`:''}
+   <div class="month-nav"><button onclick="flash('Demonstração: mês fixo')">‹</button><b>Junho 2026</b><button onclick="flash('Demonstração: mês fixo')">›</button></div> <div class="gsum"> <div><div class="lab">Receitas</div><b style="color:var(--ok)">${BRL(totRec)}</b></div> <div><div class="lab">Despesas</div><b style="color:var(--bad)">${BRL(totDesp)}</b></div> <div><div class="lab">Saldo</div><b style="color:${saldo>=0?'var(--gold2)':'var(--bad)'}">${BRL(saldo)}</b></div> </div> <div class="grid2"> <div class="panel"><h2>${ICN.money} Despesas por categoria</h2> <div style="max-width:230px;margin:0 auto;height:230px"><canvas id="chSpend"></canvas></div> <div style="text-align:center;margin-top:6px"><div class="note">Comprometimento da renda</div> <div class="bar" style="height:8px;margin-top:6px"><i style="width:${totRec?Math.min(100,Math.round(totDesp/totRec*100)):0}%"></i></div> <div style="font-size:.8rem;color:var(--muted);margin-top:6px">${totRec?Math.round(totDesp/totRec*100):0}% da sua renda</div></div> </div> <div class="panel"><h2>Categorias <button class="btn btn-teal btn-sm right" onclick="openBudgets()">Definir metas</button></h2> ${catArr.map(([cat,v])=>{const me=catMetaG(cat);const pct=totDesp?Math.round(v/totDesp*100):0;const meta=m.budgets[cat]||0;const over=meta&&v>meta;const usoPct=meta?Math.min(100,Math.round(v/meta*100)):pct;return `<div class="catrow"><div class="ci" style="background:${me[2]}22;color:${me[2]}">${catIcon(cat)}</div><div class="cmid"><div class="cn">${esc(cat)} ${over?'<span style="color:var(--bad);font-size:.7rem;font-weight:700">⚠ estourou</span>':''}</div><div class="cbar"><i style="width:${usoPct}%;background:${over?'var(--bad)':me[2]}"></i></div>${meta?`<div style="font-size:.68rem;color:${over?'var(--bad)':'var(--soft)'};margin-top:3px">${BRL(v)} de ${BRL(meta)}</div>`:''}</div><div class="cval"><b>${BRL(v)}</b><span>${pct}%</span></div></div>`;}).join('')||'<p class="note">Sem despesas lançadas.</p>'}
+     </div> </div> <div class="panel"><h2>${ICN.plan} Evolução dos gastos</h2><div style="height:240px"><canvas id="chEvol"></canvas></div></div> <div class="panel"><h2>${ICN.wallet} Contas & Cartões <span class="chip chip-teal right">Total: ${BRL(totSaldoContas)}</span></h2> <div class="cards" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">${m.contas.map(ct=>`<div class="ccard"><div class="row"><span style="font-size:1.3rem">${ct.tipo==='Cartão'?'':''}</span><span class="tag ${ct.saldo>=0?'tag-main':'tag-copy'}">${esc(ct.tipo)}</span></div><div style="font-weight:700;color:var(--head);margin-top:6px">${esc(ct.nome)}</div><div style="font-family:var(--serif);font-size:1.2rem;color:${ct.saldo>=0?'var(--gold2)':'var(--bad)'};margin-top:2px">${BRL(ct.saldo)}</div></div>`).join('')}</div> </div> <div class="panel"><h2>${ICN.money} Lançamentos <button class="btn btn-gold btn-sm right" onclick="openLanc()">+ Lançamento</button></h2> ${L.slice().sort((a,b)=>b.dia-a.dia).map(x=>{const me=catMetaG(x.cat);const dn=x.tipo==='receita';return `<div class="lanc"><div class="li" style="background:${me[2]}22;color:${me[2]}">${catIcon(x.cat,18)}</div><div class="lm"><div class="ld">${esc(x.desc)}</div><div class="ls">${esc(x.cat)} · dia ${x.dia}</div></div><div class="lv" style="color:${dn?'var(--ok)':'var(--bad)'}">${dn?'+':'−'} ${BRL(x.valor)}</div><span class="lx" onclick="delLanc('${x.id}')">✕</span></div>`;}).join('')||'<p class="note">Nenhum lançamento ainda.</p>'}
+   </div> <button class="fab" onclick="openLanc()" title="Novo lançamento">+</button>`;
   drawGastosCharts(catArr, m.histGastos.concat([['Jun',totDesp]]));
 }
 function drawGastosCharts(catArr,hist){if(typeof Chart==='undefined')return;destroyCharts();const gold='#C5A059',tick='#9DB5B1',grid='rgba(143,217,204,.1)';
   try{charts.push(new Chart(chSpend,{type:'doughnut',data:{labels:catArr.map(c=>c[0]),datasets:[{data:catArr.map(c=>c[1]),backgroundColor:catArr.map(c=>catMetaG(c[0])[2]),borderWidth:0}]},options:{maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false}}}}))}catch(e){console.warn(e)}
   try{charts.push(new Chart(chEvol,{type:'bar',data:{labels:hist.map(h=>h[0]),datasets:[{data:hist.map(h=>h[1]),backgroundColor:hist.map((h,i)=>i===hist.length-1?gold:'rgba(143,217,204,.35)'),borderRadius:6}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tick}},y:{grid:{color:grid},ticks:{color:tick,callback:v=>'R$ '+(v/1000).toFixed(0)+'k'}}}}}))}catch(e){console.warn(e)}}
-function openBudgets(){const m=mainPlan(session.clientId);document.getElementById('budgetBody').innerHTML=CATS_GASTO.filter(c=>c[0]!=='Receita').map(c=>`<div class="field" style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:120px">${c[1]} ${c[0]}</span><input type="number" id="bud_${c[0]}" value="${(m.budgets&&m.budgets[c[0]])||0}" style="flex:1"></div>`).join('');document.getElementById('budgetModal').classList.remove('hidden');}
+function openBudgets(){const m=mainPlan(session.clientId);document.getElementById('budgetBody').innerHTML=CATS_GASTO.filter(c=>c[0]!=='Receita').map(c=>`<div class="field" style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:130px;display:flex;align-items:center;gap:8px;color:${c[2]}">${catIcon(c[0],17)}<span style="color:var(--ink)">${c[0]}</span></span><input type="number" id="bud_${c[0]}" value="${(m.budgets&&m.budgets[c[0]])||0}" style="flex:1"></div>`).join('');document.getElementById('budgetModal').classList.remove('hidden');}
 function closeBudgets(){document.getElementById('budgetModal').classList.add('hidden');}
 function saveBudgets(){const m=mainPlan(session.clientId);m.budgets=m.budgets||{};CATS_GASTO.filter(c=>c[0]!=='Receita').forEach(c=>{const el=document.getElementById('bud_'+c[0]);if(el)m.budgets[c[0]]=parseFloat(el.value)||0;});save();closeBudgets();renderGastos(document.getElementById('content'));flash('Metas salvas');}
 function openLanc(){document.getElementById('lancCat').innerHTML=CATS_GASTO.map(c=>`<option>${c[0]}</option>`).join('');document.getElementById('lanc_desc').value='';document.getElementById('lanc_valor').value='';document.getElementById('lanc_tipo').value='despesa';document.getElementById('lanc_dia').value='15';document.getElementById('lancModal').classList.remove('hidden');setTimeout(()=>document.getElementById('lanc_desc').focus(),50);}
@@ -1781,34 +1426,17 @@ function renderCota(C){
   const c=client(session.clientId),m=mainPlan(c);const lista=m.consorcios||[];
   setTop('Minha Cota','Consórcio');
   if(!lista.length){
-    C.innerHTML=`<div class="banner">🏆 O consórcio é o diferencial do Método Agion: uma carta de crédito sem juros que vira patrimônio e acelera seus objetivos.</div>
-     <div class="panel" style="text-align:center;padding:40px 20px"><div style="font-size:2rem">🏠</div>
-       <h2 style="justify-content:center">Você ainda não tem um consórcio no seu plano</h2>
-       <p class="note" style="max-width:460px;margin:8px auto 16px">Fale com o seu especialista para incluir uma carta de consórcio ao seu planejamento — e veja no gráfico o quanto isso antecipa seus sonhos.</p>
-       <a class="btn btn-gold btn-sm" target="_blank" href="https://wa.me/5551993078590?text=${encodeURIComponent('Quero incluir um consórcio no meu planejamento Agion')}">Falar com meu especialista</a></div>`;
+    C.innerHTML=`<div class="banner"> O consórcio é o diferencial do Método Agion: uma carta de crédito sem juros que vira patrimônio e acelera seus objetivos.</div> <div class="panel" style="text-align:center;padding:40px 20px"><div style="font-size:2rem"></div> <h2 style="justify-content:center">Você ainda não tem um consórcio no seu plano</h2> <p class="note" style="max-width:460px;margin:8px auto 16px">Fale com o seu especialista para incluir uma carta de consórcio ao seu planejamento — e veja no gráfico o quanto isso antecipa seus sonhos.</p> <a class="btn btn-gold btn-sm" target="_blank" href="https://wa.me/5551993078590?text=${encodeURIComponent('Quero incluir um consórcio no meu planejamento Agion')}">Falar com meu especialista</a></div>`;
     return;
   }
   const fee=co=>co.tipo==='Auto'?0.16:0.22;
-  C.innerHTML=`<div class="banner">🔗 Em produção, os dados da assembleia, boletos e lances vêm da administradora em tempo real. Abaixo, a sua(s) carta(s) conforme o planejamento.</div>
-   ${lista.map(co=>{const integral=(+co.credito)*(1+fee(co))/((+co.prazoMeses)||200);const meia=integral/2;const pct=Math.min(100,Math.round((+co.contemplaMes||12)/((+co.prazoMeses)||200)*100));
-    return `<div class="panel"><h2>${ICN.cota} ${esc(co.desc||'Consórcio')} · ${esc(co.tipo||'')}</h2>
-     <div class="kpis">
-       <div class="kpi grad"><div class="lab">${ICN.cota}Crédito (carta)</div><b>${BRL(co.credito)}</b></div>
-       <div class="kpi"><div class="lab">${ICN.money}Meia parcela</div><b>${BRL(meia)}</b></div>
-       <div class="kpi"><div class="lab">${ICN.spark}Prazo</div><b>${co.prazoMeses||200} meses</b></div>
-       <div class="kpi"><div class="lab">${ICN.target}Contemplação alvo</div><b>${co.contemplaMes||12} meses</b></div>
-     </div>
-     <div class="note" style="margin-bottom:6px">Estratégia de contemplação por lance (meta: ${co.contemplaMes||12} meses)</div>
-     <div class="bar" style="height:12px"><i style="width:${pct}%"></i></div>
-     <div class="row" style="gap:10px;margin-top:16px;flex-wrap:wrap">
-       <a class="btn btn-gold btn-sm" href="#" onclick="flash('Em produção: leva ao portal oficial da administradora');return false">Emitir boleto</a>
-       <a class="btn btn-teal btn-sm" href="#" onclick="flash('Em produção: oferta de lance pelo canal oficial');return false">Ofertar lance</a>
-       <a class="btn btn-ghost btn-sm" href="#" onclick="flash('Em produção: histórico de assembleias');return false">Ver contemplações</a>
-     </div></div>`;}).join('')}`;
+  C.innerHTML=`<div class="banner"> Em produção, os dados da assembleia, boletos e lances vêm da administradora em tempo real. Abaixo, a sua(s) carta(s) conforme o planejamento.</div> ${lista.map(co=>{const integral=(+co.credito)*(1+fee(co))/((+co.prazoMeses)||200);const meia=integral/2;const pct=Math.min(100,Math.round((+co.contemplaMes||12)/((+co.prazoMeses)||200)*100));
+    return `<div class="panel"><h2>${ICN.cota} ${esc(co.desc||'Consórcio')} · ${esc(co.tipo||'')}</h2> <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.cota}Crédito (carta)</div><b>${BRL(co.credito)}</b></div> <div class="kpi"><div class="lab">${ICN.money}Meia parcela</div><b>${BRL(meia)}</b></div> <div class="kpi"><div class="lab">${ICN.spark}Prazo</div><b>${co.prazoMeses||200} meses</b></div> <div class="kpi"><div class="lab">${ICN.target}Contemplação alvo</div><b>${co.contemplaMes||12} meses</b></div> </div> <div class="note" style="margin-bottom:6px">Estratégia de contemplação por lance (meta: ${co.contemplaMes||12} meses)</div> <div class="bar" style="height:12px"><i style="width:${pct}%"></i></div> <div class="row" style="gap:10px;margin-top:16px;flex-wrap:wrap"> <a class="btn btn-gold btn-sm" href="#" onclick="flash('Em produção: leva ao portal oficial da administradora');return false">Emitir boleto</a> <a class="btn btn-teal btn-sm" href="#" onclick="flash('Em produção: oferta de lance pelo canal oficial');return false">Ofertar lance</a> <a class="btn btn-ghost btn-sm" href="#" onclick="flash('Em produção: histórico de assembleias');return false">Ver contemplações</a> </div></div>`;}).join('')}`;
 }
 
 /* tema */
-function applyTheme(t){document.body.classList.toggle('light',t==='light');const b=document.getElementById('themeBtn');if(b)b.textContent=t==='light'?'☀️':'🌙';try{localStorage.setItem('agion_theme',t)}catch(e){}}
+const ICO_SUN='<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';const ICO_MOON='<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>';
+function applyTheme(t){document.body.classList.toggle('light',t==='light');const b=document.getElementById('themeBtn');if(b)b.innerHTML=t==='light'?ICO_SUN:ICO_MOON;try{localStorage.setItem('agion_theme',t)}catch(e){}}
 function toggleTheme(){applyTheme(document.body.classList.contains('light')?'dark':'light');if(view&&view.page)render();}
 /* init */
 try{applyTheme(localStorage.getItem('agion_theme')||'dark')}catch(e){}
