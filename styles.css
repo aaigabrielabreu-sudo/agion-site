@@ -639,3 +639,24 @@ footer ul a:hover{color:var(--gold-2);transform:translateX(5px)}
   .compare .row>div{padding:10px 7px;font-size:.68rem}
   .hero-info h1{font-size:1.42rem}
 }
+
+/* ====== Cenas animadas dos cards de consórcio (SVG da marca) ====== */
+.prod-media .ag-scene{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:1;transition:transform .9s cubic-bezier(.2,.7,.3,1)}
+.prod-card:hover .prod-media .ag-scene{transform:scale(1.06)}
+.prod-media .spin{transform-box:fill-box;transform-origin:center;animation:agSpin 2.6s linear infinite}
+@keyframes agSpin{to{transform:rotate(360deg)}}
+.prod-media .ray{transform-box:fill-box;transform-origin:center;animation:agSpin 16s linear infinite}
+.prod-media .road{stroke-dasharray:16 13;animation:agRoad 1s linear infinite}
+@keyframes agRoad{to{stroke-dashoffset:-29}}
+.prod-media .float{animation:agFloat 4s ease-in-out infinite}
+@keyframes agFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.prod-media .bob{transform-box:fill-box;transform-origin:center;animation:agBob 3.4s ease-in-out infinite}
+@keyframes agBob{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-6px) rotate(1.5deg)}}
+.prod-media .wave{animation:agWave 2.8s ease-in-out infinite}
+@keyframes agWave{0%,100%{transform:translateX(0)}50%{transform:translateX(-12px)}}
+.prod-media .grow{transform-box:fill-box;transform-origin:bottom;animation:agGrow 3.2s ease-in-out infinite}
+@keyframes agGrow{0%,100%{transform:scaleY(.55)}55%{transform:scaleY(1)}}
+.prod-media .draw{stroke-dasharray:230;stroke-dashoffset:230;animation:agDraw 3.2s ease-in-out infinite}
+@keyframes agDraw{0%{stroke-dashoffset:230}55%,100%{stroke-dashoffset:0}}
+.prod-media .pulse{animation:agPulse 2.6s ease-in-out infinite}
+@keyframes agPulse{0%,100%{opacity:.45}50%{opacity:1}}

@@ -128,6 +128,16 @@ canvas{width:100%!important;height:280px!important}
 .gauge{position:relative;width:150px;height:150px;margin:0 auto}
 .disclaimer{font-size:.74rem;color:var(--soft);background:rgba(143,217,204,.05);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-top:16px;line-height:1.6}
 .banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(197,160,89,.08);border:1px solid var(--line-gold);border-radius:14px;padding:13px 16px;margin-bottom:18px;font-size:.85rem;color:#E8E0CC}
+/* oportunidades (estratégias exclusivas) */
+.ops{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.opcard{display:flex;gap:13px;background:linear-gradient(160deg,var(--card3),var(--card2));border:1px solid var(--line-gold);border-radius:15px;padding:16px;transition:transform .25s,box-shadow .25s}
+.opcard:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(0,0,0,.32)}
+.opic{flex-shrink:0;width:42px;height:42px;border-radius:12px;background:rgba(197,160,89,.14);display:grid;place-items:center;color:var(--gold2)}
+.opic svg{width:22px;height:22px}
+.optag{display:inline-block;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--gold2);background:rgba(197,160,89,.12);border:1px solid var(--line-gold);padding:3px 9px;border-radius:999px;margin-bottom:7px}
+.opbody h3{font-family:var(--serif);font-size:1.02rem;color:var(--head);margin:2px 0 6px;line-height:1.25}
+.opbody p{font-size:.84rem;color:var(--ink);line-height:1.55;margin-bottom:12px}
+@media(max-width:760px){.ops{grid-template-columns:1fr}}
 .locked input,.locked select,.locked textarea,.locked .additem,.locked .delrow{pointer-events:none;opacity:.55}
 /* itens (linhas dinâmicas) */
 .item{display:grid;grid-template-columns:1fr 130px 120px 34px;gap:8px;align-items:end;margin-bottom:8px}
@@ -1332,6 +1342,34 @@ function independenciaPanel(m,R){
   const mensal=(R.saqueAnual||R.despAnual)/12;
   return `<div class="panel"><h2>${ICN.target} Quanto falta para você viver de renda</h2> <p style="font-size:.92rem;line-height:1.65">Para sustentar <b>${BRL(mensal)}/mês</b> só com seus investimentos — sem depender do trabalho — a referência de mercado (consumir ~4% ao ano) aponta um patrimônio de cerca de <b style="color:var(--gold2)">${BRL(R.numIndep)}</b>. Você já construiu <b>${BRL(R.patr)}</b>.</p> <div class="netrow" style="margin-top:8px"><span>Progresso rumo à independência</span><b style="color:${R.indepPct>=100?'var(--ok)':'var(--gold2)'}">${R.indepPct}%</b></div> <div class="bar" style="height:10px;margin-top:2px"><i style="width:${R.indepPct}%"></i></div> <p class="note" style="margin-top:8px">${R.indepPct>=100?'Você já tem patrimônio para viver de renda. Foco agora em preservar e proteger.':'Faltam '+BRL(Math.max(0,R.numIndep-R.patr))+'. Mantendo os aportes, seu plano caminha para lá — acompanhe na aba Projeção.'}</p></div>`;
 }
+function oportunidadesPanel(m,R){
+  const A=m.assets||[],D=m.debts||[],G=m.goals||[],CO=m.consorcios||[];
+  const soma=(arr,f)=>arr.reduce((s,x)=>s+(+f(x)||0),0);
+  const imoveis=soma(A.filter(a=>a.cat==='Imóvel'),a=>a.valor);
+  const temFinImovel=D.some(d=>/financ|im[óo]vel/i.test((d.cat||'')+' '+(d.desc||'')));
+  const rendaFixa=soma(A.filter(a=>a.cat==='Renda Fixa'),a=>a.valor);
+  const patr=R.patr||soma(A,a=>a.valor)||1;
+  const temObra=G.some(g=>/constr|reforma|obra|terreno/i.test(g.desc||''))||A.some(a=>a.cat==='Terreno');
+  const carta=R.consCredito||soma(CO,c=>c.credito);
+  const ops=[];
+  if(imoveis>0&&!temFinImovel)ops.push({ic:ICN.wallet,tag:'Exclusivo Agion',t:'Aumente seu patrimônio sem vender seu imóvel',d:`Você tem imóvel somando <b>${BRL(imoveis)}</b>. Dá para oferecê-lo como lance de até <b>50%</b> de uma carta e <b>continuar usando o bem normalmente</b> — a carta contemplada pode render até <b>101% do CDI</b>. Seu patrimônio cresce sem você se desfazer dele.`,cta:'Simular essa estratégia',k:'lance'});
+  if(carta>0)ops.push({ic:ICN.spark,tag:'100% em conta',t:'Capitalize a sua carta contemplada',d:`Na contemplação da sua carta de <b>${BRL(carta)}</b>, você pode receber até <b>100% em conta corrente</b> para livre uso — reforçar investimentos, aproveitar oportunidades ou capital de giro, com o bem como garantia.`,cta:'Ver como funciona',k:'conta'});
+  if(temObra)ops.push({ic:ICN.plan,tag:'Crédito para obras',t:'Construir ou reformar com liberação em etapas',d:`Para seus planos de obra, o crédito é liberado em <b>etapas de 30%</b> — funciona para obra própria e com construtora, com controle financeiro em cada fase.`,cta:'Quero planejar a obra',k:'obra'});
+  if(rendaFixa/patr>0.6)ops.push({ic:ICN.dash,tag:'Investimentos via consórcio',t:'Faça seu caixa render dentro do consórcio',d:`Hoje <b>${Math.round(rendaFixa/patr*100)}%</b> do seu patrimônio está em renda fixa. Numa operação de consórcio, a carta contemplada pode render até <b>101% do CDI</b> — uma forma de diversificar com segurança.`,cta:'Conhecer a operação',k:'invest'});
+  if(!ops.length)ops.push({ic:ICN.spark,tag:'Método Agion',t:'Consórcio + investimento trabalhando juntos',d:`Podemos integrar uma carta de crédito ao seu plano para antecipar metas e potencializar seu patrimônio — com meia parcela, sem comprometer o orçamento.`,cta:'Falar com meu especialista',k:'geral'});
+  return `<div class="panel"><h2>${ICN.spark} Oportunidades para o seu patrimônio</h2> <p class="note" style="margin:-6px 0 14px;line-height:1.6">Sugestões personalizadas a partir do seu patrimônio atual, usando as estratégias exclusivas da Agion.</p> <div class="ops">${ops.map(o=>`<div class="opcard"><div class="opic">${o.ic}</div><div class="opbody"><span class="optag">${esc(o.tag)}</span><h3>${esc(o.t)}</h3><p>${o.d}</p><button class="btn btn-gold btn-sm" onclick="oport('${o.k}')">${esc(o.cta)}</button></div></div>`).join('')}</div></div>`;
+}
+function oport(k){
+  const M={
+    lance:{t:'Lance com bem alienado',m:'Você oferece seu imóvel ou veículo como lance de até 50% da carta, continua usando o bem normalmente, e a carta contemplada pode render até 101% do CDI. Resultado: mais patrimônio sem vender o bem. Seu especialista Agion monta a simulação completa.'},
+    conta:{t:'100% do valor em conta',m:'Após a contemplação, até 100% do crédito vai para a sua conta corrente para livre uso, com o bem como garantia. Ideal para capitalizar e potencializar seus investimentos.'},
+    obra:{t:'Crédito para obras',m:'O financeiro é liberado em etapas de 30%, para obra própria ou com construtora, com acompanhamento em cada fase da obra.'},
+    invest:{t:'Investimentos via consórcio',m:'Dentro da operação de consórcio, a carta contemplada pode ser alocada rendendo até 101% do CDI — diversificação com segurança e liquidez programada.'},
+    geral:{t:'Método Agion',m:'Integramos consórcio e investimentos ao seu plano para antecipar metas e crescer seu patrimônio, com meia parcela que cabe no orçamento.'}
+  };
+  const o=M[k]||M.geral;
+  ask({title:o.t,msg:o.m+' Quer que seu especialista prepare uma simulação? Acione a Agion pelo WhatsApp.',ok:'Entendi'});
+}
 function renderClientDash(C){
   const c=client(session.clientId),m=mainPlan(c),R=projetar(m);
   setTop('Olá, '+c.nome.split(' ')[0]+' ', R.saude>=75?'Seu plano está num bom caminho':R.saude>=50?'Seu plano está em construção':'Vamos fortalecer seu plano juntos');
@@ -1343,6 +1381,7 @@ function renderClientDash(C){
    <div class="grid2"> ${independenciaPanel(m,R)}
      <div class="panel"><h2>${ICN.money} Seu mês: o que entra e o que sai</h2><div style="height:230px"><canvas id="chFlow"></canvas></div></div> </div> <div class="panel"><h2>${ICN.target} Indicadores-chave</h2> <div class="netrow"><span>Cobertura da meta (patrimônio ÷ necessário)</span><b>${R.cobertura}%</b></div> <div class="bar" style="height:8px;margin-top:2px"><i style="width:${R.cobertura}%"></i></div> <div class="netrow" style="margin-top:12px"><span>Reserva de emergência</span><b style="color:${R.reservaAtual>=R.reservaIdeal?'var(--ok)':'var(--warn)'}">${BRL(R.reservaAtual)} de ${BRL(R.reservaIdeal)}</b></div> <div class="bar" style="height:8px;margin-top:2px"><i style="width:${m2}%"></i></div> <div class="netrow" style="margin-top:12px"><span>Taxa de saque na aposentadoria</span><b style="color:${R.taxaSaque<=4.5?'var(--ok)':R.taxaSaque<=6.5?'var(--warn)':'var(--bad)'}">${R.taxaSaque.toFixed(1)}% ao ano</b></div> <div class="netrow"><span>Aporte ideal por mês</span><b>${BRL(R.aporteIdeal/12)}</b></div> ${R.consCredito>0?`<div class="netrow"><span>Consórcio no plano (carta)</span><b style="color:var(--gold2)">${BRL(R.consCredito)}</b></div>`:''}
    </div> ${diagPanel(m,R)}
+   ${oportunidadesPanel(m,R)}
    <div class="panel"><h2>${ICN.spark} Atalhos</h2> <div class="row" style="gap:10px;flex-wrap:wrap"> <button class="btn btn-gold btn-sm" onclick="go('jornada')">Ver minha jornada de metas</button> <button class="btn btn-teal btn-sm" onclick="go('plan')">Meu planejamento</button> <button class="btn btn-teal btn-sm" onclick="go('gastos')">Controlar meus gastos</button> <button class="btn btn-ghost btn-sm" onclick="go('cota')">Minha cota de consórcio</button> </div></div>`;
   drawResultCharts(m,R);
 }
