@@ -1352,7 +1352,10 @@ function oportunidadesPanel(m,R){
   const temObra=G.some(g=>/constr|reforma|obra|terreno/i.test(g.desc||''))||A.some(a=>a.cat==='Terreno');
   const carta=R.consCredito||soma(CO,c=>c.credito);
   const ops=[];
-  if(imoveis>0&&!temFinImovel)ops.push({ic:ICN.wallet,tag:'Exclusivo Agion',t:'Aumente seu patrimônio sem vender seu imóvel',d:`Você tem imóvel somando <b>${BRL(imoveis)}</b>. Dá para oferecê-lo como lance de até <b>50%</b> de uma carta e <b>continuar usando o bem normalmente</b> — a carta contemplada pode render até <b>101% do CDI</b>. Seu patrimônio cresce sem você se desfazer dele.`,cta:'Simular essa estratégia',k:'lance'});
+  if(imoveis>0&&!temFinImovel){
+    ops.push({ic:ICN.wallet,tag:'Exclusivo Agion',t:'Aumente seu patrimônio sem vender seu imóvel',d:`Você tem imóvel somando <b>${BRL(imoveis)}</b>. Dá para oferecê-lo como lance de até <b>50%</b> de uma carta e <b>continuar usando o bem normalmente</b> — a carta contemplada pode render até <b>101% do CDI</b>. Seu patrimônio cresce sem você se desfazer dele.`,cta:'Simular essa estratégia',k:'lance'});
+    ops.push({ic:ICN.money,tag:'Até 100% em conta',t:'Transforme seu imóvel em capital — sem vendê-lo',d:`Com seu imóvel quitado como garantia, dá para liberar até <b>${BRL(imoveis)}</b> em conta corrente para livre uso. Você continua dono e usando o bem normalmente — capital para investir, quitar dívidas caras ou aproveitar oportunidades.`,cta:'Ver como funciona',k:'contaimovel'});
+  }
   if(carta>0)ops.push({ic:ICN.spark,tag:'100% em conta',t:'Capitalize a sua carta contemplada',d:`Na contemplação da sua carta de <b>${BRL(carta)}</b>, você pode receber até <b>100% em conta corrente</b> para livre uso — reforçar investimentos, aproveitar oportunidades ou capital de giro, com o bem como garantia.`,cta:'Ver como funciona',k:'conta'});
   if(temObra)ops.push({ic:ICN.plan,tag:'Crédito para obras',t:'Construir ou reformar com liberação em etapas',d:`Para seus planos de obra, o crédito é liberado em <b>etapas de 30%</b> — funciona para obra própria e com construtora, com controle financeiro em cada fase.`,cta:'Quero planejar a obra',k:'obra'});
   if(rendaFixa/patr>0.6)ops.push({ic:ICN.dash,tag:'Investimentos via consórcio',t:'Faça seu caixa render dentro do consórcio',d:`Hoje <b>${Math.round(rendaFixa/patr*100)}%</b> do seu patrimônio está em renda fixa. Numa operação de consórcio, a carta contemplada pode render até <b>101% do CDI</b> — uma forma de diversificar com segurança.`,cta:'Conhecer a operação',k:'invest'});
@@ -1363,6 +1366,7 @@ function oport(k){
   const M={
     lance:{t:'Lance com bem alienado',m:'Você oferece seu imóvel ou veículo como lance de até 50% da carta, continua usando o bem normalmente, e a carta contemplada pode render até 101% do CDI. Resultado: mais patrimônio sem vender o bem. Seu especialista Agion monta a simulação completa.'},
     conta:{t:'100% do valor em conta',m:'Após a contemplação, até 100% do crédito vai para a sua conta corrente para livre uso, com o bem como garantia. Ideal para capitalizar e potencializar seus investimentos.'},
+    contaimovel:{t:'Até 100% do valor do imóvel em conta',m:'Usando seu imóvel quitado como garantia, você pode receber até 100% do valor dele em conta corrente para livre uso, continuando dono e usando o bem normalmente. Ideal para investir, quitar dívidas caras ou aproveitar oportunidades. Seu especialista Agion monta a simulação completa.'},
     obra:{t:'Crédito para obras',m:'O financeiro é liberado em etapas de 30%, para obra própria ou com construtora, com acompanhamento em cada fase da obra.'},
     invest:{t:'Investimentos via consórcio',m:'Dentro da operação de consórcio, a carta contemplada pode ser alocada rendendo até 101% do CDI — diversificação com segurança e liquidez programada.'},
     geral:{t:'Método Agion',m:'Integramos consórcio e investimentos ao seu plano para antecipar metas e crescer seu patrimônio, com meia parcela que cabe no orçamento.'}
