@@ -603,16 +603,17 @@ footer ul a:hover{color:var(--gold-2);transform:translateX(5px)}
   .car-dots i{width:7px;height:7px;border-radius:99px;background:rgba(143,217,204,.28);transition:.35s;cursor:pointer}
   .car-dots i.on{width:24px;background:var(--grad-gold);box-shadow:0 0 12px rgba(197,160,89,.65)}
 
-  /* ---------- RESUMO + EXPANDIR ---------- */
-  .m-detail{display:none!important}
-  .m-open .m-detail{display:revert!important;animation:fadeUp .4s cubic-bezier(.2,.7,.3,1)}
-  .m-expand{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;padding:11px;position:relative;z-index:5;border-radius:14px;border:1.5px solid var(--line-gold);background:rgba(197,160,89,.1);color:var(--gold-2);font-size:.86rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;transition:.3s}
-  .m-expand:active{background:var(--grad-gold);color:#0A2026}
-  .m-expand svg{width:16px;height:16px;transition:.35s}
-  .m-open>.m-expand svg,.m-open .prod-body>.m-expand svg{transform:rotate(180deg)}
-  /* cartões resumidos ficam compactos e elegantes */
-  .car-track .pilar,.car-track .strat-card,.car-track .how-card,.car-track .value-card,.car-track .flow-step,.car-track .dif-card{display:flex;flex-direction:column;justify-content:flex-start;min-height:0;padding:22px 18px}
-  .pilar-head,.dif-head,.strat-top{margin-bottom:8px}
+  /* ---------- SEM "EXPANDIR": conteúdo sempre visível, compacto e harmônico ---------- */
+  .m-detail{display:revert!important}
+  .m-expand{display:none!important}
+  section{padding:38px 0}
+  .section-head{margin-bottom:20px}
+  .car-track .pilar,.car-track .strat-card,.car-track .how-card,.car-track .value-card,.car-track .flow-step,.car-track .dif-card{display:flex;flex-direction:column;justify-content:flex-start;min-height:0;padding:18px 16px}
+  .car-track .pilar>p,.car-track .strat-card>p,.car-track .how-card p,.car-track .flow-step>p,.car-track .value-card p{margin:6px 0 10px}
+  .car-track ul{display:grid;gap:6px!important;margin-top:2px}
+  .car-track li{line-height:1.4}
+  .pilar-head,.dif-head,.strat-top{margin-bottom:10px}
+  .dif-card .dif-foot{margin-top:10px;padding-top:10px}
 }
 
 /* ============ AJUSTES MOBILE FINOS (auditoria) ============ */
