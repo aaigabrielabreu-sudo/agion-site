@@ -968,8 +968,17 @@ async function bootAuth(){
         if(nova){ const {error}=await supa.auth.updateUser({password:nova}); flash(error?'Não foi possível atualizar a senha.':'Senha atualizada!'); if(!error&&sess&&sess.user) await startSession(sess.user); }
       }
     });
+    const params=new URLSearchParams(location.search);
     const {data}=await supa.auth.getSession();
-    if(data&&data.session&&data.session.user){ await startSession(data.session.user); }
+    if(data&&data.session&&data.session.user){
+      if(params.get('convite')){
+        let nova=await ask({title:'Bem-vindo à Agion! Defina sua senha',msg:'Crie a senha de acesso (mínimo 6 caracteres):',input:true,ok:'Salvar e entrar'});
+        while(nova!==null&&nova.trim().length<6){ nova=await ask({title:'Senha muito curta',msg:'Use pelo menos 6 caracteres:',input:true,ok:'Salvar e entrar'}); }
+        if(nova){ const {error}=await supa.auth.updateUser({password:nova}); flash(error?'Não foi possível salvar a senha.':'Senha criada!'); }
+        try{ history.replaceState(null,'',location.pathname); }catch(e){}
+      }
+      await startSession(data.session.user);
+    }
   }catch(e){}
 }
 bootAuth();
@@ -1065,12 +1074,18 @@ function createClientAccount(c){
 }
 async function crmToClient(id){
   const l=(db.crm).find(x=>x.id===id);
-  if(!(await ask({title:'Converter em cliente?',msg:`Cria a ficha de "${l.nome}", gera a conta de acesso do cliente e abre o planejamento.`,ok:'Converter'})))return;
-  const c={id:uid(),nome:l.nome,email:l.contato.includes('@')?l.contato:'',tel:l.contato.includes('@')?'':l.contato,ownerId:meId(),plans:[blankPlan(l.nome)]};
-  db.clients.push(c); l.stage=CRM_STAGES.length-1; l.perdido=false; if(!l.ownerId)l.ownerId=meId(); save();
-  const a=createClientAccount(c);
-  await ask({title:'Cliente e conta criados',msg:`Acesso do cliente — e-mail: ${a.email} · senha: ${a.senha}. Em produção, é enviado por e-mail ao cliente.`,ok:'Ok'});
-  flash('Cliente criado a partir do lead'); view._from='crm'; openEditor(c.id,c.plans[0].id,false);
+  if(!(await ask({title:'Converter em cliente?',msg:`Cria a ficha de "${l.nome}", envia o convite de acesso por e-mail e abre o planejamento.`,ok:'Converter'})))return;
+  let email=l.contato&&l.contato.includes('@')?l.contato.trim():'';
+  if(!email){ email=await ask({title:'E-mail do cliente',msg:'Informe o e-mail para enviar o convite de acesso:',input:true,ok:'Criar e convidar'}); if(!email||!email.trim())return; email=email.trim(); }
+  flash('Criando cliente…');
+  try{ await criarConta(l.nome,email,'cliente'); }
+  catch(e){ await ask({title:'Não foi possível criar',msg:String(e.message||e),ok:'Ok'}); return; }
+  l.stage=CRM_STAGES.length-1; l.perdido=false; if(!l.ownerId)l.ownerId=meId(); save();
+  await loadCloud();
+  await ask({title:'Cliente criado',msg:'Convite enviado para '+email+'. O cliente define a própria senha e acessa o planejamento.',ok:'Ok'});
+  flash('Cliente criado a partir do lead'); view._from='crm';
+  const c=db.clients.find(x=>(x.email||'').toLowerCase()===email.toLowerCase());
+  if(c&&c.plans&&c.plans[0]) openEditor(c.id,c.plans[0].id,false);
 }
 function openLead(id){
   const l=id?(db.crm).find(x=>x.id===id):null;
@@ -1184,30 +1199,40 @@ function renderContas(C){
    <div class="banner">Apenas você (Master) cria contas, distribui leads e mexe nos sistemas da empresa. Cada especialista vê só os próprios clientes e leads; cada cliente vê só o próprio planejamento.</div> <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.users}Especialistas</div><b>${esps.length}</b></div> <div class="kpi"><div class="lab">${ICN.users}Clientes com acesso</div><b>${clis.length}</b></div> </div> <div class="panel"><h2>${ICN.users} Especialistas & Master</h2>${esps.map(rowAcc).join('')}</div> <div class="panel"><h2>${ICN.users} Clientes</h2>${clis.map(rowAcc).join('')||'<p class="note">Nenhuma conta de cliente ainda.</p>'}</div>`;
 }
 async function openAccount(){
+  if(!isMaster()){flash('Apenas o Master cria contas de especialista.');return;}
   const tipo=await ask({title:'Nova conta',msg:'Qual o tipo? Digite: especialista ou cliente',input:true,value:'especialista',ok:'Próximo'});
   if(!tipo)return; const role=tipo.toLowerCase().indexOf('cli')>=0?'cliente':'especialista';
   const nome=await ask({title:'Nome',msg:'Nome completo:',input:true,ok:'Próximo'}); if(!nome||!nome.trim())return;
-  const email=await ask({title:'E-mail',msg:'E-mail de acesso (login):',input:true,ok:'Criar'}); if(!email||!email.trim())return;
-  if(accByEmail(email.trim())){flash('Já existe conta com esse e-mail');return;}
-  const cores=['#8FD9CC','#E8CC8B','#B0875F','#4Fa3a3','#C5A059'];
-  const a={id:'u'+uid(),role,nome:nome.trim(),email:email.trim(),senha:senhaGen(),inicial:initialsOf(nome),cor:cores[Math.floor(Math.random()*cores.length)],papel:role==='cliente'?'Cliente':'Especialista',ativo:true};
-  if(role==='cliente'){const c={id:uuid(),nome:nome.trim(),email:email.trim(),tel:'',ownerId:meId(),plans:[blankPlan(nome.trim())]};db.clients.push(c);a.clientId=c.id;a.ownerId=meId();a.cor='#4Fa3a3';}
-  db.accounts.push(a);save();
-  await ask({title:'Conta criada',msg:`${a.nome} (${role}) — e-mail: ${a.email} · senha: ${a.senha}. Em produção, enviada por e-mail.`,ok:'Ok'});
+  const email=await ask({title:'E-mail',msg:'E-mail de acesso (enviaremos um convite):',input:true,ok:'Criar e convidar'}); if(!email||!email.trim())return;
+  flash('Criando conta…');
+  try{ await criarConta(nome.trim(),email.trim(),role); }
+  catch(e){ await ask({title:'Não foi possível criar',msg:String(e.message||e),ok:'Ok'}); return; }
+  await loadCloud();
+  await ask({title:'Conta criada',msg:`Convite enviado para ${email.trim()}. ${role==='cliente'?'O cliente':'O especialista'} define a própria senha pelo e-mail.`,ok:'Ok'});
   renderContas(document.getElementById('content'));
 }
 async function resetAccount(id){const a=acc(id);if(!(await ask({title:'Resetar senha?',msg:`Gera uma nova senha para ${a.nome}.`,ok:'Resetar'})))return;a.senha=senhaGen();save();await ask({title:' Nova senha',msg:`Senha de ${a.nome}: ${a.senha}. Em produção, enviada por e-mail para ${a.email}.`,ok:'Ok'});}
 function toggleAccount(id){const a=acc(id);a.ativo=a.ativo===false?true:false;save();renderContas(document.getElementById('content'));flash(a.ativo?'Conta ativada':'Conta desativada');}
+async function criarConta(nome,email,role){
+  if(!supa) throw new Error('Serviço indisponível.');
+  const {data,error}=await supa.functions.invoke('criar-conta',{body:{nome,email,role,redirectTo:location.origin+location.pathname+'?convite=1'}});
+  if(error){ let m='Não foi possível criar a conta.'; try{const j=await error.context.json(); if(j&&j.error)m=j.error;}catch(e){} throw new Error(m); }
+  if(data&&data.error) throw new Error(data.error);
+  return data;
+}
 async function newClient(){
   const nome=await ask({title:'Novo cliente',msg:'Nome completo do cliente:',input:true,ok:'Próximo'});
   if(!nome||!nome.trim())return;
-  const email=await ask({title:'E-mail do cliente',msg:'Será o login de acesso do cliente:',input:true,ok:'Criar conta'});
-  if(email===null)return;
-  const c={id:uuid(),nome:nome.trim(),email:(email||'').trim(),tel:'',ownerId:meId(),plans:[blankPlan(nome.trim())]};
-  db.clients.push(c);save();
-  const a=createClientAccount(c);
-  await ask({title:'Cliente e conta criados',msg:`Acesso do cliente — e-mail: ${a.email} · senha: ${a.senha}. Em produção é enviado por e-mail.`,ok:'Ok'});
-  flash('Cliente criado');openEditor(c.id,c.plans[0].id,false);
+  const email=await ask({title:'E-mail do cliente',msg:'Será o login de acesso do cliente (vamos enviar um convite):',input:true,ok:'Criar e convidar'});
+  if(email===null||!email.trim())return;
+  flash('Criando cliente…');
+  try{ await criarConta(nome.trim(),email.trim(),'cliente'); }
+  catch(e){ await ask({title:'Não foi possível criar',msg:String(e.message||e),ok:'Ok'}); return; }
+  await loadCloud();
+  await ask({title:'Cliente criado',msg:'Enviamos um convite por e-mail para '+email.trim()+'. O cliente define a própria senha e já acessa.',ok:'Ok'});
+  flash('Cliente criado'); render();
+  const c=db.clients.find(x=>(x.email||'').toLowerCase()===email.trim().toLowerCase());
+  if(c&&c.plans&&c.plans[0]) openEditor(c.id,c.plans[0].id,false);
 }
 
 /* ===================== EDITOR DE PLANO (SEÇÕES) ===================== */
