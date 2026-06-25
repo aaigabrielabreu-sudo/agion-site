@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Lora:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -481,6 +482,10 @@ body.light .logo-img,body.light .top-logo{filter:none}
 <div class="flash" id="flash"></div> <script>
 /* ===================== UTIL ===================== */
 const DB_KEY='agion_wealth_v2';
+/* ===== SUPABASE (login real) ===== */
+const SUPA_URL='https://sfekirqoflozylghwlbe.supabase.co';
+const SUPA_KEY='sb_publishable_Ds4PlQmsvnny5GdALHvVYQ_RHgtFXw2';
+const supa=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPA_URL,SUPA_KEY):null;
 const BRL=v=>(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
 const BRL2=v=>(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2});
 const uid=()=>Math.random().toString(36).slice(2,9);
@@ -870,15 +875,30 @@ function destroyCharts(){charts.forEach(c=>{try{c.destroy()}catch(e){}});charts=
 
 /* ===================== LOGIN / AUTENTICAÇÃO ===================== */
 function loginErr(m){const el=document.getElementById('loginMsg');el.textContent=m;el.style.color='var(--bad)';}
-function doLogin(){
+async function doLogin(){
   const email=(document.getElementById('logEmail').value||'').trim();
   const pass=document.getElementById('logPass').value;
-  const a=accByEmail(email);
-  if(!a||a.ativo===false) return loginErr('Conta não encontrada ou inativa.');
-  if(a.senha!==pass) return loginErr('Senha incorreta.');
-  session={role:a.role,userId:a.id,clientId:a.clientId||null};
-  paintUser(a);
-  document.getElementById('loginMsg').textContent='';
+  if(!email||!pass) return loginErr('Informe e-mail e senha.');
+  if(!supa) return loginErr('Serviço de login indisponível. Recarregue a página.');
+  const el=document.getElementById('loginMsg'); el.style.color='var(--muted)'; el.textContent='Entrando…';
+  const {data,error}=await supa.auth.signInWithPassword({email,password:pass});
+  if(error||!data||!data.user){return loginErr('E-mail ou senha incorretos.');}
+  await startSession(data.user);
+}
+async function startSession(authUser){
+  let prof=null;
+  try{ const r=await supa.from('profiles').select('*').eq('id',authUser.id).single(); prof=r.data; }catch(e){}
+  const nome=(prof&&prof.nome)||authUser.email;
+  const role=(prof&&prof.role)||'cliente';
+  const me={id:authUser.id,role,nome,email:authUser.email,
+    papel:(prof&&prof.papel)||(role==='master'?'Master':role==='especialista'?'Especialista':'Cliente'),
+    inicial:initialsOf(nome),cor:(prof&&prof.cor)||'#C5A059',ativo:true};
+  if(!db.accounts.find(a=>a.id===me.id)) db.accounts.unshift(me);
+  session={role,userId:me.id,clientId:null};
+  if(role==='cliente'){ try{ const c=await supa.from('clientes').select('id').eq('user_id',authUser.id).limit(1); if(c.data&&c.data[0]) session.clientId=c.data[0].id; }catch(e){} }
+  paintUser(me);
+  const el=document.getElementById('loginMsg'); if(el)el.textContent='';
+  try{ supa.rpc('log_event',{p_action:'LOGIN',p_entity:'app',p_descricao:'Entrou na plataforma',p_detalhes:{}}); }catch(e){}
   enterApp('dash');
 }
 function paintUser(a){
@@ -888,15 +908,30 @@ function paintUser(a){
 }
 async function forgotPass(){
   const email=(document.getElementById('logEmail').value||'').trim();
-  const a=accByEmail(email);
-  if(!a) return loginErr('Digite o e-mail da sua conta para redefinir a senha.');
-  const nova=senhaGen(); a.senha=nova; save();
-  await ask({title:' Redefinição de senha',msg:`Em produção, uma nova senha seria enviada por e-mail para ${a.email}. No teste, sua nova senha é: ${nova}`,ok:'Entendi'});
-  document.getElementById('logPass').value=nova;
-  const el=document.getElementById('loginMsg');el.style.color='var(--ok)';el.textContent='Senha redefinida — preenchemos para você entrar.';
+  if(!email) return loginErr('Digite o e-mail da sua conta para redefinir a senha.');
+  if(!supa) return loginErr('Serviço indisponível. Recarregue a página.');
+  const el=document.getElementById('loginMsg'); el.style.color='var(--muted)'; el.textContent='Enviando…';
+  const {error}=await supa.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  if(error){el.style.color='var(--bad)';el.textContent='Não foi possível enviar agora. Tente novamente.';return;}
+  el.style.color='var(--ok)';el.textContent='Enviamos um link de redefinição para o seu e-mail (confira o spam).';
 }
 function enterApp(page){document.getElementById('loginView').classList.add('hidden');document.getElementById('app').classList.add('show');view={page};renderNav();render()}
-function logout(){session={role:null};document.getElementById('app').classList.remove('show');document.getElementById('loginView').classList.remove('hidden');destroyCharts()}
+async function logout(){ try{ if(supa) await supa.auth.signOut(); }catch(e){} session={role:null};document.getElementById('app').classList.remove('show');document.getElementById('loginView').classList.remove('hidden');destroyCharts(); const le=document.getElementById('logEmail'),lp=document.getElementById('logPass'); if(le)le.value=''; if(lp)lp.value=''; }
+/* restaura sessão existente (entra direto no painel) e trata o link de redefinição de senha */
+async function bootAuth(){
+  if(!supa) return;
+  try{
+    supa.auth.onAuthStateChange(async (evt,sess)=>{
+      if(evt==='PASSWORD_RECOVERY'){
+        const nova=await ask({title:'Definir nova senha',msg:'Digite a sua nova senha (mínimo 6 caracteres):',input:true,ok:'Salvar'});
+        if(nova){ const {error}=await supa.auth.updateUser({password:nova}); flash(error?'Não foi possível atualizar a senha.':'Senha atualizada!'); if(!error&&sess&&sess.user) await startSession(sess.user); }
+      }
+    });
+    const {data}=await supa.auth.getSession();
+    if(data&&data.session&&data.session.user){ await startSession(data.session.user); }
+  }catch(e){}
+}
+bootAuth();
 
 /* ===================== RENDER PRINCIPAL ===================== */
 function render(){
