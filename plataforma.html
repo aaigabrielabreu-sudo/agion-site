@@ -138,7 +138,19 @@ canvas{width:100%!important;height:280px!important}
 .opbody h3{font-family:var(--serif);font-size:1.02rem;color:var(--head);margin:2px 0 6px;line-height:1.25}
 .opbody p{font-size:.84rem;color:var(--ink);line-height:1.55;margin-bottom:12px}
 @media(max-width:760px){.ops{grid-template-columns:1fr}}
+
+/* caixa diferencial Agion (premium) */
+.diffbox{display:flex;gap:14px;align-items:flex-start;background:linear-gradient(135deg,rgba(197,160,89,.16),rgba(143,217,204,.06));border:1px solid var(--line-gold);border-radius:16px;padding:18px;margin-bottom:18px;position:relative;overflow:hidden}
+.diffbox::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--grad-gold)}
+.diffbox .diffic{flex-shrink:0;width:46px;height:46px;border-radius:13px;background:rgba(197,160,89,.18);display:grid;place-items:center;color:var(--gold2)}
+.diffbox .diffic svg{width:24px;height:24px}
+.diffbox h3{font-family:var(--serif);font-size:1.08rem;color:var(--gold2);margin:0 0 5px}
+.diffbox p{font-size:.9rem;line-height:1.6;color:var(--ink);margin:0}
+.diffbox b{color:var(--head)}
+@media(max-width:560px){.diffbox{padding:15px;gap:11px}.diffbox .diffic{width:40px;height:40px}}
+
 .locked input,.locked select,.locked textarea,.locked .additem,.locked .delrow{pointer-events:none;opacity:.55}
+.locked .lever input[type=range]{pointer-events:auto!important;opacity:1!important}
 /* itens (linhas dinâmicas) */
 .item{display:grid;grid-template-columns:1fr 130px 120px 34px;gap:8px;align-items:end;margin-bottom:8px}
 .item.assets{grid-template-columns:1fr 150px 130px 34px}
@@ -253,6 +265,29 @@ canvas{width:100%!important;height:280px!important}
 .j-step .x:hover{color:var(--bad)}
 .j-addstep{display:flex;gap:8px;margin-top:10px}
 .j-addstep input{flex:1}
+
+/* organograma responsivo (vertical no mobile, horizontal no desktop) */
+.orgmap{padding:4px 0}
+.osteps{display:flex;flex-direction:column;gap:0;align-items:stretch}
+.ostep{flex:1;background:linear-gradient(160deg,var(--card3),var(--card2));border:1px solid var(--line-gold);border-radius:13px;padding:12px 16px;text-align:center;transition:transform .2s,border-color .2s}
+.ostep:hover{transform:translateY(-2px);border-color:var(--gold)}
+.ostep b{display:block;font-family:var(--serif);font-size:1rem;color:var(--head);line-height:1.2}
+.ostep span{font-size:.76rem;color:var(--gold2)}
+.ostep.meta{background:rgba(197,160,89,.12)}
+.oarrow{display:block;text-align:center;color:var(--gold);font-size:1.05rem;line-height:1;margin:5px 0;opacity:.85}
+.ometas{margin-top:16px}
+.olabel{font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--soft);font-weight:700;margin-bottom:8px}
+.ometagrid{display:grid;gap:10px;grid-template-columns:1fr}
+.ometa{background:rgba(143,217,204,.08);border:1px solid rgba(143,217,204,.3);border-radius:12px;padding:11px 14px;text-align:center;transition:transform .2s}
+.ometa:hover{transform:translateY(-2px)}
+.ometa b{display:block;font-family:var(--serif);color:var(--head);font-size:.95rem}
+.ometa span{font-size:.78rem;color:var(--teal)}
+@media(min-width:861px){
+  .osteps{flex-direction:row;align-items:stretch;gap:0}
+  .osteps .oarrow{transform:rotate(-90deg);margin:0;align-self:center}
+  .ometagrid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+}
+
 .flash{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--grad-gold);color:var(--teal-ink);font-weight:700;padding:13px 26px;border-radius:999px;box-shadow:0 12px 30px rgba(0,0,0,.4);z-index:500;opacity:0;transition:.3s;font-size:.9rem}
 .flash.show{opacity:1;bottom:34px}
 /* ===== POLIMENTO GERAL DE UX ===== */
@@ -346,10 +381,11 @@ body.light .logo-img,body.light .top-logo{filter:none}
 @media(max-width:860px){
   #app.show{grid-template-columns:1fr}
   .side{display:none}
-  .mobnav{display:flex;justify-content:space-between;gap:2px;padding:7px 8px calc(7px + env(safe-area-inset-bottom,0px));position:fixed;left:0;right:0;bottom:0;top:auto;background:rgba(8,22,27,.97);backdrop-filter:blur(18px);border-top:1px solid var(--line-gold);z-index:70;overflow-x:auto}
+  .mobnav{display:flex;justify-content:space-between;gap:1px;padding:7px 4px calc(7px + env(safe-area-inset-bottom,0px));position:fixed;left:0;right:0;bottom:0;top:auto;background:rgba(8,22,27,.97);backdrop-filter:blur(18px);border-top:1px solid var(--line-gold);z-index:70;overflow:hidden}
   .mobnav::-webkit-scrollbar{display:none}
-  .mobnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:54px;padding:5px 4px;border-radius:12px;font-size:.6rem;font-weight:700;color:var(--soft);white-space:nowrap}
-  .mobnav a .icon{width:21px;height:21px;stroke-width:1.8}
+  .mobnav a{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;border-radius:12px;font-size:.56rem;font-weight:700;color:var(--soft);text-align:center}
+  .mobnav a span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mobnav a .icon{width:20px;height:20px;stroke-width:1.8;flex-shrink:0}
   .mobnav a.on{color:var(--gold2)}
   .mobnav a.on .icon{filter:drop-shadow(0 0 6px rgba(197,160,89,.5))}
   .mobnav .mob-brand{display:none}
@@ -679,43 +715,14 @@ function trunc(s,n){s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s;}
 function roadmapSVG(p){
   const apos=p.apos;
   const goals=(p.goals||[]).slice().sort((a,b)=>((a.idade||apos)-(b.idade||apos)));
-  const gold='#C5A059',gold2='#E8CC8B',teal='#8FD9CC',cardF='#1A3B45',goldB='rgba(197,160,89,.45)',tealB='rgba(143,217,204,.5)';
   const phases=[['Diagnóstico','raio-x financeiro hoje'],['Reserva','6 meses de despesas'],['Acumulação','aporte mensal investido'],['Metas','objetivos do cliente'],['Independência','aos '+apos+' anos']];
-  const W=1060, bw=184, by=44, bh=58, n=phases.length;
-  const gap=(W-24-n*bw)/(n-1), x0=12;
-  const bx=i=>x0+i*(bw+gap);
-  const cx=i=>bx(i)+bw/2;
-  const hd=(typeof document!=='undefined'&&document.body&&document.body.classList.contains('light'))?'#0E2A31':'var(--head)';
-  const node=(x,y,w,h,t,s,kind)=>{
-    const stroke=kind==='teal'?tealB:goldB, accent=kind==='teal'?teal:gold2;
-    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="13" fill="${cardF}" stroke="${stroke}" stroke-width="1.4"/>`+
-      `<text x="${x+w/2}" y="${y+24}" text-anchor="middle" fill="${hd}" font-family="Georgia,serif" font-size="14.5" font-weight="700">${esc(trunc(t,24))}</text>`+
-      `<text x="${x+w/2}" y="${y+42}" text-anchor="middle" fill="${accent}" font-family="DM Sans,sans-serif" font-size="10.5">${esc(trunc(s,30))}</text>`;
-  };
-  let svg=`<svg viewBox="0 0 ${W} ${goals.length?300:130}" style="width:100%;min-width:760px" xmlns="http://www.w3.org/2000/svg" role="img"><desc>Organograma horizontal das etapas do plano com bifurcação nas metas.</desc>`;
-  svg+=`<defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M1,1 L8,4.5 L1,8" fill="none" stroke="${gold}" stroke-width="1.6"/></marker></defs>`;
-  // setas da espinha (etapas)
-  for(let i=0;i<n-1;i++){const xa=bx(i)+bw, xb=bx(i+1);svg+=`<line x1="${xa}" y1="${by+bh/2}" x2="${xb-3}" y2="${by+bh/2}" stroke="${gold}" stroke-width="1.8" marker-end="url(#ah)"/>`;}
-  // bifurcação: do nó "Metas" (i=3) para as metas
+  const arrow='<i class="oarrow">↓</i>';
+  const steps=phases.map(ph=>`<div class="ostep ${ph[0]==='Metas'?'meta':''}"><b>${esc(ph[0])}</b><span>${esc(ph[1])}</span></div>`).join(arrow);
+  let metas='';
   if(goals.length){
-    const mx=cx(3), my=by+bh, gy=196, gh=62, gw=190;
-    const aL=30,aR=W-30,aW=aR-aL,step=aW/goals.length;
-    goals.forEach((g,i)=>{
-      const gx=aL+step*i+(step-gw)/2, gcx=gx+gw/2;
-      const midY=(my+gy)/2;
-      svg+=`<path d="M ${mx} ${my} C ${mx} ${midY}, ${gcx} ${midY}, ${gcx} ${gy}" fill="none" stroke="${tealB}" stroke-width="1.6"/>`;
-      svg+=`<circle cx="${gcx}" cy="${gy}" r="3" fill="${teal}"/>`;
-      const tag=(g.tipo==='renda'?'Renda '+BRL(g.valor)+'/mês':BRL(g.valor))+' · aos '+(g.idade||apos);
-      svg+=node(gx,gy,gw,gh,g.desc||'Objetivo',tag,'teal');
-    });
+    metas=`<div class="ometas"><div class="olabel">Metas que se desdobram</div><div class="ometagrid">${goals.map(g=>{const tag=(g.tipo==='renda'?'Renda '+BRL(g.valor)+'/mês':BRL(g.valor))+' · aos '+(g.idade||apos);return `<div class="ometa"><b>${esc(g.desc||'Objetivo')}</b><span>${esc(tag)}</span></div>`;}).join('')}</div></div>`;
   }
-  // nós das etapas por cima
-  phases.forEach((ph,i)=>{ svg+=node(bx(i),by,bw,bh,ph[0],ph[1], i===3&&goals.length?'gold':'gold'); });
-  // rótulo de fase
-  svg+=`<text x="${x0}" y="26" fill="#9DB5B1" font-family="DM Sans,sans-serif" font-size="11" font-weight="700" letter-spacing="1.5">ETAPAS DO PLANO →</text>`;
-  if(goals.length) svg+=`<text x="${x0}" y="180" fill="#6E8B88" font-family="DM Sans,sans-serif" font-size="11" font-weight="700" letter-spacing="1.5">METAS (bifurcação)</text>`;
-  svg+=`</svg>`;
-  return `<div style="overflow-x:auto;padding:4px 0">${svg}</div>`;
+  return `<div class="orgmap"><div class="osteps">${steps}</div>${metas}</div>`;
 }
 function renderJourney(p,editable){
   ensureSteps(p);
@@ -817,7 +824,7 @@ const mainPlan=c=>client(c).plans.find(p=>p.main);
 function navItems(){
   if(session.role==='master') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users]];
   if(session.role==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users]];
-  return [['dash','Início',ICN.dash],['plan','Meu Planejamento',ICN.plan],['jornada','Minha Jornada',ICN.target],['gastos','Meus Gastos',ICN.money],['cota','Minha Cota',ICN.cota]];
+  return [['dash','Início',ICN.dash],['plan','Planejamento',ICN.plan],['jornada','Jornada',ICN.target],['gastos','Gastos',ICN.money],['cota','Cota',ICN.cota]];
 }
 function renderNav(){
   const items=navItems();
@@ -1172,7 +1179,7 @@ function renderEditor(C){
     </div>`)}
 
   ${sec('consorcio',`
-    <div class="banner"> <b>O diferencial Agion:</b> unimos consórcio + planejamento + consultoria. A carta de crédito entra como patrimônio na contemplação e é capitalizada — acelerando os seus objetivos sem os juros de um financiamento.</div> <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.cota}Crédito (cartas)</div><b>${BRL(R.consCredito)}</b></div> <div class="kpi"><div class="lab">${ICN.money}Parcela (meia) estimada</div><b>${BRL(R.consParcela)}/mês</b></div> ${R.consAluguel>0?`<div class="kpi grad"><div class="lab">${ICN.cota}Aluguel gerado</div><b>${BRL(R.consAluguel)}/mês</b></div>`:`<div class="kpi"><div class="lab">${ICN.wallet}Patrimônio aos ${p.apos}</div><b>${BRL(R.patApos)}</b></div>`}
+    <div class="diffbox"><span class="diffic">${ICN.spark}</span><div class="difftx"><h3>O diferencial Agion</h3><p>Unimos <b>consórcio + planejamento + consultoria</b>. A carta de crédito entra como <b>patrimônio</b> na contemplação e é <b>capitalizada</b> — acelerando os seus objetivos <b>sem os juros</b> de um financiamento.</p></div></div> <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.cota}Crédito (cartas)</div><b>${BRL(R.consCredito)}</b></div> <div class="kpi"><div class="lab">${ICN.money}Parcela (meia) estimada</div><b>${BRL(R.consParcela)}/mês</b></div> ${R.consAluguel>0?`<div class="kpi grad"><div class="lab">${ICN.cota}Aluguel gerado</div><b>${BRL(R.consAluguel)}/mês</b></div>`:`<div class="kpi"><div class="lab">${ICN.wallet}Patrimônio aos ${p.apos}</div><b>${BRL(R.patApos)}</b></div>`}
       <div class="kpi"><div class="lab">${ICN.spark}Probabilidade</div><b>${R.prob}%</b></div> </div> <div class="panel"><h2>${ICN.cota} Cartas de consórcio do cliente</h2><div id="consorcios"></div> <button class="btn btn-teal btn-sm additem" onclick="addRow('consorcios')">+ Adicionar consórcio</button> <p class="note" style="margin-top:8px">Meia parcela = crédito × (1 + taxa adm.) ÷ prazo ÷ 2. Imóvel: 22% · Auto: 16% (taxas de referência).</p> </div> <div class="panel"><h2>${ICN.plan} Patrimônio com x sem consórcio</h2><canvas id="chCons"></canvas></div> <div class="panel"><h2>${ICN.spark} Impacto da contemplação (6 · 12 · 24 meses)</h2>${consorcioImpacto(p)}</div>`)}
 
   ${sec('fluxo',`
@@ -1246,7 +1253,7 @@ function drawSectionCharts(s){
       {label:'Atual',data:R.serie,backgroundColor:'rgba(197,160,89,.12)',fill:true,tension:.25,pointRadius:0,borderWidth:2.6,borderColor:gold,
         segment:{borderColor:ctx=>ctx.p0DataIndex>=splitIdx?teal:gold}},
       {label:'Objetivos',data:markers,showLine:false,pointRadius:6,pointBackgroundColor:'#E8CC8B',pointBorderColor:'#0D232B',pointBorderWidth:2}
-    ]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': R$ '+Math.round(c.parsed.y).toLocaleString('pt-BR')}}},scales:ax(v=>'R$ '+(v/1e6).toFixed(1)+'M').scales}});
+    ]},options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false,axis:'x'},plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{title:its=>its&&its.length?('Aos '+its[0].label+' anos'):'',label:c=>c.dataset.label==='Objetivos'?null:c.dataset.label+': '+BRL(c.parsed.y)}}},scales:ax(v=>'R$ '+(v/1e6).toFixed(1)+'M').scales}});
   } else if(s==='consorcio'){
     const sem=planClone(p); sem.consorcios=[]; const Rs=projetar(sem);
     mkChart('chCons',{type:'line',data:{labels:R.idades,datasets:[

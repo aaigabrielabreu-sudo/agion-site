@@ -614,6 +614,7 @@ footer ul a:hover{color:var(--gold-2);transform:translateX(5px)}
   .car-track li{line-height:1.4}
   .pilar-head,.dif-head,.strat-top{margin-bottom:10px}
   .dif-card .dif-foot{margin-top:10px;padding-top:10px}
+  .car-track .dif-tag{position:static;align-self:flex-start;margin:0 0 12px;box-shadow:none}
 }
 
 /* ============ AJUSTES MOBILE FINOS (auditoria) ============ */
