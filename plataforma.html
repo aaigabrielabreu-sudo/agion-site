@@ -498,7 +498,7 @@ async function loadCloud(){
       supa.from('clientes').select('*'),
       supa.from('planos').select('*')
     ]);
-    if(pr.data){ pr.data.forEach(p=>{ const ex=db.accounts.find(a=>a.id===p.id); const obj={id:p.id,role:p.role,nome:p.nome||'—',email:ex?ex.email:'',papel:p.papel||(p.role==='master'?'Master':p.role==='especialista'?'Especialista':'Cliente'),inicial:p.inicial||initialsOf(p.nome||'?'),cor:p.cor||'#8FD9CC',ativo:p.ativo!==false}; if(ex)Object.assign(ex,obj); else db.accounts.push(obj); }); }
+    if(pr.data){ pr.data.forEach(p=>{ const ex=db.accounts.find(a=>a.id===p.id); const obj={id:p.id,role:p.role,nome:p.nome||'—',email:ex?ex.email:'',papel:p.papel||ROLE_LBL[p.role]||'Cliente',leaderId:p.leader_id||null,real:true,inicial:p.inicial||initialsOf(p.nome||'?'),cor:p.cor||'#8FD9CC',ativo:p.ativo!==false}; if(ex)Object.assign(ex,obj); else db.accounts.push(obj); }); }
     if(cl.data && cl.data.length){
       db.clients = cl.data.map(c=>{
         const plans=(pl.data||[]).filter(p=>p.cliente_id===c.id)
@@ -615,11 +615,18 @@ const senhaGen=()=>Math.random().toString(36).slice(2,6)+Math.floor(10+Math.rand
 const acc=id=>(db.accounts||[]).find(a=>a.id===id);
 const accByEmail=e=>(db.accounts||[]).find(a=>(a.email||'').toLowerCase()===(e||'').toLowerCase());
 const isMaster=()=>session.role==='master';
+const isLider=()=>session.role==='lider';
+const isStaff=()=>session.role==='master'||session.role==='lider'||session.role==='especialista';
 const meId=()=>session.userId;
-// clientes visíveis para o usuário logado (master vê todos; especialista vê os seus)
-function visibleClients(){return isMaster()?db.clients:db.clients.filter(c=>c.ownerId===meId());}
-function canEditClient(c){return isMaster()||c.ownerId===meId();}
-function visibleLeads(){return isMaster()?db.crm:(db.crm||[]).filter(l=>l.ownerId===meId());}
+const ROLE_LBL={master:'Master',lider:'Líder',especialista:'Especialista',cliente:'Cliente'};
+const roleLabel=(r,papel)=>(r==='especialista'?(papel||'Especialista'):(ROLE_LBL[r]||'Especialista'));
+// ids dos especialistas sob o líder logado (hierarquia master › líder › especialista › cliente)
+function myEspecialistaIds(){return (db.accounts||[]).filter(a=>a.role==='especialista'&&a.leaderId===meId()).map(a=>a.id);}
+function ownerVisible(ownerId){ if(isMaster())return true; if(ownerId===meId())return true; if(isLider())return myEspecialistaIds().indexOf(ownerId)>=0; return false; }
+// clientes visíveis: master vê todos; líder vê os seus + dos seus especialistas; especialista vê os seus
+function visibleClients(){ if(isMaster())return db.clients; return db.clients.filter(c=>ownerVisible(c.ownerId)); }
+function canEditClient(c){ return ownerVisible(c.ownerId); }
+function visibleLeads(){ if(isMaster())return db.crm; return (db.crm||[]).filter(l=>ownerVisible(l.ownerId)); }
 function seedIntegr(){return {Google:{conectado:true,conta:'Agion — Google Ads / Lead Forms'},Meta:{conectado:true,conta:'Agion — Facebook & Instagram Lead Ads'}};}
 const user=id=>(db.accounts||[]).find(u=>u.id===id)||{nome:'—',inicial:'?',cor:'#6E8B88'};
 function timeAgo(ts){const d=Date.now()-ts;if(d<MIN)return 'agora';if(d<HR)return 'há '+Math.floor(d/MIN)+' min';if(d<DAY)return 'há '+Math.floor(d/HR)+'h';return 'há '+Math.floor(d/DAY)+'d';}
@@ -868,6 +875,7 @@ const mainPlan=c=>client(c).plans.find(p=>p.main);
 
 function navItems(){
   if(session.role==='master') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users]];
+  if(session.role==='lider') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users]];
   if(session.role==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users]];
   return [['dash','Início',ICN.dash],['plan','Planejamento',ICN.plan],['jornada','Jornada',ICN.target],['gastos','Gastos',ICN.money],['cota','Cota',ICN.cota]];
 }
@@ -931,7 +939,7 @@ async function startSession(authUser){
   const nome=(prof&&prof.nome)||authUser.email;
   const role=(prof&&prof.role)||'cliente';
   const me={id:authUser.id,role,nome,email:authUser.email,
-    papel:(prof&&prof.papel)||(role==='master'?'Master':role==='especialista'?'Especialista':'Cliente'),
+    papel:(prof&&prof.papel)||ROLE_LBL[role]||'Cliente',leaderId:(prof&&prof.leader_id)||null,real:true,
     inicial:initialsOf(nome),cor:(prof&&prof.cor)||'#C5A059',ativo:true};
   if(!db.accounts.find(a=>a.id===me.id)) db.accounts.unshift(me);
   session={role,userId:me.id,clientId:null};
@@ -943,7 +951,7 @@ async function startSession(authUser){
   enterApp('dash');
 }
 function paintUser(a){
-  const lbl=a.role==='cliente'?'Cliente':(a.role==='master'?'Master':(a.papel||'Especialista'));
+  const lbl=roleLabel(a.role,a.papel);
   document.getElementById('sideUser').innerHTML=`<div style="display:flex;align-items:center;gap:8px">${avatar(a.id,26)}<span>${esc((a.nome||'').split(' ')[0])} · ${esc(lbl)}</span></div>`;
   document.getElementById('userChip').innerHTML=`${avatar(a.id,32)}<div class="meta"><div class="nm">${esc((a.nome||'').split(' ')[0])}</div><div class="rl">${esc(lbl)}</div></div><button class="out" onclick="logout()">Sair</button>`;
 }
@@ -988,7 +996,7 @@ function render(){
   destroyCharts();
   updateBell();
   const C=document.getElementById('content');
-  if(session.role==='especialista'||session.role==='master'){
+  if(isStaff()){
     if(view.page==='dash') return renderAssessorDash(C);
     if(view.page==='crm') return renderCRM(C);
     if(view.page==='captacao') return renderCaptacao(C);
@@ -996,7 +1004,7 @@ function render(){
     if(view.page==='chat') return renderChat(C);
     if(view.page==='tarefas') return renderTarefas(C);
     if(view.page==='users') return renderClients(C);
-    if(view.page==='contas'&&isMaster()) return renderContas(C);
+    if(view.page==='contas'&&(isMaster()||isLider())) return renderContas(C);
     if(view.page==='editor') return renderEditor(C);
     if(view.page==='compare') return renderCompare(C);
   }else{
@@ -1047,7 +1055,7 @@ function leadCard(l,i){
   return `<div class="lead" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><span class="ttype tt-${l.tipo}">${l.tipo}</span> <div class="nm">${esc(l.nome)}</div> <div class="ct">${esc(l.contato||'')}</div> ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''}
     ${l.obs?`<div class="note" style="margin-top:6px">${esc(l.obs)}</div>`:''}
     ${(l.atividades&&l.atividades.length)?`<div class="note" style="margin-top:6px;color:var(--soft)"> ${esc(l.atividades[l.atividades.length-1].texto)} · ${timeAgo(l.atividades[l.atividades.length-1].quando)}</div>`:''}
-    <div class="note" style="margin-top:6px;color:var(--soft)">${l.ownerId?''+esc(user(l.ownerId).nome.split(' ')[0]):'⚠️ não distribuído'}</div> ${isMaster()?`<select onchange="crmAssign('${l.id}',this.value)" style="margin-top:6px;font-size:.74rem;padding:6px 8px"><option value="">— distribuir para —</option>${(db.accounts||[]).filter(a=>a.role==='especialista'||a.role==='master').map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`:''}
+    <div class="note" style="margin-top:6px;color:var(--soft)">${l.ownerId?''+esc(user(l.ownerId).nome.split(' ')[0]):'⚠️ não distribuído'}</div> ${(isMaster()||isLider())?`<select onchange="crmAssign('${l.id}',this.value)" style="margin-top:6px;font-size:.74rem;padding:6px 8px"><option value="">— distribuir para —</option>${(db.accounts||[]).filter(a=>a.real&&a.role==='especialista'&&(isMaster()||a.leaderId===meId())).map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`:''}
     <div class="acts"> ${i>0?`<button onclick="crmMove('${l.id}',-1)" title="Voltar etapa">◀</button>`:''}
       ${i<last?`<button onclick="crmMove('${l.id}',1)" title="Avançar etapa">▶</button>`:''}
       <button onclick="crmNote('${l.id}')"> Nota</button> <button onclick="openLead('${l.id}')">✎ Editar</button> <button onclick="crmToClient('${l.id}')">→ Cliente</button> <button onclick="crmLose('${l.id}')">Perdeu</button> </div></div>`;
@@ -1170,7 +1178,7 @@ function simulLead(){const nomes=['Pedro Henrique','Juliana Reis','Marcos Viníc
 
 /* ===================== ASSESSOR: PAINEL ===================== */
 function renderAssessorDash(C){
-  setTop(isMaster()?'Painel do Master':'Painel do Especialista','Visão geral');
+  setTop('Painel do '+(isMaster()?'Master':isLider()?'Líder':'Especialista'),'Visão geral');
   const VC=visibleClients(); const VL=visibleLeads();
   let totPatr=0,totApos=0,sob=0; VC.forEach(c=>{const t=totals(mainPlan(c));totPatr+=t.patr;sob+=t.sobra});
   const sims=VC.reduce((a,c)=>a+c.plans.filter(p=>!p.main).length,0);
@@ -1190,25 +1198,35 @@ function renderClients(C){
 }
 /* ===================== CONTAS (somente master) ===================== */
 function renderContas(C){
-  setTop('Contas & Permissões','Somente o Master gerencia contas',
+  const isM=isMaster();
+  setTop(isM?'Contas & Permissões':'Minha equipe', isM?'Hierarquia: Master › Líder › Especialista › Cliente':'Seus especialistas e clientes',
     '<button class="btn btn-gold btn-sm" onclick="openAccount()">+ Nova conta</button>');
-  const esps=(db.accounts||[]).filter(a=>a.role==='master'||a.role==='especialista');
-  const clis=(db.accounts||[]).filter(a=>a.role==='cliente');
-  const rowAcc=a=>`<div class="netrow"><span style="display:flex;align-items:center;gap:10px">${avatar(a.id,30)}<span><b style="color:var(--head)">${esc(a.nome)}</b> ${a.role==='master'?'<span class="chip" style="margin-left:4px">MASTER</span>':''}<br><span class="note">${esc(a.email)} · ${esc(a.papel||a.role)}${a.role==='cliente'&&a.ownerId?' · de '+esc(user(a.ownerId).nome.split(' ')[0]):''}${a.ativo===false?' · INATIVO':''}</span></span></span> <span style="display:flex;gap:6px">${a.role!=='master'?`<button class="btn btn-ghost btn-sm" onclick="resetAccount('${a.id}')">Resetar senha</button><button class="btn btn-ghost btn-sm" onclick="toggleAccount('${a.id}')">${a.ativo===false?'Ativar':'Desativar'}</button>`:'<span class="note">você</span>'}</span></div>`;
+  const all=(db.accounts||[]).filter(a=>a.real);
+  const lideres=all.filter(a=>a.role==='lider');
+  const esps=all.filter(a=>a.role==='master'||a.role==='especialista');
+  const clis=all.filter(a=>a.role==='cliente');
+  const rowAcc=a=>`<div class="netrow"><span style="display:flex;align-items:center;gap:10px">${avatar(a.id,30)}<span><b style="color:var(--head)">${esc(a.nome)}</b> ${a.role==='master'?'<span class="chip" style="margin-left:4px">MASTER</span>':a.role==='lider'?'<span class="chip" style="margin-left:4px">LÍDER</span>':''}<br><span class="note">${esc(a.email)} · ${esc(roleLabel(a.role,a.papel))}${a.role==='especialista'&&a.leaderId?' · líder '+esc((user(a.leaderId).nome||'').split(' ')[0]):''}${a.ativo===false?' · INATIVO':''}</span></span></span> <span style="display:flex;gap:6px">${a.id!==meId()?`<button class="btn btn-ghost btn-sm" onclick="resetAccount('${a.id}')">Resetar senha</button><button class="btn btn-ghost btn-sm" onclick="toggleAccount('${a.id}')">${a.ativo===false?'Ativar':'Desativar'}</button>`:'<span class="note">você</span>'}</span></div>`;
   C.innerHTML=`
-   <div class="banner">Apenas você (Master) cria contas, distribui leads e mexe nos sistemas da empresa. Cada especialista vê só os próprios clientes e leads; cada cliente vê só o próprio planejamento.</div> <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.users}Especialistas</div><b>${esps.length}</b></div> <div class="kpi"><div class="lab">${ICN.users}Clientes com acesso</div><b>${clis.length}</b></div> </div> <div class="panel"><h2>${ICN.users} Especialistas & Master</h2>${esps.map(rowAcc).join('')}</div> <div class="panel"><h2>${ICN.users} Clientes</h2>${clis.map(rowAcc).join('')||'<p class="note">Nenhuma conta de cliente ainda.</p>'}</div>`;
+   <div class="banner">${isM?'Você (Master) vê e gerencia toda a hierarquia. Líderes veem seus especialistas e os clientes deles; especialistas veem só os próprios clientes; cada cliente vê só o próprio planejamento.':'Você (Líder) gerencia seus especialistas e os clientes deles. Use “+ Nova conta” para criar especialistas e clientes.'}</div>
+   <div class="kpis"> ${isM?`<div class="kpi grad"><div class="lab">${ICN.users}Líderes</div><b>${lideres.length}</b></div>`:''} <div class="kpi"><div class="lab">${ICN.users}Especialistas</div><b>${esps.filter(a=>a.role==='especialista').length}</b></div> <div class="kpi"><div class="lab">${ICN.users}Clientes com acesso</div><b>${clis.length}</b></div> </div>
+   ${lideres.length?`<div class="panel"><h2>${ICN.users} Líderes</h2>${lideres.map(rowAcc).join('')}</div>`:''}
+   <div class="panel"><h2>${ICN.users} Especialistas${isM?' & Master':''}</h2>${esps.map(rowAcc).join('')||'<p class="note">Nenhum especialista ainda.</p>'}</div>
+   <div class="panel"><h2>${ICN.users} Clientes</h2>${clis.map(rowAcc).join('')||'<p class="note">Nenhuma conta de cliente ainda.</p>'}</div>`;
 }
 async function openAccount(){
-  if(!isMaster()){flash('Apenas o Master cria contas de especialista.');return;}
-  const tipo=await ask({title:'Nova conta',msg:'Qual o tipo? Digite: especialista ou cliente',input:true,value:'especialista',ok:'Próximo'});
-  if(!tipo)return; const role=tipo.toLowerCase().indexOf('cli')>=0?'cliente':'especialista';
+  if(!(isMaster()||isLider())){flash('Apenas Master e Líder criam contas.');return;}
+  const opts=isMaster()?'líder, especialista ou cliente':'especialista ou cliente';
+  const tipo=await ask({title:'Nova conta',msg:'Qual o tipo? Digite: '+opts,input:true,value:'especialista',ok:'Próximo'});
+  if(!tipo)return; const tl=tipo.toLowerCase();
+  let role=tl.indexOf('líd')>=0||tl.indexOf('lid')>=0?'lider':(tl.indexOf('cli')>=0?'cliente':'especialista');
+  if(role==='lider'&&!isMaster()){flash('Apenas o Master cria líderes.');return;}
   const nome=await ask({title:'Nome',msg:'Nome completo:',input:true,ok:'Próximo'}); if(!nome||!nome.trim())return;
   const email=await ask({title:'E-mail',msg:'E-mail de acesso (enviaremos um convite):',input:true,ok:'Criar e convidar'}); if(!email||!email.trim())return;
   flash('Criando conta…');
   try{ await criarConta(nome.trim(),email.trim(),role); }
   catch(e){ await ask({title:'Não foi possível criar',msg:String(e.message||e),ok:'Ok'}); return; }
   await loadCloud();
-  await ask({title:'Conta criada',msg:`Convite enviado para ${email.trim()}. ${role==='cliente'?'O cliente':'O especialista'} define a própria senha pelo e-mail.`,ok:'Ok'});
+  await ask({title:'Conta criada',msg:`Convite enviado para ${email.trim()}. ${ROLE_LBL[role]} define a própria senha pelo e-mail.`,ok:'Ok'});
   renderContas(document.getElementById('content'));
 }
 async function resetAccount(id){const a=acc(id);if(!(await ask({title:'Resetar senha?',msg:`Gera uma nova senha para ${a.nome}.`,ok:'Resetar'})))return;a.senha=senhaGen();save();await ask({title:' Nova senha',msg:`Senha de ${a.nome}: ${a.senha}. Em produção, enviada por e-mail para ${a.email}.`,ok:'Ok'});}
@@ -1386,7 +1404,7 @@ function addRow(f){collect();const p=plan(view.clientId,view.planId);if(!p[f])p[
 function delRow(f,i){collect();const p=plan(view.clientId,view.planId);p[f].splice(i,1);save();renderRows(p);}
 function recalc(){collect();renderEditor(document.getElementById('content'));flash('Projeção atualizada')}
 function saveAndPublish(){const p=collect();renderEditor(document.getElementById('content'));flash(p.main?'Plano publicado para o cliente ✓':'Simulação salva ✓')}
-function goBack(){ if(session.role==='especialista'){go(view._from||'users')} else {go(view._from||'plan')} }
+function goBack(){ if(isStaff()){go(view._from||'users')} else {go(view._from||'plan')} }
 /* desenho de gráficos para painéis NÃO seccionados (painel do cliente) */
 function drawResultCharts(p,R){
   destroyCharts();
