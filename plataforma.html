@@ -486,17 +486,57 @@ const DB_KEY='agion_wealth_v2';
 const SUPA_URL='https://sfekirqoflozylghwlbe.supabase.co';
 const SUPA_KEY='sb_publishable_Ds4PlQmsvnny5GdALHvVYQ_RHgtFXw2';
 const supa=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPA_URL,SUPA_KEY):null;
+/* ===== CAMADA 2: dados (clientes/planos) no Supabase ===== */
+const uuid=()=>(window.crypto&&crypto.randomUUID?crypto.randomUUID():(Date.now().toString(16)+Math.random().toString(16).slice(2)));
+const isUuid=s=>typeof s==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+let cloudReady=false,cloudTimer=null;
+async function loadCloud(){
+  if(!supa) return;
+  try{
+    const [pr,cl,pl]=await Promise.all([
+      supa.from('profiles').select('*'),
+      supa.from('clientes').select('*'),
+      supa.from('planos').select('*')
+    ]);
+    if(pr.data){ pr.data.forEach(p=>{ const ex=db.accounts.find(a=>a.id===p.id); const obj={id:p.id,role:p.role,nome:p.nome||'—',email:ex?ex.email:'',papel:p.papel||(p.role==='master'?'Master':p.role==='especialista'?'Especialista':'Cliente'),inicial:p.inicial||initialsOf(p.nome||'?'),cor:p.cor||'#8FD9CC',ativo:p.ativo!==false}; if(ex)Object.assign(ex,obj); else db.accounts.push(obj); }); }
+    if(cl.data && cl.data.length){
+      db.clients = cl.data.map(c=>{
+        const plans=(pl.data||[]).filter(p=>p.cliente_id===c.id)
+          .sort((a,b)=>(b.principal?1:0)-(a.principal?1:0))
+          .map(p=>({ ...(p.data||{}), id:p.id, titulo:p.nome||(p.data&&p.data.titulo)||'Plano Principal', main:!!p.principal }));
+        if(!plans.length) plans.push(blankPlan(c.nome));
+        return {id:c.id,nome:c.nome,email:c.email||'',tel:c.tel||'',ownerId:c.owner_id,plans};
+      });
+      cloudReady=true;
+    } else if(isMaster()){
+      /* primeira carga: migra os clientes-semente locais para o banco, donos = master */
+      db.clients.forEach(c=>{ if(!isUuid(c.id))c.id=uuid(); c.ownerId=meId(); (c.plans||[]).forEach(p=>{ if(!isUuid(p.id))p.id=uuid(); }); });
+      cloudReady=true; await pushCloud();
+    } else { cloudReady=true; }
+  }catch(e){ console.warn('loadCloud',e); cloudReady=false; }
+}
+function scheduleCloud(){ if(!supa||!cloudReady) return; clearTimeout(cloudTimer); cloudTimer=setTimeout(pushCloud,900); }
+async function pushCloud(){
+  if(!supa) return;
+  try{
+    for(const c of db.clients){
+      const r=await supa.from('clientes').upsert({id:c.id,nome:c.nome,email:c.email||null,tel:c.tel||null,owner_id:c.ownerId});
+      if(r.error){continue;}
+      for(const p of (c.plans||[])){ const data=planClone(p); delete data.id; await supa.from('planos').upsert({id:p.id,cliente_id:c.id,nome:p.titulo||'Plano',principal:!!p.main,data}); }
+    }
+  }catch(e){ console.warn('pushCloud',e); }
+}
 const BRL=v=>(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
 const BRL2=v=>(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2});
 const uid=()=>Math.random().toString(36).slice(2,9);
 const esc=s=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function load(){try{return JSON.parse(localStorage.getItem(DB_KEY))}catch(e){return null}}
-function save(){localStorage.setItem(DB_KEY,JSON.stringify(db))}
+function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));try{scheduleCloud()}catch(e){}}
 function flash(m){const f=document.getElementById('flash');f.textContent=m;f.classList.add('show');setTimeout(()=>f.classList.remove('show'),2200)}
 function ask(o){return new Promise(res=>{const bg=document.getElementById('modalBg');document.getElementById('modalTitle').textContent=o.title||'';const m=document.getElementById('modalMsg');m.textContent=o.msg||'';m.classList.toggle('hidden',!o.msg);const i=document.getElementById('modalInput');i.classList.toggle('hidden',!o.input);i.value=o.value||'';document.getElementById('modalOk').textContent=o.ok||'Confirmar';bg.classList.remove('hidden');if(o.input)setTimeout(()=>i.focus(),50);const done=v=>{bg.classList.add('hidden');res(v)};document.getElementById('modalOk').onclick=()=>done(o.input?(i.value||o.value||''):true);document.getElementById('modalCancel').onclick=()=>done(null)})}
 
 /* ===================== DADOS ===================== */
-function blankPlan(nome){return{id:uid(),titulo:'Plano Principal',main:true,parent:null,criadoEm:Date.now(),
+function blankPlan(nome){return{id:uuid(),titulo:'Plano Principal',main:true,parent:null,criadoEm:Date.now(),
   nome:nome||'',idade:40,apos:65,vida:90,perfil:'Conservador',rent:6,obs:'',
   incomes:[{desc:'Salário',valor:10000,freq:'Mensal'}],
   expenses:[{desc:'Custo de vida',valor:7000,cat:'Moradia',freq:'Mensal'}],
@@ -898,6 +938,7 @@ async function startSession(authUser){
   if(role==='cliente'){ try{ const c=await supa.from('clientes').select('id').eq('user_id',authUser.id).limit(1); if(c.data&&c.data[0]) session.clientId=c.data[0].id; }catch(e){} }
   paintUser(me);
   const el=document.getElementById('loginMsg'); if(el)el.textContent='';
+  await loadCloud();
   try{ supa.rpc('log_event',{p_action:'LOGIN',p_entity:'app',p_descricao:'Entrou na plataforma',p_detalhes:{}}); }catch(e){}
   enterApp('dash');
 }
@@ -1150,7 +1191,7 @@ async function openAccount(){
   if(accByEmail(email.trim())){flash('Já existe conta com esse e-mail');return;}
   const cores=['#8FD9CC','#E8CC8B','#B0875F','#4Fa3a3','#C5A059'];
   const a={id:'u'+uid(),role,nome:nome.trim(),email:email.trim(),senha:senhaGen(),inicial:initialsOf(nome),cor:cores[Math.floor(Math.random()*cores.length)],papel:role==='cliente'?'Cliente':'Especialista',ativo:true};
-  if(role==='cliente'){const c={id:uid(),nome:nome.trim(),email:email.trim(),tel:'',ownerId:meId(),plans:[blankPlan(nome.trim())]};db.clients.push(c);a.clientId=c.id;a.ownerId=meId();a.cor='#4Fa3a3';}
+  if(role==='cliente'){const c={id:uuid(),nome:nome.trim(),email:email.trim(),tel:'',ownerId:meId(),plans:[blankPlan(nome.trim())]};db.clients.push(c);a.clientId=c.id;a.ownerId=meId();a.cor='#4Fa3a3';}
   db.accounts.push(a);save();
   await ask({title:'Conta criada',msg:`${a.nome} (${role}) — e-mail: ${a.email} · senha: ${a.senha}. Em produção, enviada por e-mail.`,ok:'Ok'});
   renderContas(document.getElementById('content'));
@@ -1162,7 +1203,7 @@ async function newClient(){
   if(!nome||!nome.trim())return;
   const email=await ask({title:'E-mail do cliente',msg:'Será o login de acesso do cliente:',input:true,ok:'Criar conta'});
   if(email===null)return;
-  const c={id:uid(),nome:nome.trim(),email:(email||'').trim(),tel:'',ownerId:meId(),plans:[blankPlan(nome.trim())]};
+  const c={id:uuid(),nome:nome.trim(),email:(email||'').trim(),tel:'',ownerId:meId(),plans:[blankPlan(nome.trim())]};
   db.clients.push(c);save();
   const a=createClientAccount(c);
   await ask({title:'Cliente e conta criados',msg:`Acesso do cliente — e-mail: ${a.email} · senha: ${a.senha}. Em produção é enviado por e-mail.`,ok:'Ok'});
@@ -1350,7 +1391,7 @@ async function copyPlan(cid,pid){
   const sug=(isCli?'Novo planejamento ':'Simulação ')+(client(cid).plans.filter(p=>!p.main).length+1);
   const nome=await ask({title:isCli?'Criar novo planejamento':'Nova simulação',msg:'Cria uma cópia editável. O Plano Principal é sempre preservado.',input:true,value:sug,ok:'Criar'});
   if(nome===null)return;
-  const copy=JSON.parse(JSON.stringify(src));copy.id=uid();copy.main=false;copy.parent=src.id;copy.titulo=(nome.trim()||sug);copy.criadoEm=Date.now();
+  const copy=JSON.parse(JSON.stringify(src));copy.id=uuid();copy.main=false;copy.parent=src.id;copy.titulo=(nome.trim()||sug);copy.criadoEm=Date.now();
   client(cid).plans.push(copy);save();flash(isCli?'Novo planejamento criado':'Cópia criada — principal preservado');
   if(isCli){view.planId=copy.id;view.readonly=false;render();}
   else openEditor(cid,copy.id,false);
