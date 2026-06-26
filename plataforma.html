@@ -886,7 +886,7 @@ function renderNav(){
   document.getElementById('navi').innerHTML=items.map(([k,l,ic])=>`<a class="${view.page===k?'on':''}" onclick="go('${k}')">${ic}${l}</a>`).join('');
   document.getElementById('mobnav').innerHTML=items.map(([k,l,ic])=>`<a class="${view.page===k?'on':''}" onclick="go('${k}')">${ic||''}<span>${l}</span></a>`).join('');
 }
-function go(page){ view.page=page; renderNav(); document.getElementById('content').innerHTML=skeleton(); window.scrollTo(0,0); requestAnimationFrame(()=>setTimeout(render,90)); }
+function go(page){ view.page=page; renderNav(); window.scrollTo(0,0); render(); }
 function skeleton(){return `<div class="skel"> <div class="sk" style="height:30px;width:40%"></div> <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin:18px 0"> ${'<div class="sk" style="height:92px"></div>'.repeat(4)}</div> <div class="sk" style="height:230px"></div> <div class="sk" style="height:160px"></div></div>`;}
 /* ===== NOTIFICAÇÕES ===== */
 function notifList(){
