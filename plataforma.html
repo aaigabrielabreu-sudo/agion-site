@@ -619,6 +619,8 @@ const isLider=()=>session.role==='lider';
 const isStaff=()=>session.role==='master'||session.role==='lider'||session.role==='especialista';
 const meId=()=>session.userId;
 const ROLE_LBL={master:'Master',lider:'Líder',especialista:'Especialista',cliente:'Cliente'};
+// registra um evento de app no log de atividades (servidor, à prova de adulteração); fire-and-forget
+function logEvt(action,entity,descricao,detalhes){ try{ if(supa) supa.rpc('log_event',{p_action:action,p_entity:entity||'app',p_descricao:descricao||'',p_detalhes:detalhes||{}}); }catch(e){} }
 const roleLabel=(r,papel)=>(r==='especialista'?(papel||'Especialista'):(ROLE_LBL[r]||'Especialista'));
 // ids dos especialistas sob o líder logado (hierarquia master › líder › especialista › cliente)
 function myEspecialistaIds(){return (db.accounts||[]).filter(a=>a.role==='especialista'&&a.leaderId===meId()).map(a=>a.id);}
@@ -874,7 +876,7 @@ const plan=(c,p)=>client(c).plans.find(x=>x.id===p);
 const mainPlan=c=>client(c).plans.find(p=>p.main);
 
 function navItems(){
-  if(session.role==='master') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users]];
+  if(session.role==='master') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check]];
   if(session.role==='lider') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users]];
   if(session.role==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users]];
   return [['dash','Início',ICN.dash],['plan','Planejamento',ICN.plan],['jornada','Jornada',ICN.target],['gastos','Gastos',ICN.money],['cota','Cota',ICN.cota]];
@@ -1005,6 +1007,7 @@ function render(){
     if(view.page==='tarefas') return renderTarefas(C);
     if(view.page==='users') return renderClients(C);
     if(view.page==='contas'&&(isMaster()||isLider())) return renderContas(C);
+    if(view.page==='atividades'&&isMaster()) return renderAtividades(C);
     if(view.page==='editor') return renderEditor(C);
     if(view.page==='compare') return renderCompare(C);
   }else{
@@ -1060,18 +1063,18 @@ function leadCard(l,i){
       ${i<last?`<button onclick="crmMove('${l.id}',1)" title="Avançar etapa">▶</button>`:''}
       <button onclick="crmNote('${l.id}')"> Nota</button> <button onclick="openLead('${l.id}')">✎ Editar</button> <button onclick="crmToClient('${l.id}')">→ Cliente</button> <button onclick="crmLose('${l.id}')">Perdeu</button> </div></div>`;
 }
-function crmMove(id,d){const l=(db.crm).find(x=>x.id===id);const ns=Math.max(0,Math.min(CRM_STAGES.length-1,l.stage+d));if(ns!==l.stage){l.stage=ns;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[ns]+'"',quando:Date.now(),autorId:session.userId});}save();renderCRM(document.getElementById('content'));}
+function crmMove(id,d){const l=(db.crm).find(x=>x.id===id);const ns=Math.max(0,Math.min(CRM_STAGES.length-1,l.stage+d));if(ns!==l.stage){l.stage=ns;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[ns]+'"',quando:Date.now(),autorId:session.userId});logEvt('lead_mover','lead','Moveu o lead "'+l.nome+'" para "'+CRM_STAGES[ns]+'"',{lead:l.nome,etapa:CRM_STAGES[ns]});}save();renderCRM(document.getElementById('content'));}
 let _dragId=null;
 function dragStart(e,id){_dragId=id;e.currentTarget.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
 function dragEnd(e){e.currentTarget.classList.remove('dragging');}
 function kbOver(e){e.preventDefault();e.currentTarget.classList.add('dragover');}
 function kbLeave(e){e.currentTarget.classList.remove('dragover');}
 function kbDrop(e,stage){e.preventDefault();e.currentTarget.classList.remove('dragover');const l=db.crm.find(x=>x.id===_dragId);_dragId=null;if(l&&l.stage!==stage){l.stage=stage;l.perdido=false;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[stage]+'"',quando:Date.now(),autorId:session.userId});save();renderCRM(document.getElementById('content'));flash('Movido para '+CRM_STAGES[stage]);}}
-async function crmNote(id){const t=await ask({title:'Nova atividade',msg:'Registre um contato, observação ou próximo passo:',input:true,ok:'Salvar'});if(!t||!t.trim())return;const l=db.crm.find(x=>x.id===id);l.atividades=l.atividades||[];l.atividades.push({texto:t.trim(),quando:Date.now(),autorId:session.userId});save();renderCRM(document.getElementById('content'));flash('Atividade registrada');}
-function crmLose(id){const l=(db.crm).find(x=>x.id===id);l.perdido=true;save();renderCRM(document.getElementById('content'));flash('Lead marcado como perdido');}
+async function crmNote(id){const t=await ask({title:'Nova atividade',msg:'Registre um contato, observação ou próximo passo:',input:true,ok:'Salvar'});if(!t||!t.trim())return;const l=db.crm.find(x=>x.id===id);l.atividades=l.atividades||[];l.atividades.push({texto:t.trim(),quando:Date.now(),autorId:session.userId});logEvt('lead_nota','lead','Registrou atividade no lead "'+l.nome+'"',{lead:l.nome,nota:t.trim()});save();renderCRM(document.getElementById('content'));flash('Atividade registrada');}
+function crmLose(id){const l=(db.crm).find(x=>x.id===id);l.perdido=true;logEvt('lead_perdido','lead','Marcou o lead "'+l.nome+'" como perdido',{lead:l.nome});save();renderCRM(document.getElementById('content'));flash('Lead marcado como perdido');}
 function crmRecuperar(id){const l=(db.crm).find(x=>x.id===id);l.perdido=false;save();renderCRM(document.getElementById('content'));flash('Lead reativado');}
 async function crmDel(id){if(!(await ask({title:'Excluir lead?',ok:'Excluir'})))return;db.crm=db.crm.filter(x=>x.id!==id);save();renderCRM(document.getElementById('content'));}
-function crmAssign(id,uid){const l=db.crm.find(x=>x.id===id);l.ownerId=uid||null;l.atividades=l.atividades||[];if(uid)l.atividades.push({texto:'Distribuído para '+user(uid).nome,quando:Date.now(),autorId:session.userId});save();renderCRM(document.getElementById('content'));flash(uid?'Lead distribuído para '+user(uid).nome.split(' ')[0]:'Distribuição removida');}
+function crmAssign(id,uid){const l=db.crm.find(x=>x.id===id);l.ownerId=uid||null;l.atividades=l.atividades||[];if(uid){l.atividades.push({texto:'Distribuído para '+user(uid).nome,quando:Date.now(),autorId:session.userId});logEvt('lead_distribuir','lead','Distribuiu o lead "'+l.nome+'" para '+user(uid).nome,{lead:l.nome,para:user(uid).nome});}save();renderCRM(document.getElementById('content'));flash(uid?'Lead distribuído para '+user(uid).nome.split(' ')[0]:'Distribuição removida');}
 function initialsOf(nome){return (nome||'').split(' ').filter(Boolean).map(x=>x[0]).slice(0,2).join('').toUpperCase()||'CL';}
 function createClientAccount(c){
   let email=(c.email||'').trim();
@@ -1112,8 +1115,8 @@ function saveLead(){
   const data={nome:document.getElementById('le_nome').value.trim(),contato:document.getElementById('le_contato').value.trim(),
     tipo:document.getElementById('le_tipo').value,valor:parseFloat(document.getElementById('le_valor').value)||0,obs:document.getElementById('le_obs').value.trim()};
   if(!data.nome){flash('Informe o nome');return;}
-  if(id){Object.assign((db.crm).find(x=>x.id===id),data);}
-  else{db.crm.push({id:uid(),stage:0,perdido:false,criadoEm:Date.now(),...data});}
+  if(id){Object.assign((db.crm).find(x=>x.id===id),data);logEvt('lead_editar','lead','Editou o lead "'+data.nome+'"',{lead:data.nome});}
+  else{db.crm.push({id:uid(),stage:0,perdido:false,criadoEm:Date.now(),...data});logEvt('lead_criar','lead','Criou o lead "'+data.nome+'"',{lead:data.nome,tipo:data.tipo});}
   save();closeLead();renderCRM(document.getElementById('content'));flash('Lead salvo');
 }
 /* ----- TAREFAS ----- */
@@ -1125,8 +1128,8 @@ function renderTarefas(C){
 function taskRow(t){return `<div class="task ${t.feito?'done':''}"><div class="tk-cb" onclick="taskToggle('${t.id}')">${t.feito?'✓':''}</div> <div class="tk-t">${esc(t.titulo)}</div><div class="tk-d">${esc(t.quando||'')}</div> <button class="btn-ico" onclick="taskDel('${t.id}')">✕</button></div>`;}
 async function taskAdd(){const tt=await ask({title:'Nova tarefa',msg:'O que precisa ser feito?',input:true,ok:'Adicionar'});if(!tt||!tt.trim())return;
    const q=await ask({title:'Quando?',msg:'Prazo (ex.: Hoje, Amanhã, Dia 20):',input:true,value:'Hoje',ok:'Salvar'});
-   db.tasks.push({id:uid(),titulo:tt.trim(),quando:(q||'').trim(),feito:false});save();renderTarefas(document.getElementById('content'));flash('Tarefa criada');}
-function taskToggle(id){const t=(db.tasks).find(x=>x.id===id);t.feito=!t.feito;save();renderTarefas(document.getElementById('content'));}
+   db.tasks.push({id:uid(),titulo:tt.trim(),quando:(q||'').trim(),feito:false});logEvt('tarefa_criar','tarefa','Criou a tarefa "'+tt.trim()+'"',{tarefa:tt.trim(),prazo:(q||'').trim()});save();renderTarefas(document.getElementById('content'));flash('Tarefa criada');}
+function taskToggle(id){const t=(db.tasks).find(x=>x.id===id);t.feito=!t.feito;logEvt(t.feito?'tarefa_concluir':'tarefa_reabrir','tarefa',(t.feito?'Concluiu':'Reabriu')+' a tarefa "'+t.titulo+'"',{tarefa:t.titulo});save();renderTarefas(document.getElementById('content'));}
 async function taskDel(id){db.tasks=db.tasks.filter(x=>x.id!==id);save();renderTarefas(document.getElementById('content'));}
 
 /* ===================== FEED COLABORATIVO ===================== */
@@ -1213,6 +1216,54 @@ function renderContas(C){
    <div class="panel"><h2>${ICN.users} Especialistas${isM?' & Master':''}</h2>${esps.map(rowAcc).join('')||'<p class="note">Nenhum especialista ainda.</p>'}</div>
    <div class="panel"><h2>${ICN.users} Clientes</h2>${clis.map(rowAcc).join('')||'<p class="note">Nenhuma conta de cliente ainda.</p>'}</div>`;
 }
+
+/* ===================== ATIVIDADES (log do master) ===================== */
+let _act=[]; const _aflt={actor:'',cat:'',per:'30'};
+const ACT_VERB={INSERT:'criou',UPDATE:'atualizou',DELETE:'removeu',LOGIN:'entrou na plataforma',criar_conta:'criou uma conta',lead_criar:'criou um lead',lead_editar:'editou um lead',lead_mover:'moveu um lead',lead_distribuir:'distribuiu um lead',lead_perdido:'marcou um lead como perdido',lead_nota:'registrou atividade num lead',tarefa_criar:'criou uma tarefa',tarefa_concluir:'concluiu uma tarefa',tarefa_reabrir:'reabriu uma tarefa',reset_senha:'redefiniu uma senha',conta_ativar:'ativou uma conta',conta_desativar:'desativou uma conta'};
+function actCat(ev){const a=ev.action;if(['lead_criar','lead_editar','lead_mover','lead_distribuir','lead_perdido','lead_nota'].indexOf(a)>=0)return'lead';if(['tarefa_criar','tarefa_concluir','tarefa_reabrir'].indexOf(a)>=0)return'tarefa';if(['criar_conta','reset_senha','conta_ativar','conta_desativar'].indexOf(a)>=0)return'conta';if(a==='LOGIN')return'login';if(ev.entity==='planos')return'plano';if(ev.entity==='clientes'||ev.entity==='cliente')return'cliente';return'outro';}
+const CAT_DOT={lead:'#8FD9CC',tarefa:'#E8CC8B',conta:'#C5A059',login:'#9DB5B1',plano:'#B0875F',cliente:'#4Fa3a3',outro:'#6E8B88'};
+const CAT_LBL={lead:'Leads',tarefa:'Tarefas',conta:'Contas',login:'Logins',plano:'Planos',cliente:'Clientes',outro:'Outros'};
+function actText(ev){const v=ACT_VERB[ev.action];if(['INSERT','UPDATE','DELETE'].indexOf(ev.action)>=0){const ent=ev.entity==='planos'?'um plano':'um cliente';let nm='';if(ev.cliente_id){const c=(db.clients||[]).find(x=>x.id===ev.cliente_id);if(c)nm=' — '+c.nome;}return v+' '+ent+nm;}return ev.descricao||(v||ev.action)+(ev.entity&&ev.entity!=='app'?' ('+ev.entity+')':'');}
+function fmtDay(ts){const d=new Date(ts),h=new Date(),y=new Date(Date.now()-86400000);const sd=(a,b)=>a.toDateString()===b.toDateString();if(sd(d,h))return'Hoje';if(sd(d,y))return'Ontem';return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});}
+function fmtHM(ts){return new Date(ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+async function renderAtividades(C){
+  setTop('Atividades','Histórico completo e auditável de tudo na plataforma','<button class="btn btn-ghost btn-sm" onclick="reloadAtividades()">↻ Atualizar</button>');
+  C.innerHTML='<div class="panel"><p class="note">Carregando histórico…</p></div>';
+  try{ const r=await supa.from('activity_log').select('*').order('id',{ascending:false}).limit(1000); _act=r.data||[]; }catch(e){ _act=[]; }
+  paintAtividades(C);
+}
+function reloadAtividades(){ renderAtividades(document.getElementById('content')); }
+function setAflt(k,v){ _aflt[k]=v; paintAtividades(document.getElementById('content')); }
+function paintAtividades(C){
+  const now=Date.now(); const perMs={'1':86400000,'7':7*86400000,'30':30*86400000,'all':Infinity}[_aflt.per];
+  const actors=[...new Set(_act.map(e=>e.actor_nome||'Sistema'))].sort();
+  let rows=_act.filter(e=>{
+    if(_aflt.actor&&(e.actor_nome||'Sistema')!==_aflt.actor)return false;
+    if(_aflt.cat&&actCat(e)!==_aflt.cat)return false;
+    if(perMs!==Infinity&&(now-new Date(e.criado_em).getTime())>perMs)return false;
+    return true;
+  });
+  const todayN=_act.filter(e=>(now-new Date(e.criado_em).getTime())<86400000).length;
+  const opt=(v,l,sel)=>`<option value="${esc(v)}" ${sel===v?'selected':''}>${esc(l)}</option>`;
+  const actorSel=`<select onchange="setAflt('actor',this.value)" style="font-size:.78rem;padding:7px 10px">${opt('','Todos os usuários',_aflt.actor)}${actors.map(a=>opt(a,a,_aflt.actor)).join('')}</select>`;
+  const catSel=`<select onchange="setAflt('cat',this.value)" style="font-size:.78rem;padding:7px 10px">${opt('','Todas as ações',_aflt.cat)}${Object.keys(CAT_LBL).map(k=>opt(k,CAT_LBL[k],_aflt.cat)).join('')}</select>`;
+  const perSel=`<select onchange="setAflt('per',this.value)" style="font-size:.78rem;padding:7px 10px">${opt('1','Últimas 24h',_aflt.per)}${opt('7','Últimos 7 dias',_aflt.per)}${opt('30','Últimos 30 dias',_aflt.per)}${opt('all','Tudo',_aflt.per)}</select>`;
+  // agrupa por dia
+  let html='', lastDay='';
+  rows.forEach(e=>{
+    const ts=new Date(e.criado_em).getTime(); const day=fmtDay(ts);
+    if(day!==lastDay){ if(lastDay)html+='</div>'; html+=`<div class="panel"><h2 style="font-size:.92rem">${day}</h2>`; lastDay=day; }
+    const cat=actCat(e); const who=e.actor_nome||'Sistema'; const role=e.actor_role?ROLE_LBL[e.actor_role]||e.actor_role:'';
+    html+=`<div class="netrow"><span style="display:flex;align-items:center;gap:10px"><span style="width:9px;height:9px;border-radius:50%;background:${CAT_DOT[cat]};flex:0 0 auto"></span><span><b style="color:var(--head)">${esc(who)}</b>${role?` <span class="note">· ${esc(role)}</span>`:''}<br><span class="note">${esc(actText(e))}</span></span></span><span class="note" style="white-space:nowrap">${fmtHM(ts)}</span></div>`;
+  });
+  if(lastDay)html+='</div>';
+  if(!rows.length)html='<div class="panel"><p class="note">Nenhuma atividade no período/filtro selecionado.</p></div>';
+  C.innerHTML=`
+   <div class="banner">Registro automático e à prova de adulteração: tudo que master, líderes, especialistas e clientes fazem fica gravado no servidor (Supabase). Só você (Master) vê esta aba.</div>
+   <div class="kpis"><div class="kpi grad"><div class="lab">${ICN.check}Eventos (total)</div><b>${_act.length}</b></div><div class="kpi"><div class="lab">${ICN.check}Nas últimas 24h</div><b>${todayN}</b></div><div class="kpi"><div class="lab">${ICN.users}Usuários ativos</div><b>${actors.length}</b></div></div>
+   <div class="panel"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${actorSel}${catSel}${perSel}<span class="note" style="margin-left:auto">${rows.length} evento(s)</span></div></div>
+   ${html}`;
+}
 async function openAccount(){
   if(!(isMaster()||isLider())){flash('Apenas Master e Líder criam contas.');return;}
   const opts=isMaster()?'líder, especialista ou cliente':'especialista ou cliente';
@@ -1229,13 +1280,14 @@ async function openAccount(){
   await ask({title:'Conta criada',msg:`Convite enviado para ${email.trim()}. ${ROLE_LBL[role]} define a própria senha pelo e-mail.`,ok:'Ok'});
   renderContas(document.getElementById('content'));
 }
-async function resetAccount(id){const a=acc(id);if(!(await ask({title:'Resetar senha?',msg:`Gera uma nova senha para ${a.nome}.`,ok:'Resetar'})))return;a.senha=senhaGen();save();await ask({title:' Nova senha',msg:`Senha de ${a.nome}: ${a.senha}. Em produção, enviada por e-mail para ${a.email}.`,ok:'Ok'});}
-function toggleAccount(id){const a=acc(id);a.ativo=a.ativo===false?true:false;save();renderContas(document.getElementById('content'));flash(a.ativo?'Conta ativada':'Conta desativada');}
+async function resetAccount(id){const a=acc(id);if(!(await ask({title:'Redefinir senha?',msg:`Enviar e-mail de redefinição de senha para ${a.nome} (${a.email})?`,ok:'Enviar'})))return; try{ if(supa&&a.email) await supa.auth.resetPasswordForEmail(a.email,{redirectTo:location.origin+location.pathname}); }catch(e){} logEvt('reset_senha','conta','Enviou redefinição de senha para '+a.nome,{email:a.email}); await ask({title:'E-mail enviado',msg:`Enviamos o link de redefinição de senha para ${a.email}.`,ok:'Ok'});}
+function toggleAccount(id){const a=acc(id);a.ativo=a.ativo===false?true:false;logEvt(a.ativo?'conta_ativar':'conta_desativar','conta',(a.ativo?'Ativou':'Desativou')+' a conta de '+a.nome,{email:a.email});save();renderContas(document.getElementById('content'));flash(a.ativo?'Conta ativada':'Conta desativada');}
 async function criarConta(nome,email,role){
   if(!supa) throw new Error('Serviço indisponível.');
   const {data,error}=await supa.functions.invoke('criar-conta',{body:{nome,email,role,redirectTo:location.origin+location.pathname+'?convite=1'}});
   if(error){ let m='Não foi possível criar a conta.'; try{const j=await error.context.json(); if(j&&j.error)m=j.error;}catch(e){} throw new Error(m); }
   if(data&&data.error) throw new Error(data.error);
+  logEvt('criar_conta',role,'Criou conta de '+(ROLE_LBL[role]||role)+': '+nome,{email,role});
   return data;
 }
 async function newClient(){
