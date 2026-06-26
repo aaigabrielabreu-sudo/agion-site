@@ -519,14 +519,14 @@ async function loadCloud(){
     if(ld.data && ld.data.length){
       db.crm = ld.data.map(l=>({id:l.id,nome:l.nome,contato:l.contato||'',tipo:l.tipo||'',valor:+l.valor||0,stage:l.stage||0,perdido:!!l.perdido,obs:l.obs||'',atividades:l.atividades||[],ownerId:l.owner_id,criadoEm:l.criado_em?new Date(l.criado_em).getTime():Date.now()}));
     } else if(isMaster()){
-      db.crm.forEach(l=>{ if(!isUuid(l.id))l.id=uuid(); if(!l.ownerId)l.ownerId=meId(); });
+      db.crm.forEach(l=>{ if(!isUuid(l.id))l.id=uuid(); if(!isUuid(l.ownerId))l.ownerId=meId(); });
       for(const l of db.crm){ await saveLeadCloud(l); }
     } else { db.crm=[]; }
     /* ----- TAREFAS na nuvem ----- */
     if(tk.data && tk.data.length){
       db.tasks = tk.data.map(t=>({id:t.id,titulo:t.titulo,quando:t.quando||'',feito:!!t.feito,ownerId:t.owner_id}));
     } else if(isMaster()){
-      db.tasks.forEach(t=>{ if(!isUuid(t.id))t.id=uuid(); if(!t.ownerId)t.ownerId=meId(); });
+      db.tasks.forEach(t=>{ if(!isUuid(t.id))t.id=uuid(); if(!isUuid(t.ownerId))t.ownerId=meId(); });
       for(const t of db.tasks){ await saveTaskCloud(t); }
     } else { db.tasks=[]; }
   }catch(e){ console.warn('loadCloud',e); cloudReady=false; }
