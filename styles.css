@@ -103,6 +103,26 @@ html.js .reveal.in{opacity:1;transform:none}
 .nav-mobile a{display:block;padding:17px 4px;color:#D7E8E5;font-weight:700;font-size:1rem;border-bottom:1px solid rgba(143,217,204,.1);letter-spacing:.04em;min-height:48px}
 .nav-mobile .btn{width:100%;margin-top:16px}
 .nav-mobile.open{display:block;animation:slideDown .35s ease}
+/* atalhos rápidos mobile (topo da home) */
+.quicknav{display:none}
+@media(max-width:1024px){
+  .quicknav{display:flex;gap:8px;justify-content:center;padding:10px 12px;
+    background:linear-gradient(180deg,rgba(13,35,43,.96),rgba(11,31,38,.96));
+    backdrop-filter:blur(14px);border-bottom:1px solid var(--line-gold)}
+  .quicknav a{flex:1;max-width:170px;display:flex;align-items:center;justify-content:center;gap:6px;
+    text-align:center;font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:#EAF4F1;background:rgba(197,160,89,.10);
+    border:1px solid rgba(197,160,89,.42);border-radius:999px;padding:9px 6px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05);transition:transform .2s,background .25s,color .25s,box-shadow .25s}
+  .quicknav a .icon{width:15px;height:15px;color:var(--gold-2);flex:0 0 auto;transition:color .25s}
+  .quicknav a:active{transform:scale(.96)}
+  .quicknav a:hover,.quicknav a:active{background:var(--grad-gold);color:#0A2026;border-color:transparent;box-shadow:var(--glow-gold)}
+  .quicknav a:hover .icon,.quicknav a:active .icon{color:#0A2026}
+}
+@media(max-width:360px){
+  .quicknav a{font-size:.62rem;letter-spacing:.03em;padding:8px 4px}
+  .quicknav a .icon{width:13px;height:13px}
+}
 @keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
 
 /* ====================================================================
@@ -602,6 +622,7 @@ footer ul a:hover{color:var(--gold-2);transform:translateX(5px)}
   .car-dots{display:flex;justify-content:center;align-items:center;gap:7px;margin-top:10px}
   .car-dots i{width:7px;height:7px;border-radius:99px;background:rgba(143,217,204,.28);transition:.35s;cursor:pointer}
   .car-dots i.on{width:24px;background:var(--grad-gold);box-shadow:0 0 12px rgba(197,160,89,.65)}
+  .car-track{padding-top:22px}
 
   /* ---------- SEM "EXPANDIR": conteúdo sempre visível, compacto e harmônico ---------- */
   .m-detail{display:revert!important}
