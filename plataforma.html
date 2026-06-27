@@ -911,9 +911,12 @@ function skeleton(){return `<div class="skel"> <div class="sk" style="height:30p
 /* ===== NOTIFICAÇÕES ===== */
 function notifList(){
   const out=[]; const me=session.userId;
-  if(isMaster()){ (db.crm||[]).filter(l=>!l.ownerId&&!l.perdido).forEach(l=>out.push({ic:'',cor:'var(--warn)',tx:`Lead não distribuído: <b>${esc(l.nome)}</b>`,tm:l.fonte?('via '+l.fonte):'',go:'crm'})); }
+  // leads sem dono na sua visão (master vê todos; líder, os da sua equipe)
+  if(isMaster()||isLider()){ visibleLeads().filter(l=>!l.ownerId&&!l.perdido).slice(0,4).forEach(l=>out.push({ic:'',cor:'var(--warn)',tx:`Lead não distribuído: <b>${esc(l.nome)}</b>`,tm:l.fonte?('via '+l.fonte):'',go:'crm'})); }
+  // leads atribuídos a você que ainda estão no início do funil
+  (db.crm||[]).filter(l=>l.ownerId===me && !l.perdido && (l.stage||0)<=1).slice(0,4).forEach(l=>out.push({ic:'',cor:'var(--teal)',tx:`Lead com você: <b>${esc(l.nome)}</b> · ${esc(CRM_STAGES[l.stage||0])}`,tm:'',go:'crm'}));
   (db.inbox||[]).filter(l=>!l.importado).slice(0,3).forEach(l=>out.push({ic:'',cor:'var(--teal)',tx:`Novo lead de ${l.fonte}: <b>${esc(l.nome)}</b>`,tm:timeAgo(l.quando),go:'captacao'}));
-  (db.tasks||[]).filter(t=>!t.feito).slice(0,3).forEach(t=>out.push({ic:'✓',cor:'var(--gold2)',tx:esc(t.titulo),tm:t.quando||'',go:'tarefas'}));
+  (db.tasks||[]).filter(t=>!t.feito && t.ownerId===me).slice(0,4).forEach(t=>out.push({ic:'✓',cor:'var(--gold2)',tx:esc(t.titulo),tm:t.quando||'',go:'tarefas'}));
   (db.chat&&db.chat.messages||[]).filter(m=>m.autorId!==me && Date.now()-m.quando<DAY).slice(-2).forEach(m=>out.push({ic:'',cor:'var(--teal)',tx:`${esc(user(m.autorId).nome.split(' ')[0])} no chat: <b>${esc((m.texto||'').slice(0,32))}</b>`,tm:timeAgo(m.quando),go:'chat'}));
   return out;
 }
