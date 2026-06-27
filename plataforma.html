@@ -493,12 +493,15 @@ let cloudReady=false,cloudTimer=null;
 async function loadCloud(){
   if(!supa) return;
   try{
-    const [pr,cl,pl,ld,tk]=await Promise.all([
+    const [pr,cl,pl,ld,tk,fp,mg,ib]=await Promise.all([
       supa.from('profiles').select('*'),
       supa.from('clientes').select('*'),
       supa.from('planos').select('*'),
       supa.from('leads').select('*'),
-      supa.from('tarefas').select('*')
+      supa.from('tarefas').select('*'),
+      supa.from('posts').select('*'),
+      supa.from('mensagens').select('*'),
+      supa.from('inbox').select('*').order('criado_em',{ascending:false})
     ]);
     if(pr.data){ pr.data.forEach(p=>{ const ex=db.accounts.find(a=>a.id===p.id); const obj={id:p.id,role:p.role,nome:p.nome||'—',email:ex?ex.email:'',papel:p.papel||ROLE_LBL[p.role]||'Cliente',leaderId:p.leader_id||null,real:true,inicial:p.inicial||initialsOf(p.nome||'?'),cor:p.cor||'#8FD9CC',ativo:p.ativo!==false}; if(ex)Object.assign(ex,obj); else db.accounts.push(obj); }); }
     if(cl.data && cl.data.length){
@@ -529,12 +532,35 @@ async function loadCloud(){
       db.tasks.forEach(t=>{ if(!isUuid(t.id))t.id=uuid(); if(!isUuid(t.ownerId))t.ownerId=meId(); });
       for(const t of db.tasks){ await saveTaskCloud(t); }
     } else { db.tasks=[]; }
+    /* ----- FEED (posts) na nuvem ----- */
+    if(fp.data && fp.data.length){
+      db.feed = fp.data.map(p=>({id:p.id,autorId:p.owner_id,texto:p.texto||'',quando:p.quando||(p.criado_em?new Date(p.criado_em).getTime():Date.now()),likes:p.likes||[],coments:p.coments||[]}));
+    } else if(isMaster()){
+      db.feed.forEach(p=>{ if(!isUuid(p.id))p.id=uuid(); if(!isUuid(p.autorId))p.autorId=meId(); });
+      for(const p of db.feed){ await saveFeedCloud(p); }
+    } else { db.feed=[]; }
+    /* ----- CHAT (mensagens) na nuvem ----- */
+    db.chat=db.chat||{}; if(!db.chat.channels) db.chat.channels=seedChat().channels;
+    if(mg.data && mg.data.length){
+      db.chat.messages = mg.data.map(m=>({id:m.id,canalId:m.canal_id,autorId:m.owner_id,texto:m.texto||'',quando:m.quando||(m.criado_em?new Date(m.criado_em).getTime():Date.now())})).sort((a,b)=>a.quando-b.quando);
+    } else if(isMaster()){
+      db.chat.messages=db.chat.messages||[];
+      db.chat.messages.forEach(m=>{ if(!isUuid(m.id))m.id=uuid(); if(!isUuid(m.autorId))m.autorId=meId(); });
+      for(const m of db.chat.messages){ await saveMsgCloud(m); }
+    } else { db.chat.messages=[]; }
+    /* ----- INBOX (captação) na nuvem ----- */
+    if(ib.data){
+      db.inbox = ib.data.map(x=>({id:x.id,fonte:x.origem||'Web',nome:x.nome||'',contato:x.contato||'',campanha:x.campanha||'',tipo:x.tipo||'Consórcio',valor:+x.valor||0,quando:x.criado_em?new Date(x.criado_em).getTime():Date.now(),importado:!!x.convertido}));
+    }
   }catch(e){ console.warn('loadCloud',e); cloudReady=false; }
 }
 async function saveLeadCloud(l){ if(!supa||!isUuid(l.id))return; try{ await supa.from('leads').upsert({id:l.id,nome:l.nome,contato:l.contato||null,tipo:l.tipo||null,valor:l.valor||0,stage:l.stage||0,perdido:!!l.perdido,obs:l.obs||null,atividades:l.atividades||[],owner_id:l.ownerId||meId()}); }catch(e){} }
 async function saveTaskCloud(t){ if(!supa||!isUuid(t.id))return; try{ await supa.from('tarefas').upsert({id:t.id,titulo:t.titulo,quando:t.quando||null,feito:!!t.feito,owner_id:t.ownerId||meId()}); }catch(e){} }
 async function delLeadCloud(id){ if(!supa||!isUuid(id))return; try{ await supa.from('leads').delete().eq('id',id); }catch(e){} }
 async function delTaskCloud(id){ if(!supa||!isUuid(id))return; try{ await supa.from('tarefas').delete().eq('id',id); }catch(e){} }
+async function saveFeedCloud(p){ if(!supa||!isUuid(p.id))return; try{ await supa.from('posts').upsert({id:p.id,owner_id:p.autorId||meId(),texto:p.texto||'',quando:p.quando||Date.now(),likes:p.likes||[],coments:p.coments||[]}); }catch(e){} }
+async function delFeedCloud(id){ if(!supa||!isUuid(id))return; try{ await supa.from('posts').delete().eq('id',id); }catch(e){} }
+async function saveMsgCloud(m){ if(!supa||!isUuid(m.id))return; try{ await supa.from('mensagens').upsert({id:m.id,owner_id:m.autorId||meId(),canal_id:m.canalId,texto:m.texto||'',quando:m.quando||Date.now()}); }catch(e){} }
 function scheduleCloud(){ if(!supa||!cloudReady) return; clearTimeout(cloudTimer); cloudTimer=setTimeout(pushCloud,900); }
 async function pushCloud(){
   if(!supa) return;
@@ -961,6 +987,7 @@ async function doLogin(){
 async function startSession(authUser){
   let prof=null;
   try{ const r=await supa.from('profiles').select('*').eq('id',authUser.id).single(); prof=r.data; }catch(e){}
+  if(prof && prof.ativo===false){ try{ await supa.auth.signOut(); }catch(e){} const el=document.getElementById('loginMsg'); if(el)el.textContent='Esta conta está desativada. Procure o administrador.'; return; }
   const nome=(prof&&prof.nome)||authUser.email;
   const role=(prof&&prof.role)||'cliente';
   const me={id:authUser.id,role,nome,email:authUser.email,
@@ -1107,7 +1134,7 @@ function dragStart(e,id){_dragId=id;e.currentTarget.classList.add('dragging');e.
 function dragEnd(e){e.currentTarget.classList.remove('dragging');}
 function kbOver(e){e.preventDefault();e.currentTarget.classList.add('dragover');}
 function kbLeave(e){e.currentTarget.classList.remove('dragover');}
-function kbDrop(e,stage){e.preventDefault();e.currentTarget.classList.remove('dragover');const l=db.crm.find(x=>x.id===_dragId);_dragId=null;if(l&&l.stage!==stage){l.stage=stage;l.perdido=false;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[stage]+'"',quando:Date.now(),autorId:session.userId});save();renderCRM(document.getElementById('content'));flash('Movido para '+CRM_STAGES[stage]);}}
+function kbDrop(e,stage){e.preventDefault();e.currentTarget.classList.remove('dragover');const l=db.crm.find(x=>x.id===_dragId);_dragId=null;if(l&&l.stage!==stage){l.stage=stage;l.perdido=false;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[stage]+'"',quando:Date.now(),autorId:session.userId});logEvt('lead_mover','lead','Moveu o lead "'+l.nome+'" para "'+CRM_STAGES[stage]+'"',{lead:l.nome,etapa:CRM_STAGES[stage]});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Movido para '+CRM_STAGES[stage]);}}
 async function crmNote(id){const t=await ask({title:'Nova atividade',msg:'Registre um contato, observação ou próximo passo:',input:true,ok:'Salvar'});if(!t||!t.trim())return;const l=db.crm.find(x=>x.id===id);l.atividades=l.atividades||[];l.atividades.push({texto:t.trim(),quando:Date.now(),autorId:session.userId});logEvt('lead_nota','lead','Registrou atividade no lead "'+l.nome+'"',{lead:l.nome,nota:t.trim()});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Atividade registrada');}
 function crmLose(id){const l=(db.crm).find(x=>x.id===id);l.perdido=true;logEvt('lead_perdido','lead','Marcou o lead "'+l.nome+'" como perdido',{lead:l.nome});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Lead marcado como perdido');}
 function crmRecuperar(id){const l=(db.crm).find(x=>x.id===id);l.perdido=false;save();renderCRM(document.getElementById('content'));flash('Lead reativado');}
@@ -1185,10 +1212,10 @@ function feedList(){
         <div id="cform_${p.id}" class="coment hidden">${avatar(session.userId,28)}<input id="ci_${p.id}" placeholder="Escreva um comentário..." onkeydown="if(event.key==='Enter')feedComment('${p.id}')"><button class="btn btn-teal btn-sm" onclick="feedComment('${p.id}')">Enviar</button></div> </div></div>`;
   }).join('');
 }
-function feedPost(){const t=document.getElementById('feedTxt').value.trim();if(!t)return;db.feed.push({id:uid(),autorId:session.userId,texto:t,quando:Date.now(),likes:[],coments:[]});save();document.getElementById('feedList').innerHTML=feedList();document.getElementById('feedTxt').value='';flash('Publicado no feed');}
-function feedLike(id){const p=db.feed.find(x=>x.id===id);const i=p.likes.indexOf(session.userId);if(i<0)p.likes.push(session.userId);else p.likes.splice(i,1);save();document.getElementById('feedList').innerHTML=feedList();}
+function feedPost(){const t=document.getElementById('feedTxt').value.trim();if(!t)return;const p={id:uuid(),autorId:session.userId,texto:t,quando:Date.now(),likes:[],coments:[]};db.feed.push(p);saveFeedCloud(p);save();document.getElementById('feedList').innerHTML=feedList();document.getElementById('feedTxt').value='';flash('Publicado no feed');}
+function feedLike(id){const p=db.feed.find(x=>x.id===id);const i=p.likes.indexOf(session.userId);if(i<0)p.likes.push(session.userId);else p.likes.splice(i,1);saveFeedCloud(p);save();document.getElementById('feedList').innerHTML=feedList();}
 function feedToggleC(id){const el=document.getElementById('cform_'+id);if(el){el.classList.toggle('hidden');const inp=document.getElementById('ci_'+id);if(inp&&!el.classList.contains('hidden'))inp.focus();}}
-function feedComment(id){const inp=document.getElementById('ci_'+id);const t=(inp.value||'').trim();if(!t)return;db.feed.find(x=>x.id===id).coments.push({autorId:session.userId,texto:t,quando:Date.now()});save();document.getElementById('feedList').innerHTML=feedList();}
+function feedComment(id){const inp=document.getElementById('ci_'+id);const t=(inp.value||'').trim();if(!t)return;const p=db.feed.find(x=>x.id===id);p.coments.push({autorId:session.userId,texto:t,quando:Date.now()});saveFeedCloud(p);save();document.getElementById('feedList').innerHTML=feedList();}
 
 /* ===================== CHAT INTERNO ===================== */
 let chatCh='geral';
@@ -1201,7 +1228,7 @@ function renderChat(C){
 function chName(){return (db.chat.channels.find(c=>c.id===chatCh)||{}).nome||'';}
 function chatMsgs(){return (db.chat.messages||[]).filter(m=>m.canalId===chatCh).map(m=>{const me=m.autorId===session.userId;return `<div class="msg ${me?'me':''}">${avatar(m.autorId,30)}<div class="mbubble"><div class="mn">${esc(user(m.autorId).nome.split(' ')[0])}</div><div class="mt">${esc(m.texto)}</div><div class="mtime">${timeAgo(m.quando)}</div></div></div>`;}).join('')||'<p class="note">Sem mensagens neste canal ainda. Diga olá! </p>';}
 function chatOpen(id){chatCh=id;renderChat(document.getElementById('content'));}
-function chatSend(){const inp=document.getElementById('chatInput');const t=(inp.value||'').trim();if(!t)return;db.chat.messages.push({id:uid(),canalId:chatCh,autorId:session.userId,texto:t,quando:Date.now()});save();document.getElementById('chatMsgs').innerHTML=chatMsgs();inp.value='';scrollChat();}
+function chatSend(){const inp=document.getElementById('chatInput');const t=(inp.value||'').trim();if(!t)return;const m={id:uuid(),canalId:chatCh,autorId:session.userId,texto:t,quando:Date.now()};db.chat.messages.push(m);saveMsgCloud(m);save();document.getElementById('chatMsgs').innerHTML=chatMsgs();inp.value='';scrollChat();}
 function scrollChat(){const m=document.getElementById('chatMsgs');if(m)m.scrollTop=m.scrollHeight;}
 
 /* ===================== CAPTAÇÃO (Google + Meta) ===================== */
@@ -1214,8 +1241,8 @@ function renderCaptacao(C){
    </div>`;
 }
 function toggleIntegr(src){db.integr[src].conectado=!db.integr[src].conectado;save();renderCaptacao(document.getElementById('content'));flash(src+(db.integr[src].conectado?' conectado':' desconectado'));}
-function importLead(id){const l=db.inbox.find(x=>x.id===id);l.importado=true;db.crm.push({id:uid(),nome:l.nome,contato:l.contato,tipo:l.tipo,valor:0,stage:0,perdido:false,ownerId:isMaster()?null:meId(),criadoEm:Date.now(),obs:'Origem: '+l.fonte+' — '+l.campanha,atividades:[{texto:'Lead recebido via '+l.fonte,quando:Date.now(),autorId:session.userId}]});save();renderCaptacao(document.getElementById('content'));flash(isMaster()?'Lead importado — distribua no CRM':'Lead importado para o seu funil ✓');}
-function discardLead(id){db.inbox=db.inbox.filter(x=>x.id!==id);save();renderCaptacao(document.getElementById('content'));}
+async function importLead(id){const l=db.inbox.find(x=>x.id===id);l.importado=true;const nl={id:uuid(),nome:l.nome,contato:l.contato,tipo:l.tipo,valor:l.valor||0,stage:0,perdido:false,ownerId:isMaster()?meId():meId(),criadoEm:Date.now(),obs:'Origem: '+l.fonte+(l.campanha?' — '+l.campanha:''),atividades:[{texto:'Lead recebido via '+l.fonte,quando:Date.now(),autorId:session.userId}]};db.crm.push(nl);saveLeadCloud(nl);logEvt('lead_criar','lead','Importou o lead "'+l.nome+'" de '+l.fonte,{lead:l.nome,fonte:l.fonte});if(supa&&isUuid(id)){try{await supa.from('inbox').update({convertido:true,lead_id:nl.id}).eq('id',id);}catch(e){}}save();renderCaptacao(document.getElementById('content'));flash('Lead importado para o seu funil ✓');}
+async function discardLead(id){if(supa&&isUuid(id)){try{await supa.from('inbox').update({convertido:true}).eq('id',id);}catch(e){}}db.inbox=db.inbox.filter(x=>x.id!==id);save();renderCaptacao(document.getElementById('content'));}
 function simulLead(){const nomes=['Pedro Henrique','Juliana Reis','Marcos Vinícius','Camila Duarte','Felipe Andrade','Sofia Carvalho'];const tps=['Consórcio','Planejamento','Consultoria'];const f=Math.random()<0.5?'Google':'Meta';db.inbox.push({id:uid(),fonte:f,nome:nomes[Math.floor(Math.random()*nomes.length)],contato:'(51) 9'+Math.floor(1000+Math.random()*8999)+'-'+Math.floor(1000+Math.random()*8999),campanha:f==='Meta'?'Lead Ad — Instagram/Facebook':'Pesquisa — Google Ads',tipo:tps[Math.floor(Math.random()*3)],quando:Date.now(),importado:false});save();renderCaptacao(document.getElementById('content'));flash(' Novo lead recebido de '+f+'!');}
 
 /* ===================== ASSESSOR: PAINEL ===================== */
@@ -1268,12 +1295,13 @@ function actText(ev){const v=ACT_VERB[ev.action];if(['INSERT','UPDATE','DELETE']
 function fmtDay(ts){const d=new Date(ts),h=new Date(),y=new Date(Date.now()-86400000);const sd=(a,b)=>a.toDateString()===b.toDateString();if(sd(d,h))return'Hoje';if(sd(d,y))return'Ontem';return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});}
 function fmtHM(ts){return new Date(ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
 async function renderAtividades(C){
-  setTop('Atividades','Histórico completo e auditável de tudo na plataforma','<button class="btn btn-ghost btn-sm" onclick="reloadAtividades()">↻ Atualizar</button>');
+  setTop('Atividades','Histórico completo e auditável de tudo na plataforma','<button class="btn btn-ghost btn-sm" onclick="exportLogCSV()">Exportar CSV</button> <button class="btn btn-ghost btn-sm" onclick="reloadAtividades()">↻ Atualizar</button>');
   C.innerHTML='<div class="panel"><p class="note">Carregando histórico…</p></div>';
   try{ const r=await supa.from('activity_log').select('*').order('id',{ascending:false}).limit(1000); _act=r.data||[]; }catch(e){ _act=[]; }
   paintAtividades(C);
 }
 function reloadAtividades(){ renderAtividades(document.getElementById('content')); }
+function exportLogCSV(){ const rows=_act||[]; if(!rows.length){flash&&flash('Nada para exportar');return;} const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"'; const head=['Data/Hora','Usuario','Papel','Categoria','Acao','Entidade','Descricao']; const body=rows.map(e=>[new Date(e.criado_em).toLocaleString('pt-BR'),(e.actor_nome||'Sistema'),(e.actor_role?(ROLE_LBL[e.actor_role]||e.actor_role):''),(CAT_LBL[actCat(e)]||actCat(e)),(e.action||''),(e.entity||''),actText(e)].map(q).join(',')); const csv='﻿'+[head.map(q).join(',')].concat(body).join('\r\n'); const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='agion-atividades-'+new Date().toISOString().slice(0,10)+'.csv'; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},100); }
 function setAflt(k,v){ _aflt[k]=v; paintAtividades(document.getElementById('content')); }
 function paintAtividades(C){
   const now=Date.now(); const perMs={'1':86400000,'7':7*86400000,'30':30*86400000,'all':Infinity}[_aflt.per];
@@ -1322,7 +1350,7 @@ async function openAccount(){
   renderContas(document.getElementById('content'));
 }
 async function resetAccount(id){const a=acc(id);if(!(await ask({title:'Redefinir senha?',msg:`Enviar e-mail de redefinição de senha para ${a.nome} (${a.email})?`,ok:'Enviar'})))return; try{ if(supa&&a.email) await supa.auth.resetPasswordForEmail(a.email,{redirectTo:location.origin+location.pathname}); }catch(e){} logEvt('reset_senha','conta','Enviou redefinição de senha para '+a.nome,{email:a.email}); await ask({title:'E-mail enviado',msg:`Enviamos o link de redefinição de senha para ${a.email}.`,ok:'Ok'});}
-function toggleAccount(id){const a=acc(id);a.ativo=a.ativo===false?true:false;logEvt(a.ativo?'conta_ativar':'conta_desativar','conta',(a.ativo?'Ativou':'Desativou')+' a conta de '+a.nome,{email:a.email});save();renderContas(document.getElementById('content'));flash(a.ativo?'Conta ativada':'Conta desativada');}
+async function toggleAccount(id){const a=acc(id);const nv=a.ativo===false?true:false;a.ativo=nv;if(supa&&isUuid(id)){try{await supa.from('profiles').update({ativo:nv}).eq('id',id);}catch(e){}}logEvt(nv?'conta_ativar':'conta_desativar','conta',(nv?'Ativou':'Desativou')+' a conta de '+a.nome,{email:a.email});save();renderContas(document.getElementById('content'));flash(nv?'Conta ativada':'Conta desativada — o usuário não consegue mais entrar');}
 async function criarConta(nome,email,role){
   if(!supa) throw new Error('Serviço indisponível.');
   const {data,error}=await supa.functions.invoke('criar-conta',{body:{nome,email,role,redirectTo:location.origin+location.pathname+'?convite=1'}});
