@@ -124,6 +124,7 @@ th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
 th{color:var(--gold2);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em}
 td.r,th.r{text-align:right}
 canvas{width:100%!important;height:280px!important}
+div[style*="height"]>canvas{height:100%!important}
 .gauge canvas{height:150px!important}
 .prob{display:inline-flex;align-items:center;gap:8px;font-weight:700;padding:8px 18px;border-radius:999px;font-size:.92rem}
 .gauge{position:relative;width:150px;height:150px;margin:0 auto}
@@ -964,9 +965,26 @@ function toggleNotif(e){
 function closeNotif(){const n=document.querySelector('.notif');if(n)n.remove();}
 function closeNotifOnce(e){const w=document.getElementById('bellWrap');if(w&&!w.contains(e.target)){closeNotif();document.removeEventListener('click',closeNotifOnce);}}
 /* cria um gráfico de forma segura: se faltar canvas ou Chart.js, mostra aviso e nunca quebra o resto da página */
+function ensureChartDefaults(){
+  if(typeof Chart==='undefined'||Chart.__agion) return; Chart.__agion=1;
+  const D=Chart.defaults;
+  D.font.family="'DM Sans',system-ui,sans-serif"; D.color='#9DB5B1';
+  D.maintainAspectRatio=false; D.responsive=true;
+  D.animation={duration:850,easing:'easeOutQuart'};
+  D.plugins.legend.labels.usePointStyle=true; D.plugins.legend.labels.pointStyle='circle';
+  D.plugins.legend.labels.boxWidth=8; D.plugins.legend.labels.padding=14; D.plugins.legend.labels.color='#C9DEDB';
+  const t=D.plugins.tooltip; t.backgroundColor='rgba(11,31,38,.96)'; t.borderColor='rgba(197,160,89,.55)'; t.borderWidth=1;
+  t.titleColor='#F2FAF8'; t.bodyColor='#DCE9E7'; t.padding=11; t.cornerRadius=10; t.boxPadding=5; t.usePointStyle=true; t.titleFont={weight:'700',size:12}; t.bodyFont={size:12};
+  D.elements.bar.borderRadius=8; D.elements.bar.borderSkipped=false;
+  D.elements.line.tension=.35; D.elements.line.borderWidth=2.5;
+  D.elements.point.radius=0; D.elements.point.hoverRadius=6; D.elements.point.hitRadius=14;
+  D.elements.arc.borderWidth=0; D.elements.arc.hoverOffset=8;
+  D.interaction={mode:'nearest',intersect:false};
+}
 function mkChart(id,cfg){
   const el=document.getElementById(id); if(!el) return;
   if(typeof Chart==='undefined'){ const d=document.createElement('div'); d.className='note'; d.style.cssText='padding:24px;text-align:center'; d.textContent='Gráfico indisponível (sem conexão para carregar a biblioteca).'; el.replaceWith(d); return; }
+  ensureChartDefaults();
   try{ charts.push(new Chart(el,cfg)); }catch(e){ console.warn('chart '+id,e); }
 }
 function setTop(title,crumb,actions){ document.getElementById('pageTitle').textContent=title; document.getElementById('crumb').textContent=crumb||''; document.getElementById('topActions').innerHTML=actions||''; }
@@ -1376,7 +1394,7 @@ async function newClient(){
 
 /* ===================== EDITOR DE PLANO (SEÇÕES) ===================== */
 let curSec='resumo', edP=null, edR=null;
-const SECS=[['resumo','Resumo'],['dados','Dados & Premissas'],['patrimonio','Patrimônio'],['consorcio','Consórcio'],['fluxo','Receitas & Despesas'],['balanco','Balanço ano a ano'],['objetivos','Objetivos'],['projecao','Projeção'],['protecao','Proteção'],['cenarios','Cenários'],['acao','Plano de Ação'],['diagnostico','Diagnóstico'],['glossario','Glossário']];
+const SECS=[['resumo','Resumo'],['projecao','Projeção'],['dados','Dados & Premissas'],['patrimonio','Patrimônio'],['consorcio','Consórcio'],['fluxo','Receitas & Despesas'],['balanco','Balanço ano a ano'],['objetivos','Objetivos'],['protecao','Proteção'],['cenarios','Cenários'],['acao','Plano de Ação'],['diagnostico','Diagnóstico'],['glossario','Glossário']];
 function consorcioImpacto(p){
   const lista=p.consorcios||[];
   if(!lista.length) return `<p class="note">Nenhum consórcio adicionado ainda. Inclua uma carta acima para ver o impacto da contemplação no patrimônio.</p>`;
@@ -1476,7 +1494,7 @@ function showSec(s){curSec=s;document.querySelectorAll('.plansec').forEach(el=>e
 function drawSectionCharts(s){
   if(!edP||!edR)return; destroyCharts();
   const p=edP,R=edR,gold='#C5A059',teal='#8FD9CC',grid='rgba(143,217,204,.1)',tick='#9DB5B1';
-  const ax=cb=>({maintainAspectRatio:false,scales:{x:{grid:{color:grid},ticks:{color:tick,maxTicksLimit:12}},y:{grid:{color:grid},ticks:{color:tick,callback:cb}}}});
+  const ax=cb=>({maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+BRL(c.parsed.y)}}},scales:{x:{grid:{color:grid},ticks:{color:tick,maxTicksLimit:12}},y:{grid:{color:grid},ticks:{color:tick,callback:cb}}}});
   if(s==='resumo'){
     mkChart('gauge',{type:'doughnut',data:{datasets:[{data:[R.prob,100-R.prob],backgroundColor:[gold,'rgba(143,217,204,.12)'],borderWidth:0,circumference:360}]},options:{maintainAspectRatio:false,cutout:'74%',plugins:{legend:{display:false},tooltip:{enabled:false}}},plugins:[{id:'txt',afterDraw(ch){const{ctx,chartArea}=ch;ctx.save();ctx.fillStyle='#C5A059';ctx.font='700 26px Lora';ctx.textAlign='center';ctx.fillText(R.prob+'%',(chartArea.left+chartArea.right)/2,(chartArea.top+chartArea.bottom)/2+9);ctx.restore()}}]});
   } else if(s==='patrimonio'){
@@ -1530,7 +1548,7 @@ function goBack(){ if(isStaff()){go(view._from||'users')} else {go(view._from||'
 function drawResultCharts(p,R){
   destroyCharts();
   const gold='#C5A059',teal='#8FD9CC',grid='rgba(143,217,204,.1)',tick='#9DB5B1';
-  const ax=cb=>({maintainAspectRatio:false,scales:{x:{grid:{color:grid},ticks:{color:tick}},y:{grid:{color:grid},ticks:{color:tick,callback:cb}}}});
+  const ax=cb=>({maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+BRL(c.parsed.y)}}},scales:{x:{grid:{color:grid},ticks:{color:tick}},y:{grid:{color:grid},ticks:{color:tick,callback:cb}}}});
   mkChart('gauge',{type:'doughnut',data:{datasets:[{data:[R.prob,100-R.prob],backgroundColor:[gold,'rgba(143,217,204,.12)'],borderWidth:0,circumference:360}]},options:{maintainAspectRatio:false,cutout:'74%',plugins:{legend:{display:false},tooltip:{enabled:false}}},plugins:[{id:'txt',afterDraw(ch){const{ctx,chartArea}=ch;ctx.save();ctx.fillStyle='#C5A059';ctx.font='700 26px Lora';ctx.textAlign='center';ctx.fillText(R.prob+'%',(chartArea.left+chartArea.right)/2,(chartArea.top+chartArea.bottom)/2+9);ctx.restore()}}]});
   const splitIdx=R.idades.indexOf(p.apos);
   const markers=R.idades.map((a,i)=>{const g=(R.metas||[]).find(m=>+m.idade===a);return g?R.serie[i]:null;});
@@ -1569,7 +1587,7 @@ function renderCompare(C){
   const rows=plans.map(p=>({p,R:projetar(p)}));
   C.innerHTML=`<div class="panel"><h2>${ICN.spark} Plano Principal x Simulações</h2> <table><thead><tr><th>Cenário</th><th class="r">Aporte/mês</th><th class="r">Patrim. aposentadoria</th><th class="r">Meta (consumo)</th><th class="r">Prob.</th></tr></thead><tbody> ${rows.map(({p,R})=>`<tr><td>${p.main?'★ ':''}${esc(p.titulo)}<br><span style="color:var(--soft);font-size:.76rem">aposentar aos ${p.apos}</span></td> <td class="r">${BRL(R.sobra)}</td><td class="r">${BRL(R.patApos)}</td><td class="r">${BRL(R.alvoConsumo)}</td> <td class="r"><b style="color:${R.prob>=80?'var(--ok)':R.prob>=55?'var(--warn)':'var(--bad)'}">${R.prob}%</b></td></tr>`).join('')}
     </tbody></table></div> <div class="panel"><h2>Projeção comparada</h2><canvas id="chCmp"></canvas></div>`;
-  if(typeof Chart!=='undefined'){destroyCharts();const cols=['#C5A059','#8FD9CC','#E8CC8B','#f87171','#4Fa3a3'];
+  if(typeof Chart!=='undefined'){ensureChartDefaults();destroyCharts();const cols=['#C5A059','#8FD9CC','#E8CC8B','#f87171','#4Fa3a3'];
     const maxLen=Math.max(...rows.map(r=>r.R.idades.length));const labels=rows[0].R.idades;
     try{charts.push(new Chart(chCmp,{type:'line',data:{labels,datasets:rows.map((r,i)=>({label:(r.p.main?'★ ':'')+r.p.titulo,data:r.R.serie,borderColor:cols[i%cols.length],borderWidth:2,pointRadius:0,tension:.25,fill:false}))},options:{plugins:{legend:{labels:{color:'#9DB5B1'}}},scales:{x:{grid:{color:'rgba(143,217,204,.1)'},ticks:{color:'#9DB5B1'}},y:{grid:{color:'rgba(143,217,204,.1)'},ticks:{color:'#9DB5B1',callback:v=>'R$ '+(v/1e6).toFixed(1)+'M'}}}}}));}catch(e){console.warn(e)}}
 }
@@ -1640,6 +1658,7 @@ function renderClientPlan(C){
   const c=client(session.clientId);
   if(!view.planId || !c.plans.some(p=>p.id===view.planId)) view.planId=mainPlan(c).id;
   view.clientId=c.id; view.readonly=!!plan(c.id,view.planId).main;
+  if(view.page==='plan'){ curSec='projecao'; }
   renderEditor(C);
 }
 function selCliPlan(pid){view.planId=pid;view.readonly=!!plan(view.clientId,pid).main;renderEditor(document.getElementById('content'));}
@@ -1700,7 +1719,7 @@ function renderGastos(C){
    </div> <button class="fab" onclick="openLanc()" title="Novo lançamento">+</button>`;
   drawGastosCharts(catArr, m.histGastos.concat([['Jun',totDesp]]));
 }
-function drawGastosCharts(catArr,hist){if(typeof Chart==='undefined')return;destroyCharts();const gold='#C5A059',tick='#9DB5B1',grid='rgba(143,217,204,.1)';
+function drawGastosCharts(catArr,hist){if(typeof Chart==='undefined')return;ensureChartDefaults();destroyCharts();const gold='#C5A059',tick='#9DB5B1',grid='rgba(143,217,204,.1)';
   try{charts.push(new Chart(chSpend,{type:'doughnut',data:{labels:catArr.map(c=>c[0]),datasets:[{data:catArr.map(c=>c[1]),backgroundColor:catArr.map(c=>catMetaG(c[0])[2]),borderWidth:0}]},options:{maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false}}}}))}catch(e){console.warn(e)}
   try{charts.push(new Chart(chEvol,{type:'bar',data:{labels:hist.map(h=>h[0]),datasets:[{data:hist.map(h=>h[1]),backgroundColor:hist.map((h,i)=>i===hist.length-1?gold:'rgba(143,217,204,.35)'),borderRadius:6}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tick}},y:{grid:{color:grid},ticks:{color:tick,callback:v=>'R$ '+(v/1000).toFixed(0)+'k'}}}}}))}catch(e){console.warn(e)}}
 function openBudgets(){const m=mainPlan(session.clientId);document.getElementById('budgetBody').innerHTML=CATS_GASTO.filter(c=>c[0]!=='Receita').map(c=>`<div class="field" style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:130px;display:flex;align-items:center;gap:8px;color:${c[2]}">${catIcon(c[0],17)}<span style="color:var(--ink)">${c[0]}</span></span><input type="number" id="bud_${c[0]}" value="${(m.budgets&&m.budgets[c[0]])||0}" style="flex:1"></div>`).join('');document.getElementById('budgetModal').classList.remove('hidden');}
