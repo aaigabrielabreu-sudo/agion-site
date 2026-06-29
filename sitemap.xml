@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://www.agionconsorcios.com.br/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://www.agionconsorcios.com.br/consorcios.html</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://www.agionconsorcios.com.br/cartas.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://www.agionconsorcios.com.br/planejamento.html</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://www.agionconsorcios.com.br/sobre.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://www.agionconsorcios.com.br/consultoria.html</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.agionconsorcios.com.br/consorcios</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.agionconsorcios.com.br/cartas</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.agionconsorcios.com.br/consultoria</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.agionconsorcios.com.br/planejamento</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.agionconsorcios.com.br/sobre</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.agionconsorcios.com.br/blog</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.agionconsorcios.com.br/blog-o-que-e-consorcio</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.agionconsorcios.com.br/blog-consorcio-ou-financiamento</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.agionconsorcios.com.br/blog-como-ser-contemplado</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.agionconsorcios.com.br/blog-consorcio-de-imovel</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
 </urlset>
