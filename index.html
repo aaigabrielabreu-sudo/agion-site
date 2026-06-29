@@ -482,6 +482,13 @@ body::after{content:"";position:fixed;inset:-12%;z-index:-2;pointer-events:none;
   if(val&&val.trim())msg+=' Crédito: '+val+'.';
   if(email&&email.trim())msg+=' E-mail: '+email+'.';
   if(tel&&tel.trim())msg+=' Telefone: '+tel+'.';
+  var contato=[tel,email].filter(function(x){return x&&x.trim();}).join(' · ');
+  try{
+   fetch('https://sfekirqoflozylghwlbe.supabase.co/functions/v1/captacao?key=agion&origem=Site',{
+     method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({nome:(nome||'').trim(),contato:contato,tipo:'Consórcio',origem:'Site',campanha:'Simulador do site'+((prod&&prod!=='Selecione...')?' — '+prod:''),valor:(val||'').replace(/[^0-9]/g,'')})
+   }).catch(function(){});
+  }catch(e){}
   window.open('https://wa.me/5551993078590?text='+encodeURIComponent(msg),'_blank');
  });
 })();
