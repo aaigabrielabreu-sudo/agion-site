@@ -313,23 +313,91 @@ body::after{content:"";position:fixed;inset:-12%;z-index:-2;pointer-events:none;
 .val h4{color:var(--petro);font-size:1.08rem;margin-bottom:6px}
 .val p{color:var(--muted);font-size:.9rem;line-height:1.5}
 @media(max-width:760px){.vals{grid-template-columns:1fr}}
+
+/* ====================== BLOG & ARTIGO (redesign) ====================== */
+.readbar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--gg);z-index:60;box-shadow:0 0 10px rgba(197,160,89,.65);transition:width .08s linear}
+.backlink{display:inline-flex;align-items:center;gap:8px;margin-top:14px;color:var(--gold2);font-weight:700;font-size:.82rem;letter-spacing:.02em}
+.backlink:hover{gap:12px;transition:.2s}
+/* índice de artigos (grid) */
+.bloglist{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:1000px;margin:0 auto}
+.bpost{position:relative;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(135deg,#0C2228,#16404A 55%,#1E5B66);background-size:200% 200%;animation:petroShift 14s ease infinite;border:1.5px solid rgba(232,204,139,.5);border-radius:18px;padding:26px 24px 22px;box-shadow:0 12px 34px rgba(8,24,28,.28);transition:.3s;min-height:210px}
+.bpost::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--gg);box-shadow:0 0 14px rgba(197,160,89,.45);z-index:2}
+.bpost:hover{transform:translateY(-6px);border-color:var(--gold);box-shadow:0 22px 50px rgba(8,24,28,.4),0 0 30px rgba(197,160,89,.18)}
+.bpost .tag{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;font-size:.66rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#2a2113;background:var(--gg);border-radius:999px;padding:6px 13px;margin-bottom:14px}
+.bpost .tag svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.bpost h2{color:#fff!important;font-size:1.22rem;line-height:1.26;margin-bottom:9px}
+.bpost p{color:#cfe0dd!important;font-size:.9rem;line-height:1.55;margin:0 0 auto}
+.bpost .rd{margin-top:16px;color:var(--gold2);font-weight:700;font-size:.9rem;display:inline-flex;align-items:center;gap:6px;transition:.2s}
+.bpost:hover .rd{gap:11px}
+.bpost .rtime{display:inline-flex;align-items:center;gap:6px;color:#9fb6b2;font-size:.74rem;font-weight:600;margin-top:10px}
+.bpost .rtime svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:760px){.bloglist{grid-template-columns:1fr;gap:16px}}
+/* card destaque (primeiro) */
+.bpost.feat{grid-column:1/-1;flex-direction:row;align-items:center;gap:30px;min-height:auto}
+.bpost.feat .fico{flex:0 0 116px;width:116px;height:116px;border-radius:22px;background:var(--gg);display:grid;place-items:center;color:#2a2113;box-shadow:0 12px 28px rgba(197,160,89,.4)}
+.bpost.feat .fico svg{width:56px;height:56px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.bpost.feat .fbody{flex:1;display:flex;flex-direction:column}
+.bpost.feat h2{font-size:1.5rem}
+@media(max-width:760px){.bpost.feat{flex-direction:column;text-align:center}.bpost.feat .tag{align-self:center}.bpost.feat .rtime{justify-content:center}}
+/* artigo — coluna branca legível sobre fundo claro */
+section.sec:has(>.wrap>.article),section.sec:has(.article){background:var(--bg2)}
+.article{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 24px 60px rgba(12,34,40,.10);padding:44px 52px 38px;max-width:780px;margin:0 auto}
+.article .meta{display:flex;flex-wrap:wrap;align-items:center;gap:9px;color:var(--muted);font-size:.82rem;font-weight:600;margin-bottom:20px}
+.article .meta .dot{width:4px;height:4px;border-radius:50%;background:var(--gold);flex:0 0 auto}
+.article .meta .av{display:inline-flex;align-items:center;gap:7px;color:var(--petro);font-weight:700}
+.article .meta .av span{width:24px;height:24px;border-radius:50%;background:var(--gg);display:grid;place-items:center;color:#2a2113;font-size:.66rem;font-weight:800}
+.article .lead{font-family:var(--lora);font-size:1.16rem;line-height:1.66;color:var(--petro);border-left:4px solid var(--gold);padding-left:18px;margin:0 0 6px;font-weight:500}
+.article h2{font-family:var(--lora);color:var(--petro);font-size:1.46rem;line-height:1.25;margin:36px 0 12px;scroll-margin-top:90px}
+.article h2::before{content:"";display:block;width:44px;height:3px;background:var(--gg);border-radius:3px;margin-bottom:14px}
+.article p{color:#37474a;font-size:1.05rem;line-height:1.8;margin-bottom:15px}
+.article b{color:var(--petro);font-weight:700}
+.article ul{list-style:none;margin:8px 0 20px;display:flex;flex-direction:column;gap:12px}
+.article ul li{position:relative;padding-left:36px;color:#37474a;font-size:1.03rem;line-height:1.6}
+.article ul li::before{content:"✓";position:absolute;left:0;top:1px;width:23px;height:23px;border-radius:50%;background:var(--gg);color:#2a2113;display:inline-grid;place-items:center;font-size:.72rem;font-weight:800}
+.article a.inl{color:#16606E;font-weight:700;border-bottom:2px solid rgba(197,160,89,.5);transition:.2s}
+.article a.inl:hover{color:var(--gold);border-color:var(--gold)}
+/* índice navegável (TOC) */
+.toc{background:linear-gradient(180deg,#F6F9F8,#EEF4F2);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:14px;padding:20px 24px;margin:24px 0 30px}
+.toc h4{font-family:var(--sans);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.toc h4 svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.toc ol{list-style:none;counter-reset:t;display:flex;flex-direction:column}
+.toc a{display:flex;gap:11px;align-items:baseline;color:var(--petro);font-size:.96rem;padding:7px 0;border-bottom:1px dashed var(--line);font-weight:600}
+.toc a:last-child{border-bottom:none}
+.toc a::before{counter-increment:t;content:counter(t,decimal-leading-zero);color:var(--gold);font-weight:800;font-size:.8rem;flex:0 0 auto}
+.toc a:hover{color:var(--gold);transform:translateX(4px);transition:.2s}
+/* CTA dentro do artigo */
+.cta-box{position:relative;overflow:hidden;background:linear-gradient(135deg,#0C2228,#16404A 55%,#1E5B66);background-size:200% 200%;animation:petroShift 14s ease infinite;border:1.5px solid var(--gold);border-radius:18px;padding:30px 32px;margin:34px 0;text-align:center;box-shadow:0 18px 44px rgba(8,24,28,.3)}
+.cta-box::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--gg)}
+.cta-box p{color:#fff!important;font-family:var(--lora);font-size:1.16rem;margin:0 0 18px;line-height:1.5}
+.cta-box .btn-gold{text-transform:uppercase;letter-spacing:.03em}
+/* compartilhar */
+.share{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:30px 0 4px;padding-top:22px;border-top:1px solid var(--line)}
+.share .sl{color:var(--muted);font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-right:4px}
+.share a{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);color:var(--petro);transition:.2s}
+.share a:hover{border-color:var(--gold);color:var(--gold);transform:translateY(-3px)}
+.share a svg{width:18px;height:18px}
+/* divisória dourada antes de "continue lendo" */
+.article > h2.more{margin-top:42px}
+@media(max-width:600px){.article{padding:30px 22px 28px;border-radius:18px}.article .lead{font-size:1.08rem}.article h2{font-size:1.3rem}.article p,.article ul li{font-size:1rem}}
+
 </style><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Início", "item": "https://www.agionconsorcios.com.br/"}, {"@type": "ListItem", "position": 2, "name": "Consultoria", "item": "https://www.agionconsorcios.com.br/blog-como-ser-contemplado"}]}</script>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Início", "item": "https://www.agionconsorcios.com.br/"}, {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://www.agionconsorcios.com.br/blog"}, {"@type": "ListItem", "position": 3, "name": "Como ser contemplado no consórcio mais rápido | Agion", "item": "https://www.agionconsorcios.com.br/blog-como-ser-contemplado"}]}</script><script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Como ser contemplado no consórcio mais rápido", "description": "Estratégias de lance e sorteio para antecipar a contemplação no consórcio.", "datePublished": "2026-06-29", "dateModified": "2026-06-29", "inLanguage": "pt-BR", "mainEntityOfPage": "https://www.agionconsorcios.com.br/blog-como-ser-contemplado", "image": "https://www.agionconsorcios.com.br/og-agion.png", "author": {"@type": "Organization", "name": "Agion Consórcios"}, "publisher": {"@type": "Organization", "name": "Agion Consórcios", "logo": {"@type": "ImageObject", "url": "https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png"}}}</script>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Qual a chance de ser sorteado?", "acceptedAnswer": {"@type": "Answer", "text": "Depende do tamanho e da idade do grupo. O sorteio é mensal e todos concorrem; a estratégia de lance aumenta muito as chances de antecipar."}}, {"@type": "Question", "name": "O que é lance embutido?", "acceptedAnswer": {"@type": "Answer", "text": "É quando parte do próprio crédito é usada como lance, sem desembolso extra — útil para ofertar um lance sem ter todo o valor em caixa."}}]}</script>
 </head>
 <body>
+<div class="readbar" id="readbar"></div>
 <div class="topbar"><div class="wrap">
   <a href="https://wa.me/5551993078590?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Agion."><svg class="svg" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg> <span class="gold">(51) 99307-8590</span></a>
   <a>Atendimento online · Seg a Sáb</a>
 </div></div>
 <nav class="nav"><div class="wrap">
   <a class="brand"><span class="brand-mark"><img src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion" onerror="this.parentNode.style.display='none'"></span><span class="brand-txt"><b>Agion</b><small>Consórcios · Planejamento · Consultoria</small></span></a>
-  <ul class="nav-links"><li><a href="/">Início</a></li><li><a href="/planejamento">Planejamento</a></li><li><a href="/consorcios">Consórcios</a></li><li><a href="/cartas">Contempladas</a></li><li><a href="/consultoria">Consultoria</a></li><li><a href="/blog">Blog</a></li><li><a href="/sobre">Quem Somos</a></li></ul>
+  <ul class="nav-links"><li><a href="/">Início</a></li><li><a href="/planejamento">Planejamento</a></li><li><a href="/consorcios">Consórcios</a></li><li><a href="/cartas">Contempladas</a></li><li><a href="/consultoria">Consultoria</a></li><li><a href="/exclusividades">Exclusividades</a></li><li><a href="/blog">Blog</a></li><li><a href="/sobre">Quem Somos</a></li></ul>
   <a class="btn btn-ghost" href="/plataforma">Login</a>
   <button class="nav-burger" aria-label="Abrir menu" onclick="document.getElementById('navMobile').classList.toggle('open')"><span></span><span></span><span></span></button>
 </div>
 <div class="nav-mobile" id="navMobile">
-  <a href="/">Início</a><a href="/planejamento">Planejamento</a><a href="/consorcios">Consórcios</a><a href="/cartas">Contempladas</a><a href="/consultoria">Consultoria</a><a href="/blog">Blog</a><a href="/sobre">Quem Somos</a><a class="nm-login" href="/plataforma">Login</a>
+  <a href="/">Início</a><a href="/planejamento">Planejamento</a><a href="/consorcios">Consórcios</a><a href="/cartas">Contempladas</a><a href="/consultoria">Consultoria</a><a href="/exclusividades">Exclusividades</a><a href="/blog">Blog</a><a href="/sobre">Quem Somos</a><a class="nm-login" href="/plataforma">Login</a>
 </div></nav>
 <div class="quicknav">
   <a href="/consorcios"><svg class="svg" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><b>Consórcios</b></a>
@@ -337,8 +405,8 @@ body::after{content:"";position:fixed;inset:-12%;z-index:-2;pointer-events:none;
   <a href="/consultoria"><svg class="svg" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg><b>Consultoria</b></a>
 </div>
 
-<header class="page-hero"><div class="wrap"><span class="kick">Blog · Estratégia</span><h1>Como ser contemplado no consórcio mais rápido</h1><p>Sorteio, lance e estratégia: como aumentar suas chances de contemplação.</p></div></header><section class="sec"><div class="article"><p class="meta">Estratégia</p>
-<p class="lead">A contemplação é o momento em que você recebe a carta de crédito. Ela acontece por sorteio ou por lance — e dá para aumentar bastante as suas chances com estratégia.</p>
+<header class="page-hero"><div class="wrap"><span class="kick">Blog · Estratégia</span><h1>Como ser contemplado no consórcio mais rápido</h1><p>Sorteio, lance e estratégia: como aumentar suas chances de contemplação.</p><a class="backlink" href="/blog">← Voltar para o Blog</a></div></header><section class="sec"><div class="article"><p class="meta"><span class="av"><span>A</span>Equipe Agion</span><span class="dot"></span>Estratégia<span class="dot"></span>Atualizado em jun/2026<span class="dot"></span><span class="rt">5 min</span> de leitura</p>
+<p class="lead">A contemplação é o momento em que você recebe a carta de crédito. Ela acontece por sorteio ou por lance — e dá para aumentar bastante as suas chances com estratégia.</p><div class="toc" id="toc"></div>
 <h2>As duas formas de ser contemplado</h2>
 <p><b>Sorteio:</b> em toda assembleia mensal, participantes são sorteados. É gratuito e todos concorrem. <b>Lance:</b> você oferece antecipar um número de parcelas; quem oferece o maior lance é contemplado. Existem modalidades como <b>lance livre</b> e <b>lance fixo</b>, dependendo da administradora.</p>
 <h2>Como aumentar suas chances</h2>
@@ -351,10 +419,10 @@ body::after{content:"";position:fixed;inset:-12%;z-index:-2;pointer-events:none;
 <h2>O papel do planejamento</h2>
 <p>Ser contemplado rápido raramente é só sorte: é estratégia de lance + escolha de grupo + reserva financeira. Na Agion, montamos essa estratégia dentro do seu <a class="inl" href="/planejamento">planejamento financeiro</a>, para que a contemplação aconteça no melhor momento para você.</p>
 <div class="cta-box"><p>Quer simular o seu consórcio e receber um plano personalizado, sem compromisso?</p><a class="btn btn-gold" href="https://wa.me/5551993078590?text=Ol%C3%A1!%20Quero%20simular%20meu%20cons%C3%B3rcio%20na%20Agion.">Falar com um especialista</a></div>
-<p>Saiba mais sobre <a class="inl" href="/blog-o-que-e-consorcio">como funciona o consórcio</a> ou veja as <a class="inl" href="/cartas">cartas disponíveis</a>.</p><h2>Perguntas frequentes</h2><div class="faqwrap" style="max-width:none;margin:0"><details><summary>Qual a chance de ser sorteado?</summary><div class="a">Depende do tamanho e da idade do grupo. O sorteio é mensal e todos concorrem; a estratégia de lance aumenta muito as chances de antecipar.</div></details><details><summary>O que é lance embutido?</summary><div class="a">É quando parte do próprio crédito é usada como lance, sem desembolso extra — útil para ofertar um lance sem ter todo o valor em caixa.</div></details></div><h2>Continue lendo</h2><div class="bloglist" style="max-width:none"><a class="bpost" href="/blog-o-que-e-consorcio"><span class="tag">Guia</span><h2>O que é consórcio e como funciona?</h2><span class="rd">Ler artigo →</span></a><a class="bpost" href="/blog-consorcio-ou-financiamento"><span class="tag">Comparativo</span><h2>Consórcio ou financiamento?</h2><span class="rd">Ler artigo →</span></a><a class="bpost" href="/blog-consorcio-de-imovel"><span class="tag">Imobiliário</span><h2>Consórcio de imóvel vale a pena?</h2><span class="rd">Ler artigo →</span></a></div></div></section><footer><div class="wrap">
+<p>Saiba mais sobre <a class="inl" href="/blog-o-que-e-consorcio">como funciona o consórcio</a> ou veja as <a class="inl" href="/cartas">cartas disponíveis</a>.</p><h2>Perguntas frequentes</h2><div class="faqwrap" style="max-width:none;margin:0"><details><summary>Qual a chance de ser sorteado?</summary><div class="a">Depende do tamanho e da idade do grupo. O sorteio é mensal e todos concorrem; a estratégia de lance aumenta muito as chances de antecipar.</div></details><details><summary>O que é lance embutido?</summary><div class="a">É quando parte do próprio crédito é usada como lance, sem desembolso extra — útil para ofertar um lance sem ter todo o valor em caixa.</div></details></div><div class="share"><span class="sl">Compartilhar</span><a href="https://wa.me/?text=" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.042zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01z"/></svg></a><a href="#" onclick="navigator.share?navigator.share({title:document.title,url:location.href}):navigator.clipboard.writeText(location.href);return false;" aria-label="Copiar link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></a></div><h2 class="more">Continue lendo</h2><div class="bloglist" style="max-width:none"><a class="bpost" href="/blog-o-que-e-consorcio"><span class="tag">Guia</span><h2>O que é consórcio e como funciona?</h2><span class="rd">Ler artigo →</span></a><a class="bpost" href="/blog-consorcio-ou-financiamento"><span class="tag">Comparativo</span><h2>Consórcio ou financiamento?</h2><span class="rd">Ler artigo →</span></a><a class="bpost" href="/blog-consorcio-de-imovel"><span class="tag">Imobiliário</span><h2>Consórcio de imóvel vale a pena?</h2><span class="rd">Ler artigo →</span></a></div></div></section><footer><div class="wrap">
   <div class="cols">
     <div><b class="fb">Agion</b><p style="margin-top:10px;max-width:340px">Consórcio imobiliário com planejamento financeiro integrado e consultoria de investimentos. O método que une as três disciplinas para a conquista do seu imóvel.</p></div>
-    <div><h5>Links rápidos</h5><a href="/blog">Blog</a><a href="/planejamento">Planejamento</a><a href="/consorcios">Consórcios</a><a href="/consultoria">Consultoria</a><a href="/sobre">Quem Somos</a></div>
+    <div><h5>Links rápidos</h5><a href="/blog">Blog</a><a href="/planejamento">Planejamento</a><a href="/consorcios">Consórcios</a><a href="/consultoria">Consultoria</a><a href="/exclusividades">Exclusividades</a><a href="/sobre">Quem Somos</a></div>
     <div><h5>Contato</h5><a href="https://wa.me/5551993078590?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Agion.">(51) 99307-8590</a><a href="mailto:contato@agionconsorcios.com.br">contato@agionconsorcios.com.br</a><a href="https://wa.me/5551993078590">Atendimento online</a></div>
   </div>
   <div class="base">© 2026 Agion Consórcios · CNPJ 62.777.516/0001-02 · Todos os direitos reservados.</div>
@@ -374,6 +442,22 @@ body::after{content:"";position:fixed;inset:-12%;z-index:-2;pointer-events:none;
   if(tel&&tel.trim())msg+=' Telefone: '+tel+'.';
   window.open('https://wa.me/5551993078590?text='+encodeURIComponent(msg),'_blank');
  });
+})();
+</script>
+
+<script>
+(function(){
+ var art=document.querySelector('.article');var bar=document.getElementById('readbar');
+ if(art){
+  var hs=[].slice.call(art.children).filter(function(e){return e.tagName==='H2'});
+  hs.forEach(function(h,i){if(!h.id)h.id='s'+(i+1);});
+  var toc=document.getElementById('toc');
+  if(toc){var ol='';hs.forEach(function(h){if(/^Continue lendo/i.test(h.textContent))return;ol+='<a href="#'+h.id+'">'+h.textContent+'</a>';});
+   toc.innerHTML='<h4><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Neste artigo</h4><ol>'+ol+'</ol>';}
+  var words=(art.innerText||'').trim().split(/\s+/).length;var rt=Math.max(2,Math.round(words/200));
+  [].forEach.call(document.querySelectorAll('.rt'),function(e){e.textContent=rt+' min';});
+ }
+ if(bar){var f=function(){var st=document.documentElement.scrollTop||document.body.scrollTop;var h=(document.documentElement.scrollHeight-document.documentElement.clientHeight);bar.style.width=(h>0?Math.min(100,st/h*100):0)+'%';};window.addEventListener('scroll',f,{passive:true});f();}
 })();
 </script>
 </body></html>
