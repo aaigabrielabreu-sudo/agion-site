@@ -81,7 +81,7 @@ h1,h2,h3,h4{font-family:var(--lora)}
 @media(max-width:980px){.nav-links,.nav .btn-ghost{display:none}.nav-burger{display:flex}.quicknav{display:grid}}
 
 /* HERO petróleo full-bleed, form branco à esquerda */
-.hero{background:var(--gp);position:relative;overflow:hidden}
+.hero{background:url(/agion-wm.png) 0 0/240px repeat,var(--gp);position:relative;overflow:hidden}
 .hero::before{content:"";position:absolute;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,rgba(197,160,89,.22),transparent 62%);top:-260px;right:-150px;animation:float1 10s ease-in-out infinite;z-index:0;pointer-events:none}
 .hero::after{content:"";position:absolute;width:460px;height:460px;border-radius:50%;background:radial-gradient(circle,rgba(34,118,106,.55),transparent 60%);bottom:-200px;left:-120px;animation:float1 13s ease-in-out infinite reverse;z-index:0;pointer-events:none}
 @keyframes float1{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.05)}}
@@ -173,13 +173,13 @@ details .a{color:var(--muted);padding:0 0 18px;line-height:1.65}
 @media(max-width:860px){.depos{grid-template-columns:1fr}}
 
 /* CTA + footer */
-.ctaband{background:var(--gp);color:#fff;text-align:center;position:relative;overflow:hidden}
+.ctaband{background:url(/agion-wm.png) 0 0/240px repeat,var(--gp);color:#fff;text-align:center;position:relative;overflow:hidden}
 .ctaband::after{content:"";position:absolute;inset:0;background:radial-gradient(50% 70% at 50% 0%,rgba(197,160,89,.18),transparent 70%)}
 .ctaband .wrap{position:relative;z-index:1}
 .ctaband h2{font-family:var(--serif);font-size:clamp(1.6rem,3vw,2.3rem);text-transform:uppercase}
 .ctaband h2 em{color:var(--gold2);font-style:normal}
 .ctaband p{color:#cfe0dd;max-width:560px;margin:14px auto 26px}
-footer{background:var(--petro);color:#9fb6b2;padding:48px 0 26px;font-size:.88rem}
+footer{background:url(/agion-wm.png) 0 0/240px repeat,var(--petro);color:#9fb6b2;padding:48px 0 26px;font-size:.88rem}
 footer .cols{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:32px;padding-bottom:26px;border-bottom:1px solid rgba(255,255,255,.08)}
 footer b.fb{font-family:var(--serif);color:#fff;font-size:1.3rem}
 footer h5{color:#fff;margin-bottom:12px;font-family:var(--sans);font-size:.95rem}
@@ -201,7 +201,7 @@ footer .base{padding-top:18px;text-align:center;color:#7c918e;font-size:.8rem}
 /* comparação especialista x vendedor */
 .compare{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:920px;margin:0 auto}
 .cmp{border-radius:18px;padding:30px 26px;border:1px solid var(--line)}
-.cmp.win{background:var(--gp);color:#fff;border-color:transparent;box-shadow:0 20px 44px rgba(12,34,40,.18)}
+.cmp.win{background:url(/agion-wm.png) 0 0/240px repeat,var(--gp);color:#fff;border-color:transparent;box-shadow:0 20px 44px rgba(12,34,40,.18)}
 .cmp.lose{background:#fff}
 .cmp h3{font-size:1.18rem;margin-bottom:16px}
 .cmp.win h3{color:#fff}.cmp.lose h3{color:var(--petro)}
@@ -251,7 +251,7 @@ details[open]{border-color:var(--gold)!important}
 
 /* dinamismo do petróleo nas faixas grandes */
 .ctaband::after{animation:float1 11s ease-in-out infinite!important}
-.cmp.win{background:linear-gradient(135deg,#0B2A26,#12473F 55%,#16665B)!important;background-size:200% 200%!important;animation:petroShift 16s ease infinite;border:2px solid var(--gold)!important;position:relative;overflow:hidden;box-shadow:0 22px 50px rgba(8,24,28,.40),0 0 30px rgba(197,160,89,.22)!important}
+.cmp.win{background:url(/agion-wm.png) 0 0/240px repeat,linear-gradient(135deg,#0B2A26,#12473F 55%,#16665B)!important;background-size:200% 200%!important;animation:petroShift 16s ease infinite;border:2px solid var(--gold)!important;position:relative;overflow:hidden;box-shadow:0 22px 50px rgba(8,24,28,.40),0 0 30px rgba(197,160,89,.22)!important}
 .cmp.win::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:var(--gg);box-shadow:0 0 18px rgba(197,160,89,.6);z-index:2}
 .cmp.win h3{color:var(--gold2)!important;font-size:1.3rem!important}
 .cmp.lose{border:1.5px solid rgba(16,52,60,.22)!important}
@@ -284,7 +284,7 @@ body::after{content:"";position:fixed;inset:-12%;z-index:-2;pointer-events:none;
 @media(max-width:560px){.wfloat{width:54px;height:54px;right:16px;bottom:16px}}
 
 /* page-hero (páginas internas) */
-.page-hero{background:var(--gp);position:relative;overflow:hidden;text-align:center;padding:62px 0 56px}
+.page-hero{background:url(/agion-wm.png) 0 0/240px repeat,var(--gp);position:relative;overflow:hidden;text-align:center;padding:62px 0 56px}
 .page-hero::before{content:"";position:absolute;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(197,160,89,.20),transparent 62%);top:-240px;right:-140px;animation:float1 10s ease-in-out infinite;pointer-events:none}
 .page-hero::after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(34,118,106,.5),transparent 60%);bottom:-180px;left:-110px;animation:float1 13s ease-in-out infinite reverse;pointer-events:none}
 .page-hero .wrap{position:relative;z-index:1}
@@ -320,7 +320,7 @@ body::after{content:"";position:fixed;inset:-12%;z-index:-2;pointer-events:none;
 .backlink:hover{gap:12px;transition:.2s}
 /* índice de artigos (grid) */
 .bloglist{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:1000px;margin:0 auto}
-.bpost{position:relative;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(135deg,#0B2A26,#12473F 55%,#16665B);background-size:200% 200%;animation:petroShift 14s ease infinite;border:1.5px solid rgba(232,204,139,.5);border-radius:18px;padding:26px 24px 22px;box-shadow:0 12px 34px rgba(8,24,28,.28);transition:.3s;min-height:210px}
+.bpost{position:relative;overflow:hidden;display:flex;flex-direction:column;background:url(/agion-wm.png) 0 0/240px repeat,linear-gradient(135deg,#0B2A26,#12473F 55%,#16665B);background-size:200% 200%;animation:petroShift 14s ease infinite;border:1.5px solid rgba(232,204,139,.5);border-radius:18px;padding:26px 24px 22px;box-shadow:0 12px 34px rgba(8,24,28,.28);transition:.3s;min-height:210px}
 .bpost::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--gg);box-shadow:0 0 14px rgba(197,160,89,.45);z-index:2}
 .bpost:hover{transform:translateY(-6px);border-color:var(--gold);box-shadow:0 22px 50px rgba(8,24,28,.4),0 0 30px rgba(197,160,89,.18)}
 .bpost .tag{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;font-size:.66rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#2a2113;background:var(--gg);border-radius:999px;padding:6px 13px;margin-bottom:14px}
@@ -366,7 +366,7 @@ section.sec:has(>.wrap>.article),section.sec:has(.article){background:var(--bg2)
 .toc a::before{counter-increment:t;content:counter(t,decimal-leading-zero);color:var(--gold);font-weight:800;font-size:.8rem;flex:0 0 auto}
 .toc a:hover{color:var(--gold);transform:translateX(4px);transition:.2s}
 /* CTA dentro do artigo */
-.cta-box{position:relative;overflow:hidden;background:linear-gradient(135deg,#0B2A26,#12473F 55%,#16665B);background-size:200% 200%;animation:petroShift 14s ease infinite;border:1.5px solid var(--gold);border-radius:18px;padding:30px 32px;margin:34px 0;text-align:center;box-shadow:0 18px 44px rgba(8,24,28,.3)}
+.cta-box{position:relative;overflow:hidden;background:url(/agion-wm.png) 0 0/240px repeat,linear-gradient(135deg,#0B2A26,#12473F 55%,#16665B);background-size:200% 200%;animation:petroShift 14s ease infinite;border:1.5px solid var(--gold);border-radius:18px;padding:30px 32px;margin:34px 0;text-align:center;box-shadow:0 18px 44px rgba(8,24,28,.3)}
 .cta-box::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--gg)}
 .cta-box p{color:#fff!important;font-family:var(--lora);font-size:1.16rem;margin:0 0 18px;line-height:1.5}
 .cta-box .btn-gold{text-transform:uppercase;letter-spacing:.03em}
