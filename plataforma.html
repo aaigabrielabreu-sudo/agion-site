@@ -477,7 +477,7 @@ body.light .logo-img,body.light .top-logo{filter:none}
 <link rel="manifest" href="/agion-plataforma.webmanifest">
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
-<div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" placeholder="seu@email.com" value="" autocomplete="off"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> </div>
+<div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" type="email" inputmode="email" placeholder="seu@email.com" value="" autocomplete="username" aria-label="E-mail"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="" autocomplete="current-password" aria-label="Senha" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> </div>
 </div> <!-- ===================== APP ===================== -->
 <div id="app"> <aside class="side"> <div class="brand" style="flex-direction:row;align-items:center;gap:10px"><img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion" onerror="this.style.display='none'"><span style="display:flex;flex-direction:column"><b>Wealth</b><span>Plataforma</span></span></div> <nav class="navi" id="navi"></nav> <div class="foot"> <div class="u" id="sideUser"></div> <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="logout()">Sair</button> </div> </aside> <div class="main"> <div class="mobnav" id="mobnav"></div> <div class="topbar"> <div class="tb-left" style="display:flex;align-items:center;gap:10px"><img class="top-logo" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion" onerror="this.style.display='none'"><div><div class="crumb" id="crumb"></div><h1 id="pageTitle">—</h1></div></div> <div class="tb-right"> <div class="actions" id="topActions"></div> <button class="bell" id="themeBtn" onclick="toggleTheme()" title="Alternar tema claro/escuro"></button> <div style="position:relative" id="bellWrap"></div> <div class="userchip" id="userChip"></div> </div> </div> <div class="content" id="content"></div> </div>
 </div> <div id="modalBg" class="modal-bg hidden"> <div class="modal"> <h3 id="modalTitle"></h3> <p id="modalMsg" class="hidden"></p> <input id="modalInput" class="hidden"> <div class="modal-actions"> <button class="btn btn-ghost btn-sm" id="modalCancel">Cancelar</button> <button class="btn btn-gold btn-sm" id="modalOk">Confirmar</button> </div> </div>
@@ -941,7 +941,9 @@ function renderNav(){
   document.getElementById('navi').innerHTML=items.map(([k,l,ic])=>`<a class="${view.page===k?'on':''}" onclick="go('${k}')">${ic}${l}</a>`).join('');
   document.getElementById('mobnav').innerHTML=items.map(([k,l,ic])=>`<a class="${view.page===k?'on':''}" onclick="go('${k}')">${ic||''}<span>${l}</span></a>`).join('');
 }
-function go(page){ view.page=page; renderNav(); window.scrollTo(0,0); render(); }
+function routeGo(page){ view.page=page; renderNav(); window.scrollTo(0,0); render(); }
+function go(page){ routeGo(page); try{ if(page&&page!=='editor'&&page!=='compare'&&location.hash.slice(1)!==page) location.hash=page; }catch(e){} }
+addEventListener('hashchange',function(){ try{ if(!session.role) return; var p=location.hash.slice(1); if(!p) return; if(navItems().some(function(it){return it[0]===p}) && p!==view.page) routeGo(p); }catch(e){} });
 function skeleton(){return `<div class="skel"> <div class="sk" style="height:30px;width:40%"></div> <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin:18px 0"> ${'<div class="sk" style="height:92px"></div>'.repeat(4)}</div> <div class="sk" style="height:230px"></div> <div class="sk" style="height:160px"></div></div>`;}
 /* ===== NOTIFICAÇÕES ===== */
 function notifList(){
@@ -959,7 +961,7 @@ function updateBell(){
   const w=document.getElementById('bellWrap'); if(!w) return;
   if(session.role==='cliente'){w.innerHTML='';return;}
   const n=notifList().length;
-  w.innerHTML=`<button class="bell" onclick="toggleNotif(event)">${ICN.bell}${n?`<span class="badge">${n>9?'9+':n}</span>`:''}</button>`;
+  w.innerHTML=`<button class="bell" aria-label="Notificações" onclick="toggleNotif(event)">${ICN.bell}${n?`<span class="badge">${n>9?'9+':n}</span>`:''}</button>`;
 }
 function toggleNotif(e){
   e&&e.stopPropagation();
@@ -1025,6 +1027,7 @@ async function startSession(authUser){
   paintUser(me);
   const el=document.getElementById('loginMsg'); if(el)el.textContent='';
   await loadCloud();
+  try{ startRealtime(); }catch(e){}
   try{ supa.rpc('log_event',{p_action:'LOGIN',p_entity:'app',p_descricao:'Entrou na plataforma',p_detalhes:{}}); }catch(e){}
   enterApp('dash');
   if(role==='cliente'){ try{ clienteWelcome(); }catch(e){} }
@@ -1057,8 +1060,8 @@ async function forgotPass(){
   if(error){el.style.color='var(--bad)';el.textContent='Não foi possível enviar agora. Tente novamente.';return;}
   el.style.color='var(--ok)';el.textContent='Enviamos um link de redefinição para o seu e-mail (confira o spam).';
 }
-function enterApp(page){document.getElementById('loginView').classList.add('hidden');document.getElementById('app').classList.add('show');view={page};renderNav();render()}
-async function logout(){ try{ if(supa) await supa.auth.signOut(); }catch(e){} session={role:null};document.getElementById('app').classList.remove('show');document.getElementById('loginView').classList.remove('hidden');destroyCharts(); const le=document.getElementById('logEmail'),lp=document.getElementById('logPass'); if(le)le.value=''; if(lp)lp.value=''; }
+function enterApp(page){document.getElementById('loginView').classList.add('hidden');document.getElementById('app').classList.add('show');var h=(location.hash||'').slice(1);var start=(h&&navItems().some(function(it){return it[0]===h}))?h:page;view={page:start};renderNav();render();try{if(location.hash.slice(1)!==start)location.hash=start;}catch(e){}}
+async function logout(){ try{ stopRealtime(); }catch(e){} try{ if(supa) await supa.auth.signOut(); }catch(e){} session={role:null};document.getElementById('app').classList.remove('show');document.getElementById('loginView').classList.remove('hidden');destroyCharts(); const le=document.getElementById('logEmail'),lp=document.getElementById('logPass'); if(le)le.value=''; if(lp)lp.value=''; }
 /* restaura sessão existente (entra direto no painel) e trata o link de redefinição de senha */
 async function bootAuth(){
   if(!supa) return;
@@ -1082,6 +1085,21 @@ async function bootAuth(){
     }
   }catch(e){}
 }
+/* ===================== TEMPO REAL (Supabase Realtime) ===================== */
+let _rtSub=null;
+function startRealtime(){
+  if(!supa||_rtSub) return;
+  try{
+    _rtSub=supa.channel('agion-rt')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'mensagens'},function(pl){var m=pl.new;if(!m||!m.id||!db.chat)return;if((db.chat.messages||[]).some(function(x){return x.id===m.id}))return;db.chat.messages.push({id:m.id,canalId:m.canal_id,autorId:m.owner_id,texto:m.texto||'',quando:m.quando||Date.now()});db.chat.messages.sort(function(a,b){return a.quando-b.quando});save();if(view.page==='chat'){var el=document.getElementById('chatMsgs');if(el){el.innerHTML=chatMsgs();scrollChat();}}try{updateBell()}catch(e){}})
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'posts'},function(pl){var p=pl.new;if(!p||!p.id)return;if((db.feed||[]).some(function(x){return x.id===p.id}))return;db.feed.push({id:p.id,autorId:p.owner_id,texto:p.texto||'',quando:p.quando||Date.now(),likes:p.likes||[],coments:p.coments||[]});save();if(view.page==='feed'){var el=document.getElementById('feedList');if(el)el.innerHTML=feedList();}try{updateBell()}catch(e){}})
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'posts'},function(pl){var p=pl.new;if(!p||!p.id)return;var ex=(db.feed||[]).find(function(x){return x.id===p.id});if(ex){ex.likes=p.likes||[];ex.coments=p.coments||[];if(p.texto)ex.texto=p.texto;save();if(view.page==='feed'){var el=document.getElementById('feedList');if(el)el.innerHTML=feedList();}}})
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'inbox'},function(pl){var x=pl.new;if(!x||!x.id)return;if((db.inbox||[]).some(function(i){return i.id===x.id}))return;db.inbox.unshift({id:x.id,fonte:x.origem||'Web',nome:x.nome||'',contato:x.contato||'',campanha:x.campanha||'',tipo:x.tipo||'Consórcio',valor:+x.valor||0,quando:Date.now(),importado:!!x.convertido});save();if(view.page==='captacao'&&isStaff())renderCaptacao(document.getElementById('content'));try{updateBell()}catch(e){}})
+    .subscribe();
+  }catch(e){}
+}
+function stopRealtime(){ try{ if(_rtSub){ supa.removeChannel(_rtSub); _rtSub=null; } }catch(e){} }
+
 bootAuth();
 
 /* ===================== RENDER PRINCIPAL ===================== */
