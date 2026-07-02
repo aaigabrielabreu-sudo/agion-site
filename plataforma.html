@@ -467,6 +467,14 @@ body.light .logo-img,body.light .top-logo{filter:none}
   canvas{max-height:260px}
 }
 </style>
+<!-- PWA (instalar na tela inicial) -->
+<meta name="theme-color" content="#0D232B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Agion Wealth">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="manifest" href="/agion-plataforma.webmanifest">
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
 <div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" placeholder="seu@email.com" value="" autocomplete="off"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> </div>
