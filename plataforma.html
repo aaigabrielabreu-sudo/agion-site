@@ -1103,9 +1103,20 @@ function stopRealtime(){ try{ if(_rtSub){ supa.removeChannel(_rtSub); _rtSub=nul
 bootAuth();
 
 /* ===================== RENDER PRINCIPAL ===================== */
-/* ===== Conversas do robô (WhatsApp via VPS bot.agionconsorcios.com.br) ===== */
+/* ===== Conversas estilo WhatsApp (bot Agion via VPS) ===== */
 const BOT_API='https://bot.agionconsorcios.com.br';
-let convState={phone:null,list:[],msgs:[],nome:null};
+let convState={phone:null,list:[],msgs:[],nome:null,filter:'',templates:null,poll:null};
+const TPL_META={
+  boas_vindas:{label:'👋 Boas-vindas (1º contato)',vars:[{k:'nome'}]},
+  lembrete_vencimento:{label:'📅 Lembrete de vencimento',vars:[{k:'nome'},{k:'data',ask:'Vence em (ex: 10/07):'}]},
+  boleto_atraso:{label:'⏰ Boleto em atraso',vars:[{k:'nome'},{k:'data',ask:'Venceu em (ex: 05/07):'}]},
+  segunda_via:{label:'📄 2ª via (aviso)',vars:[{k:'nome'}]},
+  pagamento_confirmado:{label:'✅ Pagamento confirmado',vars:[{k:'nome'}]},
+  cota_contemplada:{label:'🎉 Cota contemplada',vars:[{k:'nome'}]},
+  agendar_retorno:{label:'📞 Agendar retorno',vars:[{k:'nome'}]},
+  reativacao:{label:'💬 Reativação (lead frio)',vars:[{k:'nome'}]},
+  campanha_oferta:{label:'🚀 Campanha / oferta',vars:[{k:'nome'},{k:'oferta',ask:'Qual a oferta? (ex: taxa reduzida em imóveis):'}]}
+};
 async function apiFetch(path,opts){
   opts=opts||{};let tok='';
   try{const{data}=await supa.auth.getSession();tok=(data&&data.session&&data.session.access_token)||'';}catch(e){}
@@ -1113,67 +1124,187 @@ async function apiFetch(path,opts){
   let r,j={};try{r=await fetch(BOT_API+path,opts);try{j=await r.json();}catch(e){}}catch(e){return{ok:false,status:0,data:{error:'sem conexão com o robô'}};}
   return{ok:r.ok,status:r.status,data:j};
 }
-function convFmtPhone(p){p=(p||'').replace(/\D/g,'');if(p.length>=12)return '+'+p.slice(0,2)+' ('+p.slice(2,4)+') '+p.slice(4);if(p.length>=10)return '+'+p.slice(0,2)+' '+p.slice(2);return p;}
-function convTime(ts){try{return new Date((ts||0)*1000).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}catch(e){return'';}}
+function convDig(p){return (p||'').replace(/\D/g,'');}
+function convFmtPhone(p){p=convDig(p);if(p.length>=12)return '+'+p.slice(0,2)+' ('+p.slice(2,4)+') '+p.slice(4,9)+'-'+p.slice(9);if(p.length>=10)return '+'+p.slice(0,2)+' '+p.slice(2);return p;}
+function convTimeHM(ts){try{return new Date((ts||0)*1000).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}catch(e){return'';}}
+function convDayKey(ts){const d=new Date((ts||0)*1000);return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();}
+function convDayLabel(ts){const d=new Date((ts||0)*1000),now=Date.now()/1000;if(convDayKey(ts)===convDayKey(now))return 'Hoje';if(convDayKey(ts)===convDayKey(now-86400))return 'Ontem';return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});}
+function convInitials(s){s=(s||'').trim();if(!s)return '#';const p=s.split(/\s+/);return (((p[0]||'')[0]||'')+((p.length>1?p[p.length-1][0]:'')||'')).toUpperCase();}
+function convColor(seed){seed=convDig(seed)||String(seed||'');let h=0;for(let i=0;i<seed.length;i++)h=(h*31+seed.charCodeAt(i))%360;return 'hsl('+h+',45%,58%)';}
+function convSeen(){try{return JSON.parse(localStorage.getItem('agion_wa_seen')||'{}');}catch(e){return {};}}
+function convMarkSeen(phone,ts){const s=convSeen();s[phone]=ts||Date.now()/1000;try{localStorage.setItem('agion_wa_seen',JSON.stringify(s));}catch(e){}}
+function convUnread(c){const s=convSeen();return (c.ultdir==='in'&&c.ults>(s[c.phone]||0));}
+function convCSS(){ if(document.getElementById('waCss'))return; const st=document.createElement('style');st.id='waCss';st.textContent=`
+.wa{display:flex;height:72vh;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;background:rgba(0,0,0,.14);position:relative}
+.wa-list{width:330px;min-width:270px;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.08)}
+.wa-lhd{padding:12px;display:flex;gap:8px;align-items:center;border-bottom:1px solid rgba(255,255,255,.06)}
+.wa-srch{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:8px 14px;color:inherit;font-size:13px}
+.wa-items{flex:1;overflow:auto}
+.wa-item{display:flex;gap:11px;padding:10px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);align-items:center}
+.wa-item:hover{background:rgba(255,255,255,.04)}
+.wa-item.on{background:rgba(212,175,55,.14)}
+.wa-av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#08201c;flex:none;font-size:15px}
+.wa-it-main{flex:1;min-width:0}
+.wa-it-top{display:flex;justify-content:space-between;gap:6px;align-items:center}
+.wa-it-nm{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wa-it-tm{font-size:11px;opacity:.6;flex:none}
+.wa-it-pv{font-size:12.5px;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.wa-dot{width:10px;height:10px;border-radius:50%;background:#25d366;flex:none}
+.wa-main{flex:1;display:flex;flex-direction:column;min-width:0}
+.wa-emp{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;opacity:.75;padding:20px}
+.wa-chd{padding:10px 14px;display:flex;align-items:center;gap:11px;border-bottom:1px solid rgba(255,255,255,.06);position:relative}
+.wa-chd-nm{font-weight:600}
+.wa-chd-ph{font-size:12px;opacity:.65}
+.wa-back{display:none;background:none;border:none;color:inherit;font-size:22px;cursor:pointer}
+.wa-msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:3px}
+.wa-b{max-width:74%;padding:7px 11px;border-radius:12px;font-size:14px;white-space:pre-wrap;word-break:break-word;box-shadow:0 1px 1px rgba(0,0,0,.2)}
+.wa-in{align-self:flex-start;background:rgba(255,255,255,.09);border-top-left-radius:3px}
+.wa-out{align-self:flex-end;background:rgba(30,120,100,.42);border-top-right-radius:3px}
+.wa-sys{align-self:center;background:rgba(212,175,55,.16);font-size:12px;text-align:center;max-width:88%}
+.wa-mt{font-size:10px;opacity:.6;margin-top:3px;text-align:right}
+.wa-au{font-size:10px;opacity:.75;margin-bottom:2px;font-weight:600}
+.wa-day{align-self:center;background:rgba(0,0,0,.3);border-radius:10px;padding:3px 12px;font-size:11px;opacity:.8;margin:8px 0}
+.wa-inp{padding:10px 12px;display:flex;gap:8px;align-items:flex-end;border-top:1px solid rgba(255,255,255,.06)}
+.wa-inp textarea{flex:1;resize:none;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:10px 15px;color:inherit;max-height:110px;font-family:inherit;font-size:14px;line-height:1.3}
+.wa-cico{background:none;border:none;color:inherit;cursor:pointer;font-size:19px;opacity:.85;padding:5px 7px;border-radius:8px}
+.wa-cico:hover{background:rgba(255,255,255,.08)}
+.wa-send{background:linear-gradient(135deg,#c9a24a,#e6c76e);border:none;color:#1a1205;width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:17px;flex:none}
+.wa-pop{position:absolute;top:52px;right:12px;background:#10201d;border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:6px;z-index:60;min-width:220px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.wa-pop button{display:block;width:100%;text-align:left;background:none;border:none;color:inherit;padding:9px 11px;border-radius:8px;cursor:pointer;font-size:13.5px}
+.wa-pop button:hover{background:rgba(255,255,255,.08)}
+.wa-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
+.wa-md{background:#0f1c1a;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:20px;width:100%;max-width:420px}
+.wa-md h3{margin:0 0 6px}
+.wa-md label{display:block;font-size:12px;opacity:.75;margin:10px 0 4px}
+.wa-md input,.wa-md select{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;color:inherit;font-size:14px}
+@media(max-width:820px){.wa{height:78vh}.wa-list{width:100%}.wa.showchat .wa-list{display:none}.wa:not(.showchat) .wa-main{display:none}.wa-back{display:block}}
+`; document.head.appendChild(st);}
 async function renderConversas(C){
-  C.innerHTML='<div class="panel"><h2 style="margin:0 0 4px">Conversas do robô</h2><p class="note" style="margin:0 0 12px">Atendimentos do WhatsApp da Agion. Responda, edite o contato e envie boletos por aqui.</p><div style="display:flex;gap:14px;flex-wrap:wrap"><div id="convList" style="flex:1 1 260px;min-width:240px;max-height:64vh;overflow:auto"></div><div id="convChat" style="flex:2 1 420px;min-width:280px"></div></div></div>';
-  document.getElementById('convList').innerHTML='<p class="note">Carregando…</p>';
-  document.getElementById('convChat').innerHTML='<p class="note">Selecione uma conversa ao lado.</p>';
-  const r=await apiFetch('/api/conversas');
-  if(!r.ok){document.getElementById('convList').innerHTML='<p class="note">Não consegui falar com o robô ('+esc(String(r.data.error||r.status))+').</p>';return;}
-  convState.list=r.data.conversas||[];convRenderList();
-  if(convState.phone)convOpen(convState.phone);
+  convCSS();
+  if(convState.poll){clearInterval(convState.poll);convState.poll=null;}
+  C.innerHTML='<div class="panel" style="padding:0;overflow:hidden"><div class="wa" id="waRoot"><div class="wa-list"><div class="wa-lhd"><input class="wa-srch" id="waSrch" placeholder="Buscar conversa…" oninput="convFilter(this.value)"><button class="wa-cico" title="Nova conversa" onclick="convNewChat()">✚</button><button class="wa-cico" title="Atualizar" onclick="renderConversas(document.getElementById(\'content\'))">⟳</button></div><div class="wa-items" id="waItems"><p class="note" style="padding:14px">Carregando…</p></div></div><div class="wa-main" id="waMain"><div class="wa-emp"><div style="font-size:42px">💬</div><b>Conversas do WhatsApp</b><p class="note" style="max-width:290px">Selecione um atendimento à esquerda ou toque em ✚ para iniciar uma nova conversa. Responda, envie templates e boletos por aqui.</p></div></div></div></div>';
+  await convLoadList();
+  convState.poll=setInterval(function(){ if(!document.getElementById('waRoot')){clearInterval(convState.poll);convState.poll=null;return;} convLoadList(true); if(convState.phone) convRefreshChat(); },15000);
 }
+async function convLoadList(silent){
+  const r=await apiFetch('/api/conversas'); const el=document.getElementById('waItems'); if(!el)return;
+  if(!r.ok){ if(!silent) el.innerHTML='<p class="note" style="padding:14px">Não consegui falar com o robô ('+esc(String(r.data.error||r.status))+').</p>'; return; }
+  convState.list=r.data.conversas||[]; convRenderList();
+}
+function convFilter(v){convState.filter=(v||'').toLowerCase();convRenderList();}
 function convRenderList(){
-  const el=document.getElementById('convList');if(!el)return;
-  if(!convState.list.length){el.innerHTML='<p class="note">Nenhuma conversa ainda. Quando um cliente falar com o robô, aparece aqui.</p>';return;}
-  el.innerHTML=convState.list.map(function(c){
+  const el=document.getElementById('waItems'); if(!el)return;
+  let list=convState.list;
+  if(convState.filter){ list=list.filter(function(c){return ((c.nome||'')+' '+c.phone).toLowerCase().indexOf(convState.filter)>=0;}); }
+  if(!list.length){ el.innerHTML='<p class="note" style="padding:14px">'+(convState.filter?'Nada encontrado.':'Nenhuma conversa ainda. Toque em ✚ para iniciar uma.')+'</p>'; return; }
+  el.innerHTML=list.map(function(c){
     const nome=c.nome||convFmtPhone(c.phone);
-    const prev=(c.ultdir==='in'?'':'Você: ')+(c.ultima||'');
-    const act=(convState.phone===c.phone)?'background:rgba(212,175,55,.14)':'';
-    return '<div onclick="convOpen(\''+c.phone+'\')" style="cursor:pointer;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:12px;margin-bottom:8px;'+act+'"><div style="display:flex;justify-content:space-between;gap:8px"><b style="font-size:14px">'+esc(nome)+'</b><span class="note" style="font-size:11px">'+convTime(c.ults)+'</span></div><div class="note" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(prev)+'</div></div>';
+    const prev=(c.ultdir==='in'?'':'✓ ')+(c.ultima||'');
+    return '<div class="wa-item '+(convState.phone===c.phone?'on':'')+'" onclick="convOpen(\''+c.phone+'\')"><div class="wa-av" style="background:'+convColor(c.phone)+'">'+esc(convInitials(nome))+'</div><div class="wa-it-main"><div class="wa-it-top"><span class="wa-it-nm">'+esc(nome)+'</span><span class="wa-it-tm">'+convTimeHM(c.ults)+'</span></div><div class="wa-it-top"><span class="wa-it-pv">'+esc(prev)+'</span>'+(convUnread(c)?'<span class="wa-dot"></span>':'')+'</div></div></div>';
   }).join('');
 }
 async function convOpen(phone){
-  convState.phone=phone;convRenderList();
-  const cc=document.getElementById('convChat');if(cc)cc.innerHTML='<p class="note">Carregando mensagens…</p>';
+  convState.phone=phone; convRenderList();
+  const wr=document.getElementById('waRoot'); if(wr)wr.classList.add('showchat');
+  const mn=document.getElementById('waMain'); if(mn)mn.innerHTML='<div class="wa-emp"><p class="note">Carregando…</p></div>';
   const r=await apiFetch('/api/mensagens?phone='+encodeURIComponent(phone));
-  if(!r.ok){if(cc)cc.innerHTML='<p class="note">Erro ao carregar.</p>';return;}
-  convState.msgs=r.data.mensagens||[];convState.nome=r.data.nome;convRenderChat();
+  if(!r.ok){ if(mn)mn.innerHTML='<div class="wa-emp"><p class="note">Erro ao carregar.</p></div>'; return; }
+  convState.msgs=r.data.mensagens||[]; convState.nome=r.data.nome;
+  convMarkSeen(phone,convState.msgs.length?convState.msgs[convState.msgs.length-1].ts:Date.now()/1000);
+  convRenderChat();
+}
+async function convRefreshChat(){
+  if(!convState.phone)return; const r=await apiFetch('/api/mensagens?phone='+encodeURIComponent(convState.phone)); if(!r.ok)return;
+  const before=convState.msgs.length; convState.msgs=r.data.mensagens||[]; convState.nome=r.data.nome;
+  if(convState.msgs.length!==before){ convMarkSeen(convState.phone,convState.msgs.length?convState.msgs[convState.msgs.length-1].ts:0); convRenderChat(); convRenderList(); }
 }
 function convRenderChat(){
-  const cc=document.getElementById('convChat');if(!cc)return;
+  const mn=document.getElementById('waMain'); if(!mn)return;
   const nome=convState.nome||convFmtPhone(convState.phone);
-  const bubbles=convState.msgs.map(function(m){
-    const mine=m.direction==='out';const who=mine?(m.autor||'Agion'):nome;const sys=(m.tipo==='sistema'||m.tipo==='document');
-    const bg=mine?(sys?'rgba(212,175,55,.14)':'rgba(46,160,160,.18)'):'rgba(255,255,255,.06)';
-    return '<div style="display:flex;justify-content:'+(mine?'flex-end':'flex-start')+';margin-bottom:6px"><div style="max-width:80%;background:'+bg+';border-radius:12px;padding:8px 11px"><div class="note" style="font-size:10px;margin-bottom:2px">'+esc(who)+' · '+convTime(m.ts)+'</div><div style="font-size:14px;white-space:pre-wrap">'+esc(m.texto||'')+'</div></div></div>';
-  }).join('')||'<p class="note">Sem mensagens.</p>';
-  cc.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap"><div><b>'+esc(nome)+'</b><div class="note" style="font-size:11px">'+convFmtPhone(convState.phone)+'</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm" onclick="convSetName()">Editar contato</button><button class="btn btn-teal btn-sm" onclick="convBoleto()">Enviar boleto</button></div></div><div id="convBubbles" style="max-height:48vh;overflow:auto;padding:6px;border:1px solid rgba(255,255,255,.06);border-radius:12px">'+bubbles+'</div><div style="display:flex;gap:6px;margin-top:8px"><input id="convReply" placeholder="Escreva uma resposta…" style="flex:1" onkeydown="if(event.key===\'Enter\')convSend()"><button class="btn btn-teal" onclick="convSend()">Enviar</button></div><p class="note" style="font-size:11px;margin-top:6px">Resposta livre só chega se o cliente escreveu nas últimas 24h. O boleto usa template (chega sempre, após aprovação da Meta).</p>';
-  const b=document.getElementById('convBubbles');if(b)b.scrollTop=b.scrollHeight;
+  let body='',lastDay='';
+  convState.msgs.forEach(function(m){
+    const dk=convDayKey(m.ts); if(dk!==lastDay){ body+='<div class="wa-day">'+convDayLabel(m.ts)+'</div>'; lastDay=dk; }
+    if(m.tipo==='sistema'){ body+='<div class="wa-b wa-sys">'+esc(m.texto||'')+'<div class="wa-mt">'+convTimeHM(m.ts)+'</div></div>'; return; }
+    const mine=m.direction==='out';
+    body+='<div class="wa-b '+(mine?'wa-out':'wa-in')+'">'+(mine&&m.autor&&m.autor!=='bot'?'<div class="wa-au">'+esc(m.autor)+'</div>':'')+esc(m.texto||'')+'<div class="wa-mt">'+convTimeHM(m.ts)+'</div></div>';
+  });
+  if(!body)body='<div class="wa-emp"><p class="note">Sem mensagens ainda. Diga olá! 👋</p></div>';
+  mn.innerHTML='<div class="wa-chd"><button class="wa-back" onclick="convCloseChat()">‹</button><div class="wa-av" style="background:'+convColor(convState.phone)+'">'+esc(convInitials(nome))+'</div><div style="flex:1;min-width:0"><div class="wa-chd-nm">'+esc(nome)+'</div><div class="wa-chd-ph">'+convFmtPhone(convState.phone)+'</div></div><button class="wa-cico" title="Copiar número" onclick="convCopy()">⧉</button><button class="wa-cico" title="Mais ações" onclick="convMenu(event)">⋮</button></div><div class="wa-msgs" id="waMsgs">'+body+'</div><div class="wa-inp"><button class="wa-cico" title="Enviar template" onclick="convTplPicker()">🗂️</button><textarea id="waReply" rows="1" placeholder="Escreva uma mensagem…" oninput="convGrow(this)" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();convSend();}"></textarea><button class="wa-send" title="Enviar" onclick="convSend()">➤</button></div>';
+  const b=document.getElementById('waMsgs'); if(b)b.scrollTop=b.scrollHeight;
 }
+function convGrow(t){t.style.height='auto';t.style.height=Math.min(110,t.scrollHeight)+'px';}
+function convCloseChat(){convState.phone=null;const wr=document.getElementById('waRoot');if(wr)wr.classList.remove('showchat');convRenderList();const mn=document.getElementById('waMain');if(mn)mn.innerHTML='<div class="wa-emp"><div style="font-size:42px">💬</div><b>Conversas do WhatsApp</b></div>';}
+function convCopy(){try{navigator.clipboard.writeText(convDig(convState.phone));flash('Número copiado');}catch(e){}}
+function convMenu(ev){ev.stopPropagation();const old=document.getElementById('waPop');if(old){old.remove();return;}const d=document.createElement('div');d.className='wa-pop';d.id='waPop';d.innerHTML='<button onclick="convSetName()">✏️ Editar nome do contato</button><button onclick="convBoleto()">💳 Emitir e enviar boleto</button><button onclick="convTplPicker()">🗂️ Enviar template</button><button onclick="convCopy()">⧉ Copiar número</button>';const hd=document.querySelector('.wa-chd');if(hd)hd.appendChild(d);setTimeout(function(){document.addEventListener('click',function h(){const p=document.getElementById('waPop');if(p)p.remove();document.removeEventListener('click',h);});},20);}
 async function convSend(){
-  const i=document.getElementById('convReply');const t=(i.value||'').trim();if(!t)return;
-  i.value='';i.disabled=true;
+  const i=document.getElementById('waReply'); if(!i)return; const t=(i.value||'').trim(); if(!t)return;
+  i.value='';convGrow(i);
   const r=await apiFetch('/api/send',{method:'POST',body:JSON.stringify({phone:convState.phone,texto:t})});
-  i.disabled=false;
   if(!r.ok){flash('Falha ao enviar: '+(r.data.error||r.status));i.value=t;return;}
-  await convOpen(convState.phone);flash('Enviado');
+  await convOpen(convState.phone);
 }
 async function convSetName(){
-  const nome=prompt('Nome do contato:',convState.nome||'');if(nome===null)return;
+  const p=document.getElementById('waPop');if(p)p.remove();
+  const nome=prompt('Nome do contato (é este nome que vai no boleto):',convState.nome||'');if(nome===null)return;
   const r=await apiFetch('/api/contato',{method:'POST',body:JSON.stringify({phone:convState.phone,nome:nome.trim()})});
   if(!r.ok){flash('Falha ao salvar');return;}
-  convState.nome=nome.trim();await renderConversas(document.getElementById('content'));flash('Contato atualizado');
+  convState.nome=nome.trim();convRenderChat();convLoadList(true);flash('Contato atualizado');
 }
 async function convBoleto(){
+  const p=document.getElementById('waPop');if(p)p.remove();
   const grupo=prompt('Grupo da cota (ex: 1173):','');if(!grupo)return;
   const cota=prompt('Cota (ex: 320):','');if(!cota)return;
-  if(!confirm('Emitir e enviar o boleto do grupo '+grupo+' cota '+cota+' para '+(convState.nome||convFmtPhone(convState.phone))+'?\n\nAtenção: a emissão é real no portal HS.'))return;
-  const r=await apiFetch('/api/boleto',{method:'POST',body:JSON.stringify({grupo:grupo.trim(),cota:cota.trim(),phone:convState.phone,nome:convState.nome||'cliente'})});
+  const nome=convState.nome||'cliente';
+  if(!confirm('Emitir o boleto do grupo '+grupo+' cota '+cota+' e enviar para '+(convState.nome||convFmtPhone(convState.phone))+'?\n\nO boleto sairá no nome: '+nome+'\nAtenção: a emissão é real no portal HS.'))return;
+  const r=await apiFetch('/api/boleto',{method:'POST',body:JSON.stringify({grupo:grupo.trim(),cota:cota.trim(),phone:convState.phone,nome:nome})});
   if(!r.ok){flash('Falha: '+(r.data.error||r.status));return;}
   flash('Emitindo boleto… acompanhe na conversa (~2min)');
-  setTimeout(function(){if(convState.phone)convOpen(convState.phone);},9000);
+  setTimeout(function(){if(convState.phone)convRefreshChat();},9000);
+}
+function convModal(html){const o=document.createElement('div');o.className='wa-ov';o.id='waOv';o.onclick=function(e){if(e.target===o)convCloseModal();};o.innerHTML='<div class="wa-md">'+html+'</div>';document.body.appendChild(o);}
+function convCloseModal(){const o=document.getElementById('waOv');if(o)o.remove();}
+async function convEnsureTemplates(){ if(convState.templates)return; const r=await apiFetch('/api/templates'); convState.templates=(r.ok&&r.data.templates)?r.data.templates:[]; }
+function convApprovedOptions(){
+  const appr={}; (convState.templates||[]).forEach(function(t){ if((t.status||'').toUpperCase()==='APPROVED') appr[t.name]=true; });
+  let o=''; Object.keys(TPL_META).forEach(function(n){ if(appr[n]) o+='<option value="'+n+'">'+esc(TPL_META[n].label)+'</option>'; });
+  return o||'<option value="">(nenhum template aprovado ainda)</option>';
+}
+async function convTplParams(tpl,nome){
+  const meta=TPL_META[tpl]||{vars:[{k:'nome'}]}; const params=[];
+  for(let i=0;i<meta.vars.length;i++){ const v=meta.vars[i];
+    if(v.k==='nome'){ params.push(nome||'cliente'); }
+    else{ const val=prompt(v.ask||('Valor de '+v.k+':'),''); if(val===null)return null; params.push(val); }
+  }
+  return params;
+}
+async function convNewChat(){
+  await convEnsureTemplates();
+  convModal('<h3>Nova conversa</h3><p class="note" style="font-size:12px;margin:0 0 6px">Envia a 1ª mensagem para um número novo.</p><label>Nome do cliente</label><input id="ncNome" placeholder="Ex: Lucas Amoni"><label>WhatsApp (com DDD)</label><input id="ncFone" placeholder="Ex: 51999998888"><label>Mensagem de abertura (template)</label><select id="ncTpl">'+convApprovedOptions()+'</select><p class="note" style="font-size:11px;margin:8px 0 0">Para número novo, o WhatsApp exige um template aprovado como 1ª mensagem. O nome informado também é o que vai no boleto.</p><div style="display:flex;gap:8px;margin-top:16px"><button class="btn btn-teal" style="flex:1" onclick="convDoNewChat()">Iniciar conversa</button><button class="btn" onclick="convCloseModal()">Cancelar</button></div>');
+}
+async function convDoNewChat(){
+  const nome=(document.getElementById('ncNome').value||'').trim();
+  const fone=convDig(document.getElementById('ncFone').value);
+  const tpl=document.getElementById('ncTpl').value;
+  if(!fone||fone.length<10){flash('Número inválido');return;}
+  if(!tpl){flash('Nenhum template aprovado ainda');return;}
+  const params=await convTplParams(tpl,nome); if(params===null)return;
+  const r=await apiFetch('/api/send_template',{method:'POST',body:JSON.stringify({phone:fone,template:tpl,params:params,nome:nome})});
+  if(!r.ok){flash('Falha: '+(r.data.error||r.status));return;}
+  convCloseModal();flash('Conversa iniciada');
+  await convLoadList();setTimeout(function(){convOpen(fone);},700);
+}
+async function convTplPicker(){
+  const p=document.getElementById('waPop');if(p)p.remove();
+  if(!convState.phone){flash('Abra uma conversa primeiro');return;}
+  await convEnsureTemplates();
+  convModal('<h3>Enviar template</h3><p class="note" style="font-size:12px;margin:0 0 6px">Para '+esc(convState.nome||convFmtPhone(convState.phone))+'.</p><label>Template</label><select id="tpSel">'+convApprovedOptions()+'</select><div style="display:flex;gap:8px;margin-top:16px"><button class="btn btn-teal" style="flex:1" onclick="convDoTpl()">Enviar</button><button class="btn" onclick="convCloseModal()">Cancelar</button></div>');
+}
+async function convDoTpl(){
+  const tpl=document.getElementById('tpSel').value; if(!tpl){flash('Escolha um template');return;}
+  const params=await convTplParams(tpl,convState.nome||'cliente'); if(params===null)return;
+  const r=await apiFetch('/api/send_template',{method:'POST',body:JSON.stringify({phone:convState.phone,template:tpl,params:params,nome:convState.nome||''})});
+  if(!r.ok){flash('Falha: '+(r.data.error||r.status));return;}
+  convCloseModal();flash('Template enviado');setTimeout(function(){convRefreshChat();},1500);
 }
 
 function render(){
