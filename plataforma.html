@@ -22,11 +22,13 @@
   --ok:#34d399;--warn:#fbbf24;--bad:#f87171;
 }
 body.light{
-  --bg:#EEF3F2;--bg2:#ffffff;--card:#ffffff;--card2:#F7FAF9;--card3:#EEF4F2;
-  --teal:#13707d;--gold:#A8853E;--gold2:#9a7430;
-  --ink:#234048;--muted:#5C7470;--soft:#92A6A2;--line:rgba(16,51,60,.12);--line-gold:rgba(168,133,62,.35);
-  --head:#0E2A31;
+  --bg:#E7F0EC;--bg2:#ffffff;--card:#ffffff;--card2:#F2F8F5;--card3:#E8F1ED;
+  --teal:#16665B;--teal-ink:#ffffff;--gold:#9C7C36;--gold2:#8A6C2C;
+  --ink:#1D3A33;--muted:#4F6A63;--soft:#8AA39B;--line:rgba(11,42,38,.15);--line-gold:rgba(156,124,54,.4);
+  --head:#0B2A26;
 }
+/* chrome (barra lateral + topo) fica petroleo com texto claro no tema claro */
+body.light .side,body.light .topbar{--ink:#DCE9E7;--head:#F2FAF8;--muted:#A6C1BB;--soft:#7E9A94}
 body{font-family:var(--sans);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
 body.light::before{opacity:.4}
 body::before{content:"";position:fixed;inset:0;z-index:-1;background:
@@ -34,7 +36,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;background:
  radial-gradient(40% 34% at 90% 14%,rgba(197,160,89,.10),transparent 70%),
  radial-gradient(55% 45% at 82% 95%,rgba(22,102,91,.38),transparent 70%)}
 body::after{content:"";position:fixed;inset:-12%;z-index:-1;pointer-events:none;background-image:url('https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png');background-repeat:repeat;background-size:clamp(200px,18vw,290px);filter:blur(.6px);opacity:.06;transform:rotate(-10deg)}
-body.light::after{opacity:.05}
+body.light::after{opacity:.03}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,select,textarea{font-family:inherit}
@@ -82,7 +84,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 
 .side .foot{border-top:1px solid var(--line);padding-top:14px;font-size:.78rem;color:var(--soft)}
 .side .foot .u{color:var(--head);font-weight:700;margin-bottom:2px}
 .main{min-height:100vh;overflow-x:hidden}
-.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:clamp(12px,1.5vw,16px) clamp(16px,3vw,30px);border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(13,35,43,.82);backdrop-filter:blur(16px);z-index:30;flex-wrap:wrap}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:clamp(12px,1.5vw,16px) clamp(16px,3vw,30px);border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(11,42,38,.82);backdrop-filter:blur(16px);z-index:30;flex-wrap:wrap}
 .topbar h1{font-family:var(--serif);font-size:1.35rem;color:var(--head);line-height:1.15}
 .topbar .crumb{font-size:.72rem;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;font-weight:700}
 .tb-left{min-width:0}
