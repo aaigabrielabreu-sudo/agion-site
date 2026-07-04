@@ -1513,12 +1513,49 @@ function renderAssessorDash(C){
   if(VC.length) mkChart('dashChart',{type:'bar',data:{labels:chLabels,datasets:[{data:chData,backgroundColor:'#C5A059',borderRadius:6,maxBarThickness:60}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>BRL(c.parsed.y)}}},scales:{x:{grid:{display:false},ticks:{color:'#9DB5B1'}},y:{grid:{color:'rgba(143,217,204,.1)'},ticks:{color:'#9DB5B1',callback:v=>'R$ '+(v/1000).toFixed(0)+'k'}}}}});
 }
 let _cliQ='';let _cliN=24;
+/* ===================== CARTAS DO CLIENTE (registro p/ boleto) ===================== */
+let _cartasCid=null,_cartasNome='',_cartasList=[];
+async function openCartas(cid){
+  const c=(db.clients||[]).find(x=>x.id===cid)||{};
+  _cartasCid=cid; _cartasNome=c.nome||'Cliente'; _cartasList=[];
+  cartasPaint('Carregando…');
+  try{ const r=await supa.from('cartas').select('*').eq('cliente_id',cid).order('criado_em',{ascending:true}); _cartasList=r.data||[]; }catch(e){ _cartasList=[]; }
+  cartasPaint();
+}
+function cartasClose(){ const m=document.getElementById('cartasModal'); if(m)m.remove(); }
+function cartasPaint(msg){
+  cartasClose();
+  const rows=(_cartasList||[]).map(x=>`<div class="netrow"><span><b style="color:var(--head)">${esc(x.titular_nome||_cartasNome)}</b>${x.is_familiar?' <span class="chip" style="margin-left:4px">Familiar</span>':''}<br><span class="note">Grupo ${esc(x.grupo)} · Cota ${esc(x.cota)}${x.valor?' · '+BRL(x.valor):''}${x.whatsapp?' · 📱 '+esc(x.whatsapp):''}</span></span><span style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm" onclick="cartaEdit('${x.id}')">Editar</button><button class="btn btn-ghost btn-sm" onclick="cartaDel('${x.id}')">Excluir</button></span></div>`).join('')||'<p class="note">Nenhuma carta cadastrada ainda.</p>';
+  const body=msg?`<p class="note">${esc(msg)}</p>`:rows;
+  const html=`<div id="cartasModal" style="position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)cartasClose()"><div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:560px;width:100%;max-height:88vh;overflow:auto;padding:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><h2 style="margin:0;font-size:1.05rem">🎫 Cartas — ${esc(_cartasNome)}</h2><button class="btn btn-ghost btn-sm" onclick="cartasClose()">Fechar</button></div><p class="note" style="margin-bottom:14px">O WhatsApp de cada carta é o número autorizado a pedir o boleto dela (o próprio cliente ou, no caso de familiar, o número de quem recebe). O robô só emite cartas registradas aqui.</p><div style="margin-bottom:14px">${body}</div><button class="btn btn-gold btn-sm" onclick="cartaEdit('')">+ Adicionar carta</button></div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+async function cartaEdit(id){
+  const cur=(_cartasList||[]).find(x=>x.id===id)||{};
+  const titular=await ask({title:'Titular da carta',msg:'Nome de quem é a carta (o cliente ou um familiar):',input:true,value:cur.titular_nome||_cartasNome,ok:'Próximo'}); if(titular===null)return;
+  const grupo=await ask({title:'Grupo',msg:'Número do grupo:',input:true,value:cur.grupo||'',ok:'Próximo'}); if(grupo===null||!grupo.trim())return;
+  const cota=await ask({title:'Cota',msg:'Número da cota:',input:true,value:cur.cota||'',ok:'Próximo'}); if(cota===null||!cota.trim())return;
+  const valor=await ask({title:'Valor da carta',msg:'Valor da carta em R$ (ex.: 250000):',input:true,value:cur.valor||'',ok:'Próximo'});
+  const whats=await ask({title:'WhatsApp autorizado',msg:'Número que vai receber/pedir o boleto desta carta (com DDD):',input:true,value:cur.whatsapp||'',ok:'Próximo'});
+  const fam=await ask({title:'É de um familiar?',msg:'Digite SIM se esta carta é de um familiar (não do próprio cliente):',input:true,value:cur.is_familiar?'sim':'',ok:'Salvar'});
+  const nv=(''+ (valor||'')).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.');
+  const rec={cliente_id:_cartasCid,titular_nome:(titular||'').trim()||_cartasNome,grupo:grupo.trim(),cota:cota.trim(),valor:nv?(Number(nv)||null):null,whatsapp:(whats||'').replace(/\D/g,'')||null,is_familiar:/^s/i.test(fam||'')};
+  flash&&flash('Salvando carta…');
+  try{ if(id){ await supa.from('cartas').update(Object.assign({},rec,{atualizado_em:new Date().toISOString()})).eq('id',id); } else { await supa.from('cartas').insert(rec); } logEvt&&logEvt(id?'UPDATE':'INSERT','cartas',(id?'Editou':'Cadastrou')+' carta '+rec.grupo+'/'+rec.cota+' de '+rec.titular_nome,{cliente_id:_cartasCid}); }
+  catch(e){ await ask({title:'Não foi possível salvar',msg:String(e.message||e),ok:'Ok'}); }
+  openCartas(_cartasCid);
+}
+async function cartaDel(id){
+  if(!(await ask({title:'Excluir carta?',msg:'Tem certeza que deseja excluir esta carta?',ok:'Excluir'})))return;
+  try{ await supa.from('cartas').delete().eq('id',id); logEvt&&logEvt('DELETE','cartas','Excluiu uma carta',{cliente_id:_cartasCid}); }catch(e){}
+  openCartas(_cartasCid);
+}
 function cliListHtml(){
   let VC=visibleClients();
   if(_cliQ) VC=VC.filter(c=>((c.nome||'')+' '+(c.email||'')).toLowerCase().indexOf(_cliQ)>=0);
   const total=VC.length; const shown=VC.slice(0,_cliN);
   const cards=shown.map(c=>{const m=mainPlan(c),t=totals(c.plans.find(p=>p.main));const copies=c.plans.filter(p=>!p.main).length;
-    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div> <div class="meta">${esc(c.email||'')}${isMaster()?' · 👤 '+esc(user(c.ownerId).nome.split(' ')[0]):''}</div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div> <div class="row" style="gap:8px"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button> <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button></div></div>`}).join('')||`<p class="note">${_cliQ?'Nenhum cliente encontrado para essa busca.':'Você ainda não tem clientes. Crie um cliente ou converta um lead no CRM.'}</p>`;
+    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div> <div class="meta">${esc(c.email||'')}${isMaster()?' · 👤 '+esc(user(c.ownerId).nome.split(' ')[0]):''}</div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div> <div class="row" style="gap:8px"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button> <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button> <button class="btn btn-ghost btn-sm" onclick="openCartas('${c.id}')">🎫 Cartas</button></div></div>`}).join('')||`<p class="note">${_cliQ?'Nenhum cliente encontrado para essa busca.':'Você ainda não tem clientes. Crie um cliente ou converta um lead no CRM.'}</p>`;
   return `<div class="cards">${cards}</div>${total>_cliN?`<div style="text-align:center;margin-top:16px"><button class="btn btn-ghost" onclick="cliMore()">Carregar mais (${total-_cliN} restantes)</button></div>`:''}`;
 }
 function cliSearch(v){_cliQ=(v||'').toLowerCase();_cliN=24;const el=document.getElementById('cliList');if(el)el.innerHTML=cliListHtml();}
