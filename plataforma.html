@@ -931,9 +931,9 @@ const plan=(c,p)=>client(c).plans.find(x=>x.id===p);
 const mainPlan=c=>client(c).plans.find(p=>p.main);
 
 function navItems(){
-  if(session.role==='master') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check]];
-  if(session.role==='lider') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users]];
-  if(session.role==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users]];
+  if(session.role==='master') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check]];
+  if(session.role==='lider') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users]];
+  if(session.role==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users]];
   return [['dash','Início',ICN.dash],['plan','Planejamento',ICN.plan],['jornada','Jornada',ICN.target],['gastos','Gastos',ICN.money],['cota','Cota',ICN.cota]];
 }
 function renderNav(){
@@ -1103,6 +1103,79 @@ function stopRealtime(){ try{ if(_rtSub){ supa.removeChannel(_rtSub); _rtSub=nul
 bootAuth();
 
 /* ===================== RENDER PRINCIPAL ===================== */
+/* ===== Conversas do robô (WhatsApp via VPS bot.agionconsorcios.com.br) ===== */
+const BOT_API='https://bot.agionconsorcios.com.br';
+let convState={phone:null,list:[],msgs:[],nome:null};
+async function apiFetch(path,opts){
+  opts=opts||{};let tok='';
+  try{const{data}=await supa.auth.getSession();tok=(data&&data.session&&data.session.access_token)||'';}catch(e){}
+  opts.headers=Object.assign({'Content-Type':'application/json','Authorization':'Bearer '+tok},opts.headers||{});
+  let r,j={};try{r=await fetch(BOT_API+path,opts);try{j=await r.json();}catch(e){}}catch(e){return{ok:false,status:0,data:{error:'sem conexão com o robô'}};}
+  return{ok:r.ok,status:r.status,data:j};
+}
+function convFmtPhone(p){p=(p||'').replace(/\D/g,'');if(p.length>=12)return '+'+p.slice(0,2)+' ('+p.slice(2,4)+') '+p.slice(4);if(p.length>=10)return '+'+p.slice(0,2)+' '+p.slice(2);return p;}
+function convTime(ts){try{return new Date((ts||0)*1000).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}catch(e){return'';}}
+async function renderConversas(C){
+  C.innerHTML='<div class="panel"><h2 style="margin:0 0 4px">Conversas do robô</h2><p class="note" style="margin:0 0 12px">Atendimentos do WhatsApp da Agion. Responda, edite o contato e envie boletos por aqui.</p><div style="display:flex;gap:14px;flex-wrap:wrap"><div id="convList" style="flex:1 1 260px;min-width:240px;max-height:64vh;overflow:auto"></div><div id="convChat" style="flex:2 1 420px;min-width:280px"></div></div></div>';
+  document.getElementById('convList').innerHTML='<p class="note">Carregando…</p>';
+  document.getElementById('convChat').innerHTML='<p class="note">Selecione uma conversa ao lado.</p>';
+  const r=await apiFetch('/api/conversas');
+  if(!r.ok){document.getElementById('convList').innerHTML='<p class="note">Não consegui falar com o robô ('+esc(String(r.data.error||r.status))+').</p>';return;}
+  convState.list=r.data.conversas||[];convRenderList();
+  if(convState.phone)convOpen(convState.phone);
+}
+function convRenderList(){
+  const el=document.getElementById('convList');if(!el)return;
+  if(!convState.list.length){el.innerHTML='<p class="note">Nenhuma conversa ainda. Quando um cliente falar com o robô, aparece aqui.</p>';return;}
+  el.innerHTML=convState.list.map(function(c){
+    const nome=c.nome||convFmtPhone(c.phone);
+    const prev=(c.ultdir==='in'?'':'Você: ')+(c.ultima||'');
+    const act=(convState.phone===c.phone)?'background:rgba(212,175,55,.14)':'';
+    return '<div onclick="convOpen(\''+c.phone+'\')" style="cursor:pointer;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:12px;margin-bottom:8px;'+act+'"><div style="display:flex;justify-content:space-between;gap:8px"><b style="font-size:14px">'+esc(nome)+'</b><span class="note" style="font-size:11px">'+convTime(c.ults)+'</span></div><div class="note" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(prev)+'</div></div>';
+  }).join('');
+}
+async function convOpen(phone){
+  convState.phone=phone;convRenderList();
+  const cc=document.getElementById('convChat');if(cc)cc.innerHTML='<p class="note">Carregando mensagens…</p>';
+  const r=await apiFetch('/api/mensagens?phone='+encodeURIComponent(phone));
+  if(!r.ok){if(cc)cc.innerHTML='<p class="note">Erro ao carregar.</p>';return;}
+  convState.msgs=r.data.mensagens||[];convState.nome=r.data.nome;convRenderChat();
+}
+function convRenderChat(){
+  const cc=document.getElementById('convChat');if(!cc)return;
+  const nome=convState.nome||convFmtPhone(convState.phone);
+  const bubbles=convState.msgs.map(function(m){
+    const mine=m.direction==='out';const who=mine?(m.autor||'Agion'):nome;const sys=(m.tipo==='sistema'||m.tipo==='document');
+    const bg=mine?(sys?'rgba(212,175,55,.14)':'rgba(46,160,160,.18)'):'rgba(255,255,255,.06)';
+    return '<div style="display:flex;justify-content:'+(mine?'flex-end':'flex-start')+';margin-bottom:6px"><div style="max-width:80%;background:'+bg+';border-radius:12px;padding:8px 11px"><div class="note" style="font-size:10px;margin-bottom:2px">'+esc(who)+' · '+convTime(m.ts)+'</div><div style="font-size:14px;white-space:pre-wrap">'+esc(m.texto||'')+'</div></div></div>';
+  }).join('')||'<p class="note">Sem mensagens.</p>';
+  cc.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap"><div><b>'+esc(nome)+'</b><div class="note" style="font-size:11px">'+convFmtPhone(convState.phone)+'</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm" onclick="convSetName()">Editar contato</button><button class="btn btn-teal btn-sm" onclick="convBoleto()">Enviar boleto</button></div></div><div id="convBubbles" style="max-height:48vh;overflow:auto;padding:6px;border:1px solid rgba(255,255,255,.06);border-radius:12px">'+bubbles+'</div><div style="display:flex;gap:6px;margin-top:8px"><input id="convReply" placeholder="Escreva uma resposta…" style="flex:1" onkeydown="if(event.key===\'Enter\')convSend()"><button class="btn btn-teal" onclick="convSend()">Enviar</button></div><p class="note" style="font-size:11px;margin-top:6px">Resposta livre só chega se o cliente escreveu nas últimas 24h. O boleto usa template (chega sempre, após aprovação da Meta).</p>';
+  const b=document.getElementById('convBubbles');if(b)b.scrollTop=b.scrollHeight;
+}
+async function convSend(){
+  const i=document.getElementById('convReply');const t=(i.value||'').trim();if(!t)return;
+  i.value='';i.disabled=true;
+  const r=await apiFetch('/api/send',{method:'POST',body:JSON.stringify({phone:convState.phone,texto:t})});
+  i.disabled=false;
+  if(!r.ok){flash('Falha ao enviar: '+(r.data.error||r.status));i.value=t;return;}
+  await convOpen(convState.phone);flash('Enviado');
+}
+async function convSetName(){
+  const nome=prompt('Nome do contato:',convState.nome||'');if(nome===null)return;
+  const r=await apiFetch('/api/contato',{method:'POST',body:JSON.stringify({phone:convState.phone,nome:nome.trim()})});
+  if(!r.ok){flash('Falha ao salvar');return;}
+  convState.nome=nome.trim();await renderConversas(document.getElementById('content'));flash('Contato atualizado');
+}
+async function convBoleto(){
+  const grupo=prompt('Grupo da cota (ex: 1173):','');if(!grupo)return;
+  const cota=prompt('Cota (ex: 320):','');if(!cota)return;
+  if(!confirm('Emitir e enviar o boleto do grupo '+grupo+' cota '+cota+' para '+(convState.nome||convFmtPhone(convState.phone))+'?\n\nAtenção: a emissão é real no portal HS.'))return;
+  const r=await apiFetch('/api/boleto',{method:'POST',body:JSON.stringify({grupo:grupo.trim(),cota:cota.trim(),phone:convState.phone,nome:convState.nome||'cliente'})});
+  if(!r.ok){flash('Falha: '+(r.data.error||r.status));return;}
+  flash('Emitindo boleto… acompanhe na conversa (~2min)');
+  setTimeout(function(){if(convState.phone)convOpen(convState.phone);},9000);
+}
+
 function render(){
   destroyCharts();
   updateBell();
@@ -1117,6 +1190,7 @@ function render(){
     if(view.page==='users') return renderClients(C);
     if(view.page==='contas'&&(isMaster()||isLider())) return renderContas(C);
     if(view.page==='atividades'&&isMaster()) return renderAtividades(C);
+    if(view.page==='conversas') return renderConversas(C);
     if(view.page==='editor') return renderEditor(C);
     if(view.page==='compare') return renderCompare(C);
   }else{
