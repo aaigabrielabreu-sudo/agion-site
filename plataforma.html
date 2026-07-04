@@ -12,7 +12,7 @@
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0D232B;--bg2:#102A31;--card:#16333C;--card2:#1A3B45;--card3:#1F4651;
+  --bg:#0B2A26;--bg2:#0E322D;--card:#103A32;--card2:#144238;--card3:#184C40;
   --teal:#8FD9CC;--teal-ink:#0A2026;--gold:#C5A059;--gold2:#E8CC8B;
   --grad-gold:linear-gradient(115deg,#A8853E,#E8CC8B 45%,#C5A059 85%);
   --grad-hero:linear-gradient(100deg,#8FD9CC,#E8CC8B 50%,#C5A059);
@@ -30,9 +30,9 @@ body.light{
 body{font-family:var(--sans);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
 body.light::before{opacity:.4}
 body::before{content:"";position:fixed;inset:0;z-index:-1;background:
- radial-gradient(46% 38% at 12% 8%,rgba(38,110,122,.45),transparent 70%),
+ radial-gradient(46% 38% at 12% 8%,rgba(22,102,91,.45),transparent 70%),
  radial-gradient(40% 34% at 90% 14%,rgba(197,160,89,.10),transparent 70%),
- radial-gradient(55% 45% at 82% 95%,rgba(38,110,122,.38),transparent 70%)}
+ radial-gradient(55% 45% at 82% 95%,rgba(22,102,91,.38),transparent 70%)}
 body::after{content:"";position:fixed;inset:-12%;z-index:-1;pointer-events:none;background-image:url('https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png');background-repeat:repeat;background-size:clamp(200px,18vw,290px);filter:blur(.6px);opacity:.06;transform:rotate(-10deg)}
 body.light::after{opacity:.05}
 a{color:inherit;text-decoration:none}
@@ -174,7 +174,7 @@ div[style*="height"]>canvas{height:100%!important}
 .netrow.tot b{background:var(--grad-hero);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-size:1.3rem}
 .tbl-scroll{max-height:440px;overflow:auto;border:1px solid var(--line);border-radius:12px}
 .tbl-scroll table{font-size:.82rem}
-.tbl-scroll thead th{position:sticky;top:0;background:#16333C;z-index:1}
+.tbl-scroll thead th{position:sticky;top:0;background:#103A32;z-index:1}
 .lineleg{display:flex;gap:18px;flex-wrap:wrap;font-size:.8rem;margin:0 0 14px}
 .lineleg span{display:inline-flex;align-items:center;gap:7px;color:var(--muted)}
 .lineleg i{width:18px;height:3px;border-radius:2px;display:inline-block}
@@ -461,14 +461,14 @@ body.light .logo-img,body.light .top-logo{filter:none}
   th{color:var(--teal)}
   .panel,.kpi,.ccard,.catrow,.lanc,table,.j-node{break-inside:avoid}
   /* capa com a cara da Agion (verde) */
-  .print-cover{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;height:96vh;page-break-after:always;background:linear-gradient(160deg,#0D232B,#102A31);margin:-1px;border-radius:0}
+  .print-cover{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;height:96vh;page-break-after:always;background:linear-gradient(160deg,#0B2A26,#0E322D);margin:-1px;border-radius:0}
   .print-cover h1{font-family:var(--serif);font-size:2rem;color:#F2FAF8;margin:18px 0 6px}
   .print-cover p{color:#9DB5B1}
   canvas{max-height:260px}
 }
 </style>
 <!-- PWA (instalar na tela inicial) -->
-<meta name="theme-color" content="#0D232B">
+<meta name="theme-color" content="#0B2A26">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1667,7 +1667,7 @@ function renderEditor(C){
       :`<div class="toolbar"><button class="btn btn-teal btn-sm" onclick="recalc()">↻ Recalcular</button><button class="btn btn-gold btn-sm" onclick="saveAndPublish()">${p.main?'Salvar e publicar':'Salvar simulação'}</button><div class="sp"></div><button class="btn btn-ghost btn-sm" onclick="window.print()">Exportar PDF</button></div>`;
   }
   C.innerHTML=`
-  <div class="print-cover"> <span style="background:#0D232B;padding:16px 26px;border-radius:16px;display:inline-block"><img src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" style="height:54px;width:auto" onerror="this.style.display='none'"></span> <h1>Relatório de Planejamento Financeiro</h1> <p>${esc(c.nome)} · ${esc(p.titulo)}</p> <p style="margin-top:4px">Agion Wealth — Consórcio · Planejamento · Consultoria</p> <p style="margin-top:10px;font-size:.8rem">Emitido em ${new Date().toLocaleDateString('pt-BR')}</p> </div> ${head}
+  <div class="print-cover"> <span style="background:#0B2A26;padding:16px 26px;border-radius:16px;display:inline-block"><img src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" style="height:54px;width:auto" onerror="this.style.display='none'"></span> <h1>Relatório de Planejamento Financeiro</h1> <p>${esc(c.nome)} · ${esc(p.titulo)}</p> <p style="margin-top:4px">Agion Wealth — Consórcio · Planejamento · Consultoria</p> <p style="margin-top:10px;font-size:.8rem">Emitido em ${new Date().toLocaleDateString('pt-BR')}</p> </div> ${head}
   <div class="subnav">${(isCli?SECS.filter(s=>!['balanco','glossario'].includes(s[0])):SECS).map(s=>`<button id="tabsec_${s[0]}" onclick="showSec('${s[0]}')">${s[1]}</button>`).join('')}</div> <div class="${ro?'locked':''}" id="editForm"> ${sec('resumo',`
     <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.spark}Saúde financeira</div><b>${R.saude}/100</b></div> <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio líquido</div><b>${BRL(R.liquido)}</b></div> <div class="kpi"><div class="lab">${ICN.money}Aporte/mês · poupança</div><b>${BRL(R.sobra)} <span style="font-size:.9rem;color:var(--muted)">· ${R.poupanca}%</span></b></div> <div class="kpi"><div class="lab">${ICN.target}Prob. da aposentadoria</div><b style="color:${col}">${R.prob}%</b></div> </div> <div class="grid2"> <div class="panel"><h2>${ICN.users} Olá, ${esc((p.nome||'').split(' ')[0])}</h2> <div class="netrow"><span>Idade atual</span><b>${p.idade} anos</b></div> <div class="netrow"><span>Aposentadoria prevista</span><b>${p.apos} anos</b></div> <div class="netrow"><span>Receita média anual</span><b>${BRL(R.rendaAnual)}</b></div> <div class="netrow"><span>Despesa média anual</span><b>${BRL(R.despAnual)}</b></div> <div class="netrow"><span>Aporte médio anual</span><b>${BRL(R.aporteAnual)}</b></div> <div class="netrow tot"><span>Patrimônio investido</span><b>${BRL(R.patr)}</b></div> </div> <div class="panel" style="text-align:center"><h2 style="justify-content:center">Probabilidade de sucesso</h2> <div class="gauge"><canvas id="gauge"></canvas></div> <div style="margin-top:6px"><span class="prob" style="background:${col}22;color:${col};border:1px solid ${col}55">● ${R.prob}% de sucesso</span></div> <div style="margin-top:16px;text-align:left"><div class="note">Cobertura da meta (patrimônio ÷ necessário)</div> <div class="bar" style="height:10px"><i style="width:${R.cobertura}%"></i></div> <div style="font-size:.8rem;color:var(--muted);margin-top:6px">${R.cobertura}% da meta de ${BRL(R.alvoConsumo)}</div></div> </div> </div>`)}
 
@@ -1751,7 +1751,7 @@ function drawSectionCharts(s){
       {label:'Pessimista',data:R.seriePess,borderColor:'#f87171',borderWidth:1.6,pointRadius:0,tension:.25,borderDash:[5,4]},
       {label:'Atual',data:R.serie,backgroundColor:'rgba(197,160,89,.12)',fill:true,tension:.25,pointRadius:0,borderWidth:2.6,borderColor:gold,
         segment:{borderColor:ctx=>ctx.p0DataIndex>=splitIdx?teal:gold}},
-      {label:'Objetivos',data:markers,showLine:false,pointRadius:6,pointBackgroundColor:'#E8CC8B',pointBorderColor:'#0D232B',pointBorderWidth:2}
+      {label:'Objetivos',data:markers,showLine:false,pointRadius:6,pointBackgroundColor:'#E8CC8B',pointBorderColor:'#0B2A26',pointBorderWidth:2}
     ]},options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false,axis:'x'},plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{title:its=>its&&its.length?('Aos '+its[0].label+' anos'):'',label:c=>c.dataset.label==='Objetivos'?null:c.dataset.label+': '+BRL(c.parsed.y)}}},scales:ax(v=>'R$ '+(v/1e6).toFixed(1)+'M').scales}});
   } else if(s==='consorcio'){
     const sem=planClone(p); sem.consorcios=[]; const Rs=projetar(sem);
@@ -1796,7 +1796,7 @@ function drawResultCharts(p,R){
   mkChart('chProj',{type:'line',data:{labels:R.idades,datasets:[
     {label:'Patrimônio',data:R.serie,backgroundColor:'rgba(197,160,89,.12)',fill:true,tension:.25,pointRadius:0,borderWidth:2.4,borderColor:gold,
       segment:{borderColor:ctx=>ctx.p0DataIndex>=splitIdx?teal:gold}},
-    {label:'Objetivos',data:markers,showLine:false,pointRadius:6,pointHoverRadius:8,pointBackgroundColor:'#E8CC8B',pointBorderColor:'#0D232B',pointBorderWidth:2}
+    {label:'Objetivos',data:markers,showLine:false,pointRadius:6,pointHoverRadius:8,pointBackgroundColor:'#E8CC8B',pointBorderColor:'#0B2A26',pointBorderWidth:2}
   ]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(c.datasetIndex===1?'Objetivo: ':'')+'R$ '+Math.round(c.parsed.y).toLocaleString('pt-BR')}}},scales:ax().scales}});
   const cats={};(p.assets||[]).forEach(a=>cats[a.cat]=(cats[a.cat]||0)+(+a.valor||0));
   const ck=Object.keys(cats);
