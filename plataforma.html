@@ -28,11 +28,40 @@ body.light{
   --head:#050B09;
 }
 /* modo claro "liquid glass": texto preto + cartões de vidro líquido translúcido */
-body.light .panel,body.light .ccard,body.light .actcard,body.light .kpi:not(.grad),body.light .intg{background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.60));backdrop-filter:blur(22px) saturate(1.45);-webkit-backdrop-filter:blur(22px) saturate(1.45);border:1px solid rgba(255,255,255,.75);box-shadow:0 12px 34px rgba(11,42,38,.10),inset 0 1px 0 rgba(255,255,255,.7)}
+body.light .panel,body.light .ccard,body.light .actcard,body.light .kpi:not(.grad),body.light .intg{background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(255,255,255,.84));backdrop-filter:blur(20px) saturate(1.35);-webkit-backdrop-filter:blur(20px) saturate(1.35);border:1px solid rgba(255,255,255,.85);box-shadow:0 12px 34px rgba(11,42,38,.10),inset 0 1px 0 rgba(255,255,255,.8)}
 body.light input,body.light select,body.light textarea{background:rgba(255,255,255,.82);color:var(--ink)}
 body.light{color:#0B100E}
 /* chrome (barra lateral + topo) fica petroleo com texto claro no tema claro */
 body.light .side,body.light .topbar{--ink:#DCE9E7;--head:#F2FAF8;--muted:#A6C1BB;--soft:#7E9A94}
+/* ===== MODO CLARO — repaginação: remapeia TODA superfície escura p/ vidro claro ===== */
+body.light .kcol{background:rgba(255,255,255,.55);border-color:rgba(11,42,38,.10)}
+body.light .lead,body.light .task{background:linear-gradient(180deg,#fff,#F4F8F7);border-color:rgba(11,42,38,.10)}
+body.light .coment .cb,body.light .j-step,body.light .chat-input{background:rgba(255,255,255,.72);border-color:rgba(11,42,38,.10)}
+body.light .chat-side{background:rgba(255,255,255,.55);border-color:rgba(11,42,38,.10)}
+body.light .chat-side .ch.on{background:rgba(197,160,89,.16)}
+body.light .msg .mbubble{background:#fff;border-color:rgba(11,42,38,.10)}
+body.light .msg.me .mbubble{background:rgba(197,160,89,.16)}
+body.light .tbl-scroll thead th{background:#EAF1EE;color:var(--head)}
+body.light .gsum{background:rgba(11,42,38,.08)}
+body.light .banner{color:#6B531E}
+body.light .disclaimer{color:var(--muted);background:rgba(15,81,71,.05)}
+body.light .btn-teal{color:#0E4A41;background:rgba(15,81,71,.08);border-color:rgba(15,81,71,.25)}
+body.light .btn-teal:hover{background:rgba(15,81,71,.14)}
+body.light .tt-Consultoria{color:#7E6224;background:rgba(197,160,89,.12);border-color:rgba(197,160,89,.35)}
+body.light .chip-teal,body.light .tag-copy,body.light .tt-Planejamento{color:#0E4A41}
+body.light .bell{background:rgba(15,81,71,.06);border-color:rgba(11,42,38,.12);color:var(--ink)}
+/* Conversas (WhatsApp) — remap completo p/ o claro */
+body.light .wa{background:rgba(255,255,255,.5);border-color:rgba(11,42,38,.10)}
+body.light .wa-srch,body.light .wa-inp textarea,body.light .wa-md input,body.light .wa-md select{background:#fff;border-color:rgba(11,42,38,.14);color:var(--ink)}
+body.light .wa-item:hover{background:rgba(11,42,38,.04)}
+body.light .wa-item.on{background:rgba(197,160,89,.16)}
+body.light .wa-in{background:#fff;border:1px solid rgba(11,42,38,.08)}
+body.light .wa-out{background:#E4F1D8}
+body.light .wa-sys{background:rgba(197,160,89,.18)}
+body.light .wa-day{background:rgba(11,42,38,.10);opacity:1;color:var(--muted)}
+body.light .wa-cico:hover,body.light .wa-pop button:hover{background:rgba(11,42,38,.06)}
+body.light .wa-pop,body.light .wa-md{background:#fff;border-color:rgba(11,42,38,.12)}
+body.light .wa-back,body.light .wa-cico{color:var(--ink)}
 body{font-family:var(--sans);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
 body.light::before{opacity:.09}
 body::before{content:"";position:fixed;inset:0;z-index:-1;background:
@@ -40,7 +69,7 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;background:
  radial-gradient(40% 34% at 90% 14%,rgba(197,160,89,.10),transparent 70%),
  radial-gradient(55% 45% at 82% 95%,rgba(22,102,91,.38),transparent 70%)}
 body::after{content:"";position:fixed;inset:-12%;z-index:-1;pointer-events:none;background-image:url('https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png');background-repeat:repeat;background-size:clamp(200px,18vw,290px);filter:blur(.6px);opacity:.06;transform:rotate(-10deg)}
-body.light::after{opacity:.045}
+body.light::after{display:none}
 a{color:inherit;text-decoration:none}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,select,textarea{font-family:inherit}
@@ -1209,6 +1238,7 @@ function convCSS(){ if(document.getElementById('waCss'))return; const st=documen
 `; document.head.appendChild(st);}
 async function renderConversas(C){
   convCSS();
+  setTop('Conversas','WhatsApp · atendimento e boletos');
   if(convState.poll){clearInterval(convState.poll);convState.poll=null;}
   C.innerHTML='<div class="panel" style="padding:0;overflow:hidden"><div class="wa" id="waRoot"><div class="wa-list"><div class="wa-lhd"><input class="wa-srch" id="waSrch" placeholder="Buscar conversa…" oninput="convFilter(this.value)"><button class="wa-cico" title="Nova conversa" onclick="convNewChat()">✚</button><button class="wa-cico" title="Atualizar" onclick="renderConversas(document.getElementById(\'content\'))">⟳</button></div><div class="wa-items" id="waItems"><p class="note" style="padding:14px">Carregando…</p></div></div><div class="wa-main" id="waMain"><div class="wa-emp"><div style="font-size:42px">💬</div><b>Conversas do WhatsApp</b><p class="note" style="max-width:290px">Selecione um atendimento à esquerda ou toque em ✚ para iniciar uma nova conversa. Responda, envie templates e boletos por aqui.</p></div></div></div></div>';
   await convLoadList();
