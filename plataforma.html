@@ -22,19 +22,18 @@
   --ok:#34d399;--warn:#fbbf24;--bad:#f87171;
 }
 body.light{
-  --bg:#F3F7F4;--bg2:#EAF1EC;--card:#FFFFFF;--card2:#F4F8F6;--card3:#EBF2EE;
-  --teal:#135A50;--teal-ink:#ffffff;--gold:#A8853E;--gold2:#8A6C2C;
-  --ink:#123F37;--muted:#5C736D;--soft:#8AA09B;--line:rgba(11,42,38,.10);--line-gold:rgba(168,133,62,.38);
-  --head:#0B2A26;
+  --bg:#F6F9F8;--bg2:#EDF3F1;--card:#FFFFFF;--card2:#F1F6F4;--card3:#E9F1EE;
+  --teal:#0F5147;--teal-ink:#ffffff;--gold:#9A7A34;--gold2:#7E6224;
+  --ink:#171D1B;--muted:#414B48;--soft:#6C7A76;--line:rgba(11,42,38,.12);--line-gold:rgba(154,122,52,.40);
+  --head:#0A1613;
 }
-/* modo claro elegante: cartões brancos com elevação suave + linhas discretas (igual ao site) */
-body.light .panel,body.light .ccard,body.light .actcard,body.light .kpi,body.light .intg{box-shadow:0 8px 26px rgba(11,42,38,.07);border-color:var(--line)}
-body.light .kpi{box-shadow:0 4px 14px rgba(11,42,38,.05)}
-body.light input,body.light select,body.light textarea{background:#fff}
+/* modo claro "liquid glass": texto quase-preto + cartões de vidro fosco translúcido */
+body.light .panel,body.light .ccard,body.light .actcard,body.light .kpi:not(.grad),body.light .intg{background:rgba(255,255,255,.58);backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);border:1px solid rgba(255,255,255,.6);box-shadow:0 10px 30px rgba(11,42,38,.09),inset 0 1px 0 rgba(255,255,255,.55)}
+body.light input,body.light select,body.light textarea{background:rgba(255,255,255,.72)}
 /* chrome (barra lateral + topo) fica petroleo com texto claro no tema claro */
 body.light .side,body.light .topbar{--ink:#DCE9E7;--head:#F2FAF8;--muted:#A6C1BB;--soft:#7E9A94}
 body{font-family:var(--sans);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
-body.light::before{opacity:.14}
+body.light::before{opacity:.2}
 body::before{content:"";position:fixed;inset:0;z-index:-1;background:
  radial-gradient(46% 38% at 12% 8%,rgba(22,102,91,.45),transparent 70%),
  radial-gradient(40% 34% at 90% 14%,rgba(197,160,89,.10),transparent 70%),

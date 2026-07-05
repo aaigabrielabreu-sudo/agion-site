@@ -450,8 +450,9 @@ section.sec:has(>.wrap>.article),section.sec:has(.article){background:var(--bg2)
 </script>
 <div id="ckbar" style="display:none;position:fixed;left:12px;right:12px;bottom:12px;z-index:90;background:#0B2A26;color:#eef5f3;border:1.5px solid rgba(232,204,139,.45);border-radius:14px;padding:14px 18px;box-shadow:0 14px 40px rgba(0,0,0,.35);font-family:'DM Sans',system-ui,sans-serif">
 <div style="max-width:1100px;margin:0 auto;display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:center">
-<span style="font-size:.9rem;flex:1;min-width:240px">Usamos cookies para melhorar sua experiência e medir o desempenho do site. Ao continuar, você concorda com a nossa <a href="/politica-de-privacidade" style="color:#E8CC8B;text-decoration:underline">Política de Privacidade</a>.</span>
+<span style="font-size:.9rem;flex:1;min-width:240px">Usamos cookies essenciais para o site funcionar e, com a sua permissão, cookies de análise para melhorar sua experiência. Você pode aceitar ou recusar os não essenciais. Saiba mais na <a href="/politica-de-privacidade" style="color:#E8CC8B;text-decoration:underline">Política de Privacidade</a>.</span>
+<button id="ckbno" style="background:transparent;color:#eef5f3;border:1.5px solid rgba(232,204,139,.5);border-radius:999px;font-weight:700;padding:10px 22px;cursor:pointer;font-size:.9rem">Recusar</button>
 <button id="ckbok" style="background:linear-gradient(115deg,#A8853E,#E8CC8B 50%,#C5A059 90%);color:#2a2113;border:none;border-radius:999px;font-weight:700;padding:11px 26px;cursor:pointer;font-size:.9rem">Aceitar</button>
 </div></div>
-<script>(function(){try{if(localStorage.getItem('agion_ck')!=='1'){var b=document.getElementById('ckbar');if(b){b.style.display='block';var k=document.getElementById('ckbok');if(k)k.onclick=function(){try{localStorage.setItem('agion_ck','1')}catch(e){}b.style.display='none'}}}}catch(e){}})();</script>
+<script>(function(){try{var v=localStorage.getItem('agion_ck');if(v!=='accept'&&v!=='reject'&&v!=='1'){var b=document.getElementById('ckbar');if(b){b.style.display='block';var done=function(val){try{localStorage.setItem('agion_ck',val)}catch(e){}b.style.display='none'};var k=document.getElementById('ckbok');if(k)k.onclick=function(){done('accept')};var n=document.getElementById('ckbno');if(n)n.onclick=function(){done('reject')}}}}catch(e){}})();</script>
 </body></html>
