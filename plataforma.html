@@ -1561,10 +1561,10 @@ async function cartaDel(id){
 }
 function cliListHtml(){
   let VC=visibleClients();
-  if(_cliQ) VC=VC.filter(c=>((c.nome||'')+' '+(c.email||'')).toLowerCase().indexOf(_cliQ)>=0);
+  if(_cliQ){ const qd=_cliQ.replace(/\D/g,''); VC=VC.filter(c=>{ const s=((c.nome||'')+' '+(c.email||'')).toLowerCase(); if(s.indexOf(_cliQ)>=0)return true; if(qd){ const tl=(''+(c.tel||'')).replace(/\D/g,''); if(tl.indexOf(qd)>=0)return true; } return false; }); }
   const total=VC.length; const shown=VC.slice(0,_cliN);
   const cards=shown.map(c=>{const m=mainPlan(c),t=totals(c.plans.find(p=>p.main));const copies=c.plans.filter(p=>!p.main).length;
-    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div> <div class="meta">${esc(c.email||'')}${isMaster()?' · 👤 '+esc(user(c.ownerId).nome.split(' ')[0]):''}</div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div> <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button> <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button> <button class="btn btn-ghost btn-sm" onclick="openCartas('${c.id}')">🎫 Cartas</button></div></div>`}).join('')||`<p class="note">${_cliQ?'Nenhum cliente encontrado para essa busca.':'Você ainda não tem clientes. Crie um cliente ou converta um lead no CRM.'}</p>`;
+    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div> <div class="meta">${esc(c.email||'')}${c.tel?' · 📱 '+esc(c.tel):''}${isMaster()?' · 👤 '+esc(user(c.ownerId).nome.split(' ')[0]):''}</div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div> <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button> <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button> <button class="btn btn-ghost btn-sm" onclick="openCartas('${c.id}')">🎫 Cartas</button></div></div>`}).join('')||`<p class="note">${_cliQ?'Nenhum cliente encontrado para essa busca.':'Você ainda não tem clientes. Crie um cliente ou converta um lead no CRM.'}</p>`;
   return `<div class="cards">${cards}</div>${total>_cliN?`<div style="text-align:center;margin-top:16px"><button class="btn btn-ghost" onclick="cliMore()">Carregar mais (${total-_cliN} restantes)</button></div>`:''}`;
 }
 function cliSearch(v){_cliQ=(v||'').toLowerCase();_cliN=24;const el=document.getElementById('cliList');if(el)el.innerHTML=cliListHtml();}
@@ -1572,24 +1572,72 @@ function cliMore(){_cliN+=24;const el=document.getElementById('cliList');if(el)e
 function renderClients(C){
   setTop(isMaster()?'Clientes (empresa)':'Meus clientes','Gestão de carteira', '<button class="btn btn-gold btn-sm" onclick="newClient()">+ Novo cliente</button>');
   _cliQ='';_cliN=24;
-  C.innerHTML=`<div style="margin-bottom:14px"><input id="cliSearch" placeholder="Buscar cliente por nome ou e-mail…" aria-label="Buscar cliente" oninput="cliSearch(this.value)" style="width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:11px 14px;border-radius:10px;font:inherit"></div><div id="cliList">${cliListHtml()}</div>`;
+  C.innerHTML=`<div style="margin-bottom:14px"><input id="cliSearch" placeholder="Buscar cliente por nome, e-mail ou telefone…" aria-label="Buscar cliente" oninput="cliSearch(this.value)" style="width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:11px 14px;border-radius:10px;font:inherit"></div><div id="cliList">${cliListHtml()}</div>`;
 }
 /* ===================== CONTAS (somente master) ===================== */
+let _contQ='';
+function contSearch(v){_contQ=(v||'').toLowerCase().trim();const el=document.getElementById('contPanels');if(el)el.innerHTML=contPanelsHtml();}
+function contTelMap(){const m={};(db.clients||[]).forEach(c=>{if(c.email)m[(c.email||'').toLowerCase()]=(c.tel||'')});return m;}
+function contPanelsHtml(){
+  const isM=isMaster();
+  const all=(db.accounts||[]).filter(a=>a.real);
+  const tm=contTelMap();
+  const telOf=a=>a.email?(tm[(a.email||'').toLowerCase()]||''):'';
+  const q=_contQ, qd=q.replace(/\D/g,'');
+  const match=a=>{ if(!q)return true; const nm=(a.nome||'').toLowerCase(),em=(a.email||'').toLowerCase(),tl=(''+telOf(a)).replace(/\D/g,''); if(nm.indexOf(q)>=0||em.indexOf(q)>=0)return true; if(qd&&tl.indexOf(qd)>=0)return true; return false; };
+  const lideres=all.filter(a=>a.role==='lider').filter(match);
+  const esps=all.filter(a=>a.role==='master'||a.role==='especialista').filter(match);
+  const clis=all.filter(a=>a.role==='cliente').filter(match);
+  const rowAcc=a=>{
+    const tl=telOf(a);
+    const chip=a.role==='master'?' <span class="chip" style="margin-left:6px">MASTER</span>':a.role==='lider'?' <span class="chip" style="margin-left:6px">LÍDER</span>':'';
+    const sub=`${esc(a.email||'')} · ${esc(roleLabel(a.role,a.papel))}${a.role==='especialista'&&a.leaderId?' · líder '+esc((user(a.leaderId).nome||'').split(' ')[0]):''}${tl?' · 📱 '+esc(tl):''}${a.ativo===false?' · <b style="color:var(--bad)">INATIVO</b>':''}`;
+    let btns;
+    if(a.id===meId()){ btns='<span class="note">você</span>'; }
+    else{
+      btns=`<button class="btn btn-ghost btn-sm" onclick="resetAccount('${a.id}')">Resetar senha</button><button class="btn btn-ghost btn-sm" onclick="toggleAccount('${a.id}')">${a.ativo===false?'Ativar':'Desativar'}</button>`;
+      if(isM&&a.role==='cliente') btns+=`<button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="excluirConta('${a.id}')">Excluir</button>`;
+    }
+    return `<div class="netrow" style="padding:13px 2px"><span style="display:flex;align-items:center;gap:14px">${avatar(a.id,38)}<span style="display:flex;flex-direction:column;gap:5px;line-height:1.3"><span><b style="color:var(--head)">${esc(a.nome)}</b>${chip}</span><span class="note">${sub}</span></span></span> <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${btns}</span></div>`;
+  };
+  const empty=lbl=>_contQ?'<p class="note">Nenhum resultado para “'+esc(_contQ)+'”.</p>':lbl;
+  return `${lideres.length?`<div class="panel"><h2>${ICN.users} Líderes</h2>${lideres.map(rowAcc).join('')}</div>`:''}
+   <div class="panel"><h2>${ICN.users} Especialistas${isM?' & Master':''}</h2>${esps.map(rowAcc).join('')||empty('<p class="note">Nenhum especialista ainda.</p>')}</div>
+   <div class="panel"><h2>${ICN.users} Clientes${isM?' <span class="note" style="font-weight:400">(com acesso à plataforma)</span>':''}</h2>${clis.map(rowAcc).join('')||empty('<p class="note">Nenhuma conta de cliente com acesso. Clientes só de consórcio ficam na aba Clientes.</p>')}</div>`;
+}
 function renderContas(C){
   const isM=isMaster();
   setTop(isM?'Contas & Permissões':'Minha equipe', isM?'Hierarquia: Master › Líder › Especialista › Cliente':'Seus especialistas e clientes',
     '<button class="btn btn-gold btn-sm" onclick="openAccount()">+ Nova conta</button>');
+  _contQ='';
   const all=(db.accounts||[]).filter(a=>a.real);
   const lideres=all.filter(a=>a.role==='lider');
   const esps=all.filter(a=>a.role==='master'||a.role==='especialista');
   const clis=all.filter(a=>a.role==='cliente');
-  const rowAcc=a=>`<div class="netrow"><span style="display:flex;align-items:center;gap:10px">${avatar(a.id,30)}<span><b style="color:var(--head)">${esc(a.nome)}</b> ${a.role==='master'?'<span class="chip" style="margin-left:4px">MASTER</span>':a.role==='lider'?'<span class="chip" style="margin-left:4px">LÍDER</span>':''}<br><span class="note">${esc(a.email)} · ${esc(roleLabel(a.role,a.papel))}${a.role==='especialista'&&a.leaderId?' · líder '+esc((user(a.leaderId).nome||'').split(' ')[0]):''}${a.ativo===false?' · INATIVO':''}</span></span></span> <span style="display:flex;gap:6px">${a.id!==meId()?`<button class="btn btn-ghost btn-sm" onclick="resetAccount('${a.id}')">Resetar senha</button><button class="btn btn-ghost btn-sm" onclick="toggleAccount('${a.id}')">${a.ativo===false?'Ativar':'Desativar'}</button>`:'<span class="note">você</span>'}</span></div>`;
   C.innerHTML=`
    <div class="banner">${isM?'Você (Master) vê e gerencia toda a hierarquia. Líderes veem seus especialistas e os clientes deles; especialistas veem só os próprios clientes; cada cliente vê só o próprio planejamento.':'Você (Líder) gerencia seus especialistas e os clientes deles. Use “+ Nova conta” para criar especialistas e clientes.'}</div>
    <div class="kpis"> ${isM?`<div class="kpi grad"><div class="lab">${ICN.users}Líderes</div><b>${lideres.length}</b></div>`:''} <div class="kpi"><div class="lab">${ICN.users}Especialistas</div><b>${esps.filter(a=>a.role==='especialista').length}</b></div> <div class="kpi"><div class="lab">${ICN.users}Clientes com acesso</div><b>${clis.length}</b></div> </div>
-   ${lideres.length?`<div class="panel"><h2>${ICN.users} Líderes</h2>${lideres.map(rowAcc).join('')}</div>`:''}
-   <div class="panel"><h2>${ICN.users} Especialistas${isM?' & Master':''}</h2>${esps.map(rowAcc).join('')||'<p class="note">Nenhum especialista ainda.</p>'}</div>
-   <div class="panel"><h2>${ICN.users} Clientes</h2>${clis.map(rowAcc).join('')||'<p class="note">Nenhuma conta de cliente ainda.</p>'}</div>`;
+   <div style="margin-bottom:14px"><input id="contSearch" placeholder="Buscar por nome, e-mail ou telefone…" aria-label="Buscar conta" oninput="contSearch(this.value)" style="width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:11px 14px;border-radius:10px;font:inherit"></div>
+   <div id="contPanels">${contPanelsHtml()}</div>`;
+}
+async function excluirConta(id){
+  const a=acc(id); if(!a)return;
+  if(!isMaster()){flash('Apenas o Master pode excluir contas.');return;}
+  if(a.id===meId()){flash('Você não pode excluir a própria conta.');return;}
+  if(!(await ask({title:'Excluir conta?',msg:'Remove DEFINITIVAMENTE a conta de '+a.nome+' ('+(a.email||'sem e-mail')+'): o acesso à plataforma, o planejamento e as cartas/consórcios vinculados. Esta ação não pode ser desfeita.',ok:'Excluir definitivamente'})))return;
+  flash('Excluindo conta…');
+  let okBackend=false;
+  try{ const r=await supa.functions.invoke('excluir-conta',{body:{id:a.id,email:a.email||''}}); if(r&&!r.error&&!(r.data&&r.data.error))okBackend=true; }catch(e){}
+  if(okBackend){
+    db.accounts=(db.accounts||[]).filter(x=>x.id!==a.id);
+    db.clients=(db.clients||[]).filter(c=>(c.email||'').toLowerCase()!==(a.email||'').toLowerCase());
+    logEvt('DELETE','conta','Excluiu a conta de '+a.nome,{email:a.email});
+    save(); renderContas(document.getElementById('content')); flash('Conta excluída'); return;
+  }
+  try{ a.ativo=false; if(isUuid(a.id)) await supa.from('profiles').update({ativo:false}).eq('id',a.id); }catch(e){}
+  logEvt('conta_desativar','conta','Tentou excluir (backend pendente) — desativou '+a.nome,{email:a.email});
+  save(); renderContas(document.getElementById('content'));
+  await ask({title:'Exclusão pendente',msg:'A exclusão total (apagar o login) precisa da função de servidor, que ainda vou publicar. Por segurança, desativei o acesso desta conta agora — quando a função estiver no ar, a exclusão fica definitiva.',ok:'Ok'});
 }
 
 /* ===================== ATIVIDADES (log do master) ===================== */
@@ -1666,18 +1714,46 @@ async function criarConta(nome,email,role){
   logEvt('criar_conta',role,'Criou conta de '+(ROLE_LBL[role]||role)+': '+nome,{email,role});
   return data;
 }
+function chooseModal(title,msg,optA,optB){
+  return new Promise(res=>{
+    const id='chooseMd';
+    const html=`<div id="${id}" style="position:fixed;inset:0;z-index:240;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px"><div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:440px;width:100%;padding:22px"><h2 style="margin:0 0 8px;font-size:1.08rem;color:var(--head)">${esc(title)}</h2><p class="note" style="margin:0 0 18px;white-space:pre-line">${esc(msg)}</p><div style="display:flex;flex-direction:column;gap:10px"><button class="btn btn-gold" id="cmA" style="width:100%">${esc(optA)}</button><button class="btn btn-ghost" id="cmB" style="width:100%">${esc(optB)}</button><button class="btn btn-ghost btn-sm" id="cmX" style="width:100%;opacity:.7">Cancelar</button></div></div></div>`;
+    document.body.insertAdjacentHTML('beforeend',html);
+    const el=document.getElementById(id); const done=v=>{el.remove();res(v)};
+    document.getElementById('cmA').onclick=()=>done('a');
+    document.getElementById('cmB').onclick=()=>done('b');
+    document.getElementById('cmX').onclick=()=>done(null);
+    el.onclick=e=>{if(e.target===el)done(null)};
+  });
+}
 async function newClient(){
   const nome=await ask({title:'Novo cliente',msg:'Nome completo do cliente:',input:true,ok:'Próximo'});
   if(!nome||!nome.trim())return;
+  const modo=await chooseModal('Habilitar plataforma?','Este cliente vai usar a plataforma de planejamento financeiro (login, projeção, metas, gastos)?\n\n• Sim — criamos o acesso e enviamos um convite por e-mail.\n• Não — cliente só de consórcio: fica na carteira para cadastrar cartas e emitir boleto, sem login.','Sim — habilitar plataforma','Não — só consórcio');
+  if(!modo)return;
+  if(modo==='b'){
+    const tel=await ask({title:'WhatsApp do cliente',msg:'Número com DDD — usado para cadastrar a carta e emitir/enviar o boleto. Pode deixar em branco e preencher depois na carta.',input:true,ok:'Criar cliente'});
+    if(tel===null)return;
+    flash('Criando cliente…');
+    const cid=uuid();
+    try{ await supa.from('clientes').insert({id:cid,nome:nome.trim(),tel:((tel||'').replace(/\D/g,'')||null),owner_id:meId()}); }
+    catch(e){ await ask({title:'Não foi possível criar',msg:String(e.message||e),ok:'Ok'}); return; }
+    logEvt('INSERT','clientes','Criou cliente só de consórcio: '+nome.trim(),{tel:(tel||'')});
+    await loadCloud(); flash('Cliente criado — cadastre a carta'); render();
+    const c=db.clients.find(x=>x.id===cid)||db.clients.find(x=>x.nome===nome.trim());
+    if(c) openCartas(c.id);
+    return;
+  }
   const email=await ask({title:'E-mail do cliente',msg:'Será o login de acesso do cliente (vamos enviar um convite):',input:true,ok:'Criar e convidar'});
   if(email===null||!email.trim())return;
   flash('Criando cliente…');
   try{ await criarConta(nome.trim(),email.trim(),'cliente'); }
   catch(e){ await ask({title:'Não foi possível criar',msg:String(e.message||e),ok:'Ok'}); return; }
   await loadCloud();
+  let c=db.clients.find(x=>(x.email||'').toLowerCase()===email.trim().toLowerCase());
+  if(!c){ try{ const cid=uuid(); await supa.from('clientes').insert({id:cid,nome:nome.trim(),email:email.trim(),owner_id:meId()}); await loadCloud(); c=db.clients.find(x=>x.id===cid)||db.clients.find(x=>(x.email||'').toLowerCase()===email.trim().toLowerCase()); }catch(e){} }
   await ask({title:'Cliente criado',msg:'Enviamos um convite por e-mail para '+email.trim()+'. O cliente define a própria senha e já acessa.',ok:'Ok'});
   flash('Cliente criado'); render();
-  const c=db.clients.find(x=>(x.email||'').toLowerCase()===email.trim().toLowerCase());
   if(c&&c.plans&&c.plans[0]) openEditor(c.id,c.plans[0].id,false);
 }
 
