@@ -22,18 +22,19 @@
   --ok:#34d399;--warn:#fbbf24;--bad:#f87171;
 }
 body.light{
-  --bg:#F6F9F8;--bg2:#EDF3F1;--card:#FFFFFF;--card2:#F1F6F4;--card3:#E9F1EE;
-  --teal:#0F5147;--teal-ink:#ffffff;--gold:#9A7A34;--gold2:#7E6224;
-  --ink:#171D1B;--muted:#414B48;--soft:#6C7A76;--line:rgba(11,42,38,.12);--line-gold:rgba(154,122,52,.40);
-  --head:#0A1613;
+  --bg:#F8FBFA;--bg2:#F1F6F4;--card:#FFFFFF;--card2:#F4F8F7;--card3:#ECF3F0;
+  --teal:#0E4A41;--teal-ink:#ffffff;--gold:#8F6F2C;--gold2:#725421;
+  --ink:#0B100E;--muted:#333C39;--soft:#5A6763;--line:rgba(11,42,38,.10);--line-gold:rgba(143,111,44,.42);
+  --head:#050B09;
 }
-/* modo claro "liquid glass": texto quase-preto + cartões de vidro fosco translúcido */
-body.light .panel,body.light .ccard,body.light .actcard,body.light .kpi:not(.grad),body.light .intg{background:rgba(255,255,255,.58);backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);border:1px solid rgba(255,255,255,.6);box-shadow:0 10px 30px rgba(11,42,38,.09),inset 0 1px 0 rgba(255,255,255,.55)}
-body.light input,body.light select,body.light textarea{background:rgba(255,255,255,.72)}
+/* modo claro "liquid glass": texto preto + cartões de vidro líquido translúcido */
+body.light .panel,body.light .ccard,body.light .actcard,body.light .kpi:not(.grad),body.light .intg{background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.60));backdrop-filter:blur(22px) saturate(1.45);-webkit-backdrop-filter:blur(22px) saturate(1.45);border:1px solid rgba(255,255,255,.75);box-shadow:0 12px 34px rgba(11,42,38,.10),inset 0 1px 0 rgba(255,255,255,.7)}
+body.light input,body.light select,body.light textarea{background:rgba(255,255,255,.82);color:var(--ink)}
+body.light{color:#0B100E}
 /* chrome (barra lateral + topo) fica petroleo com texto claro no tema claro */
 body.light .side,body.light .topbar{--ink:#DCE9E7;--head:#F2FAF8;--muted:#A6C1BB;--soft:#7E9A94}
 body{font-family:var(--sans);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
-body.light::before{opacity:.2}
+body.light::before{opacity:.09}
 body::before{content:"";position:fixed;inset:0;z-index:-1;background:
  radial-gradient(46% 38% at 12% 8%,rgba(22,102,91,.45),transparent 70%),
  radial-gradient(40% 34% at 90% 14%,rgba(197,160,89,.10),transparent 70%),
