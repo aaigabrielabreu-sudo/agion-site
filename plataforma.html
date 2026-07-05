@@ -360,6 +360,22 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border:none;border-ra
 .notif .ni .tx{font-size:.84rem;color:var(--ink);line-height:1.4}
 .notif .ni .tm{font-size:.7rem;color:var(--soft);margin-top:2px}
 .notif .empty{padding:26px 16px;text-align:center;color:var(--soft);font-size:.85rem}
+.bells{display:flex;gap:6px;align-items:center}
+.bell3{position:relative;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--bc);display:grid;place-items:center;background:color-mix(in srgb,var(--bc) 13%,transparent);color:var(--bc);font-weight:800;font-size:.82rem;cursor:pointer;transition:.15s}
+.bell3:hover{background:color-mix(in srgb,var(--bc) 24%,transparent)}
+.bell3 .badge{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--bad);color:#fff;font-size:.6rem;font-weight:800;display:grid;place-items:center;box-shadow:0 0 0 2px var(--bg)}
+.notif .nlist{max-height:min(58vh,440px);overflow:auto}
+.notif h4{display:flex;align-items:center;gap:8px}
+.notif h4 .nlet{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;color:#062521;font-weight:800;font-size:.72rem;flex-shrink:0}
+.notif h4 .nread{margin-left:auto;background:none;border:0;color:var(--soft);font-size:.64rem;cursor:pointer;text-transform:none;letter-spacing:0;padding:0}
+.notif h4 .nread:hover{color:var(--gold2)}
+.notif .ni.unread{background:color-mix(in srgb,var(--bc) 9%,transparent)}
+@media(max-width:560px){.notif{width:min(300px,91vw)}.notif .nlist{max-height:62vh}.bell3{width:31px;height:31px;font-size:.75rem}.bells{gap:5px}}
+.actgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-top:10px}
+.actcard{position:relative;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:15px 14px 13px}
+.actbadge{position:absolute;top:-9px;right:-9px;min-width:26px;height:26px;padding:0 7px;border-radius:13px;background:var(--bad);color:#fff;font-weight:800;font-size:.78rem;display:grid;place-items:center;box-shadow:0 0 0 3px var(--bg)}
+.viewbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#6d531f,#8a6c2c);color:#fff;padding:9px 16px;font-size:.85rem;font-weight:600}
+.viewbar .btn{margin-left:auto}
 /* skeleton */
 .skel{padding:8px 0}
 .skel .sk{background:linear-gradient(90deg,rgba(143,217,204,.06),rgba(143,217,204,.14),rgba(143,217,204,.06));background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:12px;margin-bottom:14px}
@@ -563,6 +579,10 @@ async function loadCloud(){
     if(ib.data){
       db.inbox = ib.data.map(x=>({id:x.id,fonte:x.origem||'Web',nome:x.nome||'',contato:x.contato||'',campanha:x.campanha||'',tipo:x.tipo||'Consórcio',valor:+x.valor||0,quando:x.criado_em?new Date(x.criado_em).getTime():Date.now(),importado:!!x.convertido}));
     }
+    /* ----- ACTIVITY LOG (alimenta os 3 sininhos) ----- */
+    if(isStaff()){
+      try{ const al=await supa.from('activity_log').select('*').order('id',{ascending:false}).limit(150); db.actlog=(al.data||[]); }catch(e){ db.actlog=db.actlog||[]; }
+    } else { db.actlog=[]; }
   }catch(e){ console.warn('loadCloud',e); cloudReady=false; }
 }
 async function saveLeadCloud(l){ if(!supa||!isUuid(l.id))return; try{ await supa.from('leads').upsert({id:l.id,nome:l.nome,contato:l.contato||null,tipo:l.tipo||null,valor:l.valor||0,stage:l.stage||0,perdido:!!l.perdido,obs:l.obs||null,atividades:l.atividades||[],owner_id:l.ownerId||meId()}); }catch(e){} }
@@ -680,12 +700,20 @@ const ROLE_LBL={master:'Master',lider:'Líder',especialista:'Especialista',clien
 function logEvt(action,entity,descricao,detalhes){ try{ if(supa) supa.rpc('log_event',{p_action:action,p_entity:entity||'app',p_descricao:descricao||'',p_detalhes:detalhes||{}}); }catch(e){} }
 const roleLabel=(r,papel)=>(r==='especialista'?(papel||'Especialista'):(ROLE_LBL[r]||'Especialista'));
 // ids dos especialistas sob o líder logado (hierarquia master › líder › especialista › cliente)
-function myEspecialistaIds(){return (db.accounts||[]).filter(a=>a.role==='especialista'&&a.leaderId===meId()).map(a=>a.id);}
-function ownerVisible(ownerId){ if(isMaster())return true; if(ownerId===meId())return true; if(isLider())return myEspecialistaIds().indexOf(ownerId)>=0; return false; }
+// papel/id "efetivos" — mudam quando o Master está no modo "Ver como" (impersonação só-leitura)
+function effRole(){ return session.viewAs?session.viewAs.role:session.role; }
+function effId(){ return session.viewAs?session.viewAs.id:meId(); }
+function especIdsOf(id){ return (db.accounts||[]).filter(a=>a.role==='especialista'&&a.leaderId===id).map(a=>a.id); }
+function myEspecialistaIds(){ return especIdsOf(effId()); }
+function ownerVisible(ownerId){ const r=effRole(),id=effId(); if(r==='master')return true; if(ownerId===id)return true; if(r==='lider')return especIdsOf(id).indexOf(ownerId)>=0; return false; }
 // clientes visíveis: master vê todos; líder vê os seus + dos seus especialistas; especialista vê os seus
-function visibleClients(){ if(isMaster())return db.clients; return db.clients.filter(c=>ownerVisible(c.ownerId)); }
-function canEditClient(c){ return ownerVisible(c.ownerId); }
-function visibleLeads(){ if(isMaster())return db.crm; return (db.crm||[]).filter(l=>ownerVisible(l.ownerId)); }
+function visibleClients(){ if(effRole()==='master')return db.clients; return db.clients.filter(c=>ownerVisible(c.ownerId)); }
+function canEditClient(c){ if(session.viewAs)return false; return ownerVisible(c.ownerId); }
+function visibleLeads(){ if(effRole()==='master')return db.crm; return (db.crm||[]).filter(l=>ownerVisible(l.ownerId)); }
+function roGuard(){ if(session.viewAs){ flash('Modo somente leitura — saia do “Ver como” para editar.'); return true; } return false; }
+function verComo(id){ const a=(db.accounts||[]).find(x=>x.id===id); if(!a)return; if(!(isMaster()||(isLider()&&myEspecialistaIds().indexOf(id)>=0))){flash('Sem permissão para ver como este usuário.');return;} if(a.role==='cliente'){flash('Use a ficha do cliente para ver os dados dele.');return;} session.viewAs={id:a.id,nome:a.nome,role:a.role}; view.page='dash'; renderViewbar(); renderNav(); render(); flash('Vendo como '+a.nome+' (somente leitura)'); window.scrollTo(0,0); }
+function sairVerComo(){ session.viewAs=null; view.page=isMaster()?'contas':'dash'; renderViewbar(); renderNav(); render(); window.scrollTo(0,0); }
+function renderViewbar(){ let el=document.getElementById('viewbar'); const main=document.querySelector('.main'); if(session.viewAs){ if(!el){ el=document.createElement('div'); el.id='viewbar'; el.className='viewbar'; main.insertBefore(el, main.firstChild); } el.innerHTML='👁 Vendo como <b style="margin:0 4px">'+esc(session.viewAs.nome)+'</b> — somente leitura <button class="btn btn-ghost btn-sm" onclick="sairVerComo()">Sair</button>'; } else if(el){ el.remove(); } }
 function seedIntegr(){return {Google:{conectado:true,conta:'Agion — Google Ads / Lead Forms'},Meta:{conectado:true,conta:'Agion — Facebook & Instagram Lead Ads'}};}
 const user=id=>(db.accounts||[]).find(u=>u.id===id)||{nome:'—',inicial:'?',cor:'#6E8B88'};
 function timeAgo(ts){const d=Date.now()-ts;if(d<MIN)return 'agora';if(d<HR)return 'há '+Math.floor(d/MIN)+' min';if(d<DAY)return 'há '+Math.floor(d/HR)+'h';return 'há '+Math.floor(d/DAY)+'d';}
@@ -933,9 +961,10 @@ const plan=(c,p)=>client(c).plans.find(x=>x.id===p);
 const mainPlan=c=>client(c).plans.find(p=>p.main);
 
 function navItems(){
-  if(session.role==='master') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check]];
-  if(session.role==='lider') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users]];
-  if(session.role==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users]];
+  const R=effRole();
+  if(R==='master') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check]];
+  if(R==='lider') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users]];
+  if(R==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users]];
   return [['dash','Início',ICN.dash],['plan','Planejamento',ICN.plan],['jornada','Jornada',ICN.target],['gastos','Gastos',ICN.money],['cota','Cota',ICN.cota]];
 }
 function renderNav(){
@@ -947,33 +976,22 @@ function routeGo(page){ view.page=page; renderNav(); window.scrollTo(0,0); rende
 function go(page){ routeGo(page); try{ if(page&&page!=='editor'&&page!=='compare'&&location.hash.slice(1)!==page) location.hash=page; }catch(e){} }
 addEventListener('hashchange',function(){ try{ if(!session.role) return; var p=location.hash.slice(1); if(!p) return; if(navItems().some(function(it){return it[0]===p}) && p!==view.page) routeGo(p); }catch(e){} });
 function skeleton(){return `<div class="skel"> <div class="sk" style="height:30px;width:40%"></div> <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin:18px 0"> ${'<div class="sk" style="height:92px"></div>'.repeat(4)}</div> <div class="sk" style="height:230px"></div> <div class="sk" style="height:160px"></div></div>`;}
-/* ===== NOTIFICAÇÕES ===== */
-function notifList(){
-  const out=[]; const me=session.userId;
-  // leads sem dono na sua visão (master vê todos; líder, os da sua equipe)
-  if(isMaster()||isLider()){ visibleLeads().filter(l=>!l.ownerId&&!l.perdido).slice(0,4).forEach(l=>out.push({ic:'',cor:'var(--warn)',tx:`Lead não distribuído: <b>${esc(l.nome)}</b>`,tm:l.fonte?('via '+l.fonte):'',go:'crm'})); }
-  // leads atribuídos a você que ainda estão no início do funil
-  (db.crm||[]).filter(l=>l.ownerId===me && !l.perdido && (l.stage||0)<=1).slice(0,4).forEach(l=>out.push({ic:'',cor:'var(--teal)',tx:`Lead com você: <b>${esc(l.nome)}</b> · ${esc(CRM_STAGES[l.stage||0])}`,tm:'',go:'crm'}));
-  (db.inbox||[]).filter(l=>!l.importado).slice(0,3).forEach(l=>out.push({ic:'',cor:'var(--teal)',tx:`Novo lead de ${l.fonte}: <b>${esc(l.nome)}</b>`,tm:timeAgo(l.quando),go:'captacao'}));
-  (db.tasks||[]).filter(t=>!t.feito && t.ownerId===me).slice(0,4).forEach(t=>out.push({ic:'✓',cor:'var(--gold2)',tx:esc(t.titulo),tm:t.quando||'',go:'tarefas'}));
-  (db.chat&&db.chat.messages||[]).filter(m=>m.autorId!==me && Date.now()-m.quando<DAY).slice(-2).forEach(m=>out.push({ic:'',cor:'var(--teal)',tx:`${esc(user(m.autorId).nome.split(' ')[0])} no chat: <b>${esc((m.texto||'').slice(0,32))}</b>`,tm:timeAgo(m.quando),go:'chat'}));
-  return out;
-}
-function updateBell(){
-  const w=document.getElementById('bellWrap'); if(!w) return;
-  if(session.role==='cliente'){w.innerHTML='';return;}
-  const n=notifList().length;
-  w.innerHTML=`<button class="bell" aria-label="Notificações" onclick="toggleNotif(event)">${ICN.bell}${n?`<span class="badge">${n>9?'9+':n}</span>`:''}</button>`;
-}
-function toggleNotif(e){
-  e&&e.stopPropagation();
-  const w=document.getElementById('bellWrap'); const open=w.querySelector('.notif');
-  if(open){open.remove();return;}
-  const items=notifList();
-  const html=`<div class="notif"><h4>Notificações</h4>${items.length?items.map(it=>`<div class="ni" onclick="go('${it.go}');closeNotif()"><span class="dot" style="background:${it.cor}22;color:${it.cor}">${it.ic}</span><div><div class="tx">${it.tx}</div>${it.tm?`<div class="tm">${esc(it.tm)}</div>`:''}</div></div>`).join(''):'<div class="empty">Tudo em dia </div>'}</div>`;
-  w.insertAdjacentHTML('beforeend',html);
-  setTimeout(()=>document.addEventListener('click',closeNotifOnce),0);
-}
+/* ===== NOTIFICAÇÕES — 3 sininhos: C (Clientes) · P (Plataforma) · E (Equipe) ===== */
+const BELLS={C:{lbl:'Clientes',cor:'#1F9E8B'},P:{lbl:'Plataforma',cor:'#5C86A8'},E:{lbl:'Equipe',cor:'#C5A059'},S:{lbl:'Notificações',cor:'#1F9E8B'}};
+function myBells(){ if(isMaster())return['C','P','E']; if(isLider())return['E','C']; if(session.role==='especialista')return['S']; return []; }
+function evCats(e){ const cats=[]; const ent=(e.entity||'').toLowerCase(); const act=e.action||''; const isCli=['clientes','cliente','planos','plano','cartas'].indexOf(ent)>=0||(act==='criar_conta'&&ent==='cliente')||act==='conta_ativar'||act==='conta_desativar'; const isTeam=['especialista','lider'].indexOf(e.actor_role)>=0; const isSys=['leads','lead','inbox','tarefas','app'].indexOf(ent)>=0||act==='LOGIN'||(act==='criar_conta'&&ent!=='cliente')||!e.actor_id; if(isCli)cats.push('C'); if(isTeam)cats.push('E'); if(isSys)cats.push('P'); if(!cats.length)cats.push('P'); return cats; }
+function _evGo(e){ const ent=(e.entity||'').toLowerCase(); if(ent==='inbox')return'captacao'; if(['leads','lead'].indexOf(ent)>=0)return'crm'; if(ent==='tarefas')return'tarefas'; if(['clientes','cliente','planos','plano','cartas'].indexOf(ent)>=0)return'users'; return'atividades'; }
+function evItem(e){ return {ts:e.criado_em?new Date(e.criado_em).getTime():Date.now(),tx:esc(actText(e)),who:e.actor_nome||'Sistema',cats:evCats(e),go:_evGo(e)}; }
+function liveItems(bell){ const me=meId(); const out=[]; if(bell==='P'||bell==='S'){ (db.inbox||[]).filter(l=>!l.importado).forEach(l=>out.push({ts:l.quando||Date.now(),tx:'Novo lead de '+esc(l.fonte)+': <b>'+esc(l.nome)+'</b>',who:'Captação',go:'captacao'})); (db.tasks||[]).filter(t=>!t.feito&&t.ownerId===me).forEach(t=>out.push({ts:0,tx:'Tarefa pendente: <b>'+esc(t.titulo)+'</b>',who:'',go:'tarefas',noBadge:true})); } return out; }
+function bellData(bell){ const log=(db.actlog||[]); let items; if(bell==='S')items=log.map(evItem); else items=log.map(evItem).filter(it=>it.cats.indexOf(bell)>=0); items=items.concat(liveItems(bell)); items.sort((a,b)=>b.ts-a.ts); return items.slice(0,25); }
+function seenKey(b){ return 'agion_seen_'+meId()+'_'+b; }
+function seenTs(b){ return +(localStorage.getItem(seenKey(b))||0); }
+function markSeen(b){ const it=bellData(b); const mx=it.reduce((m,x)=>x.noBadge?m:Math.max(m,x.ts),0); localStorage.setItem(seenKey(b),String(Math.max(mx,Date.now()))); }
+function unread(b){ const s=seenTs(b); return bellData(b).filter(it=>!it.noBadge&&it.ts>s).length; }
+function updateBell(){ const w=document.getElementById('bellWrap'); if(!w)return; if(session.role==='cliente'){w.innerHTML='';return;} try{ const bells=myBells(); const openB=w.querySelector('.notif'); const keep=openB?openB.getAttribute('data-b'):null; w.innerHTML='<div class="bells">'+bells.map(b=>{ const meta=BELLS[b]; const n=unread(b); const letter=b==='S'?'N':b; return '<button class="bell3" data-b="'+b+'" title="'+meta.lbl+'" aria-label="'+meta.lbl+'" style="--bc:'+meta.cor+'" onclick="toggleNotif(event,\''+b+'\')"><span>'+letter+'</span>'+(n?'<span class="badge">'+(n>9?'9+':n)+'</span>':'')+'</button>'; }).join('')+'</div>'; if(keep)renderNotif(keep); }catch(e){ w.innerHTML=''; } }
+function toggleNotif(e,bell){ e&&e.stopPropagation(); const w=document.getElementById('bellWrap'); const open=w.querySelector('.notif'); const wasB=open?open.getAttribute('data-b'):null; if(open)open.remove(); if(wasB===bell)return; renderNotif(bell); markSeen(bell); const bd=w.querySelector('.bell3[data-b="'+bell+'"] .badge'); if(bd)bd.remove(); setTimeout(()=>document.addEventListener('click',closeNotifOnce),0); }
+function renderNotif(bell){ const w=document.getElementById('bellWrap'); if(!w)return; const meta=BELLS[bell]; const items=bellData(bell); const s=seenTs(bell); const L=bell==='S'?'N':bell; const html='<div class="notif" data-b="'+bell+'" style="--bc:'+meta.cor+'"><h4><span class="nlet" style="background:'+meta.cor+'">'+L+'</span>'+esc(meta.lbl)+'<button class="nread" onclick="notifClear(\''+bell+'\')">marcar como lido</button></h4><div class="nlist">'+(items.length?items.map(it=>'<div class="ni'+((!it.noBadge&&it.ts>s)?' unread':'')+'" onclick="go(\''+it.go+'\');closeNotif()"><span class="dot" style="background:'+meta.cor+'22;color:'+meta.cor+'">'+L+'</span><div><div class="tx">'+it.tx+'</div><div class="tm">'+(it.who?esc(it.who):'')+(it.who&&it.ts?' · ':'')+(it.ts?esc(timeAgo(it.ts)):'')+'</div></div></div>').join(''):'<div class="empty">Tudo em dia ✓</div>')+'</div></div>'; w.insertAdjacentHTML('beforeend',html); }
+function notifClear(bell){ markSeen(bell); closeNotif(); updateBell(); }
 function closeNotif(){const n=document.querySelector('.notif');if(n)n.remove();}
 function closeNotifOnce(e){const w=document.getElementById('bellWrap');if(w&&!w.contains(e.target)){closeNotif();document.removeEventListener('click',closeNotifOnce);}}
 /* cria um gráfico de forma segura: se faltar canvas ou Chart.js, mostra aviso e nunca quebra o resto da página */
@@ -1097,6 +1115,7 @@ function startRealtime(){
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'posts'},function(pl){var p=pl.new;if(!p||!p.id)return;if((db.feed||[]).some(function(x){return x.id===p.id}))return;db.feed.push({id:p.id,autorId:p.owner_id,texto:p.texto||'',quando:p.quando||Date.now(),likes:p.likes||[],coments:p.coments||[]});save();if(view.page==='feed'){var el=document.getElementById('feedList');if(el)el.innerHTML=feedList();}try{updateBell()}catch(e){}})
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'posts'},function(pl){var p=pl.new;if(!p||!p.id)return;var ex=(db.feed||[]).find(function(x){return x.id===p.id});if(ex){ex.likes=p.likes||[];ex.coments=p.coments||[];if(p.texto)ex.texto=p.texto;save();if(view.page==='feed'){var el=document.getElementById('feedList');if(el)el.innerHTML=feedList();}}})
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'inbox'},function(pl){var x=pl.new;if(!x||!x.id)return;if((db.inbox||[]).some(function(i){return i.id===x.id}))return;db.inbox.unshift({id:x.id,fonte:x.origem||'Web',nome:x.nome||'',contato:x.contato||'',campanha:x.campanha||'',tipo:x.tipo||'Consórcio',valor:+x.valor||0,quando:Date.now(),importado:!!x.convertido});save();if(view.page==='captacao'&&isStaff())renderCaptacao(document.getElementById('content'));try{updateBell()}catch(e){}})
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'activity_log'},function(pl){var e=pl.new;if(!e||!e.id)return;db.actlog=db.actlog||[];if(db.actlog.some(function(x){return x.id===e.id}))return;db.actlog.unshift(e);if(db.actlog.length>150)db.actlog.pop();try{updateBell()}catch(_){}})
     .subscribe();
   }catch(e){}
 }
@@ -1385,12 +1404,12 @@ function dragStart(e,id){_dragId=id;e.currentTarget.classList.add('dragging');e.
 function dragEnd(e){e.currentTarget.classList.remove('dragging');}
 function kbOver(e){e.preventDefault();e.currentTarget.classList.add('dragover');}
 function kbLeave(e){e.currentTarget.classList.remove('dragover');}
-function kbDrop(e,stage){e.preventDefault();e.currentTarget.classList.remove('dragover');const l=db.crm.find(x=>x.id===_dragId);_dragId=null;if(l&&l.stage!==stage){l.stage=stage;l.perdido=false;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[stage]+'"',quando:Date.now(),autorId:session.userId});logEvt('lead_mover','lead','Moveu o lead "'+l.nome+'" para "'+CRM_STAGES[stage]+'"',{lead:l.nome,etapa:CRM_STAGES[stage]});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Movido para '+CRM_STAGES[stage]);}}
-async function crmNote(id){const t=await ask({title:'Nova atividade',msg:'Registre um contato, observação ou próximo passo:',input:true,ok:'Salvar'});if(!t||!t.trim())return;const l=db.crm.find(x=>x.id===id);l.atividades=l.atividades||[];l.atividades.push({texto:t.trim(),quando:Date.now(),autorId:session.userId});logEvt('lead_nota','lead','Registrou atividade no lead "'+l.nome+'"',{lead:l.nome,nota:t.trim()});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Atividade registrada');}
-function crmLose(id){const l=(db.crm).find(x=>x.id===id);l.perdido=true;logEvt('lead_perdido','lead','Marcou o lead "'+l.nome+'" como perdido',{lead:l.nome});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Lead marcado como perdido');}
+function kbDrop(e,stage){e.preventDefault();e.currentTarget.classList.remove('dragover');if(roGuard()){_dragId=null;return;}const l=db.crm.find(x=>x.id===_dragId);_dragId=null;if(l&&l.stage!==stage){l.stage=stage;l.perdido=false;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[stage]+'"',quando:Date.now(),autorId:session.userId});logEvt('lead_mover','lead','Moveu o lead "'+l.nome+'" para "'+CRM_STAGES[stage]+'"',{lead:l.nome,etapa:CRM_STAGES[stage]});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Movido para '+CRM_STAGES[stage]);}}
+async function crmNote(id){if(roGuard())return;const t=await ask({title:'Nova atividade',msg:'Registre um contato, observação ou próximo passo:',input:true,ok:'Salvar'});if(!t||!t.trim())return;const l=db.crm.find(x=>x.id===id);l.atividades=l.atividades||[];l.atividades.push({texto:t.trim(),quando:Date.now(),autorId:session.userId});logEvt('lead_nota','lead','Registrou atividade no lead "'+l.nome+'"',{lead:l.nome,nota:t.trim()});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Atividade registrada');}
+function crmLose(id){if(roGuard())return;const l=(db.crm).find(x=>x.id===id);l.perdido=true;logEvt('lead_perdido','lead','Marcou o lead "'+l.nome+'" como perdido',{lead:l.nome});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Lead marcado como perdido');}
 function crmRecuperar(id){const l=(db.crm).find(x=>x.id===id);l.perdido=false;save();renderCRM(document.getElementById('content'));flash('Lead reativado');}
 async function crmDel(id){if(!(await ask({title:'Excluir lead?',ok:'Excluir'})))return;db.crm=db.crm.filter(x=>x.id!==id);save();renderCRM(document.getElementById('content'));}
-function crmAssign(id,uid){const l=db.crm.find(x=>x.id===id);l.ownerId=uid||null;l.atividades=l.atividades||[];if(uid){l.atividades.push({texto:'Distribuído para '+user(uid).nome,quando:Date.now(),autorId:session.userId});logEvt('lead_distribuir','lead','Distribuiu o lead "'+l.nome+'" para '+user(uid).nome,{lead:l.nome,para:user(uid).nome});}saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash(uid?'Lead distribuído para '+user(uid).nome.split(' ')[0]:'Distribuição removida');}
+function crmAssign(id,uid){if(roGuard())return;const l=db.crm.find(x=>x.id===id);l.ownerId=uid||null;l.atividades=l.atividades||[];if(uid){l.atividades.push({texto:'Distribuído para '+user(uid).nome,quando:Date.now(),autorId:session.userId});logEvt('lead_distribuir','lead','Distribuiu o lead "'+l.nome+'" para '+user(uid).nome,{lead:l.nome,para:user(uid).nome});}saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash(uid?'Lead distribuído para '+user(uid).nome.split(' ')[0]:'Distribuição removida');}
 function initialsOf(nome){return (nome||'').split(' ').filter(Boolean).map(x=>x[0]).slice(0,2).join('').toUpperCase()||'CL';}
 function createClientAccount(c){
   let email=(c.email||'').trim();
@@ -1400,6 +1419,7 @@ function createClientAccount(c){
   db.accounts.push(a); save(); return a;
 }
 async function crmToClient(id){
+  if(roGuard())return;
   const l=(db.crm).find(x=>x.id===id);
   if(!(await ask({title:'Converter em cliente?',msg:`Cria a ficha de "${l.nome}", envia o convite de acesso por e-mail e abre o planejamento.`,ok:'Converter'})))return;
   let email=l.contato&&l.contato.includes('@')?l.contato.trim():'';
@@ -1443,10 +1463,10 @@ function renderTarefas(C){
   C.innerHTML=`<div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.check}Pendentes</div><b>${pend.length}</b></div> <div class="kpi"><div class="lab">${ICN.check}Concluídas</div><b>${done.length}</b></div> </div> <div class="panel"><h2>${ICN.check} A fazer</h2>${pend.map(taskRow).join('')||'<p class="note">Nenhuma tarefa pendente </p>'}</div> ${done.length?`<div class="panel"><h2>${ICN.check} Concluídas</h2>${done.map(taskRow).join('')}</div>`:''}`;
 }
 function taskRow(t){return `<div class="task ${t.feito?'done':''}"><div class="tk-cb" onclick="taskToggle('${t.id}')">${t.feito?'✓':''}</div> <div class="tk-t">${esc(t.titulo)}</div><div class="tk-d">${esc(t.quando||'')}</div> <button class="btn-ico" onclick="taskDel('${t.id}')">✕</button></div>`;}
-async function taskAdd(){const tt=await ask({title:'Nova tarefa',msg:'O que precisa ser feito?',input:true,ok:'Adicionar'});if(!tt||!tt.trim())return;
+async function taskAdd(){if(roGuard())return;const tt=await ask({title:'Nova tarefa',msg:'O que precisa ser feito?',input:true,ok:'Adicionar'});if(!tt||!tt.trim())return;
    const q=await ask({title:'Quando?',msg:'Prazo (ex.: Hoje, Amanhã, Dia 20):',input:true,value:'Hoje',ok:'Salvar'});
    const _t={id:uuid(),titulo:tt.trim(),quando:(q||'').trim(),feito:false,ownerId:meId()};db.tasks.push(_t);logEvt('tarefa_criar','tarefa','Criou a tarefa "'+tt.trim()+'"',{tarefa:tt.trim(),prazo:(q||'').trim()});saveTaskCloud(_t);save();renderTarefas(document.getElementById('content'));flash('Tarefa criada');}
-function taskToggle(id){const t=(db.tasks).find(x=>x.id===id);t.feito=!t.feito;logEvt(t.feito?'tarefa_concluir':'tarefa_reabrir','tarefa',(t.feito?'Concluiu':'Reabriu')+' a tarefa "'+t.titulo+'"',{tarefa:t.titulo});saveTaskCloud(t);save();renderTarefas(document.getElementById('content'));}
+function taskToggle(id){if(roGuard())return;const t=(db.tasks).find(x=>x.id===id);t.feito=!t.feito;logEvt(t.feito?'tarefa_concluir':'tarefa_reabrir','tarefa',(t.feito?'Concluiu':'Reabriu')+' a tarefa "'+t.titulo+'"',{tarefa:t.titulo});saveTaskCloud(t);save();renderTarefas(document.getElementById('content'));}
 async function taskDel(id){delTaskCloud(id);db.tasks=db.tasks.filter(x=>x.id!==id);save();renderTarefas(document.getElementById('content'));}
 
 /* ===================== FEED COLABORATIVO ===================== */
@@ -1463,10 +1483,10 @@ function feedList(){
         <div id="cform_${p.id}" class="coment hidden">${avatar(session.userId,28)}<input id="ci_${p.id}" placeholder="Escreva um comentário..." onkeydown="if(event.key==='Enter')feedComment('${p.id}')"><button class="btn btn-teal btn-sm" onclick="feedComment('${p.id}')">Enviar</button></div> </div></div>`;
   }).join('');
 }
-function feedPost(){const t=document.getElementById('feedTxt').value.trim();if(!t)return;const p={id:uuid(),autorId:session.userId,texto:t,quando:Date.now(),likes:[],coments:[]};db.feed.push(p);saveFeedCloud(p);save();document.getElementById('feedList').innerHTML=feedList();document.getElementById('feedTxt').value='';flash('Publicado no feed');}
-function feedLike(id){const p=db.feed.find(x=>x.id===id);const i=p.likes.indexOf(session.userId);if(i<0)p.likes.push(session.userId);else p.likes.splice(i,1);saveFeedCloud(p);save();document.getElementById('feedList').innerHTML=feedList();}
+function feedPost(){if(roGuard())return;const t=document.getElementById('feedTxt').value.trim();if(!t)return;const p={id:uuid(),autorId:session.userId,texto:t,quando:Date.now(),likes:[],coments:[]};db.feed.push(p);saveFeedCloud(p);save();document.getElementById('feedList').innerHTML=feedList();document.getElementById('feedTxt').value='';flash('Publicado no feed');}
+function feedLike(id){if(roGuard())return;const p=db.feed.find(x=>x.id===id);const i=p.likes.indexOf(session.userId);if(i<0)p.likes.push(session.userId);else p.likes.splice(i,1);saveFeedCloud(p);save();document.getElementById('feedList').innerHTML=feedList();}
 function feedToggleC(id){const el=document.getElementById('cform_'+id);if(el){el.classList.toggle('hidden');const inp=document.getElementById('ci_'+id);if(inp&&!el.classList.contains('hidden'))inp.focus();}}
-function feedComment(id){const inp=document.getElementById('ci_'+id);const t=(inp.value||'').trim();if(!t)return;const p=db.feed.find(x=>x.id===id);p.coments.push({autorId:session.userId,texto:t,quando:Date.now()});saveFeedCloud(p);save();document.getElementById('feedList').innerHTML=feedList();}
+function feedComment(id){if(roGuard())return;const inp=document.getElementById('ci_'+id);const t=(inp.value||'').trim();if(!t)return;const p=db.feed.find(x=>x.id===id);p.coments.push({autorId:session.userId,texto:t,quando:Date.now()});saveFeedCloud(p);save();document.getElementById('feedList').innerHTML=feedList();}
 
 /* ===================== CHAT INTERNO ===================== */
 let chatCh='geral';
@@ -1479,7 +1499,7 @@ function renderChat(C){
 function chName(){return (db.chat.channels.find(c=>c.id===chatCh)||{}).nome||'';}
 function chatMsgs(){return (db.chat.messages||[]).filter(m=>m.canalId===chatCh).map(m=>{const me=m.autorId===session.userId;return `<div class="msg ${me?'me':''}">${avatar(m.autorId,30)}<div class="mbubble"><div class="mn">${esc(user(m.autorId).nome.split(' ')[0])}</div><div class="mt">${esc(m.texto)}</div><div class="mtime">${timeAgo(m.quando)}</div></div></div>`;}).join('')||'<p class="note">Sem mensagens neste canal ainda. Diga olá! </p>';}
 function chatOpen(id){chatCh=id;renderChat(document.getElementById('content'));}
-function chatSend(){const inp=document.getElementById('chatInput');const t=(inp.value||'').trim();if(!t)return;const m={id:uuid(),canalId:chatCh,autorId:session.userId,texto:t,quando:Date.now()};db.chat.messages.push(m);saveMsgCloud(m);save();document.getElementById('chatMsgs').innerHTML=chatMsgs();inp.value='';scrollChat();}
+function chatSend(){if(roGuard())return;const inp=document.getElementById('chatInput');const t=(inp.value||'').trim();if(!t)return;const m={id:uuid(),canalId:chatCh,autorId:session.userId,texto:t,quando:Date.now()};db.chat.messages.push(m);saveMsgCloud(m);save();document.getElementById('chatMsgs').innerHTML=chatMsgs();inp.value='';scrollChat();}
 function scrollChat(){const m=document.getElementById('chatMsgs');if(m)m.scrollTop=m.scrollHeight;}
 
 /* ===================== CAPTAÇÃO (Google + Meta) ===================== */
@@ -1492,7 +1512,7 @@ function renderCaptacao(C){
    </div>`;
 }
 function toggleIntegr(src){db.integr[src].conectado=!db.integr[src].conectado;save();renderCaptacao(document.getElementById('content'));flash(src+(db.integr[src].conectado?' conectado':' desconectado'));}
-async function importLead(id){const l=db.inbox.find(x=>x.id===id);l.importado=true;const nl={id:uuid(),nome:l.nome,contato:l.contato,tipo:l.tipo,valor:l.valor||0,stage:0,perdido:false,ownerId:isMaster()?meId():meId(),criadoEm:Date.now(),obs:'Origem: '+l.fonte+(l.campanha?' — '+l.campanha:''),atividades:[{texto:'Lead recebido via '+l.fonte,quando:Date.now(),autorId:session.userId}]};db.crm.push(nl);saveLeadCloud(nl);logEvt('lead_criar','lead','Importou o lead "'+l.nome+'" de '+l.fonte,{lead:l.nome,fonte:l.fonte});if(supa&&isUuid(id)){try{await supa.from('inbox').update({convertido:true,lead_id:nl.id}).eq('id',id);}catch(e){}}save();renderCaptacao(document.getElementById('content'));flash('Lead importado para o seu funil ✓');}
+async function importLead(id){if(roGuard())return;const l=db.inbox.find(x=>x.id===id);l.importado=true;const nl={id:uuid(),nome:l.nome,contato:l.contato,tipo:l.tipo,valor:l.valor||0,stage:0,perdido:false,ownerId:isMaster()?meId():meId(),criadoEm:Date.now(),obs:'Origem: '+l.fonte+(l.campanha?' — '+l.campanha:''),atividades:[{texto:'Lead recebido via '+l.fonte,quando:Date.now(),autorId:session.userId}]};db.crm.push(nl);saveLeadCloud(nl);logEvt('lead_criar','lead','Importou o lead "'+l.nome+'" de '+l.fonte,{lead:l.nome,fonte:l.fonte});if(supa&&isUuid(id)){try{await supa.from('inbox').update({convertido:true,lead_id:nl.id}).eq('id',id);}catch(e){}}save();renderCaptacao(document.getElementById('content'));flash('Lead importado para o seu funil ✓');}
 async function discardLead(id){if(supa&&isUuid(id)){try{await supa.from('inbox').update({convertido:true}).eq('id',id);}catch(e){}}db.inbox=db.inbox.filter(x=>x.id!==id);save();renderCaptacao(document.getElementById('content'));}
 function simulLead(){const nomes=['Pedro Henrique','Juliana Reis','Marcos Vinícius','Camila Duarte','Felipe Andrade','Sofia Carvalho'];const tps=['Consórcio','Planejamento','Consultoria'];const f=Math.random()<0.5?'Google':'Meta';db.inbox.push({id:uid(),fonte:f,nome:nomes[Math.floor(Math.random()*nomes.length)],contato:'(51) 9'+Math.floor(1000+Math.random()*8999)+'-'+Math.floor(1000+Math.random()*8999),campanha:f==='Meta'?'Lead Ad — Instagram/Facebook':'Pesquisa — Google Ads',tipo:tps[Math.floor(Math.random()*3)],quando:Date.now(),importado:false});save();renderCaptacao(document.getElementById('content'));flash(' Novo lead recebido de '+f+'!');}
 
@@ -1532,6 +1552,7 @@ function cartasPaint(msg){
 }
 const CART_ADMINS=['Âncora Consórcios','HS Consórcios'];
 async function cartaEdit(id){
+  if(roGuard())return;
   const cur=(_cartasList||[]).find(x=>x.id===id)||{};
   cartasClose();
   const curAdm=cur.administradora||'HS Consórcios';
@@ -1544,6 +1565,7 @@ async function cartaEdit(id){
   setTimeout(()=>{const el=document.getElementById(id?'kAdm':'kGru');if(el)el.focus();},60);
 }
 async function cartaSave(id){
+  if(roGuard())return;
   const g=(document.getElementById('kGru').value||'').trim();
   const c=(document.getElementById('kCot').value||'').trim();
   if(!g||!c){ flash&&flash('Informe grupo e cota'); return; }
@@ -1555,6 +1577,7 @@ async function cartaSave(id){
   openCartas(_cartasCid);
 }
 async function cartaDel(id){
+  if(roGuard())return;
   if(!(await ask({title:'Excluir carta?',msg:'Tem certeza que deseja excluir esta carta?',ok:'Excluir'})))return;
   try{ await supa.from('cartas').delete().eq('id',id); logEvt&&logEvt('DELETE','cartas','Excluiu uma carta',{cliente_id:_cartasCid}); }catch(e){}
   openCartas(_cartasCid);
@@ -1564,7 +1587,7 @@ function cliListHtml(){
   if(_cliQ){ const qd=_cliQ.replace(/\D/g,''); VC=VC.filter(c=>{ const s=((c.nome||'')+' '+(c.email||'')).toLowerCase(); if(s.indexOf(_cliQ)>=0)return true; if(qd){ const tl=(''+(c.tel||'')).replace(/\D/g,''); if(tl.indexOf(qd)>=0)return true; } return false; }); }
   const total=VC.length; const shown=VC.slice(0,_cliN);
   const cards=shown.map(c=>{const m=mainPlan(c),t=totals(c.plans.find(p=>p.main));const copies=c.plans.filter(p=>!p.main).length;
-    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div> <div class="meta">${esc(c.email||'')}${c.tel?' · 📱 '+esc(c.tel):''}${isMaster()?' · 👤 '+esc(user(c.ownerId).nome.split(' ')[0]):''}</div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div> <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button> <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button> <button class="btn btn-ghost btn-sm" onclick="openCartas('${c.id}')">🎫 Cartas</button></div></div>`}).join('')||`<p class="note">${_cliQ?'Nenhum cliente encontrado para essa busca.':'Você ainda não tem clientes. Crie um cliente ou converta um lead no CRM.'}</p>`;
+    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div> <div class="meta">${esc(c.email||'')}${c.tel?' · 📱 '+esc(c.tel):''}${isMaster()?' · 👤 '+esc(user(c.ownerId).nome.split(' ')[0]):''}</div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div> <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button> <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button> <button class="btn btn-ghost btn-sm" onclick="openCartas('${c.id}')">🎫 Cartas</button>${isMaster()?` <button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="excluirClienteEmpresa('${c.id}')">Excluir</button>`:''}</div></div>`}).join('')||`<p class="note">${_cliQ?'Nenhum cliente encontrado para essa busca.':'Você ainda não tem clientes. Crie um cliente ou converta um lead no CRM.'}</p>`;
   return `<div class="cards">${cards}</div>${total>_cliN?`<div style="text-align:center;margin-top:16px"><button class="btn btn-ghost" onclick="cliMore()">Carregar mais (${total-_cliN} restantes)</button></div>`:''}`;
 }
 function cliSearch(v){_cliQ=(v||'').toLowerCase();_cliN=24;const el=document.getElementById('cliList');if(el)el.innerHTML=cliListHtml();}
@@ -1596,6 +1619,7 @@ function contPanelsHtml(){
     if(a.id===meId()){ btns='<span class="note">você</span>'; }
     else{
       btns=`<button class="btn btn-ghost btn-sm" onclick="resetAccount('${a.id}')">Resetar senha</button><button class="btn btn-ghost btn-sm" onclick="toggleAccount('${a.id}')">${a.ativo===false?'Ativar':'Desativar'}</button>`;
+      if((isM||isLider())&&(a.role==='especialista'||a.role==='lider')) btns=`<button class="btn btn-ghost btn-sm" onclick="verComo('${a.id}')">👁 Ver como</button>`+btns;
       if(isM&&a.role==='cliente') btns+=`<button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="excluirConta('${a.id}')">Excluir</button>`;
     }
     return `<div class="netrow" style="padding:13px 2px"><span style="display:flex;align-items:center;gap:14px">${avatar(a.id,38)}<span style="display:flex;flex-direction:column;gap:5px;line-height:1.3"><span><b style="color:var(--head)">${esc(a.nome)}</b>${chip}</span><span class="note">${sub}</span></span></span> <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${btns}</span></div>`;
@@ -1638,6 +1662,23 @@ async function excluirConta(id){
   logEvt('conta_desativar','conta','Tentou excluir (backend pendente) — desativou '+a.nome,{email:a.email});
   save(); renderContas(document.getElementById('content'));
   await ask({title:'Exclusão pendente',msg:'A exclusão total (apagar o login) precisa da função de servidor, que ainda vou publicar. Por segurança, desativei o acesso desta conta agora — quando a função estiver no ar, a exclusão fica definitiva.',ok:'Ok'});
+}
+async function excluirClienteEmpresa(cid){
+  if(!isMaster()){flash('Apenas o Master pode excluir clientes.');return;}
+  const c=(db.clients||[]).find(x=>x.id===cid); if(!c)return;
+  if(!(await ask({title:'Excluir cliente?',msg:'Remove DEFINITIVAMENTE o cliente '+c.nome+' e todos os dados dele (planos, cartas'+(c.email?' e o acesso à plataforma':'')+'). Esta ação não pode ser desfeita.',ok:'Excluir definitivamente'})))return;
+  flash('Excluindo cliente…');
+  const prof=c.email?(db.accounts||[]).find(a=>a.role==='cliente'&&(a.email||'').toLowerCase()===(c.email||'').toLowerCase()):null;
+  if(prof){
+    let ok=false;
+    try{ const r=await supa.functions.invoke('excluir-conta',{body:{id:prof.id,email:prof.email||c.email||''}}); if(r&&!r.error&&!(r.data&&r.data.error))ok=true; }catch(e){}
+    if(ok){ db.accounts=(db.accounts||[]).filter(a=>a.id!==prof.id); }
+    else{ try{ prof.ativo=false; if(isUuid(prof.id)) await supa.from('profiles').update({ativo:false}).eq('id',prof.id); }catch(e){} flash('Login desativado; exclusão total do acesso ficou pendente do servidor.'); }
+  }
+  try{ if(isUuid(cid)){ try{await supa.from('cartas').delete().eq('cliente_id',cid);}catch(e){} try{await supa.from('planos').delete().eq('cliente_id',cid);}catch(e){} try{await supa.from('clientes').delete().eq('id',cid);}catch(e){} } }catch(e){}
+  logEvt('DELETE','clientes','Excluiu o cliente '+c.nome,{cliente_id:cid});
+  db.clients=(db.clients||[]).filter(x=>x.id!==cid);
+  save(); if(view.page==='users'){renderClients(document.getElementById('content'));}else{render();} flash('Cliente excluído');
 }
 
 /* ===================== ATIVIDADES (log do master) ===================== */
@@ -1685,8 +1726,36 @@ function paintAtividades(C){
   C.innerHTML=`
    <div class="banner">Registro automático e à prova de adulteração: tudo que master, líderes, especialistas e clientes fazem fica gravado no servidor (Supabase). Só você (Master) vê esta aba.</div>
    <div class="kpis"><div class="kpi grad"><div class="lab">${ICN.check}Eventos (total)</div><b>${_act.length}</b></div><div class="kpi"><div class="lab">${ICN.check}Nas últimas 24h</div><b>${todayN}</b></div><div class="kpi"><div class="lab">${ICN.users}Usuários ativos</div><b>${actors.length}</b></div></div>
+   ${actorCardsHtml()}
    <div class="panel"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${actorSel}${catSel}${perSel}<span class="note" style="margin-left:auto">${rows.length} evento(s)</span></div></div>
    ${html}`;
+}
+function actorCardsHtml(){
+  const now=Date.now(); const perMs={'1':86400000,'7':7*86400000,'30':30*86400000,'all':Infinity}[_aflt.per];
+  const inPer=e=>perMs===Infinity||(now-new Date(e.criado_em).getTime())<=perMs;
+  const ord={master:0,lider:1,especialista:2};
+  const staff=(db.accounts||[]).filter(a=>a.real&&ord[a.role]!=null).sort((a,b)=>(ord[a.role]-ord[b.role])||(a.nome||'').localeCompare(b.nome||''));
+  if(!staff.length) return '';
+  const cards=staff.map(a=>{
+    const evs=_act.filter(e=>e.actor_id===a.id&&inPer(e));
+    const byCat={}; evs.forEach(e=>{const c=actCat(e);byCat[c]=(byCat[c]||0)+1;});
+    const resumo=Object.keys(byCat).sort((x,y)=>byCat[y]-byCat[x]).slice(0,3).map(c=>byCat[c]+' '+(CAT_LBL[c]||c).toLowerCase()).join(' · ')||'sem atividades no período';
+    const chip=a.role==='master'?' <span class="chip">MASTER</span>':a.role==='lider'?' <span class="chip">LÍDER</span>':'';
+    return `<div class="actcard">${evs.length?`<span class="actbadge">${evs.length>99?'99+':evs.length}</span>`:''}<div style="display:flex;align-items:center;gap:11px">${avatar(a.id,42)}<div><b style="color:var(--head)">${esc(a.nome)}</b>${chip}<div class="note" style="margin-top:2px">${esc(roleLabel(a.role,a.papel))}</div></div></div><div class="note" style="margin-top:10px;min-height:18px">${esc(resumo)}</div><button class="btn btn-ghost btn-sm" style="margin-top:11px;width:100%" onclick="verParticipante('${a.id}')">Ver mais</button></div>`;
+  }).join('');
+  return `<div class="panel"><h2 style="font-size:.95rem">${ICN.users} Participantes <span class="note" style="font-weight:400">(atividades no período)</span></h2><div class="actgrid">${cards}</div></div>`;
+}
+function verParticipante(id){
+  const a=(db.accounts||[]).find(x=>x.id===id)||{nome:'—',role:''};
+  const now=Date.now(); const perMs={'1':86400000,'7':7*86400000,'30':30*86400000,'all':Infinity}[_aflt.per];
+  const inPer=e=>perMs===Infinity||(now-new Date(e.criado_em).getTime())<=perMs;
+  const all=_act.filter(e=>e.actor_id===id&&inPer(e));
+  const byCat={}; all.forEach(e=>{const c=actCat(e);byCat[c]=(byCat[c]||0)+1;});
+  const chips=Object.keys(byCat).sort((x,y)=>byCat[y]-byCat[x]).map(c=>`<span class="chip" style="margin:0 6px 6px 0">${CAT_LBL[c]||c}: ${byCat[c]}</span>`).join('')||'<span class="note">Sem atividades no período.</span>';
+  const list=all.slice(0,40).map(e=>`<div class="netrow"><span style="display:flex;align-items:center;gap:9px"><span style="width:8px;height:8px;border-radius:50%;background:${CAT_DOT[actCat(e)]};flex:0 0 auto"></span><span class="note">${esc(actText(e))}</span></span><span class="note" style="white-space:nowrap">${fmtHM(new Date(e.criado_em).getTime())}</span></div>`).join('')||'<p class="note">Nada no período.</p>';
+  const verComoBtn=(isMaster()&&(a.role==='especialista'||a.role==='lider'))?`<button class="btn btn-gold btn-sm" style="margin-bottom:14px" onclick="document.getElementById('vpModal').remove();verComo('${id}')">👁 Ver como ${esc((a.nome||'').split(' ')[0])} (somente leitura)</button>`:'';
+  const html=`<div id="vpModal" style="position:fixed;inset:0;z-index:240;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.remove()"><div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:520px;width:100%;max-height:88vh;overflow:auto;padding:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="display:flex;align-items:center;gap:11px">${avatar(id,44)}<div><h2 style="margin:0;font-size:1.05rem">${esc(a.nome)}</h2><div class="note">${esc(roleLabel(a.role,a.papel))} · ${all.length} atividade(s)</div></div></div><button class="btn btn-ghost btn-sm" onclick="document.getElementById('vpModal').remove()">Fechar</button></div><div style="margin-bottom:14px">${chips}</div>${verComoBtn}<h4 style="font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--gold2);margin-bottom:6px">Atividades recentes</h4>${list}</div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
 }
 async function openAccount(){
   if(!(isMaster()||isLider())){flash('Apenas Master e Líder criam contas.');return;}
@@ -1727,6 +1796,7 @@ function chooseModal(title,msg,optA,optB){
   });
 }
 async function newClient(){
+  if(roGuard())return;
   const nome=await ask({title:'Novo cliente',msg:'Nome completo do cliente:',input:true,ok:'Próximo'});
   if(!nome||!nome.trim())return;
   const modo=await chooseModal('Habilitar plataforma?','Este cliente vai usar a plataforma de planejamento financeiro (login, projeção, metas, gastos)?\n\n• Sim — criamos o acesso e enviamos um convite por e-mail.\n• Não — cliente só de consórcio: fica na carteira para cadastrar cartas e emitir boleto, sem login.','Sim — habilitar plataforma','Não — só consórcio');
@@ -1769,7 +1839,7 @@ function consorcioImpacto(p){
   return `<p class="note" style="margin:-6px 0 12px">A carta contemplada entra no seu patrimônio e passa a render junto com seus investimentos (estratégia Agion de capitalização). Veja o efeito de antecipar a contemplação por lance:</p> <div class="tbl-scroll" style="max-height:none"><table><thead><tr><th>Cenário</th><th class="r">Patrimônio aos ${p.apos}</th><th class="r">vs. sem consórcio</th><th class="r">Probabilidade</th></tr></thead><tbody> <tr><td>Sem consórcio</td><td class="r">${BRL(Rsem.patApos)}</td><td class="r">—</td><td class="r">${Rsem.prob}%</td></tr> ${linhas.map(l=>`<tr><td><b>Contemplação em ${l.m} meses</b></td><td class="r"><b>${BRL(l.R.patApos)}</b></td><td class="r">${dPat(l.R.patApos)}</td><td class="r"><b style="color:${l.R.prob>=80?'var(--ok)':l.R.prob>=55?'var(--warn)':'var(--bad)'}">${l.R.prob}%</b></td></tr>`).join('')}
    </tbody></table></div> <p class="note" style="margin-top:10px">Quanto antes a contemplação (via lance), mais tempo a carta rende — por isso 6 meses supera 12 e 24. O especialista combina seus investimentos para potencializar o lance.</p>`;
 }
-function openEditor(cid,pid,ro){view={page:'editor',clientId:cid,planId:pid,readonly:ro};curSec='resumo';renderNav();render();window.scrollTo(0,0)}
+function openEditor(cid,pid,ro){view={page:'editor',clientId:cid,planId:pid,readonly:ro||!!session.viewAs};curSec='resumo';renderNav();render();window.scrollTo(0,0)}
 function sec(id,html){return `<section class="plansec" data-sec="${id}">${html}</section>`;}
 function renderEditor(C){
   const c=client(view.clientId), p=plan(view.clientId,view.planId), ro=view.readonly;
