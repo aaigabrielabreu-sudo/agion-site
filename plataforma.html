@@ -1525,23 +1525,32 @@ async function openCartas(cid){
 function cartasClose(){ const m=document.getElementById('cartasModal'); if(m)m.remove(); }
 function cartasPaint(msg){
   cartasClose();
-  const rows=(_cartasList||[]).map(x=>`<div class="netrow"><span><b style="color:var(--head)">${esc(x.titular_nome||_cartasNome)}</b>${x.is_familiar?' <span class="chip" style="margin-left:4px">Familiar</span>':''}<br><span class="note">Grupo ${esc(x.grupo)} · Cota ${esc(x.cota)}${x.valor?' · '+BRL(x.valor):''}${x.whatsapp?' · 📱 '+esc(x.whatsapp):''}</span></span><span style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm" onclick="cartaEdit('${x.id}')">Editar</button><button class="btn btn-ghost btn-sm" onclick="cartaDel('${x.id}')">Excluir</button></span></div>`).join('')||'<p class="note">Nenhuma carta cadastrada ainda.</p>';
+  const rows=(_cartasList||[]).map(x=>`<div class="netrow"><span><b style="color:var(--head)">${esc(x.titular_nome||_cartasNome)}</b>${x.is_familiar?' <span class="chip" style="margin-left:4px">Familiar</span>':''}<br><span class="note">${x.administradora?'<b style="color:var(--gold)">'+esc(x.administradora)+'</b> · ':''}Grupo ${esc(x.grupo)} · Cota ${esc(x.cota)}${x.valor?' · '+BRL(x.valor):''}${x.whatsapp?' · 📱 '+esc(x.whatsapp):''}</span></span><span style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm" onclick="cartaEdit('${x.id}')">Editar</button><button class="btn btn-ghost btn-sm" onclick="cartaDel('${x.id}')">Excluir</button></span></div>`).join('')||'<p class="note">Nenhuma carta cadastrada ainda.</p>';
   const body=msg?`<p class="note">${esc(msg)}</p>`:rows;
   const html=`<div id="cartasModal" style="position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)cartasClose()"><div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:560px;width:100%;max-height:88vh;overflow:auto;padding:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><h2 style="margin:0;font-size:1.05rem">🎫 Cartas — ${esc(_cartasNome)}</h2><button class="btn btn-ghost btn-sm" onclick="cartasClose()">Fechar</button></div><p class="note" style="margin-bottom:14px">O WhatsApp de cada carta é o número autorizado a pedir o boleto dela (o próprio cliente ou, no caso de familiar, o número de quem recebe). O robô só emite cartas registradas aqui.</p><div style="margin-bottom:14px">${body}</div><button class="btn btn-gold btn-sm" onclick="cartaEdit('')">+ Adicionar carta</button></div></div>`;
   document.body.insertAdjacentHTML('beforeend',html);
 }
+const CART_ADMINS=['Âncora Consórcios','HS Consórcios'];
 async function cartaEdit(id){
   const cur=(_cartasList||[]).find(x=>x.id===id)||{};
-  const titular=await ask({title:'Titular da carta',msg:'Nome de quem é a carta (o cliente ou um familiar):',input:true,value:cur.titular_nome||_cartasNome,ok:'Próximo'}); if(titular===null)return;
-  const grupo=await ask({title:'Grupo',msg:'Número do grupo:',input:true,value:cur.grupo||'',ok:'Próximo'}); if(grupo===null||!grupo.trim())return;
-  const cota=await ask({title:'Cota',msg:'Número da cota:',input:true,value:cur.cota||'',ok:'Próximo'}); if(cota===null||!cota.trim())return;
-  const valor=await ask({title:'Valor da carta',msg:'Valor da carta em R$ (ex.: 250000):',input:true,value:cur.valor||'',ok:'Próximo'});
-  const whats=await ask({title:'WhatsApp autorizado',msg:'Número que vai receber/pedir o boleto desta carta (com DDD):',input:true,value:cur.whatsapp||'',ok:'Próximo'});
-  const fam=await ask({title:'É de um familiar?',msg:'Digite SIM se esta carta é de um familiar (não do próprio cliente):',input:true,value:cur.is_familiar?'sim':'',ok:'Salvar'});
-  const nv=(''+ (valor||'')).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.');
-  const rec={cliente_id:_cartasCid,titular_nome:(titular||'').trim()||_cartasNome,grupo:grupo.trim(),cota:cota.trim(),valor:nv?(Number(nv)||null):null,whatsapp:(whats||'').replace(/\D/g,'')||null,is_familiar:/^s/i.test(fam||'')};
+  cartasClose();
+  const curAdm=cur.administradora||'HS Consórcios';
+  const opts=CART_ADMINS.map(a=>`<option${(curAdm===a)?' selected':''}>${esc(a)}</option>`).join('');
+  const bx='width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:10px 12px;border-radius:10px;font:inherit';
+  const fld=(lb,inner)=>`<label style="display:block;margin-bottom:10px"><span style="display:block;font-size:.78rem;color:var(--muted);margin-bottom:4px">${lb}</span>${inner}</label>`;
+  const inp=(iid,val,ph,extra='')=>`<input id="${iid}" value="${esc(val==null?'':(''+val))}" placeholder="${ph||''}" ${extra} style="${bx}">`;
+  const html=`<div id="cartasModal" style="position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)cartasClose()"><div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:480px;width:100%;max-height:90vh;overflow:auto;padding:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><h2 style="margin:0;font-size:1.05rem">${id?'Editar carta':'Nova carta'}</h2><button class="btn btn-ghost btn-sm" onclick="openCartas(_cartasCid)">Voltar</button></div>${fld('Titular da carta',inp('kTit',cur.titular_nome||_cartasNome,'Nome de quem é a carta'))}${fld('Administradora',`<select id="kAdm" style="${bx}">${opts}</select>`)}<div style="display:flex;gap:10px"><div style="flex:1">${fld('Grupo',inp('kGru',cur.grupo,'Ex.: 1173'))}</div><div style="flex:1">${fld('Cota',inp('kCot',cur.cota,'Ex.: 320'))}</div></div>${fld('Valor da carta (R$)',inp('kVal',cur.valor,'Ex.: 250000','inputmode="numeric"'))}${fld('WhatsApp autorizado',inp('kWha',cur.whatsapp,'Com DDD — recebe/pede o boleto','inputmode="numeric"'))}<label style="display:flex;align-items:center;gap:8px;margin:4px 0 16px;font-size:.9rem;color:var(--head)"><input type="checkbox" id="kFam" ${cur.is_familiar?'checked':''}> É de um familiar</label><button class="btn btn-gold" style="width:100%" onclick="cartaSave('${id||''}')">Salvar carta</button></div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+  setTimeout(()=>{const el=document.getElementById(id?'kAdm':'kGru');if(el)el.focus();},60);
+}
+async function cartaSave(id){
+  const g=(document.getElementById('kGru').value||'').trim();
+  const c=(document.getElementById('kCot').value||'').trim();
+  if(!g||!c){ flash&&flash('Informe grupo e cota'); return; }
+  const rawV=(''+(document.getElementById('kVal').value||'')).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.');
+  const rec={cliente_id:_cartasCid,titular_nome:(document.getElementById('kTit').value||'').trim()||_cartasNome,administradora:document.getElementById('kAdm').value,grupo:g,cota:c,valor:rawV?(Number(rawV)||null):null,whatsapp:(document.getElementById('kWha').value||'').replace(/\D/g,'')||null,is_familiar:document.getElementById('kFam').checked};
   flash&&flash('Salvando carta…');
-  try{ if(id){ await supa.from('cartas').update(Object.assign({},rec,{atualizado_em:new Date().toISOString()})).eq('id',id); } else { await supa.from('cartas').insert(rec); } logEvt&&logEvt(id?'UPDATE':'INSERT','cartas',(id?'Editou':'Cadastrou')+' carta '+rec.grupo+'/'+rec.cota+' de '+rec.titular_nome,{cliente_id:_cartasCid}); }
+  try{ if(id){ await supa.from('cartas').update(Object.assign({},rec,{atualizado_em:new Date().toISOString()})).eq('id',id); } else { await supa.from('cartas').insert(rec); } logEvt&&logEvt(id?'UPDATE':'INSERT','cartas',(id?'Editou':'Cadastrou')+' carta '+rec.administradora+' '+rec.grupo+'/'+rec.cota+' de '+rec.titular_nome,{cliente_id:_cartasCid}); }
   catch(e){ await ask({title:'Não foi possível salvar',msg:String(e.message||e),ok:'Ok'}); }
   openCartas(_cartasCid);
 }
