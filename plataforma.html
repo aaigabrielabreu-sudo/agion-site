@@ -965,9 +965,9 @@ const mainPlan=c=>client(c).plans.find(p=>p.main);
 
 function navItems(){
   const R=effRole();
-  if(R==='master') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check]];
-  if(R==='lider') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users]];
-  if(R==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users]];
+  if(R==='master') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check]];
+  if(R==='lider') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users]];
+  if(R==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users]];
   return [['dash','Início',ICN.dash],['plan','Planejamento',ICN.plan],['jornada','Jornada',ICN.target],['gastos','Gastos',ICN.money],['cota','Cota',ICN.cota]];
 }
 function renderNav(){
@@ -1321,7 +1321,7 @@ async function convTplPicker(){
   const p=document.getElementById('waPop');if(p)p.remove();
   if(!convState.phone){flash('Abra uma conversa primeiro');return;}
   await convEnsureTemplates();
-  convModal('<h3>Enviar template</h3><p class="note" style="font-size:12px;margin:0 0 6px">Para '+esc(convState.nome||convFmtPhone(convState.phone))+'.</p><label>Template</label><select id="tpSel">'+convApprovedOptions()+'</select><div style="display:flex;gap:8px;margin-top:16px"><button class="btn btn-teal" style="flex:1" onclick="convDoTpl()">Enviar</button><button class="btn" onclick="convCloseModal()">Cancelar</button></div>');
+  convModal('<h3>Enviar template</h3><p class="note" style="font-size:12px;margin:0 0 6px">Para '+esc(convState.nome||convFmtPhone(convState.phone))+'.</p><label>Template</label><select id="tpSel">'+convApprovedOptions()+'</select><button class="btn btn-ghost btn-sm" style="width:100%;margin-top:10px" onclick="convCloseModal();tplBuilder()">+ Criar novo template</button><div style="display:flex;gap:8px;margin-top:16px"><button class="btn btn-teal" style="flex:1" onclick="convDoTpl()">Enviar</button><button class="btn" onclick="convCloseModal()">Cancelar</button></div>');
 }
 async function convDoTpl(){
   const tpl=document.getElementById('tpSel').value; if(!tpl){flash('Escolha um template');return;}
@@ -1339,6 +1339,7 @@ function render(){
     if(view.page==='dash') return renderAssessorDash(C);
     if(view.page==='crm') return renderCRM(C);
     if(view.page==='captacao') return renderCaptacao(C);
+    if(view.page==='marketing') return renderMarketing(C);
     if(view.page==='feed') return renderFeed(C);
     if(view.page==='chat') return renderChat(C);
     if(view.page==='tarefas') return renderTarefas(C);
@@ -1518,6 +1519,76 @@ function toggleIntegr(src){db.integr[src].conectado=!db.integr[src].conectado;sa
 async function importLead(id){if(roGuard())return;const l=db.inbox.find(x=>x.id===id);l.importado=true;const nl={id:uuid(),nome:l.nome,contato:l.contato,tipo:l.tipo,valor:l.valor||0,stage:0,perdido:false,ownerId:isMaster()?meId():meId(),criadoEm:Date.now(),obs:'Origem: '+l.fonte+(l.campanha?' — '+l.campanha:''),atividades:[{texto:'Lead recebido via '+l.fonte,quando:Date.now(),autorId:session.userId}]};db.crm.push(nl);saveLeadCloud(nl);logEvt('lead_criar','lead','Importou o lead "'+l.nome+'" de '+l.fonte,{lead:l.nome,fonte:l.fonte});if(supa&&isUuid(id)){try{await supa.from('inbox').update({convertido:true,lead_id:nl.id}).eq('id',id);}catch(e){}}save();renderCaptacao(document.getElementById('content'));flash('Lead importado para o seu funil ✓');}
 async function discardLead(id){if(supa&&isUuid(id)){try{await supa.from('inbox').update({convertido:true}).eq('id',id);}catch(e){}}db.inbox=db.inbox.filter(x=>x.id!==id);save();renderCaptacao(document.getElementById('content'));}
 function simulLead(){const nomes=['Pedro Henrique','Juliana Reis','Marcos Vinícius','Camila Duarte','Felipe Andrade','Sofia Carvalho'];const tps=['Consórcio','Planejamento','Consultoria'];const f=Math.random()<0.5?'Google':'Meta';db.inbox.push({id:uid(),fonte:f,nome:nomes[Math.floor(Math.random()*nomes.length)],contato:'(51) 9'+Math.floor(1000+Math.random()*8999)+'-'+Math.floor(1000+Math.random()*8999),campanha:f==='Meta'?'Lead Ad — Instagram/Facebook':'Pesquisa — Google Ads',tipo:tps[Math.floor(Math.random()*3)],quando:Date.now(),importado:false});save();renderCaptacao(document.getElementById('content'));flash(' Novo lead recebido de '+f+'!');}
+
+/* ===================== MARKETING (templates + campanhas) ===================== */
+function tplStatusBadge(s){ s=(s||'').toUpperCase(); const map={APPROVED:['#1F9E8B','Aprovado'],PENDING:['#C5A059','Em análise'],REJECTED:['#f87171','Rejeitado'],PAUSED:['#9DB5B1','Pausado'],DISABLED:['#9DB5B1','Desativado']}; const m=map[s]||['#6E8B88',(s||'—')]; return '<span class="chip" style="border:1px solid '+m[0]+'66;color:'+m[0]+';background:'+m[0]+'14">'+esc(m[1])+'</span>'; }
+function tplListHtml(list){
+  if(!list||!list.length) return '<p class="note">Nenhum template ainda. Clique em “+ Criar template” para criar o primeiro.</p>';
+  return list.map(function(t){ const meta=TPL_META[t.name]; const lbl=meta?meta.label:t.name; return '<div class="netrow"><span><b style="color:var(--head)">'+esc(lbl)+'</b>'+(t.category?' <span class="note">· '+esc(t.category)+'</span>':'')+'<br><span class="note">'+esc(t.name)+(t.language?' · '+esc(t.language):'')+'</span></span><span>'+tplStatusBadge(t.status)+'</span></div>'; }).join('');
+}
+function marketingCampaignsHtml(){
+  return '<div class="banner" style="margin-top:0">Integração com Google Ads e Meta Ads em breve — aqui vão aparecer as campanhas ativas com impressões, cliques, leads e custo por lead. O gráfico abaixo é um exemplo do formato.</div>'
+    +'<div class="kpis"><div class="kpi grad"><div class="lab">'+ICN.bolt+'Impressões</div><b>—</b></div><div class="kpi"><div class="lab">'+ICN.bolt+'Cliques</div><b>—</b></div><div class="kpi"><div class="lab">'+ICN.users+'Leads</div><b>—</b></div><div class="kpi"><div class="lab">'+ICN.money+'Custo/lead</div><b>—</b></div></div>'
+    +'<div style="height:240px;margin-top:10px"><canvas id="mktChart"></canvas></div>';
+}
+function marketingChart(){
+  const tick='#9DB5B1', grid='rgba(143,217,204,.1)'; let gold='#C5A059'; try{gold=(getComputedStyle(document.documentElement).getPropertyValue('--gold')||'#C5A059').trim()||'#C5A059';}catch(e){}
+  mkChart('mktChart',{type:'line',data:{labels:['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6'],datasets:[{label:'Leads (exemplo)',data:[8,14,11,19,17,23],borderColor:gold,backgroundColor:'rgba(197,160,44,.15)',borderWidth:2,pointRadius:3,tension:.3,fill:true}]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{color:tick}}},scales:{x:{grid:{display:false},ticks:{color:tick}},y:{grid:{color:grid},ticks:{color:tick}}}}});
+}
+async function renderMarketing(C){
+  setTop('Marketing','Templates de mensagem e campanhas','<button class="btn btn-gold btn-sm" onclick="tplBuilder()">+ Criar template</button>');
+  C.innerHTML='<div class="banner">Crie templates de mensagem (inclusive com uma imagem da campanha), envie para a Meta aprovar e depois dispare para os clientes na aba Conversas. As campanhas de anúncios aparecerão aqui com métricas quando integrarmos Google/Meta Ads.</div>'
+    +'<div class="panel"><h2>'+ICN.chat+' Templates de mensagem <button class="btn btn-ghost btn-sm right" onclick="renderMarketing(document.getElementById(\'content\'))">↻ Atualizar</button></h2><div id="tplList"><p class="note">Carregando templates…</p></div></div>'
+    +'<div class="panel"><h2>'+ICN.spark+' Campanhas</h2>'+marketingCampaignsHtml()+'</div>';
+  try{ const r=await apiFetch('/api/templates'); const list=(r&&r.ok&&r.data&&r.data.templates)?r.data.templates:[]; const el=document.getElementById('tplList'); if(el)el.innerHTML=tplListHtml(list); }
+  catch(e){ const el=document.getElementById('tplList'); if(el)el.innerHTML='<p class="note">Não foi possível carregar os templates do robô agora.</p>'; }
+  try{ marketingChart(); }catch(e){}
+}
+function _tplBx(){ return 'width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:10px 12px;border-radius:10px;font:inherit'; }
+function tplBuilder(){
+  if(roGuard())return;
+  const bx=_tplBx();
+  const fld=(lb,inner,hint)=>'<label style="display:block;margin-bottom:12px"><span style="display:block;font-size:.78rem;color:var(--muted);margin-bottom:5px">'+lb+'</span>'+inner+(hint?'<span style="display:block;font-size:.72rem;color:var(--soft);margin-top:4px">'+hint+'</span>':'')+'</label>';
+  const html='<div id="tplModal" style="position:fixed;inset:0;z-index:240;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.remove()"><div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:520px;width:100%;max-height:90vh;overflow:auto;padding:22px">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><h2 style="margin:0;font-size:1.05rem">Criar template</h2><button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'tplModal\').remove()">Fechar</button></div>'
+    +fld('Nome do template','<input id="tplName" placeholder="ex: campanha_imovel_julho" style="'+bx+'">','Só letras minúsculas, números e _ (sem espaço). É o identificador na Meta.')
+    +fld('Categoria','<select id="tplCat" style="'+bx+'"><option value="MARKETING">Marketing (campanha/oferta)</option><option value="UTILITY">Utilidade (aviso/serviço)</option></select>')
+    +fld('Imagem da campanha (opcional)','<input id="tplImg" type="file" accept="image/png,image/jpeg" style="'+bx+'">','PNG ou JPG. Vira o cabeçalho do template.')
+    +fld('Texto da mensagem','<textarea id="tplBody" rows="5" placeholder="Ex: Olá {{1}}! Aproveite nossa campanha de consórcio de imóvel com condições especiais. Fale com a gente!" style="'+bx+';resize:vertical"></textarea>','Use {{1}}, {{2}}… para as partes que mudam (ex.: {{1}} = nome do cliente).')
+    +fld('Rodapé (opcional)','<input id="tplFoot" value="Agion Consórcios" style="'+bx+'">')
+    +'<p class="note" style="font-size:.75rem;margin:0 0 14px">Depois de enviar, a Meta analisa (geralmente até ~1 dia). Quando aprovar, o template fica disponível para envio na aba Conversas.</p>'
+    +'<button class="btn btn-gold" style="width:100%" onclick="tplSubmit()">Enviar para aprovação</button></div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
+  const nm=document.getElementById('tplName'); if(nm){ nm.addEventListener('input',function(){ this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'_').replace(/_+/g,'_'); }); nm.focus(); }
+}
+async function tplSubmit(){
+  if(roGuard())return;
+  const name=(document.getElementById('tplName').value||'').trim().toLowerCase().replace(/[^a-z0-9_]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+  const category=document.getElementById('tplCat').value;
+  const body=(document.getElementById('tplBody').value||'').trim();
+  const footer=(document.getElementById('tplFoot').value||'').trim();
+  const fileEl=document.getElementById('tplImg'); const file=fileEl&&fileEl.files&&fileEl.files[0];
+  if(!name){ flash('Dê um nome ao template'); return; }
+  if(!body){ flash('Escreva o texto da mensagem'); return; }
+  let image_b64='', image_type='';
+  if(file){
+    if(file.size>5*1024*1024){ flash('Imagem muito grande (máx 5MB)'); return; }
+    image_type=file.type||'image/png';
+    image_b64=await new Promise(function(res){ const rd=new FileReader(); rd.onload=function(){ res(String(rd.result||'').split(',')[1]||''); }; rd.onerror=function(){res('');}; rd.readAsDataURL(file); });
+  }
+  flash('Enviando template para aprovação…');
+  const payload={name:name,category:category,language:'pt_BR',body:body,footer:footer,header:(file?'IMAGE':'NONE'),image_b64:image_b64,image_type:image_type};
+  let r; try{ r=await apiFetch('/api/create_template',{method:'POST',body:JSON.stringify(payload)}); }catch(e){ r={ok:false,data:{error:String(e)}}; }
+  if(r&&r.ok&&r.data&&!r.data.error){
+    logEvt&&logEvt('INSERT','app','Criou template "'+name+'" ('+category+') e enviou p/ aprovação',{template:name});
+    const m=document.getElementById('tplModal'); if(m)m.remove();
+    await ask({title:'Template enviado ✓',msg:'O template “'+name+'” foi enviado para a Meta. Assim que for aprovado, aparece como “Aprovado” e já pode ser usado nas Conversas.',ok:'Ok'});
+    if(view.page==='marketing') renderMarketing(document.getElementById('content'));
+  } else {
+    const err=(r&&r.data&&r.data.error)||'não foi possível enviar agora (o recurso no robô pode ainda não estar publicado).';
+    await ask({title:'Não foi possível enviar',msg:String(err),ok:'Ok'});
+  }
+}
 
 /* ===================== ASSESSOR: PAINEL ===================== */
 function renderAssessorDash(C){
