@@ -22,7 +22,7 @@
   --ok:#34d399;--warn:#fbbf24;--bad:#f87171;
 }
 body.light{
-  --bg:#F8FBFA;--bg2:#F1F6F4;--card:#FFFFFF;--card2:#F4F8F7;--card3:#ECF3F0;
+  --bg:#E7F1EC;--bg2:#DBE8E2;--card:#FFFFFF;--card2:#F4F8F7;--card3:#ECF3F0;
   --teal:#0E4A41;--teal-ink:#ffffff;--gold:#8F6F2C;--gold2:#725421;
   --ink:#0B100E;--muted:#333C39;--soft:#5A6763;--line:rgba(11,42,38,.10);--line-gold:rgba(143,111,44,.42);
   --head:#050B09;
@@ -62,6 +62,17 @@ body.light .wa-day{background:rgba(11,42,38,.10);opacity:1;color:var(--muted)}
 body.light .wa-cico:hover,body.light .wa-pop button:hover{background:rgba(11,42,38,.06)}
 body.light .wa-pop,body.light .wa-md{background:#fff;border-color:rgba(11,42,38,.12)}
 body.light .wa-back,body.light .wa-cico{color:var(--ink)}
+/* ===== acento VERDE da marca no claro (contraste + identidade) ===== */
+body.light .panel,body.light .ccard,body.light .kpi:not(.grad),body.light .actcard,body.light .intg,body.light .lead,body.light .task,body.light .kcol,body.light .opcard{border-color:rgba(14,74,65,.22)}
+body.light .panel{border-left:3px solid #0E4A41}
+body.light .kpi:not(.grad){border-top:3px solid #0E4A41}
+body.light .ccard{border-top:3px solid rgba(14,74,65,.5)}
+body.light .lead{border-left:3px solid rgba(14,74,65,.45)}
+body.light .panel h2,body.light .ccard h2,body.light .ccard h3,body.light .actcard .achead b{color:#0B3A33}
+body.light .kpi .lab{color:#0E4A41}
+body.light .kpi:not(.grad) b{color:#0E4A41}
+body.light .kcol h4{color:#0B3A33}
+body.light h2{color:#0B3A33}
 body{font-family:var(--sans);background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
 body.light::before{opacity:.09}
 body::before{content:"";position:fixed;inset:0;z-index:-1;background:
@@ -1558,7 +1569,7 @@ function simulLead(){const nomes=['Pedro Henrique','Juliana Reis','Marcos Viníc
 function tplStatusBadge(s){ s=(s||'').toUpperCase(); const map={APPROVED:['#1F9E8B','Aprovado'],PENDING:['#C5A059','Em análise'],REJECTED:['#f87171','Rejeitado'],PAUSED:['#9DB5B1','Pausado'],DISABLED:['#9DB5B1','Desativado']}; const m=map[s]||['#6E8B88',(s||'—')]; return '<span class="chip" style="border:1px solid '+m[0]+'66;color:'+m[0]+';background:'+m[0]+'14">'+esc(m[1])+'</span>'; }
 function tplListHtml(list){
   if(!list||!list.length) return '<p class="note">Nenhum template ainda. Clique em “+ Criar template” para criar o primeiro.</p>';
-  return list.map(function(t){ const meta=TPL_META[t.name]; const lbl=meta?meta.label:t.name; return '<div class="netrow"><span><b style="color:var(--head)">'+esc(lbl)+'</b>'+(t.category?' <span class="note">· '+esc(t.category)+'</span>':'')+'<br><span class="note">'+esc(t.name)+(t.language?' · '+esc(t.language):'')+'</span></span><span>'+tplStatusBadge(t.status)+'</span></div>'; }).join('');
+  return list.map(function(t){ const meta=TPL_META[t.name]; const lbl=meta?meta.label:t.name; return '<div class="netrow"><span><b style="color:var(--head)">'+esc(lbl)+'</b>'+(t.category?' <span class="note">· '+esc(t.category)+'</span>':'')+'<br><span class="note">'+esc(t.name)+(t.language?' · '+esc(t.language):'')+'</span></span><span style="display:flex;align-items:center;gap:10px;flex-shrink:0">'+tplStatusBadge(t.status)+'<button class="btn btn-ghost btn-sm" onclick="tplOpen(\''+esc(t.name)+'\')">Ver / Editar</button></span></div>'; }).join('');
 }
 function marketingCampaignsHtml(){
   return '<div class="banner" style="margin-top:0">Integração com Google Ads e Meta Ads em breve — aqui vão aparecer as campanhas ativas com impressões, cliques, leads e custo por lead. O gráfico abaixo é um exemplo do formato.</div>'
@@ -1621,6 +1632,72 @@ async function tplSubmit(){
   } else {
     const err=(r&&r.data&&r.data.error)||'não foi possível enviar agora (o recurso no robô pode ainda não estar publicado).';
     await ask({title:'Não foi possível enviar',msg:String(err),ok:'Ok'});
+  }
+}
+
+/* ---- Ver / Editar template existente ---- */
+function _tplComp(tpl,type){ return ((tpl.components||[]).filter(function(c){return (c.type||'').toUpperCase()===type;})[0])||null; }
+async function tplOpen(name){
+  if(!name)return;
+  flash('Carregando template…');
+  let r; try{ r=await apiFetch('/api/template_get',{method:'POST',body:JSON.stringify({name:name})}); }catch(e){ r={ok:false,data:{error:String(e)}}; }
+  if(!(r&&r.ok&&r.data&&r.data.template)){ await ask({title:'Não deu para abrir',msg:(r&&r.data&&r.data.error)||'não foi possível carregar o conteúdo do template agora.',ok:'Ok'}); return; }
+  tplViewEdit(r.data.template);
+}
+function tplViewEdit(tpl){
+  const bx=_tplBx();
+  const H=_tplComp(tpl,'HEADER'), B=_tplComp(tpl,'BODY'), F=_tplComp(tpl,'FOOTER'), BT=_tplComp(tpl,'BUTTONS');
+  const hf=(H&&(H.format||'').toUpperCase())||'NONE';
+  window._tplEdit={name:tpl.name,id:tpl.id||'',language:tpl.language||'pt_BR',header_format:hf,buttons:BT||null};
+  const meta=TPL_META[tpl.name]; const lbl=meta?meta.label:tpl.name;
+  const fld=(lb,inner,hint)=>'<label style="display:block;margin-bottom:12px"><span style="display:block;font-size:.78rem;color:var(--muted);margin-bottom:5px">'+lb+'</span>'+inner+(hint?'<span style="display:block;font-size:.72rem;color:var(--soft);margin-top:4px">'+hint+'</span>':'')+'</label>';
+  let headerFld='';
+  if(hf==='TEXT'){ headerFld=fld('Cabeçalho (texto)','<input id="teHdr" value="'+esc((H&&H.text)||'')+'" style="'+bx+'">'); }
+  else if(hf==='IMAGE'||hf==='DOCUMENT'||hf==='VIDEO'){ headerFld=fld('Cabeçalho ('+hf.toLowerCase()+')','<input id="teImg" type="file" accept="'+(hf==='DOCUMENT'?'application/pdf':(hf==='VIDEO'?'video/*':'image/png,image/jpeg'))+'" style="'+bx+'">','Este template usa '+hf.toLowerCase()+'. Para salvar a edição, reanexe o arquivo.'); }
+  const btnsInfo=BT?'<p class="note" style="font-size:.75rem;margin:2px 0 12px">Este template tem botões — eles serão mantidos como estão.</p>':'';
+  const editable=(tpl.status||'').toUpperCase()!=='PENDING';
+  const html='<div id="tplModal" style="position:fixed;inset:0;z-index:240;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.remove()"><div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:22px">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><h2 style="margin:0;font-size:1.05rem">'+esc(lbl)+'</h2><button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'tplModal\').remove()">Fechar</button></div>'
+    +'<div style="margin-bottom:14px">'+tplStatusBadge(tpl.status)+' <span class="note">'+esc(tpl.name)+' · '+esc(tpl.language||'')+'</span></div>'
+    +headerFld
+    +fld('Categoria','<select id="teCat" style="'+bx+'"><option value="MARKETING"'+(tpl.category==='MARKETING'?' selected':'')+'>Marketing (campanha/oferta)</option><option value="UTILITY"'+(tpl.category==='UTILITY'?' selected':'')+'>Utilidade (aviso/serviço)</option></select>')
+    +fld('Texto da mensagem','<textarea id="teBody" rows="6" style="'+bx+';resize:vertical">'+esc((B&&B.text)||'')+'</textarea>','Use {{1}}, {{2}}… para as partes que mudam.')
+    +fld('Rodapé (opcional)','<input id="teFoot" value="'+esc((F&&F.text)||'')+'" style="'+bx+'">')
+    +btnsInfo
+    +'<p class="note" style="font-size:.75rem;margin:0 0 14px">⚠️ Salvar a edição envia o template para nova análise da Meta (fica algumas horas indisponível para envio).</p>'
+    +(editable?'<button class="btn btn-gold" style="width:100%" onclick="tplEditSubmit()">Salvar alterações</button>':'<p class="note">Template em análise — aguarde a Meta concluir antes de editar novamente.</p>')
+    +'</div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+async function tplEditSubmit(){
+  if(roGuard())return;
+  const S=window._tplEdit||{};
+  const category=(document.getElementById('teCat')||{}).value||'';
+  const body=((document.getElementById('teBody')||{}).value||'').trim();
+  const footer=((document.getElementById('teFoot')||{}).value||'').trim();
+  if(!body){ flash('O texto não pode ficar vazio'); return; }
+  let header_format=S.header_format||'NONE', header_text='', image_b64='', image_type='';
+  if(header_format==='TEXT'){ header_text=((document.getElementById('teHdr')||{}).value||'').trim(); }
+  else if(header_format==='IMAGE'||header_format==='DOCUMENT'||header_format==='VIDEO'){
+    const fe=document.getElementById('teImg'); const file=fe&&fe.files&&fe.files[0];
+    if(!file){ await ask({title:'Falta o arquivo',msg:'Este template tem '+header_format.toLowerCase()+' no cabeçalho. Reanexe o arquivo para poder salvar a edição.',ok:'Ok'}); return; }
+    if(file.size>5*1024*1024){ flash('Arquivo muito grande (máx 5MB)'); return; }
+    image_type=file.type||(header_format==='DOCUMENT'?'application/pdf':'image/png');
+    image_b64=await new Promise(function(res){ const rd=new FileReader(); rd.onload=function(){res(String(rd.result||'').split(',')[1]||'');}; rd.onerror=function(){res('');}; rd.readAsDataURL(file); });
+    if(!image_b64){ flash('Não consegui ler o arquivo'); return; }
+  }
+  const okc=await ask({title:'Enviar edição?',msg:'O template “'+S.name+'” vai para nova análise da Meta. Confirmar?',ok:'Enviar'});
+  if(!okc)return;
+  flash('Enviando edição…');
+  const payload={name:S.name,id:S.id,category:category,language:S.language,body:body,footer:footer,header_format:header_format,header_text:header_text,image_b64:image_b64,image_type:image_type,buttons:S.buttons||null};
+  let r; try{ r=await apiFetch('/api/edit_template',{method:'POST',body:JSON.stringify(payload)}); }catch(e){ r={ok:false,data:{error:String(e)}}; }
+  if(r&&r.ok&&r.data&&!r.data.error){
+    logEvt&&logEvt('UPDATE','app','Editou o template "'+S.name+'" (enviado p/ nova análise)',{template:S.name});
+    const m=document.getElementById('tplModal'); if(m)m.remove();
+    await ask({title:'Edição enviada ✓',msg:'As alterações foram enviadas. A Meta vai reanalisar; quando aprovar, o novo conteúdo passa a valer.',ok:'Ok'});
+    if(view.page==='marketing') renderMarketing(document.getElementById('content'));
+  } else {
+    await ask({title:'Não foi possível salvar',msg:String((r&&r.data&&r.data.error)||'erro ao editar agora.'),ok:'Ok'});
   }
 }
 
