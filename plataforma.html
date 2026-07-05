@@ -371,9 +371,12 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border:none;border-ra
 .notif h4 .nread:hover{color:var(--gold2)}
 .notif .ni.unread{background:color-mix(in srgb,var(--bc) 9%,transparent)}
 @media(max-width:560px){.notif{width:min(300px,91vw)}.notif .nlist{max-height:62vh}.bell3{width:31px;height:31px;font-size:.75rem}.bells{gap:5px}}
-.actgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-top:10px}
-.actcard{position:relative;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:15px 14px 13px}
-.actbadge{position:absolute;top:-9px;right:-9px;min-width:26px;height:26px;padding:0 7px;border-radius:13px;background:var(--bad);color:#fff;font-weight:800;font-size:.78rem;display:grid;place-items:center;box-shadow:0 0 0 3px var(--bg)}
+.actgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px;margin-top:16px}
+.actcard{position:relative;background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:22px 20px 18px}
+.actcard .achead{display:flex;align-items:center;gap:14px;padding-right:36px}
+.actcard .acres{margin-top:14px;min-height:20px;line-height:1.5}
+.actcard .acbtn{margin-top:16px;width:100%}
+.actbadge{position:absolute;top:-11px;right:-11px;min-width:30px;height:30px;padding:0 9px;border-radius:15px;background:var(--bad);color:#fff;font-weight:800;font-size:.82rem;display:grid;place-items:center;box-shadow:0 0 0 4px var(--bg)}
 .viewbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#6d531f,#8a6c2c);color:#fff;padding:9px 16px;font-size:.85rem;font-weight:600}
 .viewbar .btn{margin-left:auto}
 /* skeleton */
@@ -1730,6 +1733,9 @@ function paintAtividades(C){
    <div class="panel"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${actorSel}${catSel}${perSel}<span class="note" style="margin-left:auto">${rows.length} evento(s)</span></div></div>
    ${html}`;
 }
+function actSeenKey(pid){ return 'agion_actseen_'+meId()+'_'+pid; }
+function actSeenTs(pid){ return +(localStorage.getItem(actSeenKey(pid))||0); }
+function actMarkSeen(pid){ localStorage.setItem(actSeenKey(pid),String(Date.now())); }
 function actorCardsHtml(){
   const now=Date.now(); const perMs={'1':86400000,'7':7*86400000,'30':30*86400000,'all':Infinity}[_aflt.per];
   const inPer=e=>perMs===Infinity||(now-new Date(e.criado_em).getTime())<=perMs;
@@ -1738,12 +1744,14 @@ function actorCardsHtml(){
   if(!staff.length) return '';
   const cards=staff.map(a=>{
     const evs=_act.filter(e=>e.actor_id===a.id&&inPer(e));
+    const seen=actSeenTs(a.id);
+    const unseen=evs.filter(e=>new Date(e.criado_em).getTime()>seen).length;
     const byCat={}; evs.forEach(e=>{const c=actCat(e);byCat[c]=(byCat[c]||0)+1;});
     const resumo=Object.keys(byCat).sort((x,y)=>byCat[y]-byCat[x]).slice(0,3).map(c=>byCat[c]+' '+(CAT_LBL[c]||c).toLowerCase()).join(' · ')||'sem atividades no período';
     const chip=a.role==='master'?' <span class="chip">MASTER</span>':a.role==='lider'?' <span class="chip">LÍDER</span>':'';
-    return `<div class="actcard">${evs.length?`<span class="actbadge">${evs.length>99?'99+':evs.length}</span>`:''}<div style="display:flex;align-items:center;gap:11px">${avatar(a.id,42)}<div><b style="color:var(--head)">${esc(a.nome)}</b>${chip}<div class="note" style="margin-top:2px">${esc(roleLabel(a.role,a.papel))}</div></div></div><div class="note" style="margin-top:10px;min-height:18px">${esc(resumo)}</div><button class="btn btn-ghost btn-sm" style="margin-top:11px;width:100%" onclick="verParticipante('${a.id}')">Ver mais</button></div>`;
+    return `<div class="actcard">${unseen?`<span class="actbadge">${unseen>99?'99+':unseen}</span>`:''}<div class="achead">${avatar(a.id,44)}<div><b style="color:var(--head)">${esc(a.nome)}</b>${chip}<div class="note" style="margin-top:3px">${esc(roleLabel(a.role,a.papel))}</div></div></div><div class="note acres">${esc(resumo)}</div><button class="btn btn-ghost btn-sm acbtn" onclick="verParticipante('${a.id}')">Ver mais</button></div>`;
   }).join('');
-  return `<div class="panel"><h2 style="font-size:.95rem">${ICN.users} Participantes <span class="note" style="font-weight:400">(atividades no período)</span></h2><div class="actgrid">${cards}</div></div>`;
+  return `<div class="panel"><h2 style="font-size:.95rem">${ICN.users} Participantes <span class="note" style="font-weight:400">(atividades novas desde a última vez que você abriu)</span></h2><div class="actgrid">${cards}</div></div>`;
 }
 function verParticipante(id){
   const a=(db.accounts||[]).find(x=>x.id===id)||{nome:'—',role:''};
@@ -1756,6 +1764,8 @@ function verParticipante(id){
   const verComoBtn=(isMaster()&&(a.role==='especialista'||a.role==='lider'))?`<button class="btn btn-gold btn-sm" style="margin-bottom:14px" onclick="document.getElementById('vpModal').remove();verComo('${id}')">👁 Ver como ${esc((a.nome||'').split(' ')[0])} (somente leitura)</button>`:'';
   const html=`<div id="vpModal" style="position:fixed;inset:0;z-index:240;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.remove()"><div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:520px;width:100%;max-height:88vh;overflow:auto;padding:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="display:flex;align-items:center;gap:11px">${avatar(id,44)}<div><h2 style="margin:0;font-size:1.05rem">${esc(a.nome)}</h2><div class="note">${esc(roleLabel(a.role,a.papel))} · ${all.length} atividade(s)</div></div></div><button class="btn btn-ghost btn-sm" onclick="document.getElementById('vpModal').remove()">Fechar</button></div><div style="margin-bottom:14px">${chips}</div>${verComoBtn}<h4 style="font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--gold2);margin-bottom:6px">Atividades recentes</h4>${list}</div></div>`;
   document.body.insertAdjacentHTML('beforeend',html);
+  actMarkSeen(id);
+  if(view.page==='atividades'){ try{ paintAtividades(document.getElementById('content')); }catch(e){} }
 }
 async function openAccount(){
   if(!(isMaster()||isLider())){flash('Apenas Master e Líder criam contas.');return;}
