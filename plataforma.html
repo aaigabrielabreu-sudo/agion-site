@@ -1554,28 +1554,58 @@ function cartasPaint(msg){
   document.body.insertAdjacentHTML('beforeend',html);
 }
 const CART_ADMINS=['Âncora Consórcios','HS Consórcios'];
-async function cartaEdit(id){
-  if(roGuard())return;
-  const cur=(_cartasList||[]).find(x=>x.id===id)||{};
-  cartasClose();
+let _cartaNextIdx=1;
+function _cartaBx(){ return 'width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:10px 12px;border-radius:10px;font:inherit'; }
+function _cartaBlockHtml(idx,cur,removable){
+  cur=cur||{};
+  const bx=_cartaBx();
   const curAdm=cur.administradora||'HS Consórcios';
   const opts=CART_ADMINS.map(a=>`<option${(curAdm===a)?' selected':''}>${esc(a)}</option>`).join('');
-  const bx='width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:10px 12px;border-radius:10px;font:inherit';
-  const fld=(lb,inner)=>`<label style="display:block;margin-bottom:10px"><span style="display:block;font-size:.78rem;color:var(--muted);margin-bottom:4px">${lb}</span>${inner}</label>`;
+  const fld=(lb,inner)=>`<label style="display:block;margin-bottom:12px"><span style="display:block;font-size:.78rem;color:var(--muted);margin-bottom:5px">${lb}</span>${inner}</label>`;
   const inp=(iid,val,ph,extra='')=>`<input id="${iid}" value="${esc(val==null?'':(''+val))}" placeholder="${ph||''}" ${extra} style="${bx}">`;
-  const html=`<div id="cartasModal" style="position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)cartasClose()"><div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:480px;width:100%;max-height:90vh;overflow:auto;padding:20px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><h2 style="margin:0;font-size:1.05rem">${id?'Editar carta':'Nova carta'}</h2><button class="btn btn-ghost btn-sm" onclick="openCartas(_cartasCid)">Voltar</button></div>${fld('Titular da carta',inp('kTit',cur.titular_nome||_cartasNome,'Nome de quem é a carta'))}${fld('Administradora',`<select id="kAdm" style="${bx}">${opts}</select>`)}<div style="display:flex;gap:10px"><div style="flex:1">${fld('Grupo',inp('kGru',cur.grupo,'Ex.: 1173'))}</div><div style="flex:1">${fld('Cota',inp('kCot',cur.cota,'Ex.: 320'))}</div></div>${fld('Valor da carta (R$)',inp('kVal',cur.valor,'Ex.: 250000','inputmode="numeric"'))}${fld('WhatsApp autorizado',inp('kWha',cur.whatsapp,'Com DDD — recebe/pede o boleto','inputmode="numeric"'))}<label style="display:flex;align-items:center;gap:8px;margin:4px 0 16px;font-size:.9rem;color:var(--head)"><input type="checkbox" id="kFam" ${cur.is_familiar?'checked':''}> É de um familiar</label><button class="btn btn-gold" style="width:100%" onclick="cartaSave('${id||''}')">Salvar carta</button></div></div>`;
+  return `<div class="cartablk" data-idx="${idx}" style="border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;position:relative">${removable?`<button onclick="cartaRemoveBlock(${idx})" title="Remover esta carta" style="position:absolute;top:10px;right:10px;background:none;border:0;color:var(--bad);font-size:1.2rem;line-height:1;cursor:pointer">×</button>`:''}${fld('Titular da carta',inp('kTit_'+idx,cur.titular_nome||_cartasNome,'Nome de quem é a carta'))}${fld('Administradora',`<select id="kAdm_${idx}" style="${bx}">${opts}</select>`)}<div style="display:flex;gap:12px"><div style="flex:1">${fld('Grupo',inp('kGru_'+idx,cur.grupo,'Ex.: 1173'))}</div><div style="flex:1">${fld('Cota',inp('kCot_'+idx,cur.cota,'Ex.: 320'))}</div></div>${fld('Valor da carta (R$)',inp('kVal_'+idx,cur.valor,'Ex.: 250000','inputmode="numeric"'))}${fld('WhatsApp autorizado',inp('kWha_'+idx,cur.whatsapp,'Com DDD — recebe/pede o boleto','inputmode="numeric"'))}<label style="display:flex;align-items:center;gap:8px;margin:2px 0 0;font-size:.9rem;color:var(--head)"><input type="checkbox" id="kFam_${idx}" ${cur.is_familiar?'checked':''}> É de um familiar</label></div>`;
+}
+async function cartaEdit(id){
+  if(roGuard())return;
+  const editing=!!id;
+  const cur=(_cartasList||[]).find(x=>x.id===id)||{};
+  cartasClose();
+  _cartaNextIdx=1;
+  const blocks=_cartaBlockHtml(0, editing?cur:{}, false);
+  const addBtn=editing?'':`<button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:14px" onclick="cartaAddBlock()">+ Adicionar outra carta</button>`;
+  const html=`<div id="cartasModal" style="position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)cartasClose()"><div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:500px;width:100%;max-height:90vh;overflow:auto;padding:22px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><h2 style="margin:0;font-size:1.05rem">${editing?'Editar carta':'Nova(s) carta(s)'}</h2><button class="btn btn-ghost btn-sm" onclick="openCartas(_cartasCid)">Voltar</button></div><div id="cartaBlocks">${blocks}</div>${addBtn}<button class="btn btn-gold" style="width:100%" onclick="cartaSave('${id||''}')">${editing?'Salvar carta':'Salvar cartas'}</button></div></div>`;
   document.body.insertAdjacentHTML('beforeend',html);
-  setTimeout(()=>{const el=document.getElementById(id?'kAdm':'kGru');if(el)el.focus();},60);
+  setTimeout(()=>{const el=document.getElementById(editing?'kAdm_0':'kGru_0');if(el)el.focus();},60);
+}
+function cartaAddBlock(){
+  const c=document.getElementById('cartaBlocks'); if(!c)return;
+  const idx=_cartaNextIdx++;
+  c.insertAdjacentHTML('beforeend', _cartaBlockHtml(idx,{},true));
+  const el=document.getElementById('kGru_'+idx); if(el){el.focus(); el.scrollIntoView({block:'center',behavior:'smooth'});}
+}
+function cartaRemoveBlock(idx){
+  const b=document.querySelector('.cartablk[data-idx="'+idx+'"]'); if(b)b.remove();
 }
 async function cartaSave(id){
   if(roGuard())return;
-  const g=(document.getElementById('kGru').value||'').trim();
-  const c=(document.getElementById('kCot').value||'').trim();
-  if(!g||!c){ flash&&flash('Informe grupo e cota'); return; }
-  const rawV=(''+(document.getElementById('kVal').value||'')).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.');
-  const rec={cliente_id:_cartasCid,titular_nome:(document.getElementById('kTit').value||'').trim()||_cartasNome,administradora:document.getElementById('kAdm').value,grupo:g,cota:c,valor:rawV?(Number(rawV)||null):null,whatsapp:(document.getElementById('kWha').value||'').replace(/\D/g,'')||null,is_familiar:document.getElementById('kFam').checked};
-  flash&&flash('Salvando carta…');
-  try{ if(id){ await supa.from('cartas').update(Object.assign({},rec,{atualizado_em:new Date().toISOString()})).eq('id',id); } else { await supa.from('cartas').insert(rec); } logEvt&&logEvt(id?'UPDATE':'INSERT','cartas',(id?'Editou':'Cadastrou')+' carta '+rec.administradora+' '+rec.grupo+'/'+rec.cota+' de '+rec.titular_nome,{cliente_id:_cartasCid}); }
+  const blocks=[...document.querySelectorAll('.cartablk')];
+  const recs=[];
+  for(const b of blocks){
+    const idx=b.getAttribute('data-idx');
+    const g=(document.getElementById('kGru_'+idx).value||'').trim();
+    const c=(document.getElementById('kCot_'+idx).value||'').trim();
+    const tit=(document.getElementById('kTit_'+idx).value||'').trim();
+    if(!g&&!c&&(!tit||tit===_cartasNome)) continue;
+    if(!g||!c){ flash&&flash('Informe grupo e cota em todas as cartas'); return; }
+    const rawV=(''+(document.getElementById('kVal_'+idx).value||'')).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.');
+    recs.push({cliente_id:_cartasCid,titular_nome:tit||_cartasNome,administradora:document.getElementById('kAdm_'+idx).value,grupo:g,cota:c,valor:rawV?(Number(rawV)||null):null,whatsapp:(document.getElementById('kWha_'+idx).value||'').replace(/\D/g,'')||null,is_familiar:document.getElementById('kFam_'+idx).checked});
+  }
+  if(!recs.length){ flash&&flash('Preencha ao menos uma carta (grupo e cota)'); return; }
+  flash&&flash(recs.length>1?('Salvando '+recs.length+' cartas…'):'Salvando carta…');
+  try{
+    if(id){ await supa.from('cartas').update(Object.assign({},recs[0],{atualizado_em:new Date().toISOString()})).eq('id',id); logEvt&&logEvt('UPDATE','cartas','Editou carta '+recs[0].administradora+' '+recs[0].grupo+'/'+recs[0].cota+' de '+recs[0].titular_nome,{cliente_id:_cartasCid}); }
+    else { await supa.from('cartas').insert(recs); logEvt&&logEvt('INSERT','cartas','Cadastrou '+recs.length+' carta(s) para '+_cartasNome,{cliente_id:_cartasCid,qtd:recs.length}); }
+  }
   catch(e){ await ask({title:'Não foi possível salvar',msg:String(e.message||e),ok:'Ok'}); }
   openCartas(_cartasCid);
 }
