@@ -535,14 +535,6 @@ body.light .logo-img,body.light .top-logo{filter:none}
   .print-cover p{color:#9DB5B1}
   canvas{max-height:260px}
 }
-
-/* respiro extra — nada apertado */
-.panel{margin-bottom:clamp(18px,2.2vw,26px)}
-.kpis{gap:18px}
-.netrow{padding:12px 0}
-.grid2{gap:18px}
-.kcol{padding:14px}
-.chat-msgs{padding:18px}
 </style>
 <!-- PWA (instalar na tela inicial) -->
 <meta name="theme-color" content="#0B2A26">
@@ -1021,9 +1013,10 @@ const mainPlan=c=>client(c).plans.find(p=>p.main);
 
 function navItems(){
   const R=effRole();
-  if(R==='master') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check]];
-  if(R==='lider') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users]];
-  if(R==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users]];
+  const ICN_KPI='<svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-5"/><path d="M13 17V8"/><path d="M18 17v-9"/></svg>';
+  if(R==='master') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check]];
+  if(R==='lider') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users]];
+  if(R==='especialista') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users]];
   return [['dash','Início',ICN.dash],['plan','Planejamento',ICN.plan],['jornada','Jornada',ICN.target],['gastos','Gastos',ICN.money],['cota','Cota',ICN.cota]];
 }
 function renderNav(){
@@ -1394,6 +1387,7 @@ function render(){
   const C=document.getElementById('content');
   if(isStaff()){
     if(view.page==='dash') return renderAssessorDash(C);
+    if(view.page==='kpis') return renderKPIs(C);
     if(view.page==='crm') return renderCRM(C);
     if(view.page==='captacao') return renderCaptacao(C);
     if(view.page==='marketing') return renderMarketing(C);
@@ -1713,36 +1707,112 @@ async function tplEditSubmit(){
   }
 }
 
-/* ===================== RELATORIOS DO MASTER ===================== */
-const REP_TITLES={carteira:'Carteira de Clientes',patrimonio:'Patrimônio por Especialista',atividades:'Relatório de Atividades'};
-function _repRows(kind){
-  if(kind==='carteira'){ const rows=[['Cliente','E-mail','Telefone','Especialista','Patrimonio (R$)','Sobra mensal (R$)']]; visibleClients().forEach(function(c){ const t=totals(mainPlan(c)); rows.push([c.nome,c.email||'',c.tel||'',(user(c.ownerId).nome||''),Math.round(t.patr),Math.round(t.sobra)]); }); return rows; }
-  if(kind==='patrimonio'){ const by={}; visibleClients().forEach(function(c){ const t=totals(mainPlan(c)); const k=user(c.ownerId).nome||'-'; if(!by[k])by[k]={n:0,patr:0}; by[k].n++; by[k].patr+=t.patr; }); const rows=[['Especialista','Clientes','Patrimonio total (R$)']]; Object.keys(by).forEach(function(k){ rows.push([k,by[k].n,Math.round(by[k].patr)]); }); return rows; }
-  const rows=[['Data/hora','Quem','Acao']]; (db.actlog||[]).forEach(function(e){ rows.push([fmtWhen(new Date(e.criado_em).getTime()),e.actor_nome||'Sistema',actText(e)]); }); return rows;
+/* ===================== RELATÓRIOS DO MASTER (PDF/Excel) ===================== */
+function _reportData(){
+  const VC=visibleClients(); const VL=visibleLeads();
+  let totPatr=0, sob=0; const rows=[]; const byOwner={};
+  VC.forEach(c=>{ const t=totals(mainPlan(c)); totPatr+=t.patr; sob+=t.sobra;
+    const esp=(user(c.ownerId).nome||'—');
+    rows.push({cliente:c.nome||'—', esp:esp, patr:t.patr, sobra:t.sobra, sims:(c.plans||[]).filter(p=>!p.main).length});
+    if(!byOwner[esp]) byOwner[esp]={clientes:0,patr:0}; byOwner[esp].clientes++; byOwner[esp].patr+=t.patr;
+  });
+  const rank=Object.keys(byOwner).map(k=>({esp:k,clientes:byOwner[k].clientes,patr:byOwner[k].patr})).sort((a,b)=>b.patr-a.patr);
+  return {VC:VC,VL:VL,totPatr:totPatr,sob:sob,cs:crmStats(),rows:rows,rank:rank,acts:(db.actlog||[]).slice(0,25)};
 }
-function repCSV(kind){ const rows=_repRows(kind); const csv=String.fromCharCode(65279)+rows.map(function(r){ return r.map(function(v){ v=String(v==null?'':v).replace(/"/g,'""'); return '"'+v+'"'; }).join(';'); }).join('\r\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='agion_'+kind+'_'+new Date().toISOString().slice(0,10)+'.csv'; document.body.appendChild(a); a.click(); a.remove(); flash('Excel baixado ✓'); }
-function repPDF(kind){ const rows=_repRows(kind); const head=rows[0], body=rows.slice(1);
-  let h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+REP_TITLES[kind]+'</title><style>body{font-family:Arial,Helvetica,sans-serif;color:#0B100E;margin:34px}h1{color:#0E4A41;font-size:22px;margin:0 0 4px}p.meta{color:#5A6763;font-size:12px;margin:0 0 18px}table{width:100%;border-collapse:collapse;font-size:12.5px}th{background:#0E4A41;color:#fff;text-align:left;padding:8px 10px}td{border:1px solid #cfe0da;padding:7px 10px}tr:nth-child(even) td{background:#F1F8F4}footer{margin-top:22px;color:#5A6763;font-size:11px}</style></head><body>';
-  h+='<h1>Agion Consórcios — '+REP_TITLES[kind]+'</h1><p class="meta">Gerado em '+new Date().toLocaleString('pt-BR')+'</p><table><tr>';
-  head.forEach(function(x){h+='<th>'+esc(String(x))+'</th>';}); h+='</tr>';
-  body.forEach(function(rw){ h+='<tr>'; rw.forEach(function(x){h+='<td>'+esc(String(x))+'</td>';}); h+='</tr>'; });
-  h+='</table><footer>Agion Consórcios · agionconsorcios.com.br — documento interno</footer></body></html>';
-  const w=window.open('','_blank'); if(!w){ flash('Libere pop-ups para gerar o PDF'); return; } w.document.write(h); w.document.close(); setTimeout(function(){ try{w.focus();w.print();}catch(e){} },450);
+function _csvSafe(s){ s=String(s==null?'':s); if(/[;"\n]/.test(s)) s='"'+s.replace(/"/g,'""')+'"'; return s; }
+function _ymd(){ const d=new Date(); return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); }
+function masterReportCSV(){
+  const d=_reportData(); let csv='Cliente;Especialista;Patrimonio;Sobra mensal;Simulacoes\n';
+  d.rows.slice().sort((a,b)=>b.patr-a.patr).forEach(r=>{ csv+=[_csvSafe(r.cliente),_csvSafe(r.esp),Math.round(r.patr),Math.round(r.sobra),r.sims].join(';')+'\n'; });
+  csv+='\nRanking por especialista\nEspecialista;Clientes;Patrimonio;% do total\n';
+  d.rank.forEach(x=>{ csv+=[_csvSafe(x.esp),x.clientes,Math.round(x.patr),(d.totPatr?Math.round(x.patr/d.totPatr*100):0)+'%'].join(';')+'\n'; });
+  const K=_kpiModel();
+  csv+='\nEsforco por especialista\nEspecialista;Lider;Clientes;Patrimonio;Leads ativos;Ganhos;Conversao;Atividades;Tarefas concluidas;Tarefas total\n';
+  K.esps.slice().sort((a,b)=>b.atividades-a.atividades).forEach(e=>{ csv+=[_csvSafe(e.nome),_csvSafe(e.leaderId?(user(e.leaderId).nome||''):''),e.clientes,Math.round(e.patr),e.leadsAtivos,e.ganhos,e.conv+'%',e.atividades,e.tdone,e.tarefas].join(';')+'\n'; });
+  csv+='\nEsforco por lider\nLider;Especialistas;Clientes;Patrimonio;Leads ativos;Conversao;Atividades;Tarefas concluidas\n';
+  K.lideres.forEach(l=>{ csv+=[_csvSafe(l.nome),l.nEsp,l.clientes,Math.round(l.patr),l.leadsAtivos,l.conv+'%',l.atividades,l.tdone].join(';')+'\n'; });
+  csv+='\nTotais\nClientes;'+d.VC.length+'\nPatrimonio sob gestao;'+Math.round(d.totPatr)+'\nPipeline CRM;'+Math.round(d.cs.pipeline)+'\nSobra mensal;'+Math.round(d.sob)+'\n';
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'})); a.download='Agion_relatorio_'+_ymd()+'.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(a.href)},3000);
+  logEvt&&logEvt('INSERT','app','Exportou relatório gerencial (Excel/CSV)',{}); flash('Relatório Excel baixado');
 }
-function repModal(){
-  const row=function(kind,lbl,sub){ return '<div style="display:flex;align-items:center;gap:14px;padding:15px 0;border-bottom:1px solid var(--line)"><div style="flex:1"><b style="color:var(--head)">'+lbl+'</b><br><span class="note">'+sub+'</span></div><button class="btn btn-teal btn-sm" onclick="repCSV(\''+kind+'\')">Excel</button><button class="btn btn-gold btn-sm" onclick="repPDF(\''+kind+'\')">PDF</button></div>'; };
-  const html='<div id="repModal" style="position:fixed;inset:0;z-index:240;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.remove()"><div style="background:var(--card);border:1.5px solid rgba(14,74,65,.32);border-radius:16px;max-width:540px;width:100%;padding:26px">'
-   +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><h2 style="margin:0;font-size:1.05rem">Relatórios</h2><button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'repModal\').remove()">Fechar</button></div>'
-   +'<p class="note" style="margin:0 0 10px">Excel baixa um arquivo .csv (abre direto no Excel). PDF abre a impressão — escolha Salvar como PDF.</p>'
-   +row('carteira','Carteira de clientes','Nome, contato, especialista, patrimônio e sobra mensal')
-   +row('patrimonio','Patrimônio por especialista','Total sob gestão e nº de clientes de cada especialista')
-   +row('atividades','Atividades','Histórico auditável com data e hora')
-   +'</div></div>';
-  document.body.insertAdjacentHTML('beforeend',html);
+function masterReportPDF(){
+  const d=_reportData(); const now=new Date().toLocaleString('pt-BR'); const K=_kpiModel();
+  const lidEff=K.lideres.slice().sort((a,b)=>b.atividades-a.atividades).map(l=>'<tr><td>'+esc(l.nome)+'</td><td class="n">'+l.nEsp+'</td><td class="n">'+l.clientes+'</td><td class="n">'+BRL(l.patr)+'</td><td class="n">'+l.leadsAtivos+'</td><td class="n">'+l.conv+'%</td><td class="n">'+l.atividades+'</td><td class="n">'+l.tdone+'/'+l.tarefas+'</td></tr>').join('');
+  const espEff=K.esps.slice().sort((a,b)=>b.atividades-a.atividades).map(e=>'<tr><td>'+esc(e.nome)+'</td><td>'+(e.leaderId?esc((user(e.leaderId).nome||'—').split(' ')[0]):'—')+'</td><td class="n">'+e.clientes+'</td><td class="n">'+BRL(e.patr)+'</td><td class="n">'+e.leadsAtivos+'</td><td class="n">'+e.ganhos+'</td><td class="n">'+e.conv+'%</td><td class="n">'+e.atividades+'</td><td class="n">'+e.tdone+'/'+e.tarefas+'</td></tr>').join('');
+  const logo='https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png';
+  const rankRows=d.rank.map(x=>'<tr><td>'+esc(x.esp)+'</td><td class="n">'+x.clientes+'</td><td class="n">'+BRL(x.patr)+'</td><td class="n">'+(d.totPatr?Math.round(x.patr/d.totPatr*100):0)+'%</td></tr>').join('')||'<tr><td colspan="4">—</td></tr>';
+  const cliRows=d.rows.slice().sort((a,b)=>b.patr-a.patr).map(r=>'<tr><td>'+esc(r.cliente)+'</td><td>'+esc(r.esp)+'</td><td class="n">'+BRL(r.patr)+'</td><td class="n">'+BRL(r.sobra)+'</td></tr>').join('')||'<tr><td colspan="4">—</td></tr>';
+  const actRows=d.acts.map(e=>'<tr><td class="dt">'+esc(fmtWhen(new Date(e.criado_em).getTime()))+'</td><td>'+esc(actText(e))+'</td></tr>').join('');
+  const H='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório Gerencial Agion</title><style>'
+   +'*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;color:#12211d;padding:34px 40px;background:#fff}'
+   +'.hd{display:flex;align-items:center;gap:14px;border-bottom:3px solid #0E4A41;padding-bottom:14px;margin-bottom:8px}.hd img{height:46px}.hd h1{font-size:22px;color:#0B2A26}.hd .sub{color:#5A6763;font-size:12px;margin-top:2px}'
+   +'.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 6px}.kpi{border:1.5px solid rgba(14,74,65,.25);border-left:4px solid #0E4A41;border-radius:10px;padding:12px 14px}.kpi .l{font-size:10px;color:#5A6763;text-transform:uppercase;letter-spacing:.05em}.kpi b{font-size:19px;color:#0B2A26}'
+   +'h2{font-size:15px;color:#0B3A33;margin:24px 0 8px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:7px 9px;border-bottom:1px solid #e3ece8}th{background:#EAF3EE;color:#0B3A33;text-transform:uppercase;font-size:10px;letter-spacing:.04em}td.n{text-align:right}td.dt{white-space:nowrap;color:#5A6763}'
+   +'.ft{margin-top:26px;color:#8a9895;font-size:11px;border-top:1px solid #e3ece8;padding-top:10px}@media print{body{padding:0 6px}}'
+   +'</style></head><body>'
+   +'<div class="hd"><img src="'+logo+'"><div><h1>Relatório Gerencial</h1><div class="sub">Agion Consórcios · '+esc(now)+' · '+esc(user(session.userId).nome||'')+'</div></div></div>'
+   +'<div class="kpis"><div class="kpi"><div class="l">Clientes</div><b>'+d.VC.length+'</b></div><div class="kpi"><div class="l">Patrimônio sob gestão</div><b>'+BRL(d.totPatr)+'</b></div><div class="kpi"><div class="l">Pipeline (CRM)</div><b>'+BRL(d.cs.pipeline)+'</b></div><div class="kpi"><div class="l">Sobra mensal</div><b>'+BRL(d.sob)+'</b></div></div>'
+   +'<h2>Ranking por especialista</h2><table><thead><tr><th>Especialista</th><th class="n">Clientes</th><th class="n">Patrimônio</th><th class="n">% do total</th></tr></thead><tbody>'+rankRows+'</tbody></table>'
+   +(lidEff?'<h2>Por líder (esforço)</h2><table><thead><tr><th>Líder</th><th class="n">Espec.</th><th class="n">Clientes</th><th class="n">Patrimônio</th><th class="n">Leads</th><th class="n">Conv.</th><th class="n">Atividades</th><th class="n">Tarefas</th></tr></thead><tbody>'+lidEff+'</tbody></table>':'')
+   +'<h2>Por especialista (esforço)</h2><table><thead><tr><th>Especialista</th><th>Líder</th><th class="n">Clientes</th><th class="n">Patrimônio</th><th class="n">Leads</th><th class="n">Ganhos</th><th class="n">Conv.</th><th class="n">Atividades</th><th class="n">Tarefas</th></tr></thead><tbody>'+(espEff||'<tr><td colspan="9">—</td></tr>')+'</tbody></table>'
+   +'<h2>Carteira de clientes</h2><table><thead><tr><th>Cliente</th><th>Especialista</th><th class="n">Patrimônio</th><th class="n">Sobra/mês</th></tr></thead><tbody>'+cliRows+'</tbody></table>'
+   +(d.acts.length?'<h2>Atividades recentes</h2><table><thead><tr><th>Data</th><th>Atividade</th></tr></thead><tbody>'+actRows+'</tbody></table>':'')
+   +'<div class="ft">Gerado automaticamente pela plataforma Agion em '+esc(now)+'. Documento interno — uso gerencial.</div>'
+   +'<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print()},500)}<\/scr'+'ipt></body></html>';
+  const w=window.open('','_blank'); if(!w){ flash('Permita pop-ups para gerar o PDF'); return; }
+  w.document.open(); w.document.write(H); w.document.close();
+  logEvt&&logEvt('INSERT','app','Gerou relatório gerencial (PDF)',{});
+}
+/* ---- KPIs / índices de esforço por hierarquia ---- */
+function _espMetrics(id){
+  const cli=(db.clients||[]).filter(c=>c.ownerId===id); let patr=0,sob=0;
+  cli.forEach(c=>{const t=totals(mainPlan(c));patr+=t.patr;sob+=t.sobra;});
+  const leads=(db.crm||[]).filter(l=>l.ownerId===id);
+  const ganhos=leads.filter(l=>!l.perdido&&l.stage>=(CRM_STAGES.length-1)).length;
+  const ativos=leads.filter(l=>!l.perdido).length;
+  const tks=(db.tasks||[]).filter(t=>t.ownerId===id);
+  const ativ=(db.actlog||[]).filter(e=>e.actor_id===id).length;
+  return {clientes:cli.length,patr:patr,sob:sob,leads:leads.length,leadsAtivos:ativos,ganhos:ganhos,conv:(leads.length?Math.round(ganhos/leads.length*100):0),tarefas:tks.length,tdone:tks.filter(t=>t.feito).length,atividades:ativ};
+}
+function _aggMetrics(ids){ const s={clientes:0,patr:0,sob:0,leads:0,leadsAtivos:0,ganhos:0,tarefas:0,tdone:0,atividades:0}; (ids||[]).forEach(id=>{const m=_espMetrics(id); s.clientes+=m.clientes;s.patr+=m.patr;s.sob+=m.sob;s.leads+=m.leads;s.leadsAtivos+=m.leadsAtivos;s.ganhos+=m.ganhos;s.tarefas+=m.tarefas;s.tdone+=m.tdone;s.atividades+=m.atividades;}); s.conv=s.leads?Math.round(s.ganhos/s.leads*100):0; return s; }
+function _kpiModel(){
+  const accts=db.accounts||[]; const esps=accts.filter(a=>a.role==='especialista'); const lids=accts.filter(a=>a.role==='lider');
+  const espRows=esps.map(a=>Object.assign({id:a.id,nome:a.nome,leaderId:a.leaderId||null},_espMetrics(a.id)));
+  const lidRows=lids.map(a=>{ const team=especIdsOf(a.id); return Object.assign({id:a.id,nome:a.nome,nEsp:team.length},_aggMetrics(team.concat([a.id]))); });
+  const allIds=accts.filter(a=>a.role!=='cliente').map(a=>a.id);
+  return {esps:espRows,lideres:lidRows,org:_aggMetrics(allIds)};
+}
+function renderKPIs(C){
+  const R=effRole(); const M=_kpiModel(); const money=v=>BRL(v);
+  const exp=(R==='master'||R==='lider')?'<button class="btn btn-ghost btn-sm" onclick="masterReportPDF()">📄 PDF</button> <button class="btn btn-ghost btn-sm" onclick="masterReportCSV()">⬇ Excel</button>':'';
+  setTop('KPIs — Índices de esforço', R==='master'?'Organização › Líder › Especialista':(R==='lider'?'Sua equipe':'Meu desempenho'), exp);
+  const kc=(lab,val,g)=>'<div class="kpi'+(g?' grad':'')+'"><div class="lab">'+lab+'</div><b>'+val+'</b></div>';
+  function tbl(cols,rows){ let h='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.84rem"><thead><tr>'+cols.map(c=>'<th style="text-align:'+(c.a||'left')+';padding:8px 10px;background:var(--card3);color:var(--head);text-transform:uppercase;font-size:.66rem;letter-spacing:.05em;border-bottom:1px solid var(--line);white-space:nowrap">'+c.t+'</th>').join('')+'</tr></thead><tbody>'; h+=(rows.length?rows.map(r=>'<tr>'+cols.map(c=>'<td style="text-align:'+(c.a||'left')+';padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap">'+r[c.k]+'</td>').join('')+'</tr>').join(''):'<tr><td style="padding:12px" colspan="'+cols.length+'"><span class="note">Sem dados ainda.</span></td></tr>'); return h+'</tbody></table></div>'; }
+  let html='';
+  if(R==='master'||R==='lider'){
+    const agg=R==='master'?M.org:_aggMetrics(especIdsOf(effId()).concat([effId()]));
+    html+='<div class="kpis">'+kc(ICN.users+(R==='master'?'Clientes (org)':'Clientes (equipe)'),agg.clientes,1)+kc(ICN.wallet+'Patrimônio sob gestão',money(agg.patr),1)+kc(ICN.funnel+'Leads ativos',agg.leadsAtivos)+kc(ICN.spark+'Conversão',agg.conv+'%')+'</div>';
+    html+='<div class="kpis">'+kc(ICN.check+'Atividades',agg.atividades)+kc(ICN.check+'Tarefas concluídas',agg.tdone+' / '+agg.tarefas)+kc(ICN.bolt+'Leads (total)',agg.leads)+kc(ICN.money+'Sobra mensal',money(agg.sob))+'</div>';
+  }
+  if(R==='master'){
+    const rows=M.lideres.slice().sort((a,b)=>b.atividades-a.atividades).map(l=>({esp:esc(l.nome),nEsp:l.nEsp,cli:l.clientes,patr:money(l.patr),la:l.leadsAtivos,cv:l.conv+'%',at:l.atividades,tk:l.tdone+'/'+l.tarefas}));
+    html+='<div class="panel"><h2>'+ICN.users+' Por líder</h2>'+tbl([{t:'Líder',k:'esp'},{t:'Espec.',k:'nEsp',a:'right'},{t:'Clientes',k:'cli',a:'right'},{t:'Patrimônio',k:'patr',a:'right'},{t:'Leads ativos',k:'la',a:'right'},{t:'Conv.',k:'cv',a:'right'},{t:'Atividades',k:'at',a:'right'},{t:'Tarefas',k:'tk',a:'right'}],rows)+'</div>';
+  }
+  let espList=R==='master'?M.esps:(R==='lider'?M.esps.filter(e=>especIdsOf(effId()).indexOf(e.id)>=0):M.esps.filter(e=>e.id===effId()));
+  espList=espList.slice().sort((a,b)=>b.atividades-a.atividades);
+  const erows=espList.map(e=>({esp:esc(e.nome),lid:e.leaderId?esc((user(e.leaderId).nome||'—').split(' ')[0]):'—',cli:e.clientes,patr:money(e.patr),la:e.leadsAtivos,gn:e.ganhos,cv:e.conv+'%',at:e.atividades,tk:e.tdone+'/'+e.tarefas}));
+  const espCols=[{t:'Especialista',k:'esp'}].concat(R==='master'?[{t:'Líder',k:'lid'}]:[],[{t:'Clientes',k:'cli',a:'right'},{t:'Patrimônio',k:'patr',a:'right'},{t:'Leads',k:'la',a:'right'},{t:'Ganhos',k:'gn',a:'right'},{t:'Conv.',k:'cv',a:'right'},{t:'Atividades',k:'at',a:'right'},{t:'Tarefas',k:'tk',a:'right'}]);
+  if(R==='especialista'){
+    const me=espList[0]||Object.assign({nome:'',leaderId:null},_espMetrics(effId()));
+    html='<div class="kpis">'+kc(ICN.users+'Meus clientes',me.clientes,1)+kc(ICN.wallet+'Patrimônio',money(me.patr),1)+kc(ICN.funnel+'Leads ativos',me.leadsAtivos)+kc(ICN.spark+'Conversão',me.conv+'%')+'</div><div class="kpis">'+kc(ICN.check+'Atividades',me.atividades)+kc(ICN.check+'Tarefas',me.tdone+'/'+me.tarefas)+kc(ICN.bolt+'Leads total',me.leads)+kc(ICN.money+'Sobra mensal',money(me.sob))+'</div>';
+  } else {
+    html+='<div class="panel"><h2>'+ICN.users+' Por especialista <span class="note" style="font-weight:400">· índices de esforço (ordenado por atividades)</span></h2>'+tbl(espCols,erows)+'</div>';
+  }
+  C.innerHTML=html;
 }
 /* ===================== ASSESSOR: PAINEL ===================== */
 function renderAssessorDash(C){
-  setTop('Painel do '+(isMaster()?'Master':isLider()?'Líder':'Especialista'),'Visão geral', isMaster()?'<button class="btn btn-gold btn-sm" onclick="repModal()">Relatórios</button>':'');
+  setTop('Painel do '+(isMaster()?'Master':isLider()?'Líder':'Especialista'),'Visão geral');
   const VC=visibleClients(); const VL=visibleLeads();
   let totPatr=0,totApos=0,sob=0; VC.forEach(c=>{const t=totals(mainPlan(c));totPatr+=t.patr;sob+=t.sobra});
   const sims=VC.reduce((a,c)=>a+c.plans.filter(p=>!p.main).length,0);
