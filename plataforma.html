@@ -535,6 +535,14 @@ body.light .logo-img,body.light .top-logo{filter:none}
   .print-cover p{color:#9DB5B1}
   canvas{max-height:260px}
 }
+
+/* respiro extra — nada apertado */
+.panel{margin-bottom:clamp(18px,2.2vw,26px)}
+.kpis{gap:18px}
+.netrow{padding:12px 0}
+.grid2{gap:18px}
+.kcol{padding:14px}
+.chat-msgs{padding:18px}
 </style>
 <!-- PWA (instalar na tela inicial) -->
 <meta name="theme-color" content="#0B2A26">
@@ -1705,9 +1713,36 @@ async function tplEditSubmit(){
   }
 }
 
+/* ===================== RELATORIOS DO MASTER ===================== */
+const REP_TITLES={carteira:'Carteira de Clientes',patrimonio:'Patrimônio por Especialista',atividades:'Relatório de Atividades'};
+function _repRows(kind){
+  if(kind==='carteira'){ const rows=[['Cliente','E-mail','Telefone','Especialista','Patrimonio (R$)','Sobra mensal (R$)']]; visibleClients().forEach(function(c){ const t=totals(mainPlan(c)); rows.push([c.nome,c.email||'',c.tel||'',(user(c.ownerId).nome||''),Math.round(t.patr),Math.round(t.sobra)]); }); return rows; }
+  if(kind==='patrimonio'){ const by={}; visibleClients().forEach(function(c){ const t=totals(mainPlan(c)); const k=user(c.ownerId).nome||'-'; if(!by[k])by[k]={n:0,patr:0}; by[k].n++; by[k].patr+=t.patr; }); const rows=[['Especialista','Clientes','Patrimonio total (R$)']]; Object.keys(by).forEach(function(k){ rows.push([k,by[k].n,Math.round(by[k].patr)]); }); return rows; }
+  const rows=[['Data/hora','Quem','Acao']]; (db.actlog||[]).forEach(function(e){ rows.push([fmtWhen(new Date(e.criado_em).getTime()),e.actor_nome||'Sistema',actText(e)]); }); return rows;
+}
+function repCSV(kind){ const rows=_repRows(kind); const csv=String.fromCharCode(65279)+rows.map(function(r){ return r.map(function(v){ v=String(v==null?'':v).replace(/"/g,'""'); return '"'+v+'"'; }).join(';'); }).join('\r\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='agion_'+kind+'_'+new Date().toISOString().slice(0,10)+'.csv'; document.body.appendChild(a); a.click(); a.remove(); flash('Excel baixado ✓'); }
+function repPDF(kind){ const rows=_repRows(kind); const head=rows[0], body=rows.slice(1);
+  let h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+REP_TITLES[kind]+'</title><style>body{font-family:Arial,Helvetica,sans-serif;color:#0B100E;margin:34px}h1{color:#0E4A41;font-size:22px;margin:0 0 4px}p.meta{color:#5A6763;font-size:12px;margin:0 0 18px}table{width:100%;border-collapse:collapse;font-size:12.5px}th{background:#0E4A41;color:#fff;text-align:left;padding:8px 10px}td{border:1px solid #cfe0da;padding:7px 10px}tr:nth-child(even) td{background:#F1F8F4}footer{margin-top:22px;color:#5A6763;font-size:11px}</style></head><body>';
+  h+='<h1>Agion Consórcios — '+REP_TITLES[kind]+'</h1><p class="meta">Gerado em '+new Date().toLocaleString('pt-BR')+'</p><table><tr>';
+  head.forEach(function(x){h+='<th>'+esc(String(x))+'</th>';}); h+='</tr>';
+  body.forEach(function(rw){ h+='<tr>'; rw.forEach(function(x){h+='<td>'+esc(String(x))+'</td>';}); h+='</tr>'; });
+  h+='</table><footer>Agion Consórcios · agionconsorcios.com.br — documento interno</footer></body></html>';
+  const w=window.open('','_blank'); if(!w){ flash('Libere pop-ups para gerar o PDF'); return; } w.document.write(h); w.document.close(); setTimeout(function(){ try{w.focus();w.print();}catch(e){} },450);
+}
+function repModal(){
+  const row=function(kind,lbl,sub){ return '<div style="display:flex;align-items:center;gap:14px;padding:15px 0;border-bottom:1px solid var(--line)"><div style="flex:1"><b style="color:var(--head)">'+lbl+'</b><br><span class="note">'+sub+'</span></div><button class="btn btn-teal btn-sm" onclick="repCSV(\''+kind+'\')">Excel</button><button class="btn btn-gold btn-sm" onclick="repPDF(\''+kind+'\')">PDF</button></div>'; };
+  const html='<div id="repModal" style="position:fixed;inset:0;z-index:240;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.remove()"><div style="background:var(--card);border:1.5px solid rgba(14,74,65,.32);border-radius:16px;max-width:540px;width:100%;padding:26px">'
+   +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><h2 style="margin:0;font-size:1.05rem">Relatórios</h2><button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'repModal\').remove()">Fechar</button></div>'
+   +'<p class="note" style="margin:0 0 10px">Excel baixa um arquivo .csv (abre direto no Excel). PDF abre a impressão — escolha Salvar como PDF.</p>'
+   +row('carteira','Carteira de clientes','Nome, contato, especialista, patrimônio e sobra mensal')
+   +row('patrimonio','Patrimônio por especialista','Total sob gestão e nº de clientes de cada especialista')
+   +row('atividades','Atividades','Histórico auditável com data e hora')
+   +'</div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
+}
 /* ===================== ASSESSOR: PAINEL ===================== */
 function renderAssessorDash(C){
-  setTop('Painel do '+(isMaster()?'Master':isLider()?'Líder':'Especialista'),'Visão geral');
+  setTop('Painel do '+(isMaster()?'Master':isLider()?'Líder':'Especialista'),'Visão geral', isMaster()?'<button class="btn btn-gold btn-sm" onclick="repModal()">Relatórios</button>':'');
   const VC=visibleClients(); const VL=visibleLeads();
   let totPatr=0,totApos=0,sob=0; VC.forEach(c=>{const t=totals(mainPlan(c));totPatr+=t.patr;sob+=t.sobra});
   const sims=VC.reduce((a,c)=>a+c.plans.filter(p=>!p.main).length,0);
