@@ -2001,6 +2001,31 @@ async function cartaDel(id){
   openCartas(_cartasCid);
 }
 function _ownerName(id){ const u=user(id); return (u&&u.nome)?u.nome:'Sem especialista'; }
+function setClientOwner(id){
+  var c=(db.clients||[]).find(function(x){return x.id===id;}); if(!c){return;}
+  var esp=(db.accounts||[]).filter(function(a){return a.real&&a.role==='especialista'&&a.ativo!==false;}).sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'');});
+  var cur=c.ownerId||'';
+  var opts='<option value="">— Sem especialista —</option>'+esp.map(function(a){var lb=(a.nome||a.email||'')+(a.leaderId?(' · líder '+(((user(a.leaderId)||{}).nome||'').split(' ')[0])):'');return '<option value="'+a.id+'"'+(a.id===cur?' selected':'')+'>'+esc(lb)+'</option>';}).join('');
+  var ov=document.createElement('div'); ov.className='__ownov';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:99999;padding:18px';
+  ov.innerHTML='<div style="background:var(--card,#fff);border:1px solid var(--line,#ddd);border-radius:14px;padding:20px;max-width:440px;width:100%;color:var(--head)"><h3 style="margin:0 0 4px">Especialista responsável</h3><div style="font-size:.85rem;color:var(--muted);margin-bottom:14px">Cliente: <b>'+esc(c.nome||'')+'</b></div><select id="__ownSel" style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--line,#ccc);background:var(--card2,#f7f7f7);color:var(--head);font:inherit;margin-bottom:16px">'+opts+'</select><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-ghost btn-sm" id="__ownCancel">Cancelar</button><button class="btn btn-gold btn-sm" id="__ownSave">Salvar</button></div></div>';
+  document.body.appendChild(ov);
+  ov.querySelector('#__ownCancel').onclick=function(){ov.remove();};
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+  ov.querySelector('#__ownSave').onclick=async function(){
+    var val=ov.querySelector('#__ownSel').value||null; ov.remove();
+    var prev=c.ownerId||null; if((val||null)===(prev||null)){return;}
+    try{
+      await supa.from('clientes').update({owner_id:val}).eq('id',id);
+      c.ownerId=val;
+      var nm=val?_ownerName(val):'Sem especialista';
+      try{logEvt('UPDATE','clientes',id,'Especialista responsável \u2192 '+nm);}catch(_){}
+      try{flash('Especialista atualizado: '+nm);}catch(_){}
+      var el=document.getElementById('cliList'); if(el)el.innerHTML=cliListHtml();
+    }catch(e){ try{flash('Erro ao salvar: '+(e.message||e));}catch(_){ alert('Erro: '+(e.message||e)); } }
+  };
+}
+
 function cliListHtml(){
   let VC=visibleClients();
   if(_cliQ){ const qd=_cliQ.replace(/\D/g,''); VC=VC.filter(c=>{ const s=((c.nome||'')+' '+(c.email||'')).toLowerCase(); if(s.indexOf(_cliQ)>=0)return true; if(qd){ const tl=(''+(c.tel||'')).replace(/\D/g,''); if(tl.indexOf(qd)>=0)return true; } return false; }); }
@@ -2008,7 +2033,7 @@ function cliListHtml(){
   if(_grp){ VC=VC.slice().sort((a,b)=>{const na=_ownerName(a.ownerId).toLowerCase(),nb=_ownerName(b.ownerId).toLowerCase();return na<nb?-1:na>nb?1:(a.nome||'').localeCompare(b.nome||'');}); }
   const total=VC.length; const shown=VC.slice(0,_cliN);
   const card=c=>{const m=mainPlan(c),t=totals(c.plans.find(p=>p.main));const copies=c.plans.filter(p=>!p.main).length;
-    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div> <div class="meta">${esc(c.email||'')}${c.tel?' · 📱 '+esc(c.tel):''}${(isMaster()||isLider())?' · 👤 '+esc(_ownerName(c.ownerId).split(' ')[0]):''}</div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div> <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button> <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button> <button class="btn btn-ghost btn-sm" onclick="openCartas('${c.id}')">🎫 Cartas</button>${isMaster()?` <button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="excluirClienteEmpresa('${c.id}')">Excluir</button>`:''}</div></div>`};
+    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div> <div class="meta">${esc(c.email||'')}${c.tel?' · 📱 '+esc(c.tel):''}${(isMaster()||isLider())?' · 👤 '+esc(_ownerName(c.ownerId).split(' ')[0]):''}</div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div> <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button> <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button> <button class="btn btn-ghost btn-sm" onclick="openCartas('${c.id}')">🎫 Cartas</button>${isMaster()?` <button class="btn btn-ghost btn-sm" onclick="setClientOwner('${c.id}')">👤 Especialista</button> <button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="excluirClienteEmpresa('${c.id}')">Excluir</button>`:''}</div></div>`};
   let body;
   if(_grp){
     let h='',open=false,cur=' ';
