@@ -1755,6 +1755,7 @@ function tplViewEdit(tpl){
   if(hf==='TEXT'){ headerFld=fld('Cabeçalho (texto)','<input id="teHdr" value="'+esc((H&&H.text)||'')+'" style="'+bx+'">'); }
   else if(hf==='IMAGE'||hf==='DOCUMENT'||hf==='VIDEO'){ headerFld=fld('Cabeçalho ('+hf.toLowerCase()+')','<input id="teImg" type="file" accept="'+(hf==='DOCUMENT'?'application/pdf':(hf==='VIDEO'?'video/*':'image/png,image/jpeg'))+'" style="'+bx+'">','Este template usa '+hf.toLowerCase()+'. Para salvar a edição, reanexe o arquivo.'); }
   const btnsInfo=BT?'<p class="note" style="font-size:.75rem;margin:2px 0 12px">Este template tem botões — eles serão mantidos como estão.</p>':'';
+  if(hf!=='IMAGE'&&hf!=='DOCUMENT'&&hf!=='VIDEO'){ headerFld += fld('Imagem (PNG) de cabecalho - opcional','<input id="teImg" type="file" accept="image/png,image/jpeg"><p class="note" style="font-size:.72rem;margin:4px 0 0">Envie um PNG/JPG para virar a imagem do topo (ex: campanha/oferta). Ao salvar, o template passa a ter imagem.</p>'); }
   const editable=(tpl.status||'').toUpperCase()!=='PENDING';
   const html='<div id="tplModal" style="position:fixed;inset:0;z-index:240;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.remove()"><div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:22px">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><h2 style="margin:0;font-size:1.05rem">'+esc(lbl)+'</h2><button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'tplModal\').remove()">Fechar</button></div>'
@@ -1777,6 +1778,7 @@ async function tplEditSubmit(){
   const footer=((document.getElementById('teFoot')||{}).value||'').trim();
   if(!body){ flash('O texto não pode ficar vazio'); return; }
   let header_format=S.header_format||'NONE', header_text='', image_b64='', image_type='';
+  var _feX=document.getElementById('teImg'); if(_feX&&_feX.files&&_feX.files[0]&&header_format!=='IMAGE'&&header_format!=='DOCUMENT'&&header_format!=='VIDEO'){ header_format='IMAGE'; }
   if(header_format==='TEXT'){ header_text=((document.getElementById('teHdr')||{}).value||'').trim(); }
   else if(header_format==='IMAGE'||header_format==='DOCUMENT'||header_format==='VIDEO'){
     const fe=document.getElementById('teImg'); const file=fe&&fe.files&&fe.files[0];
