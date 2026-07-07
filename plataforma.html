@@ -1602,66 +1602,153 @@ function renderGerencial(C){
   try{ const src=_gerSrc(); const ks=Object.keys(src); mkChart('gOrigem',{type:'doughnut',data:{labels:ks.length?ks:['Sem dados'],datasets:[{data:ks.length?ks.map(function(k){return src[k];}):[1],backgroundColor:['#0E4A41','#C5A059','#8FD9CC','#5BC0AE','#E8CC8B','#2E8B7A']}]},options:{maintainAspectRatio:false}}); }catch(e){}
   try{ mkChart('gAtiv',{type:'line',data:{labels:days.map(dayKey),datasets:[{label:'Ações',data:actByDay,borderColor:'#0E4A41',backgroundColor:'rgba(14,74,65,.12)',fill:true,tension:.3,pointRadius:2}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}}}}); }catch(e){}
 }
-/* ===================== HUB RD (marketing) ===================== */
+/* ===================== CENTRAL DE MARKETING (RD proprio Agion) ===================== */
+const CAPT_URL='https://sfekirqoflozylghwlbe.supabase.co/functions/v1/captacao';
 function _mktLS(){ try{ return JSON.parse(localStorage.getItem('agion_mkt_auto')||'{}'); }catch(e){ return {}; } }
-function mktToggle(k,v){ const A=_mktLS(); A[k]=v; localStorage.setItem('agion_mkt_auto',JSON.stringify(A)); flash('Automação '+(v?'ativada ✓':'desativada')); }
+function mktToggle(k,v){ const A=_mktLS(); A[k]=v; localStorage.setItem('agion_mkt_auto',JSON.stringify(A)); flash('Automacao '+(v?'ativada':'desativada')); }
+function _mktForms(){ try{ return JSON.parse(localStorage.getItem('agion_forms')||'[]'); }catch(e){ return []; } }
+function _mktSaveForms(a){ localStorage.setItem('agion_forms',JSON.stringify(a)); }
 function mktScore(l){ if(l.perdido)return 0; let s=[10,25,45,70,90][Math.min(l.stage||0,4)]||10; s+=Math.min(20,((l.atividades||[]).length)*4); const v=+l.valor||0; if(v>=300000)s+=15; else if(v>=100000)s+=8; const age=Date.now()-(l.criadoEm||0); if(age<7*86400000)s+=10; else if(age<30*86400000)s+=5; return Math.min(100,s); }
 function mktPerfil(s){ return s>=75?'A':s>=50?'B':s>=25?'C':'D'; }
 function mktOnNewLead(l){ const A=_mktLS();
   if(A.a){ try{ const ids=[]; (db.clients||[]).forEach(function(c){ if(c.ownerId&&ids.indexOf(c.ownerId)<0)ids.push(c.ownerId); }); if(ids.length){ const i=(+localStorage.getItem('agion_rr')||0)%ids.length; l.ownerId=ids[i]; localStorage.setItem('agion_rr',String(i+1)); saveLeadCloud(l); } }catch(e){} }
-  if(A.w){ try{ let fone=String(l.contato||'').replace(/\D/g,''); if(fone.length>=10){ if(fone.slice(0,2)!=='55')fone='55'+fone; apiFetch('/api/send_template',{method:'POST',body:JSON.stringify({phone:fone,template:'boas_vindas',params:[(l.nome||'').split(' ')[0]],nome:l.nome})}).then(function(r){ if(r&&r.ok&&r.data&&!r.data.error) flash('Boas-vindas enviada a '+l.nome+' ✓'); }); } }catch(e){} }
+  if(A.w){ try{ let fone=String(l.contato||'').replace(/\D/g,''); if(fone.length>=10){ if(fone.slice(0,2)!=='55')fone='55'+fone; apiFetch('/api/send_template',{method:'POST',body:JSON.stringify({phone:fone,template:'boas_vindas',params:[(l.nome||'').split(' ')[0]],nome:l.nome})}).then(function(r){ if(r&&r.ok&&r.data&&!r.data.error) flash('Boas-vindas WhatsApp enviada a '+l.nome); }); } }catch(e){} }
+  if(A.e){ try{ if(l.email){ apiFetch('/api/email_campaign',{method:'POST',body:JSON.stringify({subject:'Bem-vindo(a) a Agion Consorcios',body:'Ola '+(l.nome||'')+', recebemos seu contato e um especialista vai falar com voce em breve.',recipients:[{nome:l.nome,email:l.email}],segment:'auto'})}); } }catch(e){} }
 }
 function mktScanStale(){ let done=[]; try{done=JSON.parse(localStorage.getItem('agion_stale')||'[]');}catch(e){} let n=0;
   (db.crm||[]).forEach(function(l){ if(l.perdido||l.stage>=4)return; const acts=l.atividades||[]; const last=acts.length?(acts[acts.length-1].quando||0):(l.criadoEm||0); if(Date.now()-last>3*86400000&&done.indexOf(l.id)<0){ const t={id:uuid(),titulo:'Retomar lead: '+l.nome,quando:'',feito:false,ownerId:l.ownerId||meId()}; db.tasks.push(t); saveTaskCloud(t); done.push(l.id); n++; } });
-  localStorage.setItem('agion_stale',JSON.stringify(done)); save(); flash(n?('Criadas '+n+' tarefa(s) de leads parados'):'Nenhum lead parado novo ✓');
+  localStorage.setItem('agion_stale',JSON.stringify(done)); save(); flash(n?('Criadas '+n+' tarefa(s) de leads parados'):'Nenhum lead parado novo');
 }
 async function renderMarketing(C){
-  setTop('Marketing','Automação de marketing e relacionamento','<button class="btn btn-gold btn-sm" onclick="tplBuilder()">+ Criar template</button>');
-  const tabs=[['ov','Visão geral'],['auto','Automações'],['score','Leads & Scoring'],['tpl','Templates'],['camp','Campanhas'],['intg','Integrações']];
+  setTop('Central de Marketing','A sua central de marketing e relacionamento, tudo em um so lugar');
+  const tabs=[['ov','Visao geral'],['auto','Automacoes'],['forms','Formularios & LP'],['email','E-mail marketing'],['score','Lead Scoring'],['tpl','Templates WhatsApp'],['intg','Integracoes']];
   C.innerHTML='<div id="mktNav" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">'+tabs.map(function(x){ return '<button data-k="'+x[0]+'" class="btn btn-ghost btn-sm" onclick="mktSub(\''+x[0]+'\')">'+x[1]+'</button>'; }).join('')+'</div><div id="mktBody"></div>';
   mktSub(window.__mktTab||'ov');
 }
 function mktSub(k){ window.__mktTab=k; const B=document.getElementById('mktBody'); if(!B)return;
   document.querySelectorAll('#mktNav button').forEach(function(b){ const on=b.getAttribute('data-k')===k; b.className='btn btn-sm '+(on?'btn-gold':'btn-ghost'); });
-  if(k==='ov')return mktOv(B); if(k==='auto')return mktAutoTab(B); if(k==='score')return mktScoreTab(B); if(k==='tpl')return mktTplTab(B);
-  if(k==='camp'){ B.innerHTML='<div class="panel"><h2>'+ICN.spark+' Campanhas</h2>'+marketingCampaignsHtml()+'</div>'; try{marketingChart();}catch(e){} return; }
-  if(k==='intg')return mktIntgTab(B);
+  if(k==='ov')return mktOv(B); if(k==='auto')return mktAutoTab(B); if(k==='forms')return mktFormsTab(B); if(k==='email')return mktEmailTab(B); if(k==='score')return mktScoreTab(B); if(k==='tpl')return mktTplTab(B); if(k==='intg')return mktIntgTab(B);
 }
 function mktOv(B){ const L=(db.crm||[]); const pend=(db.inbox||[]).filter(function(l){return !l.importado;}).length; const tot=L.length+pend;
   const qual=L.filter(function(l){return !l.perdido&&l.stage>=1;}).length; const op=L.filter(function(l){return !l.perdido&&l.stage>=2;}).length; const won=L.filter(function(l){return l.stage>=4&&!l.perdido;}).length;
-  const conv=tot?Math.round(won/tot*100):0;
-  B.innerHTML='<div class="kpis"><div class="kpi grad"><div class="lab">'+ICN.bolt+'Leads totais</div><b>'+tot+'</b></div><div class="kpi"><div class="lab">'+ICN.funnel+'Oportunidades</div><b>'+op+'</b></div><div class="kpi"><div class="lab">'+ICN.money+'Vendas</div><b>'+won+'</b></div><div class="kpi"><div class="lab">'+ICN.bolt+'Conversão</div><b>'+conv+'%</b></div></div>'
+  const conv=tot?Math.round(won/tot*100):0; const forms=_mktForms().length;
+  B.innerHTML='<div class="kpis"><div class="kpi grad"><div class="lab">'+ICN.bolt+'Leads totais</div><b>'+tot+'</b></div><div class="kpi"><div class="lab">'+ICN.funnel+'Oportunidades</div><b>'+op+'</b></div><div class="kpi"><div class="lab">'+ICN.money+'Vendas</div><b>'+won+'</b></div><div class="kpi"><div class="lab">'+ICN.bolt+'Conversao</div><b>'+conv+'%</b></div><div class="kpi"><div class="lab">'+ICN.spark+'Formularios ativos</div><b>'+forms+'</b></div></div>'
    +'<div class="grid2"><div class="panel"><h2>'+ICN.funnel+' Funil de marketing</h2><div style="height:220px"><canvas id="mFun"></canvas></div></div><div class="panel"><h2>'+ICN.bolt+' Origem dos leads</h2><div style="height:220px"><canvas id="mOri"></canvas></div></div></div>';
   try{ mkChart('mFun',{type:'bar',data:{labels:['Leads','Qualificados','Oportunidades','Vendas'],datasets:[{data:[tot,qual,op,won],backgroundColor:['#8FD9CC','#5BC0AE','#C5A059','#0E4A41']}]},options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}}}}); }catch(e){}
   try{ const src=_gerSrc(); const ks=Object.keys(src); mkChart('mOri',{type:'doughnut',data:{labels:ks.length?ks:['Sem dados'],datasets:[{data:ks.length?ks.map(function(x){return src[x];}):[1],backgroundColor:['#0E4A41','#C5A059','#8FD9CC','#5BC0AE','#E8CC8B']}]},options:{maintainAspectRatio:false}}); }catch(e){}
 }
 function mktAutoTab(B){ const A=_mktLS();
   const card=function(k,tit,sub){ return '<div class="panel" style="display:flex;align-items:center;gap:16px"><div style="flex:1"><b style="color:var(--head)">'+tit+'</b><br><span class="note">'+sub+'</span></div><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" style="width:20px;height:20px" '+(A[k]?'checked':'')+' onchange="mktToggle(\''+k+'\',this.checked)"><span class="note">'+(A[k]?'Ativa':'Inativa')+'</span></label></div>'; };
-  B.innerHTML='<div class="banner">Automações no estilo RD Station: quando o gatilho acontece, a ação roda sozinha. Os envios usam os templates aprovados do WhatsApp.</div>'
-   +card('w','Boas-vindas automática','Novo lead importado com telefone recebe o template boas_vindas no WhatsApp na hora.')
-   +card('a','Distribuição automática de leads','Novo lead é distribuído em rodízio entre os especialistas da equipe.')
-   +card('s','Lead parado vira tarefa','Leads sem movimento há 3+ dias geram tarefa automática para o dono retomar.')
-   +'<div class="panel" style="display:flex;align-items:center;gap:16px"><div style="flex:1"><b style="color:var(--head)">Verificação manual</b><br><span class="note">Rodar agora a checagem de leads parados.</span></div><button class="btn btn-teal btn-sm" onclick="mktScanStale()">Verificar leads parados</button></div>';
+  B.innerHTML='<div class="banner">Fluxos gatilho -> acao, rodando no seu proprio sistema. Quando um lead entra (pelo site, formulario ou anuncio), as acoes marcadas disparam sozinhas.</div>'
+   +card('w','Boas-vindas no WhatsApp','Novo lead com telefone recebe o template boas_vindas na hora (template ja aprovado na Meta).')
+   +card('e','Boas-vindas por e-mail','Novo lead com e-mail recebe uma mensagem de boas-vindas (usa o provedor de e-mail em Integracoes).')
+   +card('a','Distribuicao automatica de leads','Novo lead e distribuido em rodizio entre os especialistas da equipe.')
+   +card('s','Lead parado vira tarefa','Leads sem movimento ha 3+ dias geram tarefa automatica para o dono retomar.')
+   +'<div class="panel" style="display:flex;align-items:center;gap:16px"><div style="flex:1"><b style="color:var(--head)">Verificacao manual</b><br><span class="note">Rodar agora a checagem de leads parados.</span></div><button class="btn btn-teal btn-sm" onclick="mktScanStale()">Verificar leads parados</button></div>';
+}
+function _formTipos(){ return ['Imovel','Automovel','Servicos / Reforma','Energia solar','Outro']; }
+function mktFormsTab(B){ const list=_mktForms();
+  B.innerHTML='<div class="banner">Crie um formulario ou uma landing page que joga o lead direto no seu funil. Cole o codigo no seu site, no Instagram (link) ou publique a pagina. Tudo cai na aba Captacao / CRM.</div>'
+   +'<div class="panel"><h2>'+ICN.spark+' Novo formulario / landing page</h2>'
+   +'<div class="grid2">'
+   +'<div><label class="note">Titulo (chamada)</label><input id="fH" value="Faca uma simulacao gratuita"></div>'
+   +'<div><label class="note">Subtitulo</label><input id="fS" value="Planejamento de consorcio com a Agion"></div>'
+   +'<div><label class="note">Tag de origem (aparece no lead)</label><input id="fO" value="Landing page"></div>'
+   +'<div><label class="note">Tag de campanha</label><input id="fC" value="site"></div>'
+   +'<div><label class="note">Texto do botao</label><input id="fB" value="Quero simular"></div>'
+   +'<div><label class="note">Cor principal</label><input id="fCol" type="color" value="#0E4A41" style="height:42px;padding:4px"></div>'
+   +'</div><div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-gold btn-sm" onclick="mktFormGen()">Gerar codigo</button><button class="btn btn-teal btn-sm" onclick="mktFormTest()">Enviar lead de teste ao funil</button></div>'
+   +'<div id="fOut" style="margin-top:16px"></div></div>'
+   +'<div class="panel"><h2>'+ICN.check+' Formularios criados</h2>'+(list.length?list.map(function(f){ return '<div class="netrow"><span style="flex:1"><b style="color:var(--head)">'+esc(f.nome)+'</b><br><span class="note">origem: '+esc(f.origem)+' | campanha: '+esc(f.campanha)+' | '+new Date(f.createdAt).toLocaleDateString('pt-BR')+'</span></span><button class="btn btn-ghost btn-sm" onclick="mktFormReopen('+"'"+'\''+"'"+'+f.id+'+"'"+'\''+"'"+')">Ver codigo</button></div>'; }).join(''):'<p class="note">Nenhum formulario criado ainda.</p>')+'</div>';
+}
+function _formBuild(cfg){
+  const S='<\/scr'+'ipt>';
+  const tiposOpts=_formTipos().map(function(t){return '<option>'+t+'</option>';}).join('');
+  const snippet='<form id="agion-lead" style="max-width:420px;font-family:system-ui,sans-serif;display:grid;gap:10px;padding:22px;border-radius:16px;background:#fff;border:1px solid #d7e7df;box-shadow:0 10px 30px rgba(11,42,38,.10)">'
+   +'<div style="font-size:20px;font-weight:800;color:'+cfg.col+'">'+cfg.h+'</div>'
+   +'<div style="font-size:14px;color:#5a6763;margin-top:-4px">'+cfg.s+'</div>'
+   +'<input name="nome" placeholder="Seu nome" required style="padding:12px;border:1px solid #cdddd6;border-radius:10px">'
+   +'<input name="contato" placeholder="WhatsApp (DDD + numero)" required style="padding:12px;border:1px solid #cdddd6;border-radius:10px">'
+   +'<input name="email" type="email" placeholder="E-mail (opcional)" style="padding:12px;border:1px solid #cdddd6;border-radius:10px">'
+   +'<select name="tipo" style="padding:12px;border:1px solid #cdddd6;border-radius:10px">'+tiposOpts+'</select>'
+   +'<button type="submit" style="padding:13px;border:0;border-radius:10px;background:'+cfg.col+';color:#fff;font-weight:700;font-size:15px;cursor:pointer">'+cfg.b+'</button>'
+   +'<div id="agion-ok" style="display:none;color:'+cfg.col+';font-weight:700;text-align:center">Recebemos! Em breve entraremos em contato.</div>'
+   +'</form>\n<script>(function(){var f=document.getElementById("agion-lead");f.addEventListener("submit",function(e){e.preventDefault();var b={nome:f.nome.value,contato:f.contato.value,email:f.email.value,tipo:f.tipo.value,origem:'+JSON.stringify(cfg.o)+',campanha:'+JSON.stringify(cfg.c)+'};fetch('+JSON.stringify(CAPT_URL)+',{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}).then(function(){f.reset();var k=document.getElementById("agion-ok");if(k)k.style.display="block";});});})();'+S;
+  const lp='<!doctype html><html lang="pt-br"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+cfg.h+' | Agion Consorcios</title></head>'
+   +'<body style="margin:0;font-family:system-ui,sans-serif;background:linear-gradient(135deg,'+cfg.col+',#0b2a26);min-height:100vh;display:grid;place-items:center;padding:24px">'
+   +'<div style="max-width:960px;display:grid;grid-template-columns:1fr;gap:28px;align-items:center;color:#fff">'
+   +'<div style="text-align:center"><div style="font-size:34px;font-weight:900;letter-spacing:.5px">Agion Consorcios</div><div style="font-size:18px;opacity:.85;margin-top:8px">'+cfg.s+'</div></div>'
+   +snippet
+   +'</div></body></html>';
+  return {snippet:snippet, lp:lp};
+}
+function _formCfg(){ return {h:(document.getElementById('fH')||{}).value||'Simule',s:(document.getElementById('fS')||{}).value||'',o:(document.getElementById('fO')||{}).value||'Landing page',c:(document.getElementById('fC')||{}).value||'site',b:(document.getElementById('fB')||{}).value||'Quero simular',col:(document.getElementById('fCol')||{}).value||'#0E4A41'}; }
+function mktFormGen(){ const cfg=_formCfg(); const out=_formBuild(cfg);
+  const list=_mktForms(); list.unshift({id:uuid(),nome:cfg.h,origem:cfg.o,campanha:cfg.c,createdAt:Date.now(),cfg:cfg}); _mktSaveForms(list);
+  window.__lastForm=out;
+  const el=document.getElementById('fOut'); if(!el)return;
+  el.innerHTML='<div class="grid2"><div><b style="color:var(--head)">Previa</b><div style="margin-top:8px;padding:14px;background:#fff;border:1px solid var(--line);border-radius:12px">'+out.snippet.split(String.fromCharCode(60)+'script')[0]+'</div></div>'
+   +'<div><b style="color:var(--head)">Codigo para colar no seu site</b><textarea id="fCode" readonly style="width:100%;height:220px;margin-top:8px;font-family:monospace;font-size:12px"></textarea>'
+   +'<div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap"><button class="btn btn-gold btn-sm" onclick="mktFormCopy()">Copiar codigo</button><button class="btn btn-teal btn-sm" onclick="mktFormDownload()">Baixar landing page (.html)</button></div></div></div>';
+  const ta=document.getElementById('fCode'); if(ta)ta.value=out.snippet;
+  flash('Formulario gerado');
+}
+function mktFormCopy(){ const ta=document.getElementById('fCode'); if(ta){ navigator.clipboard.writeText(ta.value).then(function(){flash('Codigo copiado');}); } }
+function mktFormDownload(){ if(!window.__lastForm)return; const blob=new Blob([window.__lastForm.lp],{type:'text/html'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='agion-landing-page.html'; a.click(); flash('Landing page baixada'); }
+function mktFormReopen(id){ const f=_mktForms().find(function(x){return x.id===id;}); if(!f||!f.cfg){flash('Sem dados desse formulario');return;} const out=_formBuild(f.cfg); window.__lastForm=out; window.__mktTab='forms'; mktSub('forms'); setTimeout(function(){ const el=document.getElementById('fOut'); if(el){ el.innerHTML='<div><b style="color:var(--head)">Codigo</b><textarea id="fCode" readonly style="width:100%;height:220px;margin-top:8px;font-family:monospace;font-size:12px"></textarea><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-gold btn-sm" onclick="mktFormCopy()">Copiar</button><button class="btn btn-teal btn-sm" onclick="mktFormDownload()">Baixar LP</button></div></div>'; const ta=document.getElementById('fCode'); if(ta)ta.value=out.snippet; } },60); }
+function mktFormTest(){ const cfg=_formCfg(); const b={nome:'Lead de teste',contato:'5551999999999',email:'',tipo:'Outro',origem:cfg.o,campanha:cfg.c};
+  fetch(CAPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(function(r){ flash(r.ok?'Lead de teste enviado! Veja na aba Captacao/CRM.':'Falha no envio ('+r.status+')'); }).catch(function(){ flash('Falha de rede ao testar'); });
+}
+function _mailRecipients(seg){ const out=[];
+  if(seg==='clientes'||seg==='todos'){ (db.clients||[]).forEach(function(c){ if(c.email)out.push({nome:c.nome,email:c.email}); }); }
+  if(seg==='leads'||seg==='todos'){ (db.crm||[]).forEach(function(l){ if(l.email&&!l.perdido)out.push({nome:l.nome,email:l.email}); }); }
+  if(seg==='leadsA'){ (db.crm||[]).forEach(function(l){ if(l.email&&!l.perdido&&mktPerfil(mktScore(l))==='A')out.push({nome:l.nome,email:l.email}); }); }
+  const seen={}; return out.filter(function(x){ if(seen[x.email])return false; seen[x.email]=1; return true; });
+}
+function mktEmailTab(B){ const seg=window.__mailSeg||'clientes'; const rc=_mailRecipients(seg);
+  const opt=function(v,lab){ return '<option value="'+v+'"'+(seg===v?' selected':'')+'>'+lab+'</option>'; };
+  B.innerHTML='<div class="banner">Dispare campanhas de e-mail para seus clientes e leads. Use {{nome}} no texto para personalizar. O envio usa o provedor configurado em Integracoes.</div>'
+   +'<div class="panel"><h2>'+ICN.chat+' Nova campanha de e-mail</h2>'
+   +'<label class="note">Assunto</label><input id="emSubj" placeholder="Novidades da Agion">'
+   +'<label class="note" style="margin-top:10px;display:block">Mensagem</label><textarea id="emBody" style="width:100%;height:150px" placeholder="Ola {{nome}}, ..."></textarea>'
+   +'<div style="display:flex;gap:12px;align-items:end;margin-top:12px;flex-wrap:wrap"><div><label class="note">Destinatarios</label><br><select id="emSeg" onchange="window.__mailSeg=this.value;mktSub(\'email\')">'+opt('clientes','Todos os clientes')+opt('leads','Leads ativos')+opt('leadsA','Leads perfil A (quentes)')+opt('todos','Clientes + leads')+'</select></div>'
+   +'<div class="note">Vai para <b style="color:var(--head)">'+rc.length+'</b> destinatario(s) com e-mail</div>'
+   +'<button class="btn btn-gold btn-sm" onclick="mktEmailSend()">Enviar campanha</button></div>'
+   +'<div id="emOut" class="note" style="margin-top:12px"></div></div>';
+}
+function mktEmailSend(){ const seg=window.__mailSeg||'clientes'; const rc=_mailRecipients(seg);
+  const subject=(document.getElementById('emSubj')||{}).value||''; const body=(document.getElementById('emBody')||{}).value||'';
+  const out=document.getElementById('emOut');
+  if(!subject||!body){ if(out)out.innerHTML='Preencha assunto e mensagem.'; return; }
+  if(!rc.length){ if(out)out.innerHTML='Nenhum destinatario com e-mail nesse segmento.'; return; }
+  if(out)out.innerHTML='Enviando...';
+  apiFetch('/api/email_campaign',{method:'POST',body:JSON.stringify({subject:subject,body:body,segment:seg,recipients:rc})}).then(function(r){
+    if(r&&r.ok&&r.data&&!r.data.error){ if(out)out.innerHTML='Campanha enviada para '+(r.data.sent||rc.length)+' destinatario(s).'; flash('Campanha enviada'); }
+    else { const msg=(r&&r.data&&r.data.error)?r.data.error:'endpoint indisponivel'; if(out)out.innerHTML='Ainda nao foi possivel enviar ('+msg+'). O provedor de e-mail precisa ser configurado — me diga qual servico usar (ex.: Resend, SendGrid, SMTP) que eu ligo o disparo.'; }
+  }).catch(function(){ if(out)out.innerHTML='Provedor de e-mail ainda nao configurado. Me diga qual servico usar (Resend / SendGrid / SMTP) que eu ativo o envio.'; });
 }
 function mktScoreTab(B){ const seg=window.__mktSeg||'T'; const L=(db.crm||[]).map(function(l){ const s=mktScore(l); return {l:l,s:s,p:mktPerfil(s)}; }).sort(function(a,b){return b.s-a.s;});
   const F=L.filter(function(x){ return seg==='T'||x.p===seg; });
   const opt=function(v,lab){ return '<option value="'+v+'"'+(seg===v?' selected':'')+'>'+lab+'</option>'; };
   B.innerHTML='<div class="panel"><h2>'+ICN.bolt+' Lead scoring <select style="max-width:220px;margin-left:auto" onchange="window.__mktSeg=this.value;mktSub(\'score\')">'+opt('T','Todos os perfis')+opt('A','Perfil A (quentes)')+opt('B','Perfil B')+opt('C','Perfil C')+opt('D','Perfil D (frios)')+'</select></h2>'
    +(F.length?F.map(function(x){ const l=x.l; const cor=x.p==='A'?'#0E4A41':x.p==='B'?'#C5A059':x.p==='C'?'#8F6F2C':'#9DB5B1';
-     return '<div class="netrow"><span style="display:flex;align-items:center;gap:12px;flex:1"><span style="width:34px;height:34px;border-radius:50%;background:'+cor+';color:#fff;font-weight:800;display:grid;place-items:center">'+x.p+'</span><span><b style="color:var(--head)">'+esc(l.nome)+'</b> <span class="note">· '+esc(l.tipo||'')+' · '+BRL(+l.valor||0)+'</span><br><span class="note">Dono: '+esc((user(l.ownerId).nome||'—').split(' ')[0])+' · '+((l.atividades||[]).length)+' atividades</span></span></span><span style="min-width:140px"><div class="bar"><i style="width:'+x.s+'%"></i></div><span class="note">'+x.s+' pts</span></span></div>';
+     return '<div class="netrow"><span style="display:flex;align-items:center;gap:12px;flex:1"><span style="width:34px;height:34px;border-radius:50%;background:'+cor+';color:#fff;font-weight:800;display:grid;place-items:center">'+x.p+'</span><span><b style="color:var(--head)">'+esc(l.nome)+'</b> <span class="note">- '+esc(l.tipo||'')+' - '+BRL(+l.valor||0)+'</span><br><span class="note">Dono: '+esc((user(l.ownerId).nome||'-').split(' ')[0])+' - '+((l.atividades||[]).length)+' atividades</span></span></span><span style="min-width:140px"><div class="bar"><i style="width:'+x.s+'%"></i></div><span class="note">'+x.s+' pts</span></span></div>';
    }).join(''):'<p class="note">Nenhum lead neste segmento.</p>')+'</div>';
 }
-function mktTplTab(B){ B.innerHTML='<div class="banner">Crie templates (inclusive com imagem), envie para a Meta aprovar e dispare nas Conversas.</div><div class="panel"><h2>'+ICN.chat+' Templates de mensagem <button class="btn btn-ghost btn-sm right" onclick="mktSub(\'tpl\')">↻ Atualizar</button></h2><div id="tplList"><p class="note">Carregando…</p></div></div>';
-  apiFetch('/api/templates').then(function(r){ const list=(r&&r.ok&&r.data&&r.data.templates)?r.data.templates:[]; const el=document.getElementById('tplList'); if(el)el.innerHTML=tplListHtml(list); }).catch(function(){ const el=document.getElementById('tplList'); if(el)el.innerHTML='<p class="note">Não foi possível carregar agora.</p>'; });
+function mktTplTab(B){ B.innerHTML='<div class="banner">Crie templates (inclusive com imagem), envie para a Meta aprovar e dispare nas Conversas.</div><div class="panel"><h2>'+ICN.chat+' Templates de WhatsApp <button class="btn btn-gold btn-sm right" onclick="tplBuilder()">+ Criar template</button></h2><div id="tplList"><p class="note">Carregando...</p></div></div>';
+  apiFetch('/api/templates').then(function(r){ const list=(r&&r.ok&&r.data&&r.data.templates)?r.data.templates:[]; const el=document.getElementById('tplList'); if(el)el.innerHTML=tplListHtml(list); }).catch(function(){ const el=document.getElementById('tplList'); if(el)el.innerHTML='<p class="note">Nao foi possivel carregar agora.</p>'; });
 }
-function mktIntgTab(B){ const item=function(ic,tit,sub,on){ return '<div class="intg"><div class="src" style="background:rgba(14,74,65,.12);color:var(--teal);display:grid;place-items:center;font-weight:800">'+ic+'</div><div style="flex:1"><div style="font-weight:700;color:var(--head)">'+tit+'</div><div class="note">'+sub+'</div></div><span style="font-size:.78rem;color:'+(on?'var(--ok)':'var(--soft)')+'"><span class="'+(on?'dot-on':'dot-off')+'"></span> '+(on?'Conectado':'Em breve')+'</span></div>'; };
-  B.innerHTML='<div class="banner">As mesmas pontas que o RD Station conecta — aqui já integradas ao seu funil.</div><div class="grid2">'
-   +item('W','WhatsApp Business API','Bot Agion +55 51 8203-4245 · envio de templates, boletos e conversas',true)
-   +item('M','Meta Lead Ads','Leads do Facebook/Instagram caem na Captação via webhook',true)
-   +item('G','Google Ads','Lead Form Extensions via webhook de captação',true)
-   +item('@','E-mail transacional','Convites e redefinição de senha da plataforma',true)
-   +item('#','Webhook de captação','Endpoint publico de leads (captacao) ligado ao funil',true)
-   +item('R','Importar do RD Station','Migração de leads e histórico',false)
+function mktIntgTab(B){ const CAP=CAPT_URL;
+  const item=function(ic,tit,sub,on,extra){ return '<div class="intg"><div class="src" style="background:rgba(14,74,65,.12);color:var(--teal);display:grid;place-items:center;font-weight:800">'+ic+'</div><div style="flex:1"><div style="font-weight:700;color:var(--head)">'+tit+'</div><div class="note">'+sub+'</div>'+(extra||'')+'</div><span style="font-size:.78rem;color:'+(on?'var(--ok)':'var(--soft)')+'"><span class="'+(on?'dot-on':'dot-off')+'"></span> '+(on?'Conectado':'Configurar')+'</span></div>'; };
+  const hook='<div style="margin-top:6px"><input readonly value="'+CAP+'" style="width:100%;font-family:monospace;font-size:11px" onclick="this.select()"></div>';
+  B.innerHTML='<div class="banner">Estas sao as pontas do seu marketing, todas ligadas ao seu funil. Para os anuncios, cole a URL do webhook abaixo no painel do Facebook/Google.</div><div class="grid2">'
+   +item('W','WhatsApp Business API','Bot Agion +55 51 8203-4245 - templates, boletos e conversas',true)
+   +item('F','Formularios & Landing pages','Formularios nativos jogam o lead direto no funil (webhook de captacao)',true,hook)
+   +item('M','Meta Lead Ads (Facebook/Instagram)','Leads dos anuncios caem no funil. Cole esta URL no Lead Access / webhook da Meta:',true,hook)
+   +item('G','Google Ads (Lead Form)','Leads do Google caem no funil. Cole esta URL no webhook do Lead Form:',true,hook)
+   +item('@','E-mail transacional','Convites e redefinicao de senha da plataforma',true)
+   +item('E','E-mail marketing (provedor)','Disparo de campanhas em massa - aguardando definir o provedor (Resend / SendGrid / SMTP)',false)
+   +item('S','Site Agion','O site agionconsorcios.com.br ja envia os formularios para o funil',true)
    +'</div>';
 }
 
