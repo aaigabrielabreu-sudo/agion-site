@@ -2253,7 +2253,9 @@ async function openAccount(){
   const nome=await ask({title:'Nome',msg:'Nome completo:',input:true,ok:'Próximo'}); if(!nome||!nome.trim())return;
   const email=await ask({title:'E-mail',msg:'E-mail de acesso (enviaremos um convite):',input:true,ok:'Criar e convidar'}); if(!email||!email.trim())return;
   flash('Criando conta…');
-  try{ await criarConta(nome.trim(),email.trim(),role); }
+  var celular=null;
+  if(role!=='cliente'){ const _c=await ask({title:'Celular / WhatsApp',msg:'Celular do '+(ROLE_LBL[role]||role)+' com DDD (opcional):',input:true,ok:'Próximo'}); celular=(_c||'').replace(/\D/g,'')||null; }
+  try{ await criarConta(nome.trim(),email.trim(),role,celular); }
   catch(e){ await ask({title:'Não foi possível criar',msg:String(e.message||e),ok:'Ok'}); return; }
   await loadCloud();
   await ask({title:'Conta criada',msg:`Convite enviado para ${email.trim()}. ${ROLE_LBL[role]} define a própria senha pelo e-mail.`,ok:'Ok'});
@@ -2261,12 +2263,13 @@ async function openAccount(){
 }
 async function resetAccount(id){const a=acc(id);if(!(await ask({title:'Redefinir senha?',msg:`Enviar e-mail de redefinição de senha para ${a.nome} (${a.email})?`,ok:'Enviar'})))return; try{ if(supa&&a.email) await supa.auth.resetPasswordForEmail(a.email,{redirectTo:location.origin+location.pathname}); }catch(e){} logEvt('reset_senha','conta','Enviou redefinição de senha para '+a.nome,{email:a.email}); await ask({title:'E-mail enviado',msg:`Enviamos o link de redefinição de senha para ${a.email}.`,ok:'Ok'});}
 async function toggleAccount(id){const a=acc(id);const nv=a.ativo===false?true:false;a.ativo=nv;if(supa&&isUuid(id)){try{await supa.from('profiles').update({ativo:nv}).eq('id',id);}catch(e){}}logEvt(nv?'conta_ativar':'conta_desativar','conta',(nv?'Ativou':'Desativou')+' a conta de '+a.nome,{email:a.email});save();renderContas(document.getElementById('content'));flash(nv?'Conta ativada':'Conta desativada — o usuário não consegue mais entrar');}
-async function criarConta(nome,email,role){
+async function criarConta(nome,email,role,celular){
   if(!supa) throw new Error('Serviço indisponível.');
   const {data,error}=await supa.functions.invoke('criar-conta',{body:{nome,email,role,redirectTo:location.origin+location.pathname+'?convite=1'}});
   if(error){ let m='Não foi possível criar a conta.'; try{const j=await error.context.json(); if(j&&j.error)m=j.error;}catch(e){} throw new Error(m); }
   if(data&&data.error) throw new Error(data.error);
   logEvt('criar_conta',role,'Criou conta de '+(ROLE_LBL[role]||role)+': '+nome,{email,role});
+  try{ if(celular && role!=='cliente'){ var nid=data&&(data.id||(data.user&&data.user.id)||data.user_id||(data.profile&&data.profile.id)); if(nid){ await supa.from('profiles').update({celular:celular}).eq('id',nid); } } }catch(_){}
   return data;
 }
 function chooseModal(title,msg,optA,optB){
