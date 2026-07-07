@@ -1390,6 +1390,7 @@ function render(){
     if(view.page==='kpis') return renderKPIs(C);
     if(view.page==='crm') return renderCRM(C);
     if(view.page==='captacao') return renderCaptacao(C);
+    if(view.page==='gerencial'&&(isMaster()||isLider())) return renderGerencial(C);
     if(view.page==='marketing') return renderMarketing(C);
     if(view.page==='feed') return renderFeed(C);
     if(view.page==='chat') return renderChat(C);
@@ -1567,9 +1568,102 @@ function renderCaptacao(C){
    </div>`;
 }
 function toggleIntegr(src){db.integr[src].conectado=!db.integr[src].conectado;save();renderCaptacao(document.getElementById('content'));flash(src+(db.integr[src].conectado?' conectado':' desconectado'));}
-async function importLead(id){if(roGuard())return;const l=db.inbox.find(x=>x.id===id);l.importado=true;const nl={id:uuid(),nome:l.nome,contato:l.contato,tipo:l.tipo,valor:l.valor||0,stage:0,perdido:false,ownerId:isMaster()?meId():meId(),criadoEm:Date.now(),obs:'Origem: '+l.fonte+(l.campanha?' — '+l.campanha:''),atividades:[{texto:'Lead recebido via '+l.fonte,quando:Date.now(),autorId:session.userId}]};db.crm.push(nl);saveLeadCloud(nl);logEvt('lead_criar','lead','Importou o lead "'+l.nome+'" de '+l.fonte,{lead:l.nome,fonte:l.fonte});if(supa&&isUuid(id)){try{await supa.from('inbox').update({convertido:true,lead_id:nl.id}).eq('id',id);}catch(e){}}save();renderCaptacao(document.getElementById('content'));flash('Lead importado para o seu funil ✓');}
+async function importLead(id){if(roGuard())return;const l=db.inbox.find(x=>x.id===id);l.importado=true;const nl={id:uuid(),nome:l.nome,contato:l.contato,tipo:l.tipo,valor:l.valor||0,stage:0,perdido:false,ownerId:isMaster()?meId():meId(),criadoEm:Date.now(),obs:'Origem: '+l.fonte+(l.campanha?' — '+l.campanha:''),atividades:[{texto:'Lead recebido via '+l.fonte,quando:Date.now(),autorId:session.userId}]};db.crm.push(nl);saveLeadCloud(nl);try{mktOnNewLead(nl);}catch(e){}logEvt('lead_criar','lead','Importou o lead "'+l.nome+'" de '+l.fonte,{lead:l.nome,fonte:l.fonte});if(supa&&isUuid(id)){try{await supa.from('inbox').update({convertido:true,lead_id:nl.id}).eq('id',id);}catch(e){}}save();renderCaptacao(document.getElementById('content'));flash('Lead importado para o seu funil ✓');}
 async function discardLead(id){if(supa&&isUuid(id)){try{await supa.from('inbox').update({convertido:true}).eq('id',id);}catch(e){}}db.inbox=db.inbox.filter(x=>x.id!==id);save();renderCaptacao(document.getElementById('content'));}
 function simulLead(){const nomes=['Pedro Henrique','Juliana Reis','Marcos Vinícius','Camila Duarte','Felipe Andrade','Sofia Carvalho'];const tps=['Consórcio','Planejamento','Consultoria'];const f=Math.random()<0.5?'Google':'Meta';db.inbox.push({id:uid(),fonte:f,nome:nomes[Math.floor(Math.random()*nomes.length)],contato:'(51) 9'+Math.floor(1000+Math.random()*8999)+'-'+Math.floor(1000+Math.random()*8999),campanha:f==='Meta'?'Lead Ad — Instagram/Facebook':'Pesquisa — Google Ads',tipo:tps[Math.floor(Math.random()*3)],quando:Date.now(),importado:false});save();renderCaptacao(document.getElementById('content'));flash(' Novo lead recebido de '+f+'!');}
+
+/* ===================== DASHBOARD GERENCIAL ===================== */
+function _gerDays(n){ const out=[]; for(let i=n-1;i>=0;i--){ out.push(new Date(Date.now()-i*86400000)); } return out; }
+function _gerSrc(){ const src={}; (db.inbox||[]).forEach(function(l){ src[l.fonte||'Web']=(src[l.fonte||'Web']||0)+1; }); (db.crm||[]).forEach(function(l){ const m=/Origem:\s*([A-Za-zÀ-ú]+)/.exec(l.obs||''); if(m) src[m[1]]=(src[m[1]]||0)+1; else if(!l.obs) src['Manual']=(src['Manual']||0)+1; }); return src; }
+function renderGerencial(C){
+  setTop('Dashboard Gerencial','Visão executiva da operação','<button class="btn btn-ghost btn-sm" onclick="go(\'dash\')">← Painel</button>');
+  const VC=visibleClients(), VL=visibleLeads();
+  let patr=0,sob=0; VC.forEach(function(c){ const x=totals(mainPlan(c)); patr+=x.patr; sob+=x.sobra; });
+  const pipe=VL.filter(function(l){return !l.perdido;}).reduce(function(a,l){return a+(+l.valor||0);},0);
+  const won=VL.filter(function(l){return l.stage>=4&&!l.perdido;}).length;
+  const conv=VL.length?Math.round(won/VL.length*100):0;
+  const tp=(db.tasks||[]).filter(function(x){return !x.feito;}).length;
+  const aguard=(db.inbox||[]).filter(function(l){return !l.importado;}).length;
+  const stages=['Novo lead','Contato feito','Estudo/Simulação','Proposta enviada','Fechado'];
+  const stCount=stages.map(function(_,i){ return VL.filter(function(l){return l.stage===i&&!l.perdido;}).length; });
+  const days=_gerDays(14); const dayKey=function(d){return d.getDate()+'/'+(d.getMonth()+1);};
+  const actByDay=days.map(function(d){ const k=d.toDateString(); return (db.actlog||[]).filter(function(e){ return new Date(e.criado_em).toDateString()===k; }).length; });
+  const byOwn={}; VC.forEach(function(c){ const k=(user(c.ownerId).nome||'—').split(' ')[0]; if(!byOwn[k])byOwn[k]={n:0,p:0,leads:0,won:0}; byOwn[k].n++; byOwn[k].p+=totals(mainPlan(c)).patr; });
+  VL.forEach(function(l){ const k=(user(l.ownerId).nome||'—').split(' ')[0]; if(!byOwn[k])byOwn[k]={n:0,p:0,leads:0,won:0}; if(!l.perdido)byOwn[k].leads++; if(l.stage>=4&&!l.perdido)byOwn[k].won++; });
+  const kpi=function(lab,val,grad){ return '<div class="kpi'+(grad?' grad':'')+'"><div class="lab">'+lab+'</div><b>'+val+'</b></div>'; };
+  C.innerHTML='<div class="kpis">'+kpi(ICN.users+'Clientes',VC.length,1)+kpi(ICN.money+'Patrimônio sob gestão',BRL(patr))+kpi(ICN.funnel+'Pipeline (CRM)',BRL(pipe))+kpi(ICN.bolt+'Conversão',conv+'%')+kpi(ICN.check+'Tarefas pendentes',tp)+kpi(ICN.bolt+'Leads aguardando',aguard)+'</div>'
+   +'<div class="grid2"><div class="panel"><h2>'+ICN.funnel+' Funil de negócios</h2><div style="height:230px"><canvas id="gFunil"></canvas></div></div>'
+   +'<div class="panel"><h2>'+ICN.bolt+' Origem dos leads</h2><div style="height:230px"><canvas id="gOrigem"></canvas></div></div></div>'
+   +'<div class="panel"><h2>'+ICN.check+' Atividade da equipe (14 dias)</h2><div style="height:220px"><canvas id="gAtiv"></canvas></div></div>'
+   +'<div class="panel"><h2>'+ICN.users+' Resumo por especialista</h2><div class="tbl-scroll" style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:.88rem"><thead><tr><th style="text-align:left;padding:10px">Especialista</th><th style="padding:10px">Clientes</th><th style="padding:10px">Patrimônio</th><th style="padding:10px">Leads ativos</th><th style="padding:10px">Ganhos</th></tr></thead><tbody>'
+   +Object.keys(byOwn).map(function(k){ const o=byOwn[k]; return '<tr><td style="padding:9px 10px;border-top:1px solid var(--line)"><b>'+esc(k)+'</b></td><td style="text-align:center;border-top:1px solid var(--line)">'+o.n+'</td><td style="text-align:center;border-top:1px solid var(--line)">'+BRL(Math.round(o.p))+'</td><td style="text-align:center;border-top:1px solid var(--line)">'+o.leads+'</td><td style="text-align:center;border-top:1px solid var(--line)">'+o.won+'</td></tr>'; }).join('')
+   +'</tbody></table></div></div>';
+  try{ mkChart('gFunil',{type:'bar',data:{labels:stages,datasets:[{data:stCount,backgroundColor:['#8FD9CC','#5BC0AE','#2E8B7A','#C5A059','#0E4A41']}]},options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}}}}); }catch(e){}
+  try{ const src=_gerSrc(); const ks=Object.keys(src); mkChart('gOrigem',{type:'doughnut',data:{labels:ks.length?ks:['Sem dados'],datasets:[{data:ks.length?ks.map(function(k){return src[k];}):[1],backgroundColor:['#0E4A41','#C5A059','#8FD9CC','#5BC0AE','#E8CC8B','#2E8B7A']}]},options:{maintainAspectRatio:false}}); }catch(e){}
+  try{ mkChart('gAtiv',{type:'line',data:{labels:days.map(dayKey),datasets:[{label:'Ações',data:actByDay,borderColor:'#0E4A41',backgroundColor:'rgba(14,74,65,.12)',fill:true,tension:.3,pointRadius:2}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}}}}); }catch(e){}
+}
+/* ===================== HUB RD (marketing) ===================== */
+function _mktLS(){ try{ return JSON.parse(localStorage.getItem('agion_mkt_auto')||'{}'); }catch(e){ return {}; } }
+function mktToggle(k,v){ const A=_mktLS(); A[k]=v; localStorage.setItem('agion_mkt_auto',JSON.stringify(A)); flash('Automação '+(v?'ativada ✓':'desativada')); }
+function mktScore(l){ if(l.perdido)return 0; let s=[10,25,45,70,90][Math.min(l.stage||0,4)]||10; s+=Math.min(20,((l.atividades||[]).length)*4); const v=+l.valor||0; if(v>=300000)s+=15; else if(v>=100000)s+=8; const age=Date.now()-(l.criadoEm||0); if(age<7*86400000)s+=10; else if(age<30*86400000)s+=5; return Math.min(100,s); }
+function mktPerfil(s){ return s>=75?'A':s>=50?'B':s>=25?'C':'D'; }
+function mktOnNewLead(l){ const A=_mktLS();
+  if(A.a){ try{ const ids=[]; (db.clients||[]).forEach(function(c){ if(c.ownerId&&ids.indexOf(c.ownerId)<0)ids.push(c.ownerId); }); if(ids.length){ const i=(+localStorage.getItem('agion_rr')||0)%ids.length; l.ownerId=ids[i]; localStorage.setItem('agion_rr',String(i+1)); saveLeadCloud(l); } }catch(e){} }
+  if(A.w){ try{ let fone=String(l.contato||'').replace(/\D/g,''); if(fone.length>=10){ if(fone.slice(0,2)!=='55')fone='55'+fone; apiFetch('/api/send_template',{method:'POST',body:JSON.stringify({phone:fone,template:'boas_vindas',params:[(l.nome||'').split(' ')[0]],nome:l.nome})}).then(function(r){ if(r&&r.ok&&r.data&&!r.data.error) flash('Boas-vindas enviada a '+l.nome+' ✓'); }); } }catch(e){} }
+}
+function mktScanStale(){ let done=[]; try{done=JSON.parse(localStorage.getItem('agion_stale')||'[]');}catch(e){} let n=0;
+  (db.crm||[]).forEach(function(l){ if(l.perdido||l.stage>=4)return; const acts=l.atividades||[]; const last=acts.length?(acts[acts.length-1].quando||0):(l.criadoEm||0); if(Date.now()-last>3*86400000&&done.indexOf(l.id)<0){ const t={id:uuid(),titulo:'Retomar lead: '+l.nome,quando:'',feito:false,ownerId:l.ownerId||meId()}; db.tasks.push(t); saveTaskCloud(t); done.push(l.id); n++; } });
+  localStorage.setItem('agion_stale',JSON.stringify(done)); save(); flash(n?('Criadas '+n+' tarefa(s) de leads parados'):'Nenhum lead parado novo ✓');
+}
+async function renderMarketing(C){
+  setTop('Marketing','Automação de marketing e relacionamento','<button class="btn btn-gold btn-sm" onclick="tplBuilder()">+ Criar template</button>');
+  const tabs=[['ov','Visão geral'],['auto','Automações'],['score','Leads & Scoring'],['tpl','Templates'],['camp','Campanhas'],['intg','Integrações']];
+  C.innerHTML='<div id="mktNav" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">'+tabs.map(function(x){ return '<button data-k="'+x[0]+'" class="btn btn-ghost btn-sm" onclick="mktSub(\''+x[0]+'\')">'+x[1]+'</button>'; }).join('')+'</div><div id="mktBody"></div>';
+  mktSub(window.__mktTab||'ov');
+}
+function mktSub(k){ window.__mktTab=k; const B=document.getElementById('mktBody'); if(!B)return;
+  document.querySelectorAll('#mktNav button').forEach(function(b){ const on=b.getAttribute('data-k')===k; b.className='btn btn-sm '+(on?'btn-gold':'btn-ghost'); });
+  if(k==='ov')return mktOv(B); if(k==='auto')return mktAutoTab(B); if(k==='score')return mktScoreTab(B); if(k==='tpl')return mktTplTab(B);
+  if(k==='camp'){ B.innerHTML='<div class="panel"><h2>'+ICN.spark+' Campanhas</h2>'+marketingCampaignsHtml()+'</div>'; try{marketingChart();}catch(e){} return; }
+  if(k==='intg')return mktIntgTab(B);
+}
+function mktOv(B){ const L=(db.crm||[]); const pend=(db.inbox||[]).filter(function(l){return !l.importado;}).length; const tot=L.length+pend;
+  const qual=L.filter(function(l){return !l.perdido&&l.stage>=1;}).length; const op=L.filter(function(l){return !l.perdido&&l.stage>=2;}).length; const won=L.filter(function(l){return l.stage>=4&&!l.perdido;}).length;
+  const conv=tot?Math.round(won/tot*100):0;
+  B.innerHTML='<div class="kpis"><div class="kpi grad"><div class="lab">'+ICN.bolt+'Leads totais</div><b>'+tot+'</b></div><div class="kpi"><div class="lab">'+ICN.funnel+'Oportunidades</div><b>'+op+'</b></div><div class="kpi"><div class="lab">'+ICN.money+'Vendas</div><b>'+won+'</b></div><div class="kpi"><div class="lab">'+ICN.bolt+'Conversão</div><b>'+conv+'%</b></div></div>'
+   +'<div class="grid2"><div class="panel"><h2>'+ICN.funnel+' Funil de marketing</h2><div style="height:220px"><canvas id="mFun"></canvas></div></div><div class="panel"><h2>'+ICN.bolt+' Origem dos leads</h2><div style="height:220px"><canvas id="mOri"></canvas></div></div></div>';
+  try{ mkChart('mFun',{type:'bar',data:{labels:['Leads','Qualificados','Oportunidades','Vendas'],datasets:[{data:[tot,qual,op,won],backgroundColor:['#8FD9CC','#5BC0AE','#C5A059','#0E4A41']}]},options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}}}}); }catch(e){}
+  try{ const src=_gerSrc(); const ks=Object.keys(src); mkChart('mOri',{type:'doughnut',data:{labels:ks.length?ks:['Sem dados'],datasets:[{data:ks.length?ks.map(function(x){return src[x];}):[1],backgroundColor:['#0E4A41','#C5A059','#8FD9CC','#5BC0AE','#E8CC8B']}]},options:{maintainAspectRatio:false}}); }catch(e){}
+}
+function mktAutoTab(B){ const A=_mktLS();
+  const card=function(k,tit,sub){ return '<div class="panel" style="display:flex;align-items:center;gap:16px"><div style="flex:1"><b style="color:var(--head)">'+tit+'</b><br><span class="note">'+sub+'</span></div><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" style="width:20px;height:20px" '+(A[k]?'checked':'')+' onchange="mktToggle(\''+k+'\',this.checked)"><span class="note">'+(A[k]?'Ativa':'Inativa')+'</span></label></div>'; };
+  B.innerHTML='<div class="banner">Automações no estilo RD Station: quando o gatilho acontece, a ação roda sozinha. Os envios usam os templates aprovados do WhatsApp.</div>'
+   +card('w','Boas-vindas automática','Novo lead importado com telefone recebe o template boas_vindas no WhatsApp na hora.')
+   +card('a','Distribuição automática de leads','Novo lead é distribuído em rodízio entre os especialistas da equipe.')
+   +card('s','Lead parado vira tarefa','Leads sem movimento há 3+ dias geram tarefa automática para o dono retomar.')
+   +'<div class="panel" style="display:flex;align-items:center;gap:16px"><div style="flex:1"><b style="color:var(--head)">Verificação manual</b><br><span class="note">Rodar agora a checagem de leads parados.</span></div><button class="btn btn-teal btn-sm" onclick="mktScanStale()">Verificar leads parados</button></div>';
+}
+function mktScoreTab(B){ const seg=window.__mktSeg||'T'; const L=(db.crm||[]).map(function(l){ const s=mktScore(l); return {l:l,s:s,p:mktPerfil(s)}; }).sort(function(a,b){return b.s-a.s;});
+  const F=L.filter(function(x){ return seg==='T'||x.p===seg; });
+  const opt=function(v,lab){ return '<option value="'+v+'"'+(seg===v?' selected':'')+'>'+lab+'</option>'; };
+  B.innerHTML='<div class="panel"><h2>'+ICN.bolt+' Lead scoring <select style="max-width:220px;margin-left:auto" onchange="window.__mktSeg=this.value;mktSub(\'score\')">'+opt('T','Todos os perfis')+opt('A','Perfil A (quentes)')+opt('B','Perfil B')+opt('C','Perfil C')+opt('D','Perfil D (frios)')+'</select></h2>'
+   +(F.length?F.map(function(x){ const l=x.l; const cor=x.p==='A'?'#0E4A41':x.p==='B'?'#C5A059':x.p==='C'?'#8F6F2C':'#9DB5B1';
+     return '<div class="netrow"><span style="display:flex;align-items:center;gap:12px;flex:1"><span style="width:34px;height:34px;border-radius:50%;background:'+cor+';color:#fff;font-weight:800;display:grid;place-items:center">'+x.p+'</span><span><b style="color:var(--head)">'+esc(l.nome)+'</b> <span class="note">· '+esc(l.tipo||'')+' · '+BRL(+l.valor||0)+'</span><br><span class="note">Dono: '+esc((user(l.ownerId).nome||'—').split(' ')[0])+' · '+((l.atividades||[]).length)+' atividades</span></span></span><span style="min-width:140px"><div class="bar"><i style="width:'+x.s+'%"></i></div><span class="note">'+x.s+' pts</span></span></div>';
+   }).join(''):'<p class="note">Nenhum lead neste segmento.</p>')+'</div>';
+}
+function mktTplTab(B){ B.innerHTML='<div class="banner">Crie templates (inclusive com imagem), envie para a Meta aprovar e dispare nas Conversas.</div><div class="panel"><h2>'+ICN.chat+' Templates de mensagem <button class="btn btn-ghost btn-sm right" onclick="mktSub(\'tpl\')">↻ Atualizar</button></h2><div id="tplList"><p class="note">Carregando…</p></div></div>';
+  apiFetch('/api/templates').then(function(r){ const list=(r&&r.ok&&r.data&&r.data.templates)?r.data.templates:[]; const el=document.getElementById('tplList'); if(el)el.innerHTML=tplListHtml(list); }).catch(function(){ const el=document.getElementById('tplList'); if(el)el.innerHTML='<p class="note">Não foi possível carregar agora.</p>'; });
+}
+function mktIntgTab(B){ const item=function(ic,tit,sub,on){ return '<div class="intg"><div class="src" style="background:rgba(14,74,65,.12);color:var(--teal);display:grid;place-items:center;font-weight:800">'+ic+'</div><div style="flex:1"><div style="font-weight:700;color:var(--head)">'+tit+'</div><div class="note">'+sub+'</div></div><span style="font-size:.78rem;color:'+(on?'var(--ok)':'var(--soft)')+'"><span class="'+(on?'dot-on':'dot-off')+'"></span> '+(on?'Conectado':'Em breve')+'</span></div>'; };
+  B.innerHTML='<div class="banner">As mesmas pontas que o RD Station conecta — aqui já integradas ao seu funil.</div><div class="grid2">'
+   +item('W','WhatsApp Business API','Bot Agion +55 51 8203-4245 · envio de templates, boletos e conversas',true)
+   +item('M','Meta Lead Ads','Leads do Facebook/Instagram caem na Captação via webhook',true)
+   +item('G','Google Ads','Lead Form Extensions via webhook de captação',true)
+   +item('@','E-mail transacional','Convites e redefinição de senha da plataforma',true)
+   +item('#','Webhook de captação','Endpoint publico de leads (captacao) ligado ao funil',true)
+   +item('R','Importar do RD Station','Migração de leads e histórico',false)
+   +'</div>';
+}
 
 /* ===================== MARKETING (templates + campanhas) ===================== */
 function tplStatusBadge(s){ s=(s||'').toUpperCase(); const map={APPROVED:['#1F9E8B','Aprovado'],PENDING:['#C5A059','Em análise'],REJECTED:['#f87171','Rejeitado'],PAUSED:['#9DB5B1','Pausado'],DISABLED:['#9DB5B1','Desativado']}; const m=map[s]||['#6E8B88',(s||'—')]; return '<span class="chip" style="border:1px solid '+m[0]+'66;color:'+m[0]+';background:'+m[0]+'14">'+esc(m[1])+'</span>'; }
@@ -1586,7 +1680,7 @@ function marketingChart(){
   const tick='#9DB5B1', grid='rgba(143,217,204,.1)'; let gold='#C5A059'; try{gold=(getComputedStyle(document.documentElement).getPropertyValue('--gold')||'#C5A059').trim()||'#C5A059';}catch(e){}
   mkChart('mktChart',{type:'line',data:{labels:['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6'],datasets:[{label:'Leads (exemplo)',data:[8,14,11,19,17,23],borderColor:gold,backgroundColor:'rgba(197,160,44,.15)',borderWidth:2,pointRadius:3,tension:.3,fill:true}]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{color:tick}}},scales:{x:{grid:{display:false},ticks:{color:tick}},y:{grid:{color:grid},ticks:{color:tick}}}}});
 }
-async function renderMarketing(C){
+async function renderMarketingOld(C){
   setTop('Marketing','Templates de mensagem e campanhas','<button class="btn btn-gold btn-sm" onclick="tplBuilder()">+ Criar template</button>');
   C.innerHTML='<div class="banner">Crie templates de mensagem (inclusive com uma imagem da campanha), envie para a Meta aprovar e depois dispare para os clientes na aba Conversas. As campanhas de anúncios aparecerão aqui com métricas quando integrarmos Google/Meta Ads.</div>'
     +'<div class="panel"><h2>'+ICN.chat+' Templates de mensagem <button class="btn btn-ghost btn-sm right" onclick="renderMarketing(document.getElementById(\'content\'))">↻ Atualizar</button></h2><div id="tplList"><p class="note">Carregando templates…</p></div></div>'
@@ -1812,7 +1906,7 @@ function renderKPIs(C){
 }
 /* ===================== ASSESSOR: PAINEL ===================== */
 function renderAssessorDash(C){
-  setTop('Painel do '+(isMaster()?'Master':isLider()?'Líder':'Especialista'),'Visão geral');
+  setTop('Painel do '+(isMaster()?'Master':isLider()?'Líder':'Especialista'),'Visão geral',(isMaster()||isLider())?'<button class="btn btn-gold btn-sm" onclick="go(\'gerencial\')">Dashboard Gerencial</button>':'');
   const VC=visibleClients(); const VL=visibleLeads();
   let totPatr=0,totApos=0,sob=0; VC.forEach(c=>{const t=totals(mainPlan(c));totPatr+=t.patr;sob+=t.sobra});
   const sims=VC.reduce((a,c)=>a+c.plans.filter(p=>!p.main).length,0);
