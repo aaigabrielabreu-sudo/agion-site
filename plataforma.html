@@ -1014,7 +1014,7 @@ const mainPlan=c=>client(c).plans.find(p=>p.main);
 function navItems(){
   const R=effRole();
   const ICN_KPI='<svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-5"/><path d="M13 17V8"/><path d="M18 17v-9"/></svg>';
-  if(R==='master') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check]];
+  if(R==='master') return [['disparos','Disparos',ICN.bolt],['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check]];
   if(R==='lider') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users]];
   if(R==='especialista') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users]];
   return [['dash','Início',ICN.dash],['plan','Planejamento',ICN.plan],['jornada','Jornada',ICN.target],['gastos','Gastos',ICN.money],['cota','Cota',ICN.cota]];
@@ -1178,6 +1178,35 @@ bootAuth();
 /* ===================== RENDER PRINCIPAL ===================== */
 /* ===== Conversas estilo WhatsApp (bot Agion via VPS) ===== */
 const BOT_API='https://bot.agionconsorcios.com.br';
+function renderDisparos(C){
+  setTop('Disparos','Mensagens e boletos que o bot enviou','');
+  C.innerHTML='<div class="panel"><p class="note">Carregando disparos\u2026</p></div>';
+  (async function(){
+    var r; try{ r=await apiFetch('/api/disparos'); }catch(e){ r=null; }
+    if(!r||!r.ok){ C.innerHTML='<div class="panel"><h3 style="margin:0 0 6px">Disparos</h3><p class="note">N\u00e3o consegui carregar agora. Tente de novo em instantes.</p></div>'; return; }
+    var d=r.data||{};
+    var rows=d.disparos||d.data||d.items||d.clientes||(Array.isArray(d)?d:[]);
+    var esc2=(typeof esc==='function')?esc:function(x){return (''+(x==null?'':x)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+    if(!rows||!rows.length){ C.innerHTML='<div class="panel"><h3 style="margin:0 0 6px">Disparos</h3><p class="note">Nenhum disparo registrado ainda. Quando o bot enviar boletos/mensagens, eles aparecem aqui.</p></div>'; return; }
+    var html='<div style="margin-bottom:12px"><input id="dispBusca" placeholder="Buscar por nome ou telefone" oninput="_dispFiltra(this.value)" style="width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:11px 14px;border-radius:10px;font:inherit"></div><div id="dispLista">';
+    html+=rows.map(function(c){
+      var nome=esc2(c.nome||c.name||c.titular||c.contato||c.phone||'Sem nome');
+      var fone=esc2(c.phone||c.telefone||c.contato||'');
+      var total=c.total||c.count||(c.itens&&c.itens.length)||(c.items&&c.items.length)||(c.msgs&&c.msgs.length)||0;
+      var ult=esc2(c.ultimo||c.last||c.last_ts||c.ts||'');
+      var itens=c.itens||c.items||c.msgs||[];
+      var det=(itens||[]).slice(0,20).map(function(m){
+        var tp=esc2(m.tipo||m.type||'msg'); var tx=esc2((m.texto||m.text||m.descricao||'').toString().slice(0,140)); var q=esc2(m.ts||m.data||m.quando||'');
+        return '<div style="font-size:.8rem;color:var(--muted);padding:4px 0;border-top:1px solid var(--line)"><b style="color:var(--head)">'+tp+'</b> '+tx+' <span style="opacity:.7">'+q+'</span></div>';
+      }).join('');
+      return '<div class="ccard dispItem" data-k="'+(nome+' '+fone).toLowerCase()+'"><div class="row"><h3 style="margin:0">'+nome+'</h3><span class="tag">'+total+' envio(s)</span></div><div class="meta">'+(fone?('\uD83D\uDCF1 '+fone):'')+(ult?(' \u00b7 \u00faltimo: '+ult):'')+'</div>'+(det?('<div style="margin-top:8px">'+det+'</div>'):'')+'</div>';
+    }).join('');
+    html+='</div>';
+    C.innerHTML=html;
+  })();
+}
+function _dispFiltra(q){ q=(q||'').toLowerCase(); var els=document.querySelectorAll('#dispLista .dispItem'); for(var i=0;i<els.length;i++){ els[i].style.display = els[i].getAttribute('data-k').indexOf(q)>=0?'':'none'; } }
+
 let convState={phone:null,list:[],msgs:[],nome:null,filter:'',templates:null,poll:null};
 const TPL_META={
   boas_vindas:{label:'👋 Boas-vindas (1º contato)',vars:[{k:'nome'}]},
@@ -1392,6 +1421,7 @@ function render(){
     if(view.page==='captacao') return renderCaptacao(C);
     if(view.page==='gerencial'&&(isMaster()||isLider())) return renderGerencial(C);
     if(view.page==='marketing') return renderMarketing(C);
+    if(view.page==='disparos'&&isMaster()) return renderDisparos(C);
     if(view.page==='feed') return renderFeed(C);
     if(view.page==='chat') return renderChat(C);
     if(view.page==='tarefas') return renderTarefas(C);
