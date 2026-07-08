@@ -1,6 +1,6 @@
 document.documentElement.classList.add('js');
 /* ================= DADOS ================= */
-const WHATS = 'https://wa.me/5551993078590';
+const WHATS = 'https://wa.me/5551982034245';
 const fmtBRL = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2});
 
 const SIM = {
