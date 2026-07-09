@@ -2709,48 +2709,5 @@ document.getElementById('logEmail').focus();
 </script>
 
 <script>(function(){function wire(){if(window.__sorteioWired)return true;if(typeof window.mktToggle!=='function'||typeof window.apiFetch!=='function')return false;var _o=window.mktToggle;window.mktToggle=function(k){var r=_o.apply(this,arguments);if(k==='a'){try{var on=!!(JSON.parse(localStorage.getItem('agion_mkt_auto')||'{}').a);window.apiFetch('/api/config',{method:'POST',body:JSON.stringify({sorteio_especialista:on})});}catch(e){}}return r;};window.__sorteioWired=true;try{Promise.resolve(window.apiFetch('/api/config')).then(function(res){return(res&&typeof res.json==='function')?res.json():res;}).then(function(j){if(!j)return;var a=JSON.parse(localStorage.getItem('agion_mkt_auto')||'{}');a.a=!!j.sorteio_especialista;localStorage.setItem('agion_mkt_auto',JSON.stringify(a));}).catch(function(){});}catch(e){}return true;}if(!wire()){var n=0,iv=setInterval(function(){if(wire()||++n>40)clearInterval(iv);},250);}})();</script>
-
-<script>(function(){
-  var BASE='https://www.agionconsorcios.com.br/lp';
-  window.lpBuild=function(){
-    var o=(document.getElementById('lpOrigem')||{}).value||'';
-    var c=(document.getElementById('lpCamp')||{}).value||'';
-    var u=BASE, p=[];
-    if(o.trim()) p.push('origem='+encodeURIComponent(o.trim()));
-    if(c.trim()) p.push('campanha='+encodeURIComponent(c.trim()));
-    if(p.length) u+='?'+p.join('&');
-    var out=document.getElementById('lpOut'); if(out) out.value=u;
-    return u;
-  };
-  window.lpCopy=function(){
-    var u=window.lpBuild();
-    try{ navigator.clipboard.writeText(u); }catch(e){}
-    var b=document.getElementById('lpCopyBtn'); if(b){var t=b.textContent;b.textContent='Copiado!';setTimeout(function(){b.textContent=t;},1400);}
-  };
-  window.lpCard=function(){
-    return '<div class="panel" style="margin-top:12px">'
-     +'<b>Landing page \u2014 Gerador de link</b>'
-     +'<div style="opacity:.7;font-size:13px;margin:2px 0 12px">Crie links rastre\u00e1veis da sua landing page (agionconsorcios.com.br/lp). O lead entra pelo rob\u00f4 e cai no funil com a origem/campanha que voc\u00ea definir aqui.</div>'
-     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
-     +'<div><label style="font-size:12px;opacity:.7">Origem</label><input id="lpOrigem" oninput="lpBuild()" placeholder="Instagram, Facebook, WhatsApp..." style="width:100%;padding:9px 11px;border:1px solid #cfd8d6;border-radius:9px"></div>'
-     +'<div><label style="font-size:12px;opacity:.7">Campanha</label><input id="lpCamp" oninput="lpBuild()" placeholder="Promo-Julho" style="width:100%;padding:9px 11px;border:1px solid #cfd8d6;border-radius:9px"></div>'
-     +'</div>'
-     +'<label style="font-size:12px;opacity:.7;display:block;margin-top:10px">Link gerado</label>'
-     +'<div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">'
-     +'<input id="lpOut" readonly value="'+BASE+'" style="flex:1;min-width:220px;padding:9px 11px;border:1px solid #cfd8d6;border-radius:9px;background:#f5f7f6">'
-     +'<button id="lpCopyBtn" type="button" onclick="lpCopy()" style="border:0;cursor:pointer;padding:9px 16px;border-radius:9px;background:#155A50;color:#fff;font-weight:600">Copiar</button>'
-     +'<a href="'+BASE+'" target="_blank" style="border:1px solid #155A50;color:#155A50;text-decoration:none;padding:9px 16px;border-radius:9px;font-weight:600">Abrir</a>'
-     +'</div></div>';
-  };
-  function wrapTab(){
-    if(window.__lpGenWired) return true;
-    if(typeof window.mktIntgTab!=='function') return false;
-    var _o=window.mktIntgTab;
-    window.mktIntgTab=function(){ return _o.apply(this,arguments) + window.lpCard(); };
-    window.__lpGenWired=true;
-    return true;
-  }
-  if(!wrapTab()){ var n=0,iv=setInterval(function(){ if(wrapTab()||++n>40) clearInterval(iv); },250); }
-})();</script>
 </body>
 </html>

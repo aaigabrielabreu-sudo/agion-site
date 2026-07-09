@@ -168,7 +168,10 @@
 
 <script>
 (function(){
-  var CAPT="https://sfekirqoflozylghwlbe.supabase.co/functions/v1/captacao?key=agion&origem=Site";
+  var _qs=new URLSearchParams(location.search);
+  var ORIGEM=((_qs.get('origem')||'Site').trim())||'Site';
+  var CAMPQ=(_qs.get('campanha')||'').trim();
+  var CAPT="https://sfekirqoflozylghwlbe.supabase.co/functions/v1/captacao?key=agion&origem="+encodeURIComponent(ORIGEM);
   var ROBO="5551982034245";
   var val=document.getElementById('val');
   function fmt(v){ v=(v||'').replace(/\D/g,''); if(!v) return ''; return (parseInt(v,10)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
@@ -184,7 +187,7 @@
     var valor=(valv||'').replace(/\D/g,'');
     try{
       fetch(CAPT,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({nome:(nome||'').trim(),contato:contato,tipo:'Consórcio',origem:'Site',campanha:'Simulador do site — '+(prod||''),valor:valor})
+        body:JSON.stringify({nome:(nome||'').trim(),contato:contato,tipo:'Consórcio',origem:ORIGEM,campanha:(CAMPQ||('Simulador do site — '+(prod||''))),valor:valor})
       }).catch(function(){});
     }catch(e){}
     var msg='Olá! Quero simular meu consórcio na Agion.';
