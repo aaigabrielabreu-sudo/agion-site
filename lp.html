@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simule o seu consórcio — Agion Consórcios</title>
+<meta name="description" content="Consórcio sem juros para imóvel, automóvel, terreno e investimento. Simule agora e receba atendimento na hora pelo WhatsApp.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --petro:#0B2A26; --petro2:#103F38; --petro3:#155A50;
+    --gold:#C5A059; --gold2:#E8CC8B; --gold3:#F4E6C0;
+    --ink:#1C2B2E; --muted:#5E7173; --line:#E6EAE9; --bg:#fff; --bg2:#F3F6F5;
+    --serif:'Playfair Display',Georgia,serif; --sans:'Inter',-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    --gg:linear-gradient(135deg,var(--gold2),var(--gold));
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+  /* HERO */
+  .hero{position:relative;background:radial-gradient(1200px 600px at 80% -10%,var(--petro3),transparent 60%),linear-gradient(160deg,var(--petro),var(--petro2));color:#eef5f3;overflow:hidden}
+  .hero:before{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at 15% 110%,rgba(197,160,89,.18),transparent 60%)}
+  .hero .wrap{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center;padding:56px 20px 64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.3px;margin-bottom:26px}
+  .brand .dot{width:34px;height:34px;border-radius:9px;background:var(--gg);display:grid;place-items:center;color:#2a2113;font-family:var(--serif);font-weight:800;font-size:19px}
+  .seal{display:inline-flex;align-items:center;gap:8px;background:rgba(197,160,89,.14);border:1px solid rgba(232,204,139,.5);color:var(--gold2);padding:7px 14px;border-radius:999px;font-size:13px;font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+  h1{font-family:var(--serif);font-weight:800;font-size:clamp(34px,4.6vw,54px);line-height:1.05;margin:18px 0 14px}
+  h1 em{font-style:italic;color:var(--gold2)}
+  .lead{font-size:clamp(16px,1.7vw,19px);color:#cfe0dd;max-width:520px}
+  .proofs{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+  .proof{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);padding:10px 14px;border-radius:12px;font-size:14px;color:#e7f0ee}
+  .proof b{color:#fff;font-weight:600}
+  .proof .ic{color:var(--gold2);font-weight:800}
+
+  /* FORM CARD */
+  .card{background:var(--bg);color:var(--ink);border-radius:20px;padding:26px 24px 22px;box-shadow:0 30px 70px rgba(4,20,18,.45);border:1px solid rgba(255,255,255,.6)}
+  .card .fh1{font-family:var(--serif);font-weight:700;font-size:23px;margin:0 0 4px;line-height:1.15}
+  .card .fh1 em{font-style:italic;color:var(--petro3)}
+  .card .fsub{color:var(--muted);font-size:14px;margin:0 0 18px}
+  .field{margin-bottom:12px}
+  label.lbl{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 5px}
+  .inp,select.inp{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;font-family:inherit;font-size:15px;color:var(--ink);background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+  .inp:focus,select.inp:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(197,160,89,.18)}
+  .hint{font-size:12px;color:var(--muted);margin:5px 2px 0}
+  .btn-gold{margin-top:8px;width:100%;border:0;cursor:pointer;padding:15px 18px;border-radius:13px;background:var(--gg);color:#2a2113;font-family:inherit;font-weight:700;font-size:16px;letter-spacing:.2px;box-shadow:0 12px 28px rgba(197,160,89,.38);transition:transform .08s,box-shadow .15s}
+  .btn-gold:hover{box-shadow:0 16px 34px rgba(197,160,89,.5)}
+  .btn-gold:active{transform:translateY(1px)}
+  .wa{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:12px;font-size:13.5px;color:var(--petro3);font-weight:600}
+  .wa .h{color:#1faa53}
+  .privacy{font-size:11.5px;color:var(--muted);text-align:center;margin-top:10px}
+
+  /* STRIP */
+  .strip{background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .strip .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;padding:26px 20px}
+  .stat b{font-family:var(--serif);font-size:26px;color:var(--petro2);display:block;line-height:1.1}
+  .stat span{font-size:13px;color:var(--muted)}
+
+  /* HOW */
+  .sec{padding:52px 0}
+  .sec h2{font-family:var(--serif);font-weight:700;font-size:clamp(24px,3vw,32px);text-align:center;margin:0 0 8px}
+  .sec .sub{text-align:center;color:var(--muted);max-width:620px;margin:0 auto 34px}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .step{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px}
+  .step .n{width:38px;height:38px;border-radius:11px;background:var(--gg);color:#2a2113;display:grid;place-items:center;font-family:var(--serif);font-weight:800;font-size:18px;margin-bottom:12px}
+  .step h3{margin:0 0 6px;font-size:17px}
+  .step p{margin:0;color:var(--muted);font-size:14.5px}
+
+  footer{background:var(--petro);color:#bcd2ce;padding:30px 0;text-align:center;font-size:13px}
+  footer b{color:#eef5f3;font-family:var(--serif)}
+  footer .fine{margin-top:8px;color:#7ea59d;font-size:11.5px;max-width:760px;margin-left:auto;margin-right:auto}
+
+  @media(max-width:860px){
+    .hero .wrap{grid-template-columns:1fr;gap:28px;padding:38px 20px 44px}
+    .strip .wrap{grid-template-columns:repeat(2,1fr)}
+    .steps{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="col">
+        <div class="brand"><span class="dot">A</span> Agion Consórcios</div>
+        <span class="seal">★ Consórcio sem juros</span>
+        <h1>Simule o seu consórcio.<br><em>O momento é agora.</em></h1>
+        <p class="lead">Conquiste seu imóvel, automóvel ou faça seu dinheiro render — com parcelas que cabem no seu bolso e <b>zero juros</b>. Um especialista fala com você na hora.</p>
+        <div class="proofs">
+          <div class="proof"><span class="ic">✓</span> <b>Sem juros</b>, só taxa de administração</div>
+          <div class="proof"><span class="ic">✓</span> Crédito de <b>R$ 100 mil</b> a milhões</div>
+          <div class="proof"><span class="ic">✓</span> Atendimento <b>humano</b> no WhatsApp</div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card">
+          <p class="fh1">Simule o seu consórcio.<br><em>É rápido e sem compromisso.</em></p>
+          <p class="fsub">Preencha e receba sua simulação na hora.</p>
+          <form id="simForm" novalidate>
+            <div class="field">
+              <label class="lbl" for="prod">Que tipo de produto você busca?</label>
+              <select id="prod" class="inp">
+                <option>Selecione...</option>
+                <option>Imóvel novo</option>
+                <option>Imóvel usado</option>
+                <option>Terreno</option>
+                <option>Terreno e construção</option>
+                <option>Reforma</option>
+                <option>Quitação de financiamento</option>
+                <option>Investimento</option>
+                <option>Automóvel</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="lbl" for="val">Valor do crédito</label>
+              <input id="val" class="inp" inputmode="numeric" placeholder="Ex: R$ 300.000,00" autocomplete="off">
+              <div class="hint">Valor mínimo: R$ 100.000,00</div>
+            </div>
+            <div class="field">
+              <label class="lbl" for="nome">Nome</label>
+              <input id="nome" class="inp" placeholder="Seu nome completo" autocomplete="name">
+            </div>
+            <div class="field">
+              <label class="lbl" for="email">E-mail</label>
+              <input id="email" class="inp" type="email" placeholder="voce@email.com" autocomplete="email">
+            </div>
+            <div class="field">
+              <label class="lbl" for="tel">Telefone (com DDD)</label>
+              <input id="tel" class="inp" inputmode="tel" placeholder="(51) 99999-9999" autocomplete="tel">
+            </div>
+            <button type="submit" class="btn-gold">Simular agora</button>
+            <div class="wa"><span class="h">●</span> Resposta na hora, direto no seu WhatsApp <span aria-hidden="true">💚</span></div>
+            <p class="privacy">Ao enviar, você concorda em ser contatado pela Agion. Seus dados ficam protegidos.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="strip">
+    <div class="wrap">
+      <div class="stat"><b>0%</b><span>de juros — só taxa de administração</span></div>
+      <div class="stat"><b>+R$100 mil</b><span>em crédito, sob medida</span></div>
+      <div class="stat"><b>100%</b><span>digital e sem burocracia</span></div>
+      <div class="stat"><b>Humano</b><span>atendimento por especialista</span></div>
+    </div>
+  </section>
+
+  <section class="sec wrap">
+    <h2>Como funciona</h2>
+    <p class="sub">Três passos simples entre a sua simulação e a carta de crédito na mão.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><h3>Você simula</h3><p>Escolhe o produto e o valor do crédito. Leva menos de um minuto.</p></div>
+      <div class="step"><div class="n">2</div><h3>Um especialista te chama</h3><p>Entramos em contato na hora pelo WhatsApp para desenhar o melhor plano pra você.</p></div>
+      <div class="step"><div class="n">3</div><h3>Você conquista</h3><p>Com parcelas que cabem no bolso e sem juros, você realiza o seu objetivo.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <b>Agion Consórcios</b> — realizando sonhos com planejamento.
+    <div class="fine">Consórcio é uma modalidade de compra planejada regulamentada pelo Banco Central. A contemplação pode ocorrer por sorteio ou lance. Não há cobrança de juros; incide taxa de administração. Simulação sem compromisso.</div>
+  </footer>
+
+<script>
+(function(){
+  var CAPT="https://sfekirqoflozylghwlbe.supabase.co/functions/v1/captacao?key=agion&origem=Site";
+  var ROBO="5551982034245";
+  var val=document.getElementById('val');
+  function fmt(v){ v=(v||'').replace(/\D/g,''); if(!v) return ''; return (parseInt(v,10)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+  val.addEventListener('input',function(){ val.value=fmt(val.value); });
+  document.getElementById('simForm').addEventListener('submit',function(ev){
+    ev.preventDefault();
+    var prod=document.getElementById('prod').value;
+    var valv=val.value.trim();
+    var nome=document.getElementById('nome').value.trim();
+    var email=document.getElementById('email').value.trim();
+    var tel=document.getElementById('tel').value.trim();
+    var contato=(tel||'')+' · '+(email||'');
+    var valor=(valv||'').replace(/\D/g,'');
+    try{
+      fetch(CAPT,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({nome:(nome||'').trim(),contato:contato,tipo:'Consórcio',origem:'Site',campanha:'Simulador do site — '+(prod||''),valor:valor})
+      }).catch(function(){});
+    }catch(e){}
+    var msg='Olá! Quero simular meu consórcio na Agion.';
+    if(nome) msg+=' Nome: '+nome+'.';
+    if(prod && prod!=='Selecione...') msg+=' Produto: '+prod+'.';
+    if(valv) msg+=' Crédito: '+valv+'.';
+    if(email) msg+=' E-mail: '+email+'.';
+    if(tel) msg+=' Telefone: '+tel+'.';
+    window.open('https://wa.me/'+ROBO+'?text='+encodeURIComponent(msg),'_blank');
+  });
+})();
+</script>
+</body>
+</html>
