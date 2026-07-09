@@ -1669,7 +1669,7 @@ function mktAutoTab(B){ const A=_mktLS();
   const card=function(k,tit,sub){ return '<div class="panel" style="display:flex;align-items:center;gap:16px"><div style="flex:1"><b style="color:var(--head)">'+tit+'</b><br><span class="note">'+sub+'</span></div><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" style="width:20px;height:20px" '+(A[k]?'checked':'')+' onchange="mktToggle(\''+k+'\',this.checked)"><span class="note">'+(A[k]?'Ativa':'Inativa')+'</span></label></div>'; };
   B.innerHTML='<div class="banner">Automações no estilo RD Station: quando o gatilho acontece, a ação roda sozinha. Os envios usam os templates aprovados do WhatsApp.</div>'
    +card('w','Boas-vindas automática','Novo lead importado com telefone recebe o template boas_vindas no WhatsApp na hora.')
-   +card('a','Distribuição automática de leads','Novo lead (site ou WhatsApp) sem dono é distribuído em rodízio entre os especialistas — avisa o especialista e o líder.')
+   +card('a','Distribuição automática de leads','Novo lead é distribuído em rodízio entre os especialistas da equipe.')
    +card('s','Lead parado vira tarefa','Leads sem movimento há 3+ dias geram tarefa automática para o dono retomar.')
    +'<div class="panel" style="display:flex;align-items:center;gap:16px"><div style="flex:1"><b style="color:var(--head)">Verificação manual</b><br><span class="note">Rodar agora a checagem de leads parados.</span></div><button class="btn btn-teal btn-sm" onclick="mktScanStale()">Verificar leads parados</button></div>';
 }
@@ -2707,7 +2707,5 @@ function toggleTheme(){applyTheme(document.body.classList.contains('light')?'dar
 try{applyTheme(localStorage.getItem('agion_theme')||'dark')}catch(e){}
 document.getElementById('logEmail').focus();
 </script>
-
-<script>(function(){function wire(){if(window.__sorteioWired)return true;if(typeof window.mktToggle!=='function'||typeof window.apiFetch!=='function')return false;var _o=window.mktToggle;window.mktToggle=function(k){var r=_o.apply(this,arguments);if(k==='a'){try{var on=!!(JSON.parse(localStorage.getItem('agion_mkt_auto')||'{}').a);window.apiFetch('/api/config',{method:'POST',body:JSON.stringify({sorteio_especialista:on})});}catch(e){}}return r;};window.__sorteioWired=true;try{Promise.resolve(window.apiFetch('/api/config')).then(function(res){return(res&&typeof res.json==='function')?res.json():res;}).then(function(j){if(!j)return;var a=JSON.parse(localStorage.getItem('agion_mkt_auto')||'{}');a.a=!!j.sorteio_especialista;localStorage.setItem('agion_mkt_auto',JSON.stringify(a));}).catch(function(){});}catch(e){}return true;}if(!wire()){var n=0,iv=setInterval(function(){if(wire()||++n>40)clearInterval(iv);},250);}})();</script>
 </body>
 </html>
