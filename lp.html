@@ -2,6 +2,17 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WKBZ2R04SM"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-WKBZ2R04SM');
+document.addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target:null;var a=t?t.closest('a[href*="wa.me"],a[href*="api.whatsapp.com"]'):null;if(a){gtag('event','clique_whatsapp',{link_url:a.href,page_path:location.pathname});}},true);
+document.addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target:null;var b=t?t.closest('#simBtn'):null;if(b){gtag('event','enviar_simulador',{page_path:location.pathname});}},true);
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Simule o seu consórcio — Agion Consórcios</title>
 <meta name="description" content="Consórcio sem juros para imóvel, automóvel, terreno e investimento. Simule agora e fale na hora pelo WhatsApp.">
