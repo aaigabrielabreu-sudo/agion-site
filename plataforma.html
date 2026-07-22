@@ -1477,6 +1477,10 @@ function renderCRM(C){
         <option value="todas">Todas as categorias (${VLall.filter(l=>!l.perdido).length})</option>
         ${LEAD_CATS.concat([{k:'outros',lb:'Outros',ic:'📄'}]).map(c=>`<option value="${c.k}" ${view.crmCat===c.k?'selected':''}>${c.ic} ${c.lb} (${VLall.filter(l=>!l.perdido&&leadCategoria(l).k===c.k).length})</option>`).join('')}
       </select>
+      <select onchange="crmSetOrigem(this.value)" style="padding:8px 12px;font-size:.82rem">
+        <option value="todas">Todas as origens (${VLall.filter(l=>!l.perdido).length})</option>
+        ${LEAD_ORIGENS.concat([{k:'outro',lb:'Outra origem',ic:'📄'}]).map(o=>`<option value="${o.k}" ${view.crmOrigem===o.k?'selected':''}>${o.ic} ${o.lb} (${VLall.filter(l=>!l.perdido&&leadOrigem(l).k===o.k).length})</option>`).join('')}
+      </select>
       <select onchange="crmSetSort(this.value)" style="padding:8px 12px;font-size:.82rem">
         <option value="">Ordenar: padrão</option>
         <option value="valor_desc" ${view.crmSort==='valor_desc'?'selected':''}>💰 Maior valor primeiro</option>
@@ -1484,7 +1488,7 @@ function renderCRM(C){
         <option value="novo" ${view.crmSort==='novo'?'selected':''}>📅 Mais recentes</option>
         <option value="antigo" ${view.crmSort==='antigo'?'selected':''}>📅 Mais antigos</option>
       </select>
-      ${(view.crmCat&&view.crmCat!=='todas')||view.crmSort?`<button class="btn btn-sm" onclick="view.crmCat='todas';view.crmSort='';render()">Limpar filtros</button>`:''}
+      ${(view.crmCat&&view.crmCat!=='todas')||(view.crmOrigem&&view.crmOrigem!=='todas')||view.crmSort?`<button class="btn btn-sm" onclick="view.crmCat='todas';view.crmOrigem='todas';view.crmSort='';render()">Limpar filtros</button>`:''}
     </div>`+
     `<div class="kanban">${board}</div>`+
     (perdidos.length?`<div class="panel"><h2>${ICN.users} Perdidos (${perdidos.length})</h2> ${perdidos.map(l=>`<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line)"><span><b style="color:var(--head)">${esc(l.nome)}</b> <span class="ttype tt-${l.tipo}" style="margin:0 0 0 6px">${l.tipo}</span></span> <button class="btn btn-ghost btn-sm" onclick="crmRecuperar('${l.id}')">Reativar</button></div>`).join('')}</div>`:'');
@@ -1497,9 +1501,22 @@ const LEAD_CATS=[
  {k:'nautica',lb:'Náutico',ic:'🚤',cor:'#9BC0E0',re:/(barco|lancha|jet ?ski|embarca)/}
 ];
 function leadCategoria(l){ const s=((l.obs||'')+' '+(l.nome||'')+' '+(l.tipo||'')).toLowerCase(); for(const c of LEAD_CATS){ if(c.re.test(s)) return c; } return {k:'outros',lb:'Outros',ic:'📄',cor:'#A8B8B3'}; }
-function crmLeadsFiltrados(arr){ if(view.crmCat&&view.crmCat!=='todas') return arr.filter(l=>leadCategoria(l).k===view.crmCat); return arr; }
+const LEAD_ORIGENS=[
+ {k:'formulario',lb:'Formulário / Simulação',ic:'📝',cor:'#8FB7D9'},
+ {k:'whatsapp',lb:'WhatsApp direto',ic:'💬',cor:'#7FB2A6'},
+ {k:'retencao',lb:'Reengajamento / Retenção',ic:'🔁',cor:'#E5C97B'},
+ {k:'captacao',lb:'Captação (Google/Meta)',ic:'📣',cor:'#D9A8C5'}
+];
+function leadOrigem(l){ const s=((l.obs||'')+' '+(l.tipo||'')).toLowerCase(); const t=(l.tipo||'');
+ if(/reten/.test(s)) return LEAD_ORIGENS[2];
+ if(/valor:|cartas:|contato:/.test(s)) return LEAD_ORIGENS[0];
+ if(/especialista/.test(s)||/^whats/.test(t)) return LEAD_ORIGENS[1];
+ if(t==='Consórcio'||/n[aã]o distribu/.test(s)) return LEAD_ORIGENS[3];
+ return {k:'outro',lb:'Outra origem',ic:'📄',cor:'#A8B8B3'}; }
+function crmLeadsFiltrados(arr){ let r=arr; if(view.crmCat&&view.crmCat!=='todas') r=r.filter(l=>leadCategoria(l).k===view.crmCat); if(view.crmOrigem&&view.crmOrigem!=='todas') r=r.filter(l=>leadOrigem(l).k===view.crmOrigem); return r; }
 function crmSortLeads(a){ const m=view.crmSort||''; const b=a.slice(); if(m==='valor_desc')b.sort((x,y)=>(+y.valor||0)-(+x.valor||0)); else if(m==='valor_asc')b.sort((x,y)=>(+x.valor||0)-(+y.valor||0)); else if(m==='novo')b.sort((x,y)=>(y.criadoEm||0)-(x.criadoEm||0)); else if(m==='antigo')b.sort((x,y)=>(x.criadoEm||0)-(y.criadoEm||0)); return b; }
 function crmSetCat(v){view.crmCat=v;render();}
+function crmSetOrigem(v){view.crmOrigem=v;render();}
 function crmSetSort(v){view.crmSort=v;render();}
 function fmtDataLead(ts){ if(!ts)return '—'; const d=new Date(ts); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getFullYear()).slice(2); }
 function diasLead(ts){ if(!ts)return ''; const d=Math.floor((Date.now()-ts)/86400000); return d<=0?'hoje':(d===1?'há 1 dia':'há '+d+' dias'); }
@@ -1518,7 +1535,7 @@ function leadPrefContato(l){ const s=(l.obs||'').toLowerCase(); const out=[];
 
 function leadCard(l,i){
   const last=CRM_STAGES.length-1;
-  return `<div class="lead" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><span class="ttype tt-${l.tipo}">${l.tipo}</span> <span class="ttype" style="background:${leadCategoria(l).cor}26;border:1px solid ${leadCategoria(l).cor}66;color:${leadCategoria(l).cor}">${leadCategoria(l).ic} ${leadCategoria(l).lb}</span> <div class="nm">${esc(l.nome)}</div> <div class="ct">${esc(l.contato||'')}</div> <div class="note" style="margin-top:4px;color:var(--soft)">📅 ${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</div> ${leadPrefContato(l)?`<div class="note" style="margin-top:3px;color:var(--gold,#C5A059)">${leadPrefContato(l)}</div>`:''} ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''}
+  return `<div class="lead" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><span class="ttype tt-${l.tipo}">${l.tipo}</span> <span class="ttype" style="background:${leadCategoria(l).cor}26;border:1px solid ${leadCategoria(l).cor}66;color:${leadCategoria(l).cor}">${leadCategoria(l).ic} ${leadCategoria(l).lb}</span> <span class="ttype" style="background:${leadOrigem(l).cor}26;border:1px solid ${leadOrigem(l).cor}66;color:${leadOrigem(l).cor}">${leadOrigem(l).ic} ${leadOrigem(l).lb}</span> <div class="nm">${esc(l.nome)}</div> <div class="ct">${esc(l.contato||'')}</div> <div class="note" style="margin-top:4px;color:var(--soft)">📅 ${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</div> ${leadPrefContato(l)?`<div class="note" style="margin-top:3px;color:var(--gold,#C5A059)">${leadPrefContato(l)}</div>`:''} ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''}
     ${l.obs?`<div class="note" style="margin-top:6px">${esc(l.obs)}</div>`:''}
     ${(l.atividades&&l.atividades.length)?`<div class="note" style="margin-top:6px;color:var(--soft)"> ${esc(l.atividades[l.atividades.length-1].texto)} · ${timeAgo(l.atividades[l.atividades.length-1].quando)}</div>`:''}
     <div class="note" style="margin-top:6px;color:var(--soft)">${l.ownerId?''+esc(user(l.ownerId).nome.split(' ')[0]):'⚠️ não distribuído'}</div> ${(isMaster()||isLider())?`<select onchange="crmAssign('${l.id}',this.value)" style="margin-top:6px;font-size:.74rem;padding:6px 8px"><option value="">— distribuir para —</option>${(db.accounts||[]).filter(a=>a.real&&a.role==='especialista'&&(isMaster()||a.leaderId===meId())).map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`:''}
