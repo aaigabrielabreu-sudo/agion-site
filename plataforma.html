@@ -2581,6 +2581,71 @@ function toggleTheme(){applyTheme(document.body.classList.contains('light')?'dar
 /* init */
 try{applyTheme(localStorage.getItem('agion_theme')||'dark')}catch(e){}
 document.getElementById('logEmail').focus();
+
+/* === funcoes recuperadas do doc de 09/jul (hotfix emenda) === */
+function _csvSafe(s){ s=String(s==null?'':s); if(/[;"\n]/.test(s)) s='"'+s.replace(/"/g,'""')+'"'; return s; }
+function _ymd(){ const d=new Date(); return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0'); }
+function masterReportCSV(){
+  const d=_reportData(); let csv='Cliente;Especialista;Patrimonio;Sobra mensal;Simulacoes\n';
+  d.rows.slice().sort((a,b)=>b.patr-a.patr).forEach(r=>{ csv+=[_csvSafe(r.cliente),_csvSafe(r.esp),Math.round(r.patr),Math.round(r.sobra),r.sims].join(';')+'\n'; });
+  csv+='\nRanking por especialista\nEspecialista;Clientes;Patrimonio;% do total\n';
+  d.rank.forEach(x=>{ csv+=[_csvSafe(x.esp),x.clientes,Math.round(x.patr),(d.totPatr?Math.round(x.patr/d.totPatr*100):0)+'%'].join(';')+'\n'; });
+  const K=_kpiModel();
+  csv+='\nEsforco por especialista\nEspecialista;Lider;Clientes;Patrimonio;Leads ativos;Ganhos;Conversao;Atividades;Tarefas concluidas;Tarefas total\n';
+  K.esps.slice().sort((a,b)=>b.atividades-a.atividades).forEach(e=>{ csv+=[_csvSafe(e.nome),_csvSafe(e.leaderId?(user(e.leaderId).nome||''):''),e.clientes,Math.round(e.patr),e.leadsAtivos,e.ganhos,e.conv+'%',e.atividades,e.tdone,e.tarefas].join(';')+'\n'; });
+  csv+='\nEsforco por lider\nLider;Especialistas;Clientes;Patrimonio;Leads ativos;Conversao;Atividades;Tarefas concluidas\n';
+  K.lideres.forEach(l=>{ csv+=[_csvSafe(l.nome),l.nEsp,l.clientes,Math.round(l.patr),l.leadsAtivos,l.conv+'%',l.atividades,l.tdone].join(';')+'\n'; });
+  csv+='\nTotais\nClientes;'+d.VC.length+'\nPatrimonio sob gestao;'+Math.round(d.totPatr)+'\nPipeline CRM;'+Math.round(d.cs.pipeline)+'\nSobra mensal;'+Math.round(d.sob)+'\n';
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'})); a.download='Agion_relatorio_'+_ymd()+'.csv'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(a.href)},3000);
+  logEvt&&logEvt('INSERT','app','Exportou relatório gerencial (Excel/CSV)',{}); flash('Relatório Excel baixado');
+}
+
+/* recuperada */
+function renderAssessorDash(C){
+  setTop('Painel do '+(isMaster()?'Master':isLider()?'Líder':'Especialista'),'Visão geral',(isMaster()||isLider())?'<button class="btn btn-gold btn-sm" onclick="go(\'gerencial\')">Dashboard Gerencial</button>':'');
+  const VC=visibleClients(); const VL=visibleLeads();
+  let totPatr=0,totApos=0,sob=0; VC.forEach(c=>{const t=totals(mainPlan(c));totPatr+=t.patr;sob+=t.sobra});
+  const sims=VC.reduce((a,c)=>a+c.plans.filter(p=>!p.main).length,0);
+  const cs=crmStats(); const ativosCrm=VL.filter(l=>!l.perdido).length; const pendentes=(db.tasks||[]).filter(t=>!t.feito);
+  const grpKey=(isMaster()||isLider()); const byOwner={}; VC.forEach(c=>{const t=totals(mainPlan(c)); const k=grpKey?((user(c.ownerId).nome||'—').split(' ')[0]):(c.nome||'—').split(' ')[0]; byOwner[k]=(byOwner[k]||0)+t.patr;}); const chLabels=Object.keys(byOwner); const chData=chLabels.map(k=>Math.round(byOwner[k]));
+  C.innerHTML=`
+   <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.users}${isMaster()?'Clientes (empresa)':'Meus clientes'}</div><b>${VC.length}</b></div> <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio sob gestão</div><b>${BRL(totPatr)}</b></div> <div class="kpi"><div class="lab">${ICN.funnel}Pipeline (CRM)</div><b>${BRL(cs.pipeline)}</b></div> <div class="kpi"><div class="lab">${ICN.check}Tarefas pendentes</div><b>${pendentes.length}</b></div> </div> <div class="grid2"> <div class="panel"><h2>${ICN.funnel} Funil de negócios <button class="btn btn-teal btn-sm right" onclick="go('crm')">Abrir CRM</button></h2> ${CRM_STAGES.map((st,i)=>{const n=VL.filter(l=>!l.perdido&&l.stage===i).length;const pct=ativosCrm?Math.round(n/ativosCrm*100):0;
+         return `<div style="margin-bottom:10px"><div class="row" style="font-size:.82rem"><span style="color:var(--head)">${esc(st)}</span><span style="color:var(--muted)">${n}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`}).join('')}
+     </div> <div class="panel"><h2>${ICN.check} Tarefas de hoje <button class="btn btn-teal btn-sm right" onclick="go('tarefas')">Ver todas</button></h2> ${pendentes.slice(0,5).map(t=>`<div class="task"><div class="tk-cb" onclick="taskToggle('${t.id}');go('dash')">${t.feito?'✓':''}</div><div class="tk-t">${esc(t.titulo)}</div><div class="tk-d">${esc(t.quando||'')}</div></div>`).join('')||'<p class="note">Sem tarefas pendentes </p>'}
+     </div> </div> ${VC.length?`<div class="panel"><h2>${ICN.wallet} Patrimônio sob gestão por ${grpKey?'especialista':'cliente'}</h2><div style="height:240px;margin-top:8px"><canvas id="dashChart"></canvas></div></div>`:''} <div class="panel"><h2>${ICN.users} Carteira de clientes <button class="btn btn-gold btn-sm right" onclick="newClient()">+ Novo cliente</button></h2> <table><thead><tr><th>Cliente</th><th class="r">Patrimônio</th><th class="r">Aporte/mês</th><th class="r">Aposentar</th><th></th></tr></thead><tbody> ${VC.slice(0,10).map(c=>{const m=mainPlan(c),t=totals(m);return `<tr><td><b style="color:var(--head)">${esc(c.nome)}</b><br><span style="color:var(--soft);font-size:.78rem">${esc(c.email||'')}${isMaster()?' · '+esc(user(c.ownerId).nome.split(' ')[0]):''}</span></td><td class="r">${BRL(t.patr)}</td><td class="r">${BRL(t.sobra)}</td><td class="r">${m.apos} anos</td><td class="r"><button class="btn btn-teal btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Abrir plano</button></td></tr>`}).join('')||'<tr><td colspan="5" class="note">Nenhum cliente ainda.</td></tr>'}${VC.length>10?`<tr><td colspan="5" style="text-align:center;padding-top:10px"><button class="btn btn-ghost btn-sm" onclick="go('users')">Ver todos os ${VC.length} clientes →</button></td></tr>`:''}
+     </tbody></table> </div>`;
+  if(VC.length) mkChart('dashChart',{type:'bar',data:{labels:chLabels,datasets:[{data:chData,backgroundColor:'#C5A059',borderRadius:6,maxBarThickness:60}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>BRL(c.parsed.y)}}},scales:{x:{grid:{display:false},ticks:{color:'#9DB5B1'}},y:{grid:{color:'rgba(143,217,204,.1)'},ticks:{color:'#9DB5B1',callback:v=>'R$ '+(v/1000).toFixed(0)+'k'}}}}});
+}
+
+/* recuperada */
+function masterReportPDF(){
+  const d=_reportData(); const now=new Date().toLocaleString('pt-BR'); const K=_kpiModel();
+  const lidEff=K.lideres.slice().sort((a,b)=>b.atividades-a.atividades).map(l=>'<tr><td>'+esc(l.nome)+'</td><td class="n">'+l.nEsp+'</td><td class="n">'+l.clientes+'</td><td class="n">'+BRL(l.patr)+'</td><td class="n">'+l.leadsAtivos+'</td><td class="n">'+l.conv+'%</td><td class="n">'+l.atividades+'</td><td class="n">'+l.tdone+'/'+l.tarefas+'</td></tr>').join('');
+  const espEff=K.esps.slice().sort((a,b)=>b.atividades-a.atividades).map(e=>'<tr><td>'+esc(e.nome)+'</td><td>'+(e.leaderId?esc((user(e.leaderId).nome||'—').split(' ')[0]):'—')+'</td><td class="n">'+e.clientes+'</td><td class="n">'+BRL(e.patr)+'</td><td class="n">'+e.leadsAtivos+'</td><td class="n">'+e.ganhos+'</td><td class="n">'+e.conv+'%</td><td class="n">'+e.atividades+'</td><td class="n">'+e.tdone+'/'+e.tarefas+'</td></tr>').join('');
+  const logo='https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png';
+  const rankRows=d.rank.map(x=>'<tr><td>'+esc(x.esp)+'</td><td class="n">'+x.clientes+'</td><td class="n">'+BRL(x.patr)+'</td><td class="n">'+(d.totPatr?Math.round(x.patr/d.totPatr*100):0)+'%</td></tr>').join('')||'<tr><td colspan="4">—</td></tr>';
+  const cliRows=d.rows.slice().sort((a,b)=>b.patr-a.patr).map(r=>'<tr><td>'+esc(r.cliente)+'</td><td>'+esc(r.esp)+'</td><td class="n">'+BRL(r.patr)+'</td><td class="n">'+BRL(r.sobra)+'</td></tr>').join('')||'<tr><td colspan="4">—</td></tr>';
+  const actRows=d.acts.map(e=>'<tr><td class="dt">'+esc(fmtWhen(new Date(e.criado_em).getTime()))+'</td><td>'+esc(actText(e))+'</td></tr>').join('');
+  const H='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório Gerencial Agion</title><style>'
+   +'*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;color:#12211d;padding:34px 40px;background:#fff}'
+   +'.hd{display:flex;align-items:center;gap:14px;border-bottom:3px solid #0E4A41;padding-bottom:14px;margin-bottom:8px}.hd img{height:46px}.hd h1{font-size:22px;color:#0B2A26}.hd .sub{color:#5A6763;font-size:12px;margin-top:2px}'
+   +'.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 6px}.kpi{border:1.5px solid rgba(14,74,65,.25);border-left:4px solid #0E4A41;border-radius:10px;padding:12px 14px}.kpi .l{font-size:10px;color:#5A6763;text-transform:uppercase;letter-spacing:.05em}.kpi b{font-size:19px;color:#0B2A26}'
+   +'h2{font-size:15px;color:#0B3A33;margin:24px 0 8px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:7px 9px;border-bottom:1px solid #e3ece8}th{background:#EAF3EE;color:#0B3A33;text-transform:uppercase;font-size:10px;letter-spacing:.04em}td.n{text-align:right}td.dt{white-space:nowrap;color:#5A6763}'
+   +'.ft{margin-top:26px;color:#8a9895;font-size:11px;border-top:1px solid #e3ece8;padding-top:10px}@media print{body{padding:0 6px}}'
+   +'</style></head><body>'
+   +'<div class="hd"><img src="'+logo+'"><div><h1>Relatório Gerencial</h1><div class="sub">Agion Consórcios · '+esc(now)+' · '+esc(user(session.userId).nome||'')+'</div></div></div>'
+   +'<div class="kpis"><div class="kpi"><div class="l">Clientes</div><b>'+d.VC.length+'</b></div><div class="kpi"><div class="l">Patrimônio sob gestão</div><b>'+BRL(d.totPatr)+'</b></div><div class="kpi"><div class="l">Pipeline (CRM)</div><b>'+BRL(d.cs.pipeline)+'</b></div><div class="kpi"><div class="l">Sobra mensal</div><b>'+BRL(d.sob)+'</b></div></div>'
+   +'<h2>Ranking por especialista</h2><table><thead><tr><th>Especialista</th><th class="n">Clientes</th><th class="n">Patrimônio</th><th class="n">% do total</th></tr></thead><tbody>'+rankRows+'</tbody></table>'
+   +(lidEff?'<h2>Por líder (esforço)</h2><table><thead><tr><th>Líder</th><th class="n">Espec.</th><th class="n">Clientes</th><th class="n">Patrimônio</th><th class="n">Leads</th><th class="n">Conv.</th><th class="n">Atividades</th><th class="n">Tarefas</th></tr></thead><tbody>'+lidEff+'</tbody></table>':'')
+   +'<h2>Por especialista (esforço)</h2><table><thead><tr><th>Especialista</th><th>Líder</th><th class="n">Clientes</th><th class="n">Patrimônio</th><th class="n">Leads</th><th class="n">Ganhos</th><th class="n">Conv.</th><th class="n">Atividades</th><th class="n">Tarefas</th></tr></thead><tbody>'+(espEff||'<tr><td colspan="9">—</td></tr>')+'</tbody></table>'
+   +'<h2>Carteira de clientes</h2><table><thead><tr><th>Cliente</th><th>Especialista</th><th class="n">Patrimônio</th><th class="n">Sobra/mês</th></tr></thead><tbody>'+cliRows+'</tbody></table>'
+   +(d.acts.length?'<h2>Atividades recentes</h2><table><thead><tr><th>Data</th><th>Atividade</th></tr></thead><tbody>'+actRows+'</tbody></table>':'')
+   +'<div class="ft">Gerado automaticamente pela plataforma Agion em '+esc(now)+'. Documento interno — uso gerencial.</div>'
+   +'<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print()},500)}<\/scr'+'ipt></body></html>';
+  const w=window.open('','_blank'); if(!w){ flash('Permita pop-ups para gerar o PDF'); return; }
+  w.document.open(); w.document.write(H); w.document.close();
+  logEvt&&logEvt('INSERT','app','Gerou relatório gerencial (PDF)',{});
+}
 </script>
 </body>
 </html>
