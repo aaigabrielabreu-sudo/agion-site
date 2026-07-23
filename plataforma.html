@@ -1509,9 +1509,11 @@ const LEAD_ORIGENS=[
  {k:'formulario',lb:'Formulário / Simulação',ic:'📝',cor:'#8FB7D9'},
  {k:'whatsapp',lb:'WhatsApp direto',ic:'💬',cor:'#7FB2A6'},
  {k:'retencao',lb:'Reengajamento / Retenção',ic:'🔁',cor:'#E5C97B'},
- {k:'captacao',lb:'Captação (Google/Meta)',ic:'📣',cor:'#D9A8C5'}
+ {k:'captacao',lb:'Captação (Google/Meta)',ic:'📣',cor:'#D9A8C5'},
+ {k:'instagram',lb:'Instagram',ic:'📸',cor:'#C86FA6'}
 ];
 function leadOrigem(l){ const s=((l.obs||'')+' '+(l.tipo||'')).toLowerCase(); const t=(l.tipo||'');
+ if(/instagram/.test(s)) return LEAD_ORIGENS[4];
  if(/reten/.test(s)) return LEAD_ORIGENS[2];
  if(/valor:|cartas:|contato:/.test(s)) return LEAD_ORIGENS[0];
  if(/especialista/.test(s)||/^whats/.test(t)) return LEAD_ORIGENS[1];
