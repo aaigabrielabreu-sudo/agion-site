@@ -1231,7 +1231,7 @@ async function apiFetch(path,opts){
 }
 function convDig(p){return (p||'').replace(/\D/g,'');}
 function convFmtPhone(p){p=convDig(p);if(p.length>=12)return '+'+p.slice(0,2)+' ('+p.slice(2,4)+') '+p.slice(4,9)+'-'+p.slice(9);if(p.length>=10)return '+'+p.slice(0,2)+' '+p.slice(2);return p;}
-function convTimeHM(ts){try{return new Date((ts||0)*1000).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}catch(e){return'';}}
+function convTimeHM(ts){try{var d=new Date((ts||0)*1000),n=new Date();var sd=d.getFullYear()===n.getFullYear()&&d.getMonth()===n.getMonth()&&d.getDate()===n.getDate();var hm=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});return sd?hm:(d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+hm);}catch(e){return'';}}
 function convDayKey(ts){const d=new Date((ts||0)*1000);return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();}
 function convDayLabel(ts){const d=new Date((ts||0)*1000),now=Date.now()/1000;if(convDayKey(ts)===convDayKey(now))return 'Hoje';if(convDayKey(ts)===convDayKey(now-86400))return 'Ontem';return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});}
 function convInitials(s){s=(s||'').trim();if(!s)return '#';const p=s.split(/\s+/);return (((p[0]||'')[0]||'')+((p.length>1?p[p.length-1][0]:'')||'')).toUpperCase();}
@@ -1476,6 +1476,7 @@ function renderCRM(C){
     (naoDistrib.length?`<div class="banner"> ${naoDistrib.length} lead(s) aguardando distribuição. Use o seletor “Distribuir” em cada cartão para encaminhar a um especialista.</div>`:'')+
     `<div class="panel" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:12px 16px;margin:14px 0">
       <b style="font-size:.85rem">🔎 Filtrar leads:</b>
+      <input id="crmBuscaInp" type="search" value="${esc(view.crmBusca||'')}" oninput="crmSetBusca(this.value)" placeholder="Buscar por nome ou no resumo..." style="padding:8px 12px;font-size:.82rem;min-width:240px;border-radius:8px;border:1px solid rgba(197,160,89,.35);background:transparent;color:inherit">
       <select onchange="crmSetCat(this.value)" style="padding:8px 12px;font-size:.82rem">
         <option value="todas">Todas as categorias (${VLall.filter(l=>!l.perdido).length})</option>
         ${LEAD_CATS.concat([{k:'outros',lb:'Outros',ic:'📄'}]).map(c=>`<option value="${c.k}" ${view.crmCat===c.k?'selected':''}>${c.ic} ${c.lb} (${VLall.filter(l=>!l.perdido&&leadCategoria(l).k===c.k).length})</option>`).join('')}
@@ -1516,11 +1517,12 @@ function leadOrigem(l){ const s=((l.obs||'')+' '+(l.tipo||'')).toLowerCase(); co
  if(/especialista/.test(s)||/^whats/.test(t)) return LEAD_ORIGENS[1];
  if(t==='Consórcio'||/n[aã]o distribu/.test(s)) return LEAD_ORIGENS[3];
  return {k:'outro',lb:'Outra origem',ic:'📄',cor:'#A8B8B3'}; }
-function crmLeadsFiltrados(arr){ let r=arr; if(view.crmCat&&view.crmCat!=='todas') r=r.filter(l=>leadCategoria(l).k===view.crmCat); if(view.crmOrigem&&view.crmOrigem!=='todas') r=r.filter(l=>leadOrigem(l).k===view.crmOrigem); return r; }
+function crmLeadsFiltrados(arr){ let r=arr; if(view.crmCat&&view.crmCat!=='todas') r=r.filter(l=>leadCategoria(l).k===view.crmCat); if(view.crmOrigem&&view.crmOrigem!=='todas') r=r.filter(l=>leadOrigem(l).k===view.crmOrigem); if(view.crmBusca){var _q=(view.crmBusca||'').toLowerCase().trim(); if(_q) r=r.filter(l=>((l.nome||'')+' '+(l.obs||'')).toLowerCase().includes(_q));} return r; }
 function crmSortLeads(a){ const m=view.crmSort||''; const b=a.slice(); if(m==='valor_desc')b.sort((x,y)=>(+y.valor||0)-(+x.valor||0)); else if(m==='valor_asc')b.sort((x,y)=>(+x.valor||0)-(+y.valor||0)); else if(m==='novo')b.sort((x,y)=>(y.criadoEm||0)-(x.criadoEm||0)); else if(m==='antigo')b.sort((x,y)=>(x.criadoEm||0)-(y.criadoEm||0)); return b; }
 function crmSetCat(v){view.crmCat=v;render();}
 function crmSetOrigem(v){view.crmOrigem=v;render();}
 function crmSetSort(v){view.crmSort=v;render();}
+function crmSetBusca(v){view.crmBusca=v;render();var el=document.getElementById('crmBuscaInp');if(el){try{el.focus();el.setSelectionRange(el.value.length,el.value.length);}catch(e){}}}
 function fmtDataLead(ts){ if(!ts)return '—'; const d=new Date(ts); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getFullYear()).slice(2); }
 function diasLead(ts){ if(!ts)return ''; const d=Math.floor((Date.now()-ts)/86400000); return d<=0?'hoje':(d===1?'há 1 dia':'há '+d+' dias'); }
 
@@ -1541,7 +1543,7 @@ function leadCard(l,i){
   return `<div class="lead" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><span class="ttype tt-${l.tipo}">${l.tipo}</span> <span class="ttype" style="background:${leadCategoria(l).cor}26;border:1px solid ${leadCategoria(l).cor}66;color:${leadCategoria(l).cor}">${leadCategoria(l).ic} ${leadCategoria(l).lb}</span> <span class="ttype" style="background:${leadOrigem(l).cor}26;border:1px solid ${leadOrigem(l).cor}66;color:${leadOrigem(l).cor}">${leadOrigem(l).ic} ${leadOrigem(l).lb}</span> <div class="nm">${esc(l.nome)}</div> <div class="ct">${esc(l.contato||'')}</div> <div class="note" style="margin-top:4px;color:var(--soft)">📅 ${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</div> ${leadPrefContato(l)?`<div class="note" style="margin-top:3px;color:var(--gold,#C5A059)">${leadPrefContato(l)}</div>`:''} ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''}
     ${l.obs?`<div class="note" style="margin-top:6px">${esc(l.obs)}</div>`:''}
     ${(l.atividades&&l.atividades.length)?`<div class="note" style="margin-top:6px;color:var(--soft)"> ${esc(l.atividades[l.atividades.length-1].texto)} · ${timeAgo(l.atividades[l.atividades.length-1].quando)}</div>`:''}
-    <div class="note" style="margin-top:6px;color:var(--soft)">${l.ownerId?''+esc(user(l.ownerId).nome.split(' ')[0]):'⚠️ não distribuído'}</div> ${(isMaster()||isLider())?`<select onchange="crmAssign('${l.id}',this.value)" style="margin-top:6px;font-size:.74rem;padding:6px 8px"><option value="">— distribuir para —</option>${(db.accounts||[]).filter(a=>a.real&&a.role==='especialista'&&(isMaster()||a.leaderId===meId())).map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`:''}
+    <div class="note" style="margin-top:6px;color:var(--soft)">${l.ownerId?''+esc(user(l.ownerId).nome.split(' ')[0]):'⚠️ não distribuído'}</div> ${(isMaster()||isLider())?`<select onchange="crmAssign('${l.id}',this.value)" style="margin-top:6px;font-size:.74rem;padding:6px 8px"><option value="">— distribuir para —</option>${(db.accounts||[]).filter(a=>a.real&&(a.role==='especialista'||a.role==='master')&&(isMaster()||a.leaderId===meId())).map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`:''}
     <div class="acts"> ${i>0?`<button onclick="crmMove('${l.id}',-1)" title="Voltar etapa">◀</button>`:''}
       ${i<last?`<button onclick="crmMove('${l.id}',1)" title="Avançar etapa">▶</button>`:''}
       <button onclick="crmNote('${l.id}')"> Nota</button> <button onclick="openLead('${l.id}')">✎ Editar</button> <button onclick="crmToClient('${l.id}')">→ Cliente</button> <button onclick="crmLose('${l.id}')">Perdeu</button> </div></div>`;
