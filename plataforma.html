@@ -1178,16 +1178,19 @@ bootAuth();
 /* ===================== RENDER PRINCIPAL ===================== */
 /* ===== Conversas estilo WhatsApp (bot Agion via VPS) ===== */
 const BOT_API='https://bot.agionconsorcios.com.br';
+function iaPanelHtml(){ return '<div class="panel" id="iaBox" style="margin-bottom:14px"><div class="row" style="align-items:center"><h2 style="margin:0">\ud83e\udde0 C\u00e9rebro do bot</h2><button class="btn btn-ghost btn-sm right" onclick="iaLoad()">\u21bb</button></div><div id="iaBody"><p class="note">Carregando\u2026</p></div></div>'; }
+async function iaLoad(){ var b=document.getElementById('iaBody'); if(!b)return; var r=await apiFetch('/api/ia'); if(!r||!r.ok){ b.innerHTML='<p class="note">N\u00e3o consegui falar com o rob\u00f4 agora.</p>'; return; } var p=(r.data&&r.data.provider)||'auto'; var ok=!!(r.data&&r.data.claude_ok); var opts=[['auto','\u26a1 Autom\u00e1tico','Claude primeiro, cai no Gemini se faltar cr\u00e9dito'],['claude','\ud83d\udfe3 S\u00f3 Claude','Usa sempre o Claude (melhor qualidade)'],['gemini','\ud83d\udd35 S\u00f3 Gemini','Usa sempre o Gemini (backup)']]; var botoes=opts.map(function(o){var on=(p===o[0]); return '<button onclick="iaSet(\''+o[0]+'\')" class="btn '+(on?'':'btn-ghost')+'" title="'+o[2]+'">'+o[1]+(on?' \u2713':'')+'</button>';}).join(' '); var lbl={auto:'Autom\u00e1tico',claude:'S\u00f3 Claude',gemini:'S\u00f3 Gemini'}[p]||p; b.innerHTML='<p class="note" style="margin:0 0 10px">Ativo agora: <b style="color:var(--head)">'+lbl+'</b>'+(ok?'':' \u00b7 \u26a0\ufe0f Claude sem chave configurada')+'</p><div style="display:flex;gap:8px;flex-wrap:wrap">'+botoes+'</div><p class="note" style="margin:10px 0 0;font-size:.78rem">A troca vale a partir da pr\u00f3xima mensagem que o bot receber \u2014 sem reiniciar nada.</p>'; }
+async function iaSet(p){ var b=document.getElementById('iaBody'); if(b)b.innerHTML='<p class="note">Trocando\u2026</p>'; var r=await apiFetch('/api/ia',{method:'POST',body:JSON.stringify({provider:p})}); if(!r||!r.ok){ if(b)b.innerHTML='<p class="note">Falha ao trocar. Tente de novo.</p>'; setTimeout(iaLoad,1200); return; } iaLoad(); }
 function renderDisparos(C){
   setTop('Disparos','Mensagens e boletos que o bot enviou','');
-  C.innerHTML='<div class="panel"><p class="note">Carregando disparos\u2026</p></div>';
+  C.innerHTML=iaPanelHtml()+'<div id="dispWrap"><div class="panel"><p class="note">Carregando disparos\u2026</p></div></div>'; iaLoad();
   (async function(){
     var r; try{ r=await apiFetch('/api/disparos'); }catch(e){ r=null; }
-    if(!r||!r.ok){ C.innerHTML='<div class="panel"><h3 style="margin:0 0 6px">Disparos</h3><p class="note">N\u00e3o consegui carregar agora. Tente de novo em instantes.</p></div>'; return; }
+    if(!r||!r.ok){ (document.getElementById('dispWrap')||C).innerHTML='<div class="panel"><h3 style="margin:0 0 6px">Disparos</h3><p class="note">N\u00e3o consegui carregar agora. Tente de novo em instantes.</p></div>'; return; }
     var d=r.data||{};
     var rows=d.disparos||d.data||d.items||d.clientes||(Array.isArray(d)?d:[]);
     var esc2=(typeof esc==='function')?esc:function(x){return (''+(x==null?'':x)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
-    if(!rows||!rows.length){ C.innerHTML='<div class="panel"><h3 style="margin:0 0 6px">Disparos</h3><p class="note">Nenhum disparo registrado ainda. Quando o bot enviar boletos/mensagens, eles aparecem aqui.</p></div>'; return; }
+    if(!rows||!rows.length){ (document.getElementById('dispWrap')||C).innerHTML='<div class="panel"><h3 style="margin:0 0 6px">Disparos</h3><p class="note">Nenhum disparo registrado ainda. Quando o bot enviar boletos/mensagens, eles aparecem aqui.</p></div>'; return; }
     var html='<div style="margin-bottom:12px"><input id="dispBusca" placeholder="Buscar por nome ou telefone" oninput="_dispFiltra(this.value)" style="width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:11px 14px;border-radius:10px;font:inherit"></div><div id="dispLista">';
     html+=rows.map(function(c){
       var nome=esc2(c.nome||c.name||c.titular||c.contato||c.phone||'Sem nome');
@@ -1202,7 +1205,7 @@ function renderDisparos(C){
       return '<div class="ccard dispItem" data-k="'+(nome+' '+fone).toLowerCase()+'"><div class="row"><h3 style="margin:0">'+nome+'</h3><span class="tag">'+total+' envio(s)</span></div><div class="meta">'+(fone?('\uD83D\uDCF1 '+fone):'')+(ult?(' \u00b7 \u00faltimo: '+ult):'')+'</div>'+(det?('<div style="margin-top:8px">'+det+'</div>'):'')+'</div>';
     }).join('');
     html+='</div>';
-    C.innerHTML=html;
+    (document.getElementById('dispWrap')||C).innerHTML=html;
   })();
 }
 function _dispFiltra(q){ q=(q||'').toLowerCase(); var els=document.querySelectorAll('#dispLista .dispItem'); for(var i=0;i<els.length;i++){ els[i].style.display = els[i].getAttribute('data-k').indexOf(q)>=0?'':'none'; } }
