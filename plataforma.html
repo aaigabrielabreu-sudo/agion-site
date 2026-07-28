@@ -820,24 +820,39 @@ function projetar(p){
   const saqueAnual=(goalRenda?goalRenda.valor:0)*12;
   const metas=(p.goals||[]).filter(g=>g.tipo==='meta');
   const idades=[]; for(let a=idade;a<=vida;a++) idades.push(a);
+  // prazo (anos) em receitas/despesas: vazio ou 0 = vale sempre; d = vale pelos primeiros d anos
+  const durOk=(it,yr)=>{const d=+((it&&it.anos)||0);return !d||yr<d;};
+  const rendaMesAt=yr=>(p.incomes||[]).filter(i=>durOk(i,yr)).reduce((s,i)=>s+mensal(i.valor,i.freq),0);
+  const despMesAt=yr=>(p.expenses||[]).filter(i=>durOk(i,yr)).reduce((s,i)=>s+mensal(i.valor,i.freq),0);
+  const apAno=idades.map(a=>Math.max(0,rendaMesAt(a-idade)-despMesAt(a-idade))*12);
   // consórcio: parcelas pagas (saída) e contemplação da carta (entrada de patrimônio)
   const cons=(p.consorcios||[]);
   const consFee=co=>co.tipo==='Auto'?0.16:0.22;
-  // {s: parcela paga, e: carta capitalizada que entra no portfólio, rent: aluguel anual se virar imóvel}
-  function consAt(yr){let s=0,e=0,rent=0;cons.forEach(co=>{const cr=+co.credito||0;const prazo=+co.prazoMeses||200;const cm=+co.contemplaMes||12;const cYr=Math.floor(cm/12);const integral=cr*(1+consFee(co))/prazo;const meia=integral/2;for(let k=0;k<12;k++){const mi=yr*12+k;if(mi>=0&&mi<prazo)s+=(mi<cm?meia:integral);}
-    if(co.uso==='imovel'){ if(yr>=cYr) rent += cr*(((+co.aluguel)||0.8)/100)*12; }   // imóvel: gera aluguel a partir da contemplação
-    else { if(cYr===yr) e+=cr; }                                                       // capitalizar: carta entra no portfólio
+  const consFrac=co=>co.modalidade==='inteira'?1:co.modalidade==='p70'?0.7:0.5;
+  const consBase=co=>{const cr=+co.credito||0;const prazo=+co.prazoMeses||200;const man=+co.parcela||0;return man>0?man:cr*(1+consFee(co))/prazo;};
+  // pré-cálculo por carta: parcela conforme modalidade + reajuste anual + diluição pós-contemplação (parcela inteira + frações não pagas ÷ meses restantes)
+  const consPre=cons.map(co=>{const cr=+co.credito||0;const prazo=+co.prazoMeses||200;const cm=Math.min(+co.contemplaMes||12,prazo);const frac=consFrac(co);const rj=(+co.reajuste||0)/100;const base=consBase(co);
+    let def=0; if(frac<1){ for(let m=0;m<cm;m++) def+=base*Math.pow(1+rj,Math.floor(m/12))*(1-frac); }
+    const dil=def/Math.max(1,prazo-cm);
+    return {co,cr,prazo,cm,cYr:Math.floor(cm/12),frac,rj,base,dil};});
+  // {s: parcelas pagas no ano, e: carta que entra no portfólio, rent: aluguel anual}
+  function consAt(yr){let s=0,e=0,rent=0;consPre.forEach(q=>{const co=q.co;
+    for(let k=0;k<12;k++){const mi=yr*12+k;if(mi<0||mi>=q.prazo)continue;const integral=q.base*Math.pow(1+q.rj,Math.floor(mi/12));s+=(mi<q.cm?integral*q.frac:integral+q.dil);}
+    const cartaC=q.cr*Math.pow(1+q.rj,q.cYr);
+    if(co.uso==='imovel'){ if(yr>=q.cYr) rent += cartaC*(((+co.aluguel)||0.8)/100)*12; }   // imóvel: gera aluguel a partir da contemplação
+    else if(co.uso==='consumo'){ }                                                          // consumo (ex.: veículo próprio): parcela é despesa, carta NÃO vira investimento
+    else { if(q.cYr===yr) e+=cartaC; }                                                      // capitalizar: carta entra no portfólio
   });return{s,e,rent};}
   const consImovel=cons.filter(co=>co.uso==='imovel').reduce((s,co)=>s+(+co.credito||0),0);
   // gera uma série de patrimônio para uma dada taxa (3 cenários: preta/verde/vermelha)
   function serieFor(rate){
     const arr=[]; let pat=t.patr;
-    for(let a=idade;a<=apos;a++){ arr.push(Math.max(0,pat));
+    for(let a=idade;a<=apos;a++){ arr.push(Math.max(0,isFinite(pat)?pat:0));
       const gm=metas.filter(g=>(g.idade||apos)===a).reduce((s,g)=>s+(+g.valor||0),0);
       const cc=consAt(a-idade);
-      pat=(pat-gm+cc.e)*(1+rate)+aporteAnual-cc.s+cc.rent; }
+      pat=(pat-gm+cc.e)*(1+rate)+(apAno[a-idade]!==undefined?apAno[a-idade]:aporteAnual)-cc.s+cc.rent; }
     let pd=pat;
-    for(let a=apos+1;a<=vida;a++){ const cc=consAt(a-idade); pd=(pd+cc.e)*(1+rate)-saqueAnual-cc.s+cc.rent; arr.push(Math.max(0,pd)); }
+    for(let a=apos+1;a<=vida;a++){ const cc=consAt(a-idade); pd=(pd+cc.e)*(1+rate)-saqueAnual-cc.s+cc.rent; arr.push(Math.max(0,isFinite(pd)?pd:0)); }
     return arr;
   }
   const spread=({Conservador:.02,Moderado:.03,Arrojado:.045}[p.perfil]||.025);
@@ -849,7 +864,7 @@ function projetar(p){
   // balanço financeiro ano a ano (receita, despesa, saldo por idade)
   const rendaAnual=t.renda*12, despAnual=t.desp*12;
   const balanco=idades.map(a=>{ const work=a<apos;
-    const receita=work?rendaAnual:saqueAnual; const despesa=despAnual;
+    const receita=work?rendaMesAt(a-idade)*12:saqueAnual; const despesa=despMesAt(a-idade)*12;
     return {idade:a, receita, despesa, saldo:receita-despesa, patrimonio:serie[a-idade]||0}; });
   const fatorDep=r>0?(1-Math.pow(1+r,-anosRenda))/r:anosRenda;
   const alvoConsumo=saqueAnual*fatorDep;
@@ -861,7 +876,7 @@ function projetar(p){
   const vol={Conservador:.05,Moderado:.10,Arrojado:.16}[p.perfil]||.08;
   let ok=0,N=500;
   for(let s=0;s<N;s++){let v=t.patr;
-    for(let a=idade;a<apos;a++){const gm=metas.filter(g=>(g.idade||apos)===a).reduce((x,g)=>x+(+g.valor||0),0);const cc=consAt(a-idade);v=(v-gm+cc.e)*(1+r+gauss()*vol)+aporteAnual-cc.s+cc.rent;}
+    for(let a=idade;a<apos;a++){const gm=metas.filter(g=>(g.idade||apos)===a).reduce((x,g)=>x+(+g.valor||0),0);const cc=consAt(a-idade);v=(v-gm+cc.e)*(1+r+gauss()*vol)+(apAno[a-idade]!==undefined?apAno[a-idade]:aporteAnual)-cc.s+cc.rent;}
     let alive=true;for(let a=apos;a<vida;a++){const cc=consAt(a-idade);v=(v+cc.e)*(1+r+gauss()*vol)-saqueAnual-cc.s+cc.rent;if(v<-1){alive=false;break}}
     if(alive)ok++;}
   const reservaIdeal=t.desp*6;
@@ -872,13 +887,12 @@ function projetar(p){
   const poupScore=clamp((t.renda>0?t.sobra/t.renda:0)/0.20)*100;
   const reservaScore=reservaIdeal>0?clamp(reservaAtual/reservaIdeal)*100:100;
   const saude=Math.round(0.5*prob+0.25*reservaScore+0.25*poupScore);
-  // proteção: necessidade de seguro de vida (cobre dívidas + anos de despesa - ativos líquidos)
-  const protAnos=apos>idade?Math.min(10,apos-idade):5;
-  const seguroIdeal=Math.max(0, t.passivos + despAnual*protAnos - t.patr);
+  // proteção: regra Agion — seguro de vida = 10% do patrimônio total do cliente
+  const seguroIdeal=Math.max(0, t.patr*0.10);
   const seguroAtual=(+(p.seguro&&p.seguro.atual)||0);
   const taxaSaque=patApos>0?saqueAnual/patApos*100:0;
   const consCredito=cons.reduce((s,co)=>s+(+co.credito||0),0);
-  const consParcela=cons.reduce((s,co)=>s+(+co.credito||0)*(1+consFee(co))/((+co.prazoMeses)||200)/2,0);
+  const consParcela=consPre.reduce((s,q)=>s+q.base*q.frac,0);
   const consAluguel=cons.filter(co=>co.uso==='imovel').reduce((s,co)=>s+(+co.credito||0)*(((+co.aluguel)||0.8)/100),0);
   const numIndep=(saqueAnual||despAnual)/0.04;
   const indepPct=numIndep>0?Math.min(100,Math.round(t.patr/numIndep*100)):0;
@@ -889,7 +903,7 @@ function diagnostico(p,R){
   const d=[]; const idealMes=R.aporteIdeal/12;
   if(R.prob>=80) d.push(['ok',`Plano consistente: cerca de <b>${R.prob}%</b> de chance de manter a renda desejada até os ${p.vida} anos.`]);
   else if(R.prob>=55) d.push(['warn',`Plano em rota de atenção (<b>${R.prob}%</b>). Pequenos ajustes elevam bastante a segurança.`]);
-  else d.push(['bad',`Risco elevado de o patrimônio não durar (<b>${R.prob}%</b>). Vale revisar aporte, prazo ou meta de renda.`]);
+  else d.push(['warn',`Seu plano está em construção (<b>${R.prob}%</b> hoje) — com os ajustes certos de aporte, prazo, renda-alvo ou uma carta de consórcio, dá para elevar bastante a segurança.`]);
   if(idealMes>R.sobra+1){const dif=idealMes-Math.max(0,R.sobra);d.push(['warn',`Para atingir a meta no prazo, o aporte ideal é <b>${BRL(idealMes)}/mês</b> — ${BRL(dif)} acima da sua sobra atual.`]);}
   else if(R.sobra>0) d.push(['ok',`Sua capacidade de aporte (<b>${BRL(R.sobra)}/mês</b>) já cobre o necessário para a meta.`]);
   if(R.reservaAtual<R.reservaIdeal) d.push(['warn',`Reserva de emergência abaixo do ideal: <b>${BRL(R.reservaAtual)}</b> de ${BRL(R.reservaIdeal)} (6 meses de despesas em renda fixa).`]);
@@ -897,6 +911,12 @@ function diagnostico(p,R){
   if(R.prob<70 && p.apos<70) d.push(['warn',`Cenário alternativo: adiar a aposentadoria para os <b>${p.apos+2}</b> anos tende a elevar bastante a probabilidade de sucesso.`]);
   const aloc={Conservador:'foco em renda fixa e baixa volatilidade',Moderado:'mix equilibrado entre renda fixa e variável',Arrojado:'maior peso em renda variável e ativos de crescimento'}[p.perfil];
   if(aloc) d.push(['ok',`Perfil <b>${p.perfil}</b>: alocação sugerida com ${aloc}.`]);
+  if(R.consCredito>0){
+    d.push(['ok',`Consórcio no plano: <b>${BRL(R.consCredito)}</b> em carta(s), com parcela de <b>${BRL(R.consParcela)}/mês</b> até a contemplação — patrimônio acelerado <b>sem juros</b>.`]);
+    if(R.consAluguel>0) d.push(['ok',`Após a contemplação, o imóvel da carta tende a gerar cerca de <b>${BRL(R.consAluguel)}/mês</b> de renda de aluguel, reforçando o plano.`]);
+  } else {
+    d.push(['ok',`Oportunidade Agion: uma carta de consórcio com parcela reduzida até a contemplação acelera suas metas <b>sem juros</b> — converse com seu especialista.`]);
+  }
   return d;
 }
 /* ===== ORGANOGRAMA / JORNADA DE METAS ===== */
@@ -905,16 +925,20 @@ function defaultSteps(p,g){
   if(g.tipo==='renda'){
     return [
       `Garantir a reserva de emergência: ${BRL(p.expenses?totals(p).desp*6:0)} (6 meses de despesas) em liquidez.`,
-      `Aportar mensalmente cerca de ${BRL(Math.max(aporte,r.aporteIdeal/12))} em investimentos de longo prazo.`,
+      `Aportar mensalmente cerca de ${BRL(r.aporteIdeal/12)} em investimentos de longo prazo (valor já considera os juros compostos ao longo do tempo).`,
       `Manter a alocação coerente com o perfil ${p.perfil} e diversificar entre classes de ativos.`,
       `Revisar o plano a cada 12 meses e ajustar aportes conforme a evolução da renda.`,
       `Aos ${g.idade||p.apos} anos, iniciar os resgates programados para gerar a renda de ${BRL(g.valor)}/mês.`
     ];
   }
   const anos=Math.max(1,(g.idade||p.apos)-p.idade);
+  const rm=Math.pow(1+((p.rent||0)/100),1/12)-1; const nm=anos*12;
+  const pmt=rm>0?(+g.valor||0)*rm/(Math.pow(1+rm,nm)-1):(+g.valor||0)/nm;
+  const cartaParc=(+g.valor||0)*1.22/160/2;
   return [
     `Definir o valor-alvo: ${BRL(g.valor)} até os ${g.idade||p.apos} anos.`,
-    `Reservar aproximadamente ${BRL((+g.valor||0)/(anos*12))}/mês em uma aplicação separada para este objetivo.`,
+    `Reservar aproximadamente ${BRL(pmt)}/mês em uma aplicação separada (valor já considera os rendimentos compostos até lá).`,
+    `Caminho Agion: carta de consórcio de ${BRL(g.valor)} com parcela reduzida de aprox. ${BRL(cartaParc)}/mês até a contemplação — sem juros, acelerando a conquista.`,
     `Usar investimentos de baixo risco e liquidez compatível com o prazo de ${anos} ano(s).`,
     `Acompanhar o progresso e corrigir o valor conforme a inflação.`
   ];
@@ -2308,8 +2332,8 @@ function renderEditor(C){
     </div>`)}
 
   ${sec('consorcio',`
-    <div class="diffbox"><span class="diffic">${ICN.spark}</span><div class="difftx"><h3>O diferencial Agion</h3><p>Unimos <b>consórcio + planejamento + consultoria</b>. A carta de crédito entra como <b>patrimônio</b> na contemplação e é <b>capitalizada</b> — acelerando os seus objetivos <b>sem os juros</b> de um financiamento.</p></div></div> <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.cota}Crédito (cartas)</div><b>${BRL(R.consCredito)}</b></div> <div class="kpi"><div class="lab">${ICN.money}Parcela (meia) estimada</div><b>${BRL(R.consParcela)}/mês</b></div> ${R.consAluguel>0?`<div class="kpi grad"><div class="lab">${ICN.cota}Aluguel gerado</div><b>${BRL(R.consAluguel)}/mês</b></div>`:`<div class="kpi"><div class="lab">${ICN.wallet}Patrimônio aos ${p.apos}</div><b>${BRL(R.patApos)}</b></div>`}
-      <div class="kpi"><div class="lab">${ICN.spark}Probabilidade</div><b>${R.prob}%</b></div> </div> <div class="panel"><h2>${ICN.cota} Cartas de consórcio do cliente</h2><div id="consorcios"></div> <button class="btn btn-teal btn-sm additem" onclick="addRow('consorcios')">+ Adicionar consórcio</button> <p class="note" style="margin-top:8px">Meia parcela = crédito × (1 + taxa adm.) ÷ prazo ÷ 2. Imóvel: 22% · Auto: 16% (taxas de referência).</p> </div> <div class="panel"><h2>${ICN.plan} Patrimônio com x sem consórcio</h2><canvas id="chCons"></canvas></div> <div class="panel"><h2>${ICN.spark} Impacto da contemplação (6 · 12 · 24 meses)</h2>${consorcioImpacto(p)}</div>`)}
+    <div class="diffbox"><span class="diffic">${ICN.spark}</span><div class="difftx"><h3>O diferencial Agion</h3><p>Unimos <b>consórcio + planejamento + consultoria</b>. A carta de crédito entra como <b>patrimônio</b> na contemplação e é <b>capitalizada</b> — acelerando os seus objetivos <b>sem os juros</b> de um financiamento.</p></div></div> <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.cota}Crédito (cartas)</div><b>${BRL(R.consCredito)}</b></div> <div class="kpi"><div class="lab">${ICN.money}Parcela até a contemplação</div><b>${BRL(R.consParcela)}/mês</b></div> ${R.consAluguel>0?`<div class="kpi grad"><div class="lab">${ICN.cota}Aluguel gerado</div><b>${BRL(R.consAluguel)}/mês</b></div>`:`<div class="kpi"><div class="lab">${ICN.wallet}Patrimônio aos ${p.apos}</div><b>${BRL(R.patApos)}</b></div>`}
+      <div class="kpi"><div class="lab">${ICN.spark}Probabilidade</div><b>${R.prob}%</b></div> </div> <div class="panel"><h2>${ICN.cota} Cartas de consórcio do cliente</h2><div id="consorcios"></div> <button class="btn btn-teal btn-sm additem" onclick="addRow('consorcios')">+ Adicionar consórcio</button> <p class="note" style="margin-top:8px">Parcela integral padrão = crédito × (1 + taxa adm.) ÷ prazo (Imóvel 22% · Auto 16%) — edite a parcela se tiver o valor exato do plano. O reajuste anual atualiza carta e parcela. Pós-contemplação: parcela inteira + diluição das frações não pagas no prazo restante.</p> </div> <div class="panel"><h2>${ICN.plan} Patrimônio com x sem consórcio</h2><canvas id="chCons"></canvas></div> <div class="panel"><h2>${ICN.spark} Impacto da contemplação (6 · 12 · 24 meses)</h2>${consorcioImpacto(p)}</div>`)}
 
   ${sec('fluxo',`
     <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.money}Receita média anual</div><b>${BRL(R.rendaAnual)}</b></div> <div class="kpi"><div class="lab">${ICN.wallet}Despesa média anual</div><b>${BRL(R.despAnual)}</b></div> <div class="kpi grad"><div class="lab">${ICN.spark}Aporte médio anual</div><b>${BRL(R.aporteAnual)}</b></div> <div class="kpi"><div class="lab">${ICN.target}Taxa de poupança</div><b>${R.poupanca}%</b></div> </div> <div class="grid2"> <div class="panel"><h2>${ICN.money} Receitas</h2><div id="incomes"></div> <button class="btn btn-teal btn-sm additem" onclick="addRow('incomes')">+ Receita</button></div> <div class="panel"><h2>${ICN.wallet} Despesas</h2><div id="expenses"></div> <button class="btn btn-teal btn-sm additem" onclick="addRow('expenses')">+ Despesa</button></div> </div> <div class="panel"><h2>Fluxo mensal</h2><canvas id="chFlow"></canvas></div>`)}
@@ -2326,7 +2350,7 @@ function renderEditor(C){
       </tbody></table></div></div>`)}
 
   ${sec('protecao',`
-    <div class="panel"><h2>${ICN.wallet} Reserva de emergência</h2> <div class="netrow"><span>Reserva ideal (6 meses de despesas)</span><b>${BRL(R.reservaIdeal)}</b></div> <div class="netrow tot"><span>Reserva atual (renda fixa)</span><b style="color:${R.reservaAtual>=R.reservaIdeal?'var(--ok)':'var(--warn)'}">${BRL(R.reservaAtual)}</b></div> <div class="bar" style="height:10px;margin-top:8px"><i style="width:${R.reservaIdeal?Math.min(100,Math.round(R.reservaAtual/R.reservaIdeal*100)):100}%"></i></div> </div> <div class="panel"><h2>${ICN.users} Proteção da família (seguro de vida)</h2> <p class="note" style="margin:-6px 0 12px">Cobertura sugerida para quitar dívidas e sustentar a família por alguns anos, descontando o patrimônio já existente.</p> <div class="netrow"><span>Cobertura sugerida</span><b>${BRL(R.seguroIdeal)}</b></div> <div class="field" style="max-width:280px;margin-top:10px"><label>Cobertura atual de seguro (R$)</label><input id="f_seguro" type="number" value="${(p.seguro&&p.seguro.atual)||0}"></div> ${R.seguroAtual>=R.seguroIdeal?'<p class="note" style="color:var(--ok)">✓ Proteção adequada.</p>':`<p class="note" style="color:var(--warn)">Faltam ${BRL(Math.max(0,R.seguroIdeal-R.seguroAtual))} de cobertura.</p>`}
+    <div class="panel"><h2>${ICN.wallet} Reserva de emergência</h2> <div class="netrow"><span>Reserva ideal (6 meses de despesas)</span><b>${BRL(R.reservaIdeal)}</b></div> <div class="netrow tot"><span>Reserva atual (renda fixa)</span><b style="color:${R.reservaAtual>=R.reservaIdeal?'var(--ok)':'var(--warn)'}">${BRL(R.reservaAtual)}</b></div> <div class="bar" style="height:10px;margin-top:8px"><i style="width:${R.reservaIdeal?Math.min(100,Math.round(R.reservaAtual/R.reservaIdeal*100)):100}%"></i></div> </div> <div class="panel"><h2>${ICN.users} Proteção da família (seguro de vida)</h2> <p class="note" style="margin:-6px 0 12px">Regra Agion: cobertura sugerida de seguro de vida = <b>10% do patrimônio total</b> do cliente.</p> <div class="netrow"><span>Cobertura sugerida</span><b>${BRL(R.seguroIdeal)}</b></div> <div class="field" style="max-width:280px;margin-top:10px"><label>Cobertura atual de seguro (R$)</label><input id="f_seguro" type="number" value="${(p.seguro&&p.seguro.atual)||0}"></div> ${R.seguroAtual>=R.seguroIdeal?'<p class="note" style="color:var(--ok)">✓ Proteção adequada.</p>':`<p class="note" style="color:var(--warn)">Faltam ${BRL(Math.max(0,R.seguroIdeal-R.seguroAtual))} de cobertura.</p>`}
     </div>`)}
 
   ${sec('cenarios',`<div class="panel"><h2>${ICN.spark} Cenários</h2> <p class="note" style="margin:-6px 0 14px">Compare o Plano Principal com simulações alternativas (aposentar antes, aportar mais, etc.).</p> <button class="btn btn-gold btn-sm" onclick="openCompare('${c.id}')">Abrir comparação de cenários</button> ${!p.main?'':`<div style="margin-top:14px">${client(c.id).plans.filter(x=>!x.main).map(x=>`<div class="netrow"><span>${esc(x.titulo)}</span><b>${projetar(x).prob}% · ${BRL(projetar(x).patApos)}</b></div>`).join('')||'<p class="note">Nenhuma simulação criada ainda.</p>'}</div>`}
@@ -2392,11 +2416,11 @@ function drawSectionCharts(s){
   }
 }
 const ROWS={
-  incomes:(it,i)=>`<div class="item"><div><input data-f="incomes" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div> <div><input type="number" data-f="incomes" data-i="${i}" data-k="valor" value="${it.valor}"></div> <div><select data-f="incomes" data-i="${i}" data-k="freq"><option ${it.freq==='Mensal'?'selected':''}>Mensal</option><option ${it.freq==='Anual'?'selected':''}>Anual</option></select></div> <button class="btn-ico delrow" onclick="delRow('incomes',${i})">✕</button></div>`,
-  expenses:(it,i)=>`<div class="item"><div><input data-f="expenses" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div> <div><input type="number" data-f="expenses" data-i="${i}" data-k="valor" value="${it.valor}"></div> <div><select data-f="expenses" data-i="${i}" data-k="freq"><option ${it.freq==='Mensal'?'selected':''}>Mensal</option><option ${it.freq==='Anual'?'selected':''}>Anual</option></select></div> <button class="btn-ico delrow" onclick="delRow('expenses',${i})">✕</button></div>`,
+  incomes:(it,i)=>`<div class="item"><div><input data-f="incomes" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div> <div><input type="number" data-f="incomes" data-i="${i}" data-k="valor" value="${it.valor}"></div> <div><select data-f="incomes" data-i="${i}" data-k="freq"><option ${it.freq==='Mensal'?'selected':''}>Mensal</option><option ${it.freq==='Anual'?'selected':''}>Anual</option></select><input type="number" data-f="incomes" data-i="${i}" data-k="anos" value="${it.anos||''}" placeholder="Prazo (anos) — vazio = sempre" title="Por quantos anos você recebe isso (vazio = sempre)" style="margin-top:6px"></div> <button class="btn-ico delrow" onclick="delRow('incomes',${i})">✕</button></div>`,
+  expenses:(it,i)=>`<div class="item"><div><input data-f="expenses" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div> <div><input type="number" data-f="expenses" data-i="${i}" data-k="valor" value="${it.valor}"></div> <div><select data-f="expenses" data-i="${i}" data-k="freq"><option ${it.freq==='Mensal'?'selected':''}>Mensal</option><option ${it.freq==='Anual'?'selected':''}>Anual</option></select><input type="number" data-f="expenses" data-i="${i}" data-k="anos" value="${it.anos||''}" placeholder="Prazo (anos) — vazio = sempre" title="Por quantos anos você paga isso (vazio = sempre)" style="margin-top:6px"></div> <button class="btn-ico delrow" onclick="delRow('expenses',${i})">✕</button></div>`,
   assets:(it,i)=>`<div class="item assets"><div><input data-f="assets" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Descrição"></div> <div><select data-f="assets" data-i="${i}" data-k="cat">${['Renda Fixa','Renda Variável','Imóvel','Previdência','Multimercado','Internacional','Outros'].map(o=>`<option ${o===it.cat?'selected':''}>${o}</option>`).join('')}</select></div> <div><input type="number" data-f="assets" data-i="${i}" data-k="valor" value="${it.valor}"></div> <button class="btn-ico delrow" onclick="delRow('assets',${i})">✕</button></div>`,
   debts:(it,i)=>`<div class="item assets"><div><input data-f="debts" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Ex: Financiamento imóvel"></div> <div><select data-f="debts" data-i="${i}" data-k="cat">${['Financiamento','Empréstimo','Cartão','Consórcio','Outros'].map(o=>`<option ${o===it.cat?'selected':''}>${o}</option>`).join('')}</select></div> <div><input type="number" data-f="debts" data-i="${i}" data-k="valor" value="${it.valor}"></div> <button class="btn-ico delrow" onclick="delRow('debts',${i})">✕</button></div>`,
-  consorcios:(it,i)=>`<div class="item assets" style="margin-bottom:14px"><div><input data-f="consorcios" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Ex: Consórcio imobiliário"></div> <div><select data-f="consorcios" data-i="${i}" data-k="tipo"><option ${it.tipo==='Imóvel'?'selected':''}>Imóvel</option><option ${it.tipo==='Auto'?'selected':''}>Auto</option></select></div> <div><input type="number" data-f="consorcios" data-i="${i}" data-k="credito" value="${it.credito}" title="Crédito (carta)"></div> <button class="btn-ico delrow" onclick="delRow('consorcios',${i})">✕</button> <div style="grid-column:1/-1;display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;font-size:.78rem;color:var(--muted)">Prazo:<input type="number" style="width:80px" data-f="consorcios" data-i="${i}" data-k="prazoMeses" value="${it.prazoMeses||200}">meses · Contemplação:<select data-f="consorcios" data-i="${i}" data-k="contemplaMes"><option value="6" ${(+it.contemplaMes)===6?'selected':''}>6 meses</option><option value="12" ${(+it.contemplaMes)===12?'selected':''}>12 meses</option><option value="24" ${(+it.contemplaMes)===24?'selected':''}>24 meses</option></select> · Uso da carta:<select data-f="consorcios" data-i="${i}" data-k="uso" onchange="collect();renderRows(plan(view.clientId,view.planId))"><option value="capitalizar" ${(it.uso||'capitalizar')==='capitalizar'?'selected':''}>Capitalizar (rende como investimento)</option><option value="imovel" ${it.uso==='imovel'?'selected':''}>Comprar imóvel (aluguel)</option></select>${it.uso==='imovel'?`<span>Aluguel:<input type="number" step="0.1" style="width:64px;margin-left:6px" data-f="consorcios" data-i="${i}" data-k="aluguel" value="${it.aluguel||0.8}">%/mês</span>`:''}</div></div>`,
+  consorcios:(it,i)=>`<div class="item assets" style="margin-bottom:14px"><div><input data-f="consorcios" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Ex: Consórcio imobiliário"></div> <div><select data-f="consorcios" data-i="${i}" data-k="tipo"><option ${it.tipo==='Imóvel'?'selected':''}>Imóvel</option><option ${it.tipo==='Auto'?'selected':''}>Auto</option></select></div> <div><input type="number" data-f="consorcios" data-i="${i}" data-k="credito" value="${it.credito}" title="Crédito (carta)"></div> <button class="btn-ico delrow" onclick="delRow('consorcios',${i})">✕</button> <div style="grid-column:1/-1;display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;font-size:.78rem;color:var(--muted)">Prazo:<input type="number" style="width:80px" data-f="consorcios" data-i="${i}" data-k="prazoMeses" value="${it.prazoMeses||200}">meses · Contemplação:<input type="number" style="width:80px" data-f="consorcios" data-i="${i}" data-k="contemplaMes" value="${it.contemplaMes||12}" title="Mês previsto da contemplação (livre)">meses · Parcela integral:<input type="number" style="width:110px" data-f="consorcios" data-i="${i}" data-k="parcela" value="${it.parcela||''}" placeholder="auto" title="R$/mês da parcela integral — vazio = calculada pela taxa de referência">R$/mês · Até a contemplação paga:<select data-f="consorcios" data-i="${i}" data-k="modalidade"><option value="meia" ${(it.modalidade||'meia')==='meia'?'selected':''}>Meia parcela (50%)</option><option value="p70" ${it.modalidade==='p70'?'selected':''}>Parcela 70%</option><option value="inteira" ${it.modalidade==='inteira'?'selected':''}>Parcela inteira</option></select> · Reajuste:<input type="number" step="0.1" style="width:64px" data-f="consorcios" data-i="${i}" data-k="reajuste" value="${it.reajuste===undefined?5:it.reajuste}" title="Reajuste anual da carta e da parcela (ex.: INCC/IPCA)">%/ano · Uso da carta:<select data-f="consorcios" data-i="${i}" data-k="uso" onchange="collect();renderRows(plan(view.clientId,view.planId))"><option value="capitalizar" ${(it.uso||'capitalizar')==='capitalizar'?'selected':''}>Capitalizar (rende como investimento)</option><option value="imovel" ${it.uso==='imovel'?'selected':''}>Comprar imóvel (aluguel)</option><option value="consumo" ${it.uso==='consumo'?'selected':''}>Consumo (veículo/uso próprio — é despesa)</option></select>${it.uso==='imovel'?`<span>Aluguel:<input type="number" step="0.1" style="width:64px;margin-left:6px" data-f="consorcios" data-i="${i}" data-k="aluguel" value="${it.aluguel||0.8}">%/mês</span>`:''}</div></div>`,
   goals:(it,i)=>`<div class="item assets"><div><input data-f="goals" data-i="${i}" data-k="desc" value="${esc(it.desc)}" placeholder="Ex: Aposentadoria"></div> <div><select data-f="goals" data-i="${i}" data-k="tipo"><option value="renda" ${it.tipo==='renda'?'selected':''}>Renda (mensal)</option><option value="meta" ${it.tipo==='meta'?'selected':''}>Meta (pontual)</option></select></div> <div><input type="number" data-f="goals" data-i="${i}" data-k="valor" value="${it.valor}" title="valor"></div> <button class="btn-ico delrow" onclick="delRow('goals',${i})">✕</button> <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center;font-size:.78rem;color:var(--muted)">Idade-alvo:<input type="number" style="width:90px" data-f="goals" data-i="${i}" data-k="idade" value="${it.idade||p_apos()}"></div></div>`
 };
 function p_apos(){return plan(view.clientId,view.planId).apos}
@@ -2410,7 +2434,7 @@ function collect(){ // lê o formulário para o objeto plano
   document.querySelectorAll('[data-f]').forEach(el=>{const f=el.dataset.f,i=+el.dataset.i,k=el.dataset.k;if(!p[f]||!p[f][i])return;p[f][i][k]=(el.type==='number')?(parseFloat(el.value)||0):el.value;});
   save();return p;
 }
-function addRow(f){collect();const p=plan(view.clientId,view.planId);if(!p[f])p[f]=[];const def={incomes:{desc:'',valor:0,freq:'Mensal'},expenses:{desc:'',valor:0,cat:'Custo de vida',freq:'Mensal'},assets:{desc:'',cat:'Renda Fixa',valor:0},debts:{desc:'',cat:'Financiamento',valor:0},consorcios:{desc:'Consórcio imobiliário',tipo:'Imóvel',credito:100000,prazoMeses:200,contemplaMes:12,uso:'capitalizar',aluguel:0.8},goals:{desc:'',tipo:'meta',valor:0,idade:p.apos}}[f];p[f].push({...def});save();renderRows(p);}
+function addRow(f){collect();const p=plan(view.clientId,view.planId);if(!p[f])p[f]=[];const def={incomes:{desc:'',valor:0,freq:'Mensal',anos:0},expenses:{desc:'',valor:0,cat:'Custo de vida',freq:'Mensal',anos:0},assets:{desc:'',cat:'Renda Fixa',valor:0},debts:{desc:'',cat:'Financiamento',valor:0},consorcios:{desc:'Consórcio imobiliário',tipo:'Imóvel',credito:100000,prazoMeses:200,contemplaMes:12,uso:'capitalizar',aluguel:0.8,modalidade:'meia',reajuste:5,parcela:0},goals:{desc:'',tipo:'meta',valor:0,idade:p.apos}}[f];p[f].push({...def});save();renderRows(p);}
 function delRow(f,i){collect();const p=plan(view.clientId,view.planId);p[f].splice(i,1);save();renderRows(p);}
 function recalc(){collect();renderEditor(document.getElementById('content'));flash('Projeção atualizada')}
 function saveAndPublish(){const p=collect();renderEditor(document.getElementById('content'));flash(p.main?'Plano publicado para o cliente ✓':'Simulação salva ✓')}
