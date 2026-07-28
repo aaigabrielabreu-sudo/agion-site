@@ -2353,7 +2353,7 @@ function sec(id,html){return `<section class="plansec" data-sec="${id}">${html}<
 function renderEditor(C){
   const c=client(view.clientId), p=plan(view.clientId,view.planId), ro=view.readonly;
   edP=p; edR=projetar(p); const R=edR;
-  const isCli=session.role==='cliente';
+  const isCli=effRole()==='cliente';
   setTop(isCli?'Meu Planejamento':((p.main?'Plano Principal':'Simulação')+' — '+esc(p.nome)),
     isCli?esc(p.titulo):esc(c.nome),
     isCli?`<button class="btn btn-gold btn-sm" onclick="copyPlan('${c.id}','${mainPlan(c).id}')">+ Novo planejamento</button>`
@@ -2513,7 +2513,7 @@ function drawResultCharts(p,R){
 /* ===================== CÓPIAS / VERSIONAMENTO ===================== */
 async function copyPlan(cid,pid){
   collect();const src=plan(cid,pid);
-  const isCli=session.role==='cliente';
+  const isCli=effRole()==='cliente';
   const sug=(isCli?'Novo planejamento ':'Simulação ')+(client(cid).plans.filter(p=>!p.main).length+1);
   const nome=await ask({title:isCli?'Criar novo planejamento':'Nova simulação',msg:'Cria uma cópia editável. O Plano Principal é sempre preservado.',input:true,value:sug,ok:'Criar'});
   if(nome===null)return;
