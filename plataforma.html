@@ -195,9 +195,19 @@ th{color:var(--gold2);font-size:.68rem;text-transform:uppercase;letter-spacing:.
 td.r,th.r{text-align:right}
 canvas{width:100%!important;height:280px!important}
 div[style*="height"]>canvas{height:100%!important}
-.gauge canvas{height:150px!important}
+.gauge canvas{height:170px!important}
+/* ===== POLISH VISUAL 28/jul (Agion) ===== */
+.panel{transition:box-shadow .25s ease, border-color .25s ease}
+.panel:hover{box-shadow:0 10px 34px rgba(0,0,0,.20);border-color:rgba(197,160,89,.35)}
+.kpi{transition:transform .18s ease, box-shadow .18s ease}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.16)}
+.lead{transition:transform .15s ease, box-shadow .15s ease}
+.lead:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.prob{font-weight:700;letter-spacing:.3px;padding:7px 14px;border-radius:999px;display:inline-block}
+.btn{transition:transform .12s ease, filter .12s ease}
+.btn:active{transform:scale(.97)}
 .prob{display:inline-flex;align-items:center;gap:8px;font-weight:700;padding:8px 18px;border-radius:999px;font-size:.92rem}
-.gauge{position:relative;width:150px;height:150px;margin:0 auto}
+.gauge{position:relative;width:170px;height:170px;margin:0 auto}
 .disclaimer{font-size:.74rem;color:var(--soft);background:rgba(143,217,204,.05);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-top:16px;line-height:1.6}
 .banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(197,160,89,.08);border:1px solid var(--line-gold);border-radius:14px;padding:13px 16px;margin-bottom:18px;font-size:.85rem;color:#E8E0CC}
 /* oportunidades (estratégias exclusivas) */
@@ -1123,8 +1133,13 @@ function mkChart(id,cfg){
   const el=document.getElementById(id); if(!el) return;
   if(typeof Chart==='undefined'){ const d=document.createElement('div'); d.className='note'; d.style.cssText='padding:24px;text-align:center'; d.textContent='Gráfico indisponível (sem conexão para carregar a biblioteca).'; el.replaceWith(d); return; }
   ensureChartDefaults();
-  try{ charts.push(new Chart(el,cfg)); }catch(e){ console.warn('chart '+id,e); }
+  try{ const ex=Chart.getChart(el); if(ex){ try{ex.destroy()}catch(e0){} } charts.push(new Chart(el,cfg)); }
+  catch(e){ console.warn('chart '+id,e); setTimeout(function(){ try{ const el2=document.getElementById(id); if(!el2) return; const ex2=Chart.getChart(el2); if(ex2){ try{ex2.destroy()}catch(e1){} } charts.push(new Chart(el2,cfg)); }catch(e2){ console.warn('chart retry '+id,e2); } },150); }
 }
+function gaugeCfg(prob){ const gold='#C5A059'; const pv=Math.max(+prob||0,0.001);
+  return {type:'doughnut',data:{datasets:[{data:[pv,100-pv],backgroundColor:[gold,'rgba(143,217,204,.10)'],hoverBackgroundColor:[gold,'rgba(143,217,204,.10)'],borderWidth:0,borderRadius:(pv>1&&pv<99)?12:0,circumference:360}]},
+    options:{maintainAspectRatio:false,cutout:'76%',plugins:{legend:{display:false},tooltip:{enabled:false}}},
+    plugins:[{id:'txt',afterDraw(ch){ try{ const{ctx,chartArea}=ch; if(!chartArea)return; const cx=(chartArea.left+chartArea.right)/2, cy=(chartArea.top+chartArea.bottom)/2; ctx.save(); ctx.textAlign='center'; ctx.fillStyle='#C5A059'; ctx.font='700 30px Lora,serif'; ctx.fillText(Math.round(+prob||0)+'%',cx,cy+4); ctx.fillStyle='#8FA6A0'; ctx.font='600 10px "DM Sans",sans-serif'; ctx.fillText('DE SUCESSO',cx,cy+22); ctx.restore(); }catch(e){} }}]}; }
 function setTop(title,crumb,actions){ document.getElementById('pageTitle').textContent=title; document.getElementById('crumb').textContent=crumb||''; document.getElementById('topActions').innerHTML=actions||''; }
 function destroyCharts(){charts.forEach(c=>{try{c.destroy()}catch(e){}});charts=[]}
 
@@ -2421,7 +2436,7 @@ function drawSectionCharts(s){
   const p=edP,R=edR,gold='#C5A059',teal='#8FD9CC',grid='rgba(143,217,204,.1)',tick='#9DB5B1';
   const ax=cb=>({maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+BRL(c.parsed.y)}}},scales:{x:{grid:{color:grid},ticks:{color:tick,maxTicksLimit:12}},y:{grid:{color:grid},ticks:{color:tick,callback:cb}}}});
   if(s==='resumo'){
-    mkChart('gauge',{type:'doughnut',data:{datasets:[{data:[R.prob,100-R.prob],backgroundColor:[gold,'rgba(143,217,204,.12)'],borderWidth:0,circumference:360}]},options:{maintainAspectRatio:false,cutout:'74%',plugins:{legend:{display:false},tooltip:{enabled:false}}},plugins:[{id:'txt',afterDraw(ch){const{ctx,chartArea}=ch;ctx.save();ctx.fillStyle='#C5A059';ctx.font='700 26px Lora';ctx.textAlign='center';ctx.fillText(R.prob+'%',(chartArea.left+chartArea.right)/2,(chartArea.top+chartArea.bottom)/2+9);ctx.restore()}}]});
+    mkChart('gauge',gaugeCfg(R.prob));
   } else if(s==='patrimonio'){
     const cats={};(p.assets||[]).forEach(a=>cats[a.cat]=(cats[a.cat]||0)+(+a.valor||0));
     mkChart('chPie',{type:'doughnut',data:{labels:Object.keys(cats),datasets:[{data:Object.values(cats),backgroundColor:['#C5A059','#8FD9CC','#E8CC8B','#4Fa3a3','#B0875F','#6E8B88'],borderWidth:0}]},options:{maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:tick,font:{size:11}}}}}});
@@ -2474,7 +2489,7 @@ function drawResultCharts(p,R){
   destroyCharts();
   const gold='#C5A059',teal='#8FD9CC',grid='rgba(143,217,204,.1)',tick='#9DB5B1';
   const ax=cb=>({maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+BRL(c.parsed.y)}}},scales:{x:{grid:{color:grid},ticks:{color:tick}},y:{grid:{color:grid},ticks:{color:tick,callback:cb}}}});
-  mkChart('gauge',{type:'doughnut',data:{datasets:[{data:[R.prob,100-R.prob],backgroundColor:[gold,'rgba(143,217,204,.12)'],borderWidth:0,circumference:360}]},options:{maintainAspectRatio:false,cutout:'74%',plugins:{legend:{display:false},tooltip:{enabled:false}}},plugins:[{id:'txt',afterDraw(ch){const{ctx,chartArea}=ch;ctx.save();ctx.fillStyle='#C5A059';ctx.font='700 26px Lora';ctx.textAlign='center';ctx.fillText(R.prob+'%',(chartArea.left+chartArea.right)/2,(chartArea.top+chartArea.bottom)/2+9);ctx.restore()}}]});
+  mkChart('gauge',gaugeCfg(R.prob));
   const splitIdx=R.idades.indexOf(p.apos);
   const markers=R.idades.map((a,i)=>{const g=(R.metas||[]).find(m=>+m.idade===a);return g?R.serie[i]:null;});
   mkChart('chProj',{type:'line',data:{labels:R.idades,datasets:[
