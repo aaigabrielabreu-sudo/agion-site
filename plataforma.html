@@ -608,7 +608,7 @@ async function loadCloud(){
           .sort((a,b)=>(b.principal?1:0)-(a.principal?1:0))
           .map(p=>({ ...(p.data||{}), id:p.id, titulo:p.nome||(p.data&&p.data.titulo)||'Plano Principal', main:!!p.principal }));
         if(!plans.length) plans.push(blankPlan(c.nome));
-        return {id:c.id,nome:c.nome,email:c.email||'',tel:c.tel||'',ownerId:c.owner_id,plans};
+        return {id:c.id,nome:c.nome,email:c.email||'',tel:c.tel||'',ownerId:c.owner_id,userId:c.user_id||null,plans};
       });
       cloudReady=true;
     } else if(isMaster()){
@@ -782,7 +782,12 @@ function visibleClients(){ if(effRole()==='master')return db.clients; return db.
 function canEditClient(c){ if(session.viewAs)return false; return ownerVisible(c.ownerId); }
 function visibleLeads(){ if(effRole()==='master')return db.crm; return (db.crm||[]).filter(l=>ownerVisible(l.ownerId)); }
 function roGuard(){ if(session.viewAs){ flash('Modo somente leitura — saia do “Ver como” para editar.'); return true; } return false; }
-function verComo(id){ const a=(db.accounts||[]).find(x=>x.id===id); if(!a)return; if(!(isMaster()||(isLider()&&myEspecialistaIds().indexOf(id)>=0))){flash('Sem permissão para ver como este usuário.');return;} if(a.role==='cliente'){flash('Use a ficha do cliente para ver os dados dele.');return;} session.viewAs={id:a.id,nome:a.nome,role:a.role}; view.page='dash'; renderViewbar(); renderNav(); render(); flash('Vendo como '+a.nome+' (somente leitura)'); window.scrollTo(0,0); }
+function verComo(id){ const a=(db.accounts||[]).find(x=>x.id===id); if(!a)return;
+  if(a.role==='cliente'){ const cli=(db.clients||[]).find(c=>c.userId===a.id||c.id===a.clientId)||null; if(!cli){flash('Este cliente ainda não tem ficha de planejamento vinculada.');return;} if(!(isMaster()||ownerVisible(cli.ownerId))){flash('Sem permissão para ver como este cliente.');return;} session.viewAs={id:a.id,nome:a.nome,role:'cliente',clientId:cli.id}; }
+  else { if(!(isMaster()||(isLider()&&myEspecialistaIds().indexOf(id)>=0))){flash('Sem permissão para ver como este usuário.');return;} session.viewAs={id:a.id,nome:a.nome,role:a.role}; }
+  view.page='dash'; renderViewbar(); renderNav(); render(); flash('Vendo como '+a.nome+' (somente leitura)'); window.scrollTo(0,0); }
+function effCliId(){ return (session.viewAs&&session.viewAs.role==='cliente')?session.viewAs.clientId:session.clientId; }
+function verComoCliente(cid){ const c=(db.clients||[]).find(x=>x.id===cid); if(!c){flash('Cliente não encontrado.');return;} if(!(isMaster()||ownerVisible(c.ownerId))){flash('Sem permissão para ver este cliente.');return;} const a=(db.accounts||[]).find(x=>x.id===c.userId)||(db.accounts||[]).find(x=>x.clientId===cid); session.viewAs={id:(a&&a.id)||('cli_'+cid),nome:c.nome,role:'cliente',clientId:cid}; view.page='dash'; renderViewbar(); renderNav(); render(); flash('Visão cliente — '+c.nome+' (somente leitura)'); window.scrollTo(0,0); }
 function sairVerComo(){ session.viewAs=null; view.page=isMaster()?'contas':'dash'; renderViewbar(); renderNav(); render(); window.scrollTo(0,0); }
 function renderViewbar(){ let el=document.getElementById('viewbar'); const main=document.querySelector('.main'); if(session.viewAs){ if(!el){ el=document.createElement('div'); el.id='viewbar'; el.className='viewbar'; main.insertBefore(el, main.firstChild); } el.innerHTML='👁 Vendo como <b style="margin:0 4px">'+esc(session.viewAs.nome)+'</b> — somente leitura <button class="btn btn-ghost btn-sm" onclick="sairVerComo()">Sair</button>'; } else if(el){ el.remove(); } }
 function seedIntegr(){return {Google:{conectado:true,conta:'Agion — Google Ads / Lead Forms'},Meta:{conectado:true,conta:'Agion — Facebook & Instagram Lead Ads'}};}
@@ -937,13 +942,20 @@ function defaultSteps(p,g){
   const cartaParc=(+g.valor||0)*1.22/160/2;
   return [
     `Definir o valor-alvo: ${BRL(g.valor)} até os ${g.idade||p.apos} anos.`,
-    `Reservar aproximadamente ${BRL(pmt)}/mês em uma aplicação separada (valor já considera os rendimentos compostos até lá).`,
-    `Caminho Agion: carta de consórcio de ${BRL(g.valor)} com parcela reduzida de aprox. ${BRL(cartaParc)}/mês até a contemplação — sem juros, acelerando a conquista.`,
-    `Usar investimentos de baixo risco e liquidez compatível com o prazo de ${anos} ano(s).`,
+    `Caminho recomendado Agion: carta de consórcio de ${BRL(g.valor)} com parcela reduzida de aprox. ${BRL(cartaParc)}/mês até a contemplação — sem juros. Comparação: aportando por conta própria, seriam necessários ${BRL(pmt)}/mês (já com rendimentos compostos).`,
+    `Com a carta, a conquista pode ser antecipada pela contemplação (sorteio ou lance) — sem esperar acumular o valor todo.`,
+    `Manter liquidez para oferta de lance e acompanhar as assembleias com o seu especialista Agion.`,
     `Acompanhar o progresso e corrigir o valor conforme a inflação.`
   ];
 }
-function ensureSteps(p){ (p.goals||[]).forEach(g=>{ if(!Array.isArray(g.passos)||!g.passos.length) g.passos=defaultSteps(p,g); }); }
+function ensureSteps(p){ (p.goals||[]).forEach(g=>{
+  const s0=String((g.passos&&g.passos[0])||'');
+  const autoAntigo=Array.isArray(g.passos)&&g.passos.length>0
+    &&(s0.startsWith('Definir o valor-alvo:')||s0.startsWith('Garantir a reserva'))
+    &&!g.passos.some(x=>String(x).includes('compostos'))
+    &&g.passos.length<=(g.tipo==='renda'?5:4);
+  if(!Array.isArray(g.passos)||!g.passos.length||autoAntigo) g.passos=defaultSteps(p,g);
+}); }
 /* ===== ORGANOGRAMA HORIZONTAL (etapas + bifurcação nas metas) ===== */
 function trunc(s,n){s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s;}
 function roadmapSVG(p){
@@ -1461,7 +1473,7 @@ function render(){
   destroyCharts();
   updateBell();
   const C=document.getElementById('content');
-  if(isStaff()){
+  if(isStaff()&&effRole()!=='cliente'){
     if(view.page==='dash') return renderAssessorDash(C);
     if(view.page==='kpis') return renderKPIs(C);
     if(view.page==='crm') return renderCRM(C);
@@ -1520,6 +1532,15 @@ function renderCRM(C){
     (naoDistrib.length?`<div class="banner"> ${naoDistrib.length} lead(s) aguardando distribuição. Use o seletor “Distribuir” em cada cartão para encaminhar a um especialista.</div>`:'')+
     `<div class="panel" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:12px 16px;margin:14px 0">
       <b style="font-size:.85rem">🔎 Filtrar leads:</b>
+      <input id="crmBuscaInp" type="search" placeholder="Nome, contato, resumo…" value="${esc(view.crmBusca||'')}" oninput="crmSetBusca(this.value)" style="padding:8px 12px;font-size:.82rem;min-width:170px;background:var(--card2);border:1px solid var(--line);color:var(--head);border-radius:8px">
+      <select onchange="crmSetValor(this.value)" style="padding:8px 12px;font-size:.82rem">
+        <option value="todas">💰 Todos os valores</option>
+        <option value="0-50000" ${view.crmValor==='0-50000'?'selected':''}>Até R$ 50 mil</option>
+        <option value="50000-100000" ${view.crmValor==='50000-100000'?'selected':''}>R$ 50–100 mil</option>
+        <option value="100000-200000" ${view.crmValor==='100000-200000'?'selected':''}>R$ 100–200 mil</option>
+        <option value="200000-400000" ${view.crmValor==='200000-400000'?'selected':''}>R$ 200–400 mil</option>
+        <option value="400000-0" ${view.crmValor==='400000-0'?'selected':''}>Acima de R$ 400 mil</option>
+      </select>
       <select onchange="crmSetCat(this.value)" style="padding:8px 12px;font-size:.82rem">
         <option value="todas">Todas as categorias (${VLall.filter(l=>!l.perdido).length})</option>
         ${LEAD_CATS.concat([{k:'outros',lb:'Outros',ic:'📄'}]).map(c=>`<option value="${c.k}" ${view.crmCat===c.k?'selected':''}>${c.ic} ${c.lb} (${VLall.filter(l=>!l.perdido&&leadCategoria(l).k===c.k).length})</option>`).join('')}
@@ -1535,7 +1556,7 @@ function renderCRM(C){
         <option value="novo" ${view.crmSort==='novo'?'selected':''}>📅 Mais recentes</option>
         <option value="antigo" ${view.crmSort==='antigo'?'selected':''}>📅 Mais antigos</option>
       </select>
-      ${(view.crmCat&&view.crmCat!=='todas')||(view.crmOrigem&&view.crmOrigem!=='todas')||view.crmSort?`<button class="btn btn-sm" onclick="view.crmCat='todas';view.crmOrigem='todas';view.crmSort='';render()">Limpar filtros</button>`:''}
+      ${(view.crmCat&&view.crmCat!=='todas')||(view.crmOrigem&&view.crmOrigem!=='todas')||view.crmSort||view.crmBusca||(view.crmValor&&view.crmValor!=='todas')?`<button class="btn btn-sm" onclick="view.crmCat='todas';view.crmOrigem='todas';view.crmSort='';view.crmBusca='';view.crmValor='todas';render()">Limpar filtros</button>`:''}
     </div>`+
     `<div class="kanban">${board}</div>`+
     (perdidos.length?`<div class="panel"><h2>${ICN.users} Perdidos (${perdidos.length})</h2> ${perdidos.map(l=>`<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line)"><span><b style="color:var(--head)">${esc(l.nome)}</b> <span class="ttype tt-${l.tipo}" style="margin:0 0 0 6px">${l.tipo}</span></span> <button class="btn btn-ghost btn-sm" onclick="crmRecuperar('${l.id}')">Reativar</button></div>`).join('')}</div>`:'');
@@ -1543,7 +1564,7 @@ function renderCRM(C){
 const LEAD_CATS=[
  {k:'imovel',lb:'Imóvel',ic:'🏠',cor:'#7FB2A6',re:/(im[oó]ve|casa\b|apart|ap[eê]\b|terreno|reforma|obra\b|constru|loja\b|sala comercial|galp|ch[aá]cara|s[ií]tio|quita[cç][aã]o)/},
  {k:'auto',lb:'Auto',ic:'🚗',cor:'#8FB7D9',re:/(carro|autom[oó]|ve[ií]culo|\bmoto\b|caminh[aã]o|pickup|\bsuv\b|\bauto\b|caminhonete)/},
- {k:'estetica',lb:'Estética',ic:'✨',cor:'#D9A8C5',re:/(cirurg|\blipo|silicone|est[eé]tic|pl[aá]stica|rinoplast|abdominoplast|pr[oó]tese|harmoniz|mamoplast|bariátr|bariatr|implante)/},
+ {k:'estetica',lb:'Cirurgia plástica',ic:'✨',cor:'#D9A8C5',re:/(cirurg|\blipo|silicone|est[eé]tic|pl[aá]stica|rinoplast|abdominoplast|pr[oó]tese|harmoniz|mamoplast|bariátr|bariatr|implante)/},
  {k:'solar',lb:'Energia solar',ic:'☀️',cor:'#E5C97B',re:/(solar|placa.*energia|energia.*solar)/},
  {k:'nautica',lb:'Náutico',ic:'🚤',cor:'#9BC0E0',re:/(barco|lancha|jet ?ski|embarca)/}
 ];
@@ -1560,7 +1581,12 @@ function leadOrigem(l){ const s=((l.obs||'')+' '+(l.tipo||'')).toLowerCase(); co
  if(/especialista/.test(s)||/^whats/.test(t)) return LEAD_ORIGENS[1];
  if(t==='Consórcio'||/n[aã]o distribu/.test(s)) return LEAD_ORIGENS[3];
  return {k:'outro',lb:'Outra origem',ic:'📄',cor:'#A8B8B3'}; }
-function crmLeadsFiltrados(arr){ let r=arr; if(view.crmCat&&view.crmCat!=='todas') r=r.filter(l=>leadCategoria(l).k===view.crmCat); if(view.crmOrigem&&view.crmOrigem!=='todas') r=r.filter(l=>leadOrigem(l).k===view.crmOrigem); return r; }
+function crmLeadsFiltrados(arr){ let r=arr; if(view.crmCat&&view.crmCat!=='todas') r=r.filter(l=>leadCategoria(l).k===view.crmCat); if(view.crmOrigem&&view.crmOrigem!=='todas') r=r.filter(l=>leadOrigem(l).k===view.crmOrigem);
+  if(view.crmBusca){ const q=view.crmBusca.toLowerCase(); r=r.filter(l=>((l.nome||'')+' '+(l.contato||'')+' '+(l.obs||'')).toLowerCase().indexOf(q)>=0); }
+  if(view.crmValor&&view.crmValor!=='todas'){ const pp=view.crmValor.split('-'); const mn=+pp[0]||0, mx=+pp[1]||0; r=r.filter(l=>{ const v=+l.valor||0; return v>=mn && (mx?v<mx:true); }); }
+  return r; }
+function crmSetBusca(v){ view.crmBusca=v; render(); try{ const el=document.getElementById('crmBuscaInp'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length); } }catch(e){} }
+function crmSetValor(v){ view.crmValor=v; render(); }
 function crmSortLeads(a){ const m=view.crmSort||''; const b=a.slice(); if(m==='valor_desc')b.sort((x,y)=>(+y.valor||0)-(+x.valor||0)); else if(m==='valor_asc')b.sort((x,y)=>(+x.valor||0)-(+y.valor||0)); else if(m==='novo')b.sort((x,y)=>(y.criadoEm||0)-(x.criadoEm||0)); else if(m==='antigo')b.sort((x,y)=>(x.criadoEm||0)-(y.criadoEm||0)); return b; }
 function crmSetCat(v){view.crmCat=v;render();}
 function crmSetOrigem(v){view.crmOrigem=v;render();}
@@ -1582,7 +1608,10 @@ function leadPrefContato(l){ const s=(l.obs||'').toLowerCase(); const out=[];
 
 function leadCard(l,i){
   const last=CRM_STAGES.length-1;
-  return `<div class="lead" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><span class="ttype tt-${l.tipo}">${l.tipo}</span> <span class="ttype" style="background:${leadCategoria(l).cor}26;border:1px solid ${leadCategoria(l).cor}66;color:${leadCategoria(l).cor}">${leadCategoria(l).ic} ${leadCategoria(l).lb}</span> <span class="ttype" style="background:${leadOrigem(l).cor}26;border:1px solid ${leadOrigem(l).cor}66;color:${leadOrigem(l).cor}">${leadOrigem(l).ic} ${leadOrigem(l).lb}</span> <div class="nm">${esc(l.nome)}</div> <div class="ct">${esc(l.contato||'')}</div> <div class="note" style="margin-top:4px;color:var(--soft)">📅 ${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</div> ${leadPrefContato(l)?`<div class="note" style="margin-top:3px;color:var(--gold,#C5A059)">${leadPrefContato(l)}</div>`:''} ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''}
+  const _sc=(typeof mktScore==='function')?mktScore(l):0;
+  const _scCor=_sc>=70?'#4CAF7D':_sc>=45?'#C5A059':'#8FA6A0';
+  const _scBar=`<div style="display:flex;align-items:center;gap:7px;margin-top:5px" title="Score do lead (etapa + atividades + valor + recência)"><span style="font-size:.66rem;color:var(--soft)">⚡ Score</span><div style="flex:1;height:5px;border-radius:3px;background:var(--line);overflow:hidden"><div style="width:${_sc}%;height:100%;border-radius:3px;background:${_scCor}"></div></div><b style="font-size:.7rem;color:${_scCor}">${_sc}</b></div>`;
+  return `<div class="lead" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><span class="ttype tt-${l.tipo}">${l.tipo}</span> <span class="ttype" style="background:${leadCategoria(l).cor}26;border:1px solid ${leadCategoria(l).cor}66;color:${leadCategoria(l).cor}">${leadCategoria(l).ic} ${leadCategoria(l).lb}</span> <span class="ttype" style="background:${leadOrigem(l).cor}26;border:1px solid ${leadOrigem(l).cor}66;color:${leadOrigem(l).cor}">${leadOrigem(l).ic} ${leadOrigem(l).lb}</span> <div class="nm">${esc(l.nome)}</div> <div class="ct">${esc(l.contato||'')}</div> <div class="note" style="margin-top:4px;color:var(--soft)">📅 ${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</div> ${leadPrefContato(l)?`<div class="note" style="margin-top:3px;color:var(--gold,#C5A059)">${leadPrefContato(l)}</div>`:''} ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''} ${_scBar}
     ${l.obs?`<div class="note" style="margin-top:6px">${esc(l.obs)}</div>`:''}
     ${(l.atividades&&l.atividades.length)?`<div class="note" style="margin-top:6px;color:var(--soft)"> ${esc(l.atividades[l.atividades.length-1].texto)} · ${timeAgo(l.atividades[l.atividades.length-1].quando)}</div>`:''}
     <div class="note" style="margin-top:6px;color:var(--soft)">${l.ownerId?''+esc(user(l.ownerId).nome.split(' ')[0]):'⚠️ não distribuído'}</div> ${(isMaster()||isLider())?`<select onchange="crmAssign('${l.id}',this.value)" style="margin-top:6px;font-size:.74rem;padding:6px 8px"><option value="">— distribuir para —</option>${(db.accounts||[]).filter(a=>a.real&&a.role==='especialista'&&(isMaster()||a.leaderId===meId())).map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`:''}
@@ -2039,7 +2068,7 @@ function cliListHtml(){
   if(_cliQ){ const qd=_cliQ.replace(/\D/g,''); VC=VC.filter(c=>{ const s=((c.nome||'')+' '+(c.email||'')).toLowerCase(); if(s.indexOf(_cliQ)>=0)return true; if(qd){ const tl=(''+(c.tel||'')).replace(/\D/g,''); if(tl.indexOf(qd)>=0)return true; } return false; }); }
   const total=VC.length; const shown=VC.slice(0,_cliN);
   const cards=shown.map(c=>{const m=mainPlan(c),t=totals(c.plans.find(p=>p.main));const copies=c.plans.filter(p=>!p.main).length;
-    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div> <div class="meta">${esc(c.email||'')}${c.tel?' · 📱 '+esc(c.tel):''}${isMaster()?' · 👤 '+esc(user(c.ownerId).nome.split(' ')[0]):''}</div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div> <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button> <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button> <button class="btn btn-ghost btn-sm" onclick="openCartas('${c.id}')">🎫 Cartas</button>${isMaster()?` <button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="excluirClienteEmpresa('${c.id}')">Excluir</button>`:''}</div></div>`}).join('')||`<p class="note">${_cliQ?'Nenhum cliente encontrado para essa busca.':'Você ainda não tem clientes. Crie um cliente ou converta um lead no CRM.'}</p>`;
+    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div> <div class="meta">${esc(c.email||'')}${c.tel?' · 📱 '+esc(c.tel):''}${isMaster()?' · 👤 '+esc(user(c.ownerId).nome.split(' ')[0]):''}</div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div> <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button> <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button> <button class="btn btn-ghost btn-sm" onclick="openCartas('${c.id}')">🎫 Cartas</button> <button class="btn btn-ghost btn-sm" onclick="verComoCliente('${c.id}')">👁 Visão cliente</button>${isMaster()?` <button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="excluirClienteEmpresa('${c.id}')">Excluir</button>`:''}</div></div>`}).join('')||`<p class="note">${_cliQ?'Nenhum cliente encontrado para essa busca.':'Você ainda não tem clientes. Crie um cliente ou converta um lead no CRM.'}</p>`;
   return `<div class="cards">${cards}</div>${total>_cliN?`<div style="text-align:center;margin-top:16px"><button class="btn btn-ghost" onclick="cliMore()">Carregar mais (${total-_cliN} restantes)</button></div>`:''}`;
 }
 function cliSearch(v){_cliQ=(v||'').toLowerCase();_cliN=24;const el=document.getElementById('cliList');if(el)el.innerHTML=cliListHtml();}
@@ -2072,6 +2101,7 @@ function contPanelsHtml(){
     else{
       btns=`<button class="btn btn-ghost btn-sm" onclick="resetAccount('${a.id}')">Resetar senha</button><button class="btn btn-ghost btn-sm" onclick="toggleAccount('${a.id}')">${a.ativo===false?'Ativar':'Desativar'}</button>`;
       if((isM||isLider())&&(a.role==='especialista'||a.role==='lider')) btns=`<button class="btn btn-ghost btn-sm" onclick="verComo('${a.id}')">👁 Ver como</button>`+btns;
+      if(a.role==='cliente') btns=`<button class="btn btn-ghost btn-sm" onclick="verComo('${a.id}')">👁 Visão cliente</button>`+btns;
       if(isM&&a.role==='cliente') btns+=`<button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="excluirConta('${a.id}')">Excluir</button>`;
     }
     return `<div class="netrow" style="padding:13px 2px"><span style="display:flex;align-items:center;gap:14px">${avatar(a.id,38)}<span style="display:flex;flex-direction:column;gap:5px;line-height:1.3"><span><b style="color:var(--head)">${esc(a.nome)}</b>${chip}</span><span class="note">${sub}</span></span></span> <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${btns}</span></div>`;
@@ -2535,7 +2565,7 @@ function oport(k){
   ask({title:o.t,msg:o.m+' Quer que seu especialista prepare uma simulação? Acione a Agion pelo WhatsApp.',ok:'Entendi'});
 }
 function renderClientDash(C){
-  const c=client(session.clientId),m=mainPlan(c),R=projetar(m);
+  const c=client(effCliId()),m=mainPlan(c),R=projetar(m);
   setTop('Olá, '+c.nome.split(' ')[0]+' ', R.saude>=75?'Seu plano está num bom caminho':R.saude>=50?'Seu plano está em construção':'Vamos fortalecer seu plano juntos');
   const col=R.prob>=80?'var(--ok)':R.prob>=55?'var(--warn)':'var(--bad)';
   const m2=R.reservaIdeal?Math.min(100,Math.round(R.reservaAtual/R.reservaIdeal*100)):100;
@@ -2550,7 +2580,7 @@ function renderClientDash(C){
   drawResultCharts(m,R);
 }
 function renderClientPlan(C){
-  const c=client(session.clientId);
+  const c=client(effCliId());
   if(!view.planId || !c.plans.some(p=>p.id===view.planId)) view.planId=mainPlan(c).id;
   view.clientId=c.id; view.readonly=!!plan(c.id,view.planId).main;
   if(view.page==='plan'){ curSec='projecao'; }
@@ -2561,7 +2591,7 @@ async function delSim(cid,pid){if(!(await ask({title:'Excluir este planejamento?
 
 /* ----- JORNADA DE METAS (cliente) ----- */
 function renderJornada(C){
-  const c=client(session.clientId),m=mainPlan(c);
+  const c=client(effCliId()),m=mainPlan(c);
   setTop('Minha Jornada','Metas e passos para realizá-las');
   const nMetas=(m.goals||[]).length;
   C.innerHTML=`
@@ -2594,7 +2624,7 @@ function seedLanc(){return [
   {id:uid(),tipo:'receita',desc:'Salário',cat:'Receita',valor:15000,dia:5}
 ];}
 function renderGastos(C){
-  const c=client(session.clientId),m=mainPlan(c);
+  const c=client(effCliId()),m=mainPlan(c);
   if(!Array.isArray(m.lancamentos)) m.lancamentos=seedLanc();
   if(!m.budgets) m.budgets={Moradia:3500,'Alimentação':1500,Transporte:700,Lazer:600,'Saúde':1200,Contas:600};
   if(!Array.isArray(m.histGastos)) m.histGastos=[['Jan',7200],['Fev',8100],['Mar',7600],['Abr',8800],['Mai',7900]];
@@ -2617,17 +2647,17 @@ function renderGastos(C){
 function drawGastosCharts(catArr,hist){if(typeof Chart==='undefined')return;ensureChartDefaults();destroyCharts();const gold='#C5A059',tick='#9DB5B1',grid='rgba(143,217,204,.1)';
   try{charts.push(new Chart(chSpend,{type:'doughnut',data:{labels:catArr.map(c=>c[0]),datasets:[{data:catArr.map(c=>c[1]),backgroundColor:catArr.map(c=>catMetaG(c[0])[2]),borderWidth:0}]},options:{maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false}}}}))}catch(e){console.warn(e)}
   try{charts.push(new Chart(chEvol,{type:'bar',data:{labels:hist.map(h=>h[0]),datasets:[{data:hist.map(h=>h[1]),backgroundColor:hist.map((h,i)=>i===hist.length-1?gold:'rgba(143,217,204,.35)'),borderRadius:6}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tick}},y:{grid:{color:grid},ticks:{color:tick,callback:v=>'R$ '+(v/1000).toFixed(0)+'k'}}}}}))}catch(e){console.warn(e)}}
-function openBudgets(){const m=mainPlan(session.clientId);document.getElementById('budgetBody').innerHTML=CATS_GASTO.filter(c=>c[0]!=='Receita').map(c=>`<div class="field" style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:130px;display:flex;align-items:center;gap:8px;color:${c[2]}">${catIcon(c[0],17)}<span style="color:var(--ink)">${c[0]}</span></span><input type="number" id="bud_${c[0]}" value="${(m.budgets&&m.budgets[c[0]])||0}" style="flex:1"></div>`).join('');document.getElementById('budgetModal').classList.remove('hidden');}
+function openBudgets(){const m=mainPlan(effCliId());document.getElementById('budgetBody').innerHTML=CATS_GASTO.filter(c=>c[0]!=='Receita').map(c=>`<div class="field" style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:130px;display:flex;align-items:center;gap:8px;color:${c[2]}">${catIcon(c[0],17)}<span style="color:var(--ink)">${c[0]}</span></span><input type="number" id="bud_${c[0]}" value="${(m.budgets&&m.budgets[c[0]])||0}" style="flex:1"></div>`).join('');document.getElementById('budgetModal').classList.remove('hidden');}
 function closeBudgets(){document.getElementById('budgetModal').classList.add('hidden');}
-function saveBudgets(){const m=mainPlan(session.clientId);m.budgets=m.budgets||{};CATS_GASTO.filter(c=>c[0]!=='Receita').forEach(c=>{const el=document.getElementById('bud_'+c[0]);if(el)m.budgets[c[0]]=parseFloat(el.value)||0;});save();closeBudgets();renderGastos(document.getElementById('content'));flash('Metas salvas');}
+function saveBudgets(){if(roGuard())return;const m=mainPlan(effCliId());m.budgets=m.budgets||{};CATS_GASTO.filter(c=>c[0]!=='Receita').forEach(c=>{const el=document.getElementById('bud_'+c[0]);if(el)m.budgets[c[0]]=parseFloat(el.value)||0;});save();closeBudgets();renderGastos(document.getElementById('content'));flash('Metas salvas');}
 function openLanc(){document.getElementById('lancCat').innerHTML=CATS_GASTO.map(c=>`<option>${c[0]}</option>`).join('');document.getElementById('lanc_desc').value='';document.getElementById('lanc_valor').value='';document.getElementById('lanc_tipo').value='despesa';document.getElementById('lanc_dia').value='15';document.getElementById('lancModal').classList.remove('hidden');setTimeout(()=>document.getElementById('lanc_desc').focus(),50);}
 function closeLanc(){document.getElementById('lancModal').classList.add('hidden');}
-function saveLanc(){const m=mainPlan(session.clientId);const desc=document.getElementById('lanc_desc').value.trim();const valor=parseFloat(document.getElementById('lanc_valor').value)||0;if(!desc||!valor){flash('Preencha descrição e valor');return;}m.lancamentos=m.lancamentos||[];m.lancamentos.push({id:uid(),tipo:document.getElementById('lanc_tipo').value,desc,cat:document.getElementById('lanc_cat').value,valor,dia:parseInt(document.getElementById('lanc_dia').value)||15});save();closeLanc();renderGastos(document.getElementById('content'));flash('Lançamento adicionado');}
-function delLanc(id){const m=mainPlan(session.clientId);m.lancamentos=(m.lancamentos||[]).filter(x=>x.id!==id);save();renderGastos(document.getElementById('content'));}
+function saveLanc(){if(roGuard())return;const m=mainPlan(effCliId());const desc=document.getElementById('lanc_desc').value.trim();const valor=parseFloat(document.getElementById('lanc_valor').value)||0;if(!desc||!valor){flash('Preencha descrição e valor');return;}m.lancamentos=m.lancamentos||[];m.lancamentos.push({id:uid(),tipo:document.getElementById('lanc_tipo').value,desc,cat:document.getElementById('lanc_cat').value,valor,dia:parseInt(document.getElementById('lanc_dia').value)||15});save();closeLanc();renderGastos(document.getElementById('content'));flash('Lançamento adicionado');}
+function delLanc(id){if(roGuard())return;const m=mainPlan(effCliId());m.lancamentos=(m.lancamentos||[]).filter(x=>x.id!==id);save();renderGastos(document.getElementById('content'));}
 
 /* ----- COTA (consórcio do cliente) ----- */
 function renderCota(C){
-  const c=client(session.clientId),m=mainPlan(c);const lista=m.consorcios||[];
+  const c=client(effCliId()),m=mainPlan(c);const lista=m.consorcios||[];
   setTop('Minha Cota','Consórcio');
   if(!lista.length){
     C.innerHTML=`<div class="banner"> O consórcio é o diferencial do Método Agion: uma carta de crédito sem juros que vira patrimônio e acelera seus objetivos.</div> <div class="panel" style="text-align:center;padding:40px 20px"><div style="font-size:2rem"></div> <h2 style="justify-content:center">Você ainda não tem um consórcio no seu plano</h2> <p class="note" style="max-width:460px;margin:8px auto 16px">Fale com o seu especialista para incluir uma carta de consórcio ao seu planejamento — e veja no gráfico o quanto isso antecipa seus sonhos.</p> <a class="btn btn-gold btn-sm" target="_blank" href="https://wa.me/5551993078590?text=${encodeURIComponent('Quero incluir um consórcio no meu planejamento Agion')}">Falar com meu especialista</a></div>`;
