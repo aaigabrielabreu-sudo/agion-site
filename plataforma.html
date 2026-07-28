@@ -2157,7 +2157,9 @@ async function excluirConta(id){
   if(!(await ask({title:'Excluir conta?',msg:'Remove DEFINITIVAMENTE a conta de '+a.nome+' ('+(a.email||'sem e-mail')+'): o acesso à plataforma, o planejamento e as cartas/consórcios vinculados. Esta ação não pode ser desfeita.',ok:'Excluir definitivamente'})))return;
   flash('Excluindo conta…');
   let okBackend=false;
-  try{ const r=await supa.functions.invoke('excluir-conta',{body:{id:a.id,email:a.email||''}}); if(r&&!r.error&&!(r.data&&r.data.error))okBackend=true; }catch(e){}
+  /* exclusão TOTAL via rpc (auth + perfil + histórico) — pedido 28/jul */
+  try{ const r=await supa.rpc('excluir_conta_total',{p_user:isUuid(a.id)?a.id:null,p_email:a.email||null}); if(r&&!r.error&&(r.data==='ok'||r.data==='nao_encontrado'))okBackend=true; }catch(e){}
+  if(!okBackend){ try{ const r=await supa.functions.invoke('excluir-conta',{body:{id:a.id,email:a.email||''}}); if(r&&!r.error&&!(r.data&&r.data.error))okBackend=true; }catch(e){} }
   if(okBackend){
     db.accounts=(db.accounts||[]).filter(x=>x.id!==a.id);
     db.clients=(db.clients||[]).filter(c=>(c.email||'').toLowerCase()!==(a.email||'').toLowerCase());
@@ -2177,7 +2179,8 @@ async function excluirClienteEmpresa(cid){
   const prof=c.email?(db.accounts||[]).find(a=>a.role==='cliente'&&(a.email||'').toLowerCase()===(c.email||'').toLowerCase()):null;
   if(prof){
     let ok=false;
-    try{ const r=await supa.functions.invoke('excluir-conta',{body:{id:prof.id,email:prof.email||c.email||''}}); if(r&&!r.error&&!(r.data&&r.data.error))ok=true; }catch(e){}
+    try{ const r=await supa.rpc('excluir_conta_total',{p_user:isUuid(prof.id)?prof.id:null,p_email:prof.email||c.email||null}); if(r&&!r.error&&(r.data==='ok'||r.data==='nao_encontrado'))ok=true; }catch(e){}
+    if(!ok){ try{ const r=await supa.functions.invoke('excluir-conta',{body:{id:prof.id,email:prof.email||c.email||''}}); if(r&&!r.error&&!(r.data&&r.data.error))ok=true; }catch(e){} }
     if(ok){ db.accounts=(db.accounts||[]).filter(a=>a.id!==prof.id); }
     else{ try{ prof.ativo=false; if(isUuid(prof.id)) await supa.from('profiles').update({ativo:false}).eq('id',prof.id); }catch(e){} flash('Login desativado; exclusão total do acesso ficou pendente do servidor.'); }
   }
