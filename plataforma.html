@@ -33,6 +33,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+/* App sólido (28/jul): mata o bounce elástico do WebView iOS; login sem rolagem */
+html,body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+body.appLoginLock{overflow:hidden;position:fixed;inset:0;width:100%}
 :root{
   --bg:#0B2A26;--bg2:#0E322D;--card:#103A32;--card2:#144238;--card3:#184C40;
   --teal:#8FD9CC;--teal-ink:#0A2026;--gold:#C5A059;--gold2:#E8CC8B;
@@ -2750,10 +2753,7 @@ function masterReportPDF(){
   const cliRows=d.rows.slice().sort((a,b)=>b.patr-a.patr).map(r=>'<tr><td>'+esc(r.cliente)+'</td><td>'+esc(r.esp)+'</td><td class="n">'+BRL(r.patr)+'</td><td class="n">'+BRL(r.sobra)+'</td></tr>').join('')||'<tr><td colspan="4">—</td></tr>';
   const actRows=d.acts.map(e=>'<tr><td class="dt">'+esc(fmtWhen(new Date(e.criado_em).getTime()))+'</td><td>'+esc(actText(e))+'</td></tr>').join('');
   const H='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório Gerencial Agion</title><style>'
-   +'*{box-sizing:border-box;margin:0;padding:0}
-/* App sólido (28/jul): mata o bounce elástico do WebView iOS e trava a tela de login sem rolagem */
-html,body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
-body:has(#loginView:not(.hidden)){overflow:hidden;position:fixed;inset:0;width:100%}body{font-family:Arial,Helvetica,sans-serif;color:#12211d;padding:34px 40px;background:#fff}'
+   +'*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;color:#12211d;padding:34px 40px;background:#fff}'
    +'.hd{display:flex;align-items:center;gap:14px;border-bottom:3px solid #0E4A41;padding-bottom:14px;margin-bottom:8px}.hd img{height:46px}.hd h1{font-size:22px;color:#0B2A26}.hd .sub{color:#5A6763;font-size:12px;margin-top:2px}'
    +'.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 6px}.kpi{border:1.5px solid rgba(14,74,65,.25);border-left:4px solid #0E4A41;border-radius:10px;padding:12px 14px}.kpi .l{font-size:10px;color:#5A6763;text-transform:uppercase;letter-spacing:.05em}.kpi b{font-size:19px;color:#0B2A26}'
    +'h2{font-size:15px;color:#0B3A33;margin:24px 0 8px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:7px 9px;border-bottom:1px solid #e3ece8}th{background:#EAF3EE;color:#0B3A33;text-transform:uppercase;font-size:10px;letter-spacing:.04em}td.n{text-align:right}td.dt{white-space:nowrap;color:#5A6763}'
