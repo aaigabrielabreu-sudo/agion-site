@@ -763,12 +763,12 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
   body.isApp .mobnav a .icon{width:21px;height:21px}
   /* sinos ANCORADOS no canto superior direito: nunca mudam de lugar */
   body.isApp .tb-right{display:contents}
-  body.isApp .topbar{position:relative}
-  body.isApp .topbar>.tb-left{order:1;flex:1 1 100%;min-width:0;padding-right:84px}
-  body.isApp .topbar #bellWrap{position:absolute;top:14px;right:14px;z-index:6}
+  body.isApp .topbar{align-items:flex-start}
+  body.isApp .topbar>.tb-left{order:1;flex:1 1 0;min-width:0;padding-right:6px}
+  body.isApp .topbar #bellWrap{order:2;flex:0 0 auto;margin-left:auto;align-self:flex-start;margin-top:3px}
   body.isApp .topbar .actions{order:3;flex:1 1 100%;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
   body.isApp .topbar #themeBtn{order:3}
-  body.isApp .tb-right .actions{display:flex;gap:8px;flex:0 0 auto}
+  body.isApp .tb-right .actions{display:flex;gap:8px;flex:1 1 100%;order:3;flex-wrap:wrap;min-width:0}
   body.isApp .tb-right .btn{min-height:36px;padding:8px 13px;font-size:.75rem;border-radius:11px;flex:0 0 auto}
   body.isApp #themeBtn{display:none}
   body.isApp .bell{width:34px;height:34px;flex:0 0 auto}
