@@ -815,8 +815,9 @@ html.isApp body::before{height:max(6px,calc(env(safe-area-inset-top,0px) - 12px)
 html.capNative body::before{display:none}
 html.capNative body.isApp .topbar{padding-top:64px;padding-bottom:12px;gap:12px 10px}
 html.capNative body.isApp .viewbar{padding-top:12px}
-html.capNative body.isApp .main>.content{padding-top:16px}
-html.capNative body.isApp .crmFiltros{margin-top:-16px!important;padding-top:16px!important}
+html.capNative body.isApp .main>.content{padding-top:0!important}
+html.capNative body.isApp .main>.content>*:first-child{margin-top:14px}
+html.capNative body.isApp .crmFiltros{margin-top:0!important;padding-top:11px!important;top:0!important}
 html.capNative body.isApp .mobnav{padding-bottom:8px!important}
 html.capNative body.isApp .main>.content{padding-bottom:78px}
 html.capNative body.isApp #agionPtr{top:6px}
