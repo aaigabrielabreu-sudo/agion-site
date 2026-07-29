@@ -988,9 +988,12 @@ body.isApp #loginView{height:100dvh;max-height:100dvh}
 /* ---------- 27. VISAO CLIENTE (barra "Vendo como") + CARA DE APP NATIVO ---------- */
 @media(max-width:1024px){
   /* a faixa "Vendo como" e a primeira coisa da tela: ela quem respeita o relogio */
-  html.capNative body.isApp #viewbar{padding-top:calc(var(--agTop,58px) + 2px)!important;padding-bottom:9px!important}
-  body.isApp #viewbar{font-size:.74rem;line-height:1.3;gap:6px;flex-wrap:wrap;padding-left:14px;padding-right:14px}
-  body.isApp #viewbar .btn{min-height:30px;padding:5px 12px;font-size:.7rem}
+  html.capNative body.isApp #viewbar{padding-top:calc(var(--agTop,58px) - 2px)!important;padding-bottom:3px!important}
+  body.isApp #viewbar{font-size:.63rem!important;line-height:1.1;gap:4px;flex-wrap:nowrap!important;
+    padding-left:13px;padding-right:10px;min-height:0;letter-spacing:.1px;white-space:nowrap;overflow:hidden}
+  body.isApp #viewbar b{font-size:.66rem;font-weight:800;margin:0 3px!important;overflow:hidden;text-overflow:ellipsis}
+  body.isApp #viewbar .btn{min-height:21px!important;height:21px;padding:0 9px!important;font-size:.6rem!important;
+    border-radius:7px;margin-left:auto;flex:0 0 auto}
   html.capNative body.isApp .main:has(#viewbar) .topbar{padding-top:8px!important}
 
   /* --- TRANSICAO DE TELA estilo app (entra deslizando, nao "recarrega") --- */
@@ -1378,7 +1381,7 @@ function verComo(id){ const a=(db.accounts||[]).find(x=>x.id===id); if(!a)return
 function effCliId(){ return (session.viewAs&&session.viewAs.role==='cliente')?session.viewAs.clientId:session.clientId; }
 function verComoCliente(cid){ const c=(db.clients||[]).find(x=>x.id===cid); if(!c){flash('Cliente não encontrado.');return;} if(!(isMaster()||ownerVisible(c.ownerId))){flash('Sem permissão para ver este cliente.');return;} const a=(db.accounts||[]).find(x=>x.id===c.userId)||(db.accounts||[]).find(x=>x.clientId===cid); session.viewAs={id:(a&&a.id)||('cli_'+cid),nome:c.nome,role:'cliente',clientId:cid}; view.page='dash'; renderViewbar(); renderNav(); render(); flash('Visão cliente — '+c.nome+' (somente leitura)'); window.scrollTo(0,0); }
 function sairVerComo(){ session.viewAs=null; view.page=isMaster()?'contas':'dash'; renderViewbar(); renderNav(); render(); window.scrollTo(0,0); }
-function renderViewbar(){ let el=document.getElementById('viewbar'); const main=document.querySelector('.main'); if(session.viewAs){ if(!el){ el=document.createElement('div'); el.id='viewbar'; el.className='viewbar'; main.insertBefore(el, main.firstChild); } el.innerHTML='👁 Vendo como <b style="margin:0 4px">'+esc(session.viewAs.nome)+'</b> — somente leitura <button class="btn btn-ghost btn-sm" onclick="sairVerComo()">Sair</button>'; } else if(el){ el.remove(); } }
+function renderViewbar(){ let el=document.getElementById('viewbar'); const main=document.querySelector('.main'); if(session.viewAs){ if(!el){ el=document.createElement('div'); el.id='viewbar'; el.className='viewbar'; main.insertBefore(el, main.firstChild); } el.innerHTML='Vendo como <b style="margin:0 4px">'+esc(session.viewAs.nome)+'</b><button class="btn btn-ghost btn-sm" onclick="sairVerComo()">Sair</button>'; } else if(el){ el.remove(); } }
 function seedIntegr(){return {Google:{conectado:true,conta:'Agion — Google Ads / Lead Forms'},Meta:{conectado:true,conta:'Agion — Facebook & Instagram Lead Ads'}};}
 const user=id=>(db.accounts||[]).find(u=>u.id===id)||{nome:'—',inicial:'?',cor:'#6E8B88'};
 function timeAgo(ts){const d=Date.now()-ts;if(d<MIN)return 'agora';if(d<HR)return 'há '+Math.floor(d/MIN)+' min';if(d<DAY)return 'há '+Math.floor(d/HR)+'h';return 'há '+Math.floor(d/DAY)+'d';}
