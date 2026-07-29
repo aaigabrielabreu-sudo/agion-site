@@ -968,24 +968,34 @@ body.isApp #loginView{height:100dvh;max-height:100dvh}
 }
 /* ---------- 26. CELULAR DEITADO (landscape): aproveita a tela toda ---------- */
 @media (orientation:landscape) and (max-width:1180px){
-  /* topo enxuto: deitado nao ha barra de status em cima, so entalhe na lateral */
-  html.capNative body.isApp .topbar{padding-top:max(8px,env(safe-area-inset-top,0px))!important;padding-bottom:8px!important}
-  body.isApp .topbar{padding-left:16px!important;padding-right:16px!important;gap:6px 10px}
-  body.isApp .topbar h1{font-size:.98rem}
-  body.isApp .top-logo{height:22px}
+  /* TOPO DEITADO = UMA LINHA SO: [logo + botoes dourados] ... [titulo centralizado] ... [sinos] */
+  html.capNative body.isApp .topbar{padding-top:8px!important;padding-bottom:8px!important}
+  body.isApp .topbar{position:relative;padding-left:16px!important;padding-right:16px!important;
+    gap:10px;flex-wrap:nowrap!important;align-items:center!important;min-height:0}
+  body.isApp .topbar>.tb-left{order:1;flex:0 0 auto!important;padding-right:0!important;gap:9px;align-items:center}
+  body.isApp .topbar .actions,body.isApp .tb-right .actions{order:2;flex:0 0 auto!important;width:auto!important;
+    margin-right:auto;flex-wrap:nowrap!important;overflow:visible;gap:8px}
+  body.isApp .topbar .actions .btn{min-height:32px;padding:7px 14px;font-size:.74rem;white-space:nowrap}
+  body.isApp .topbar #bellWrap{order:3;flex:0 0 auto;margin-left:auto;margin-top:0}
+  /* titulo da aba sempre centralizado na tela */
+  body.isApp .topbar h1{position:absolute!important;left:50%;top:50%;transform:translate(-50%,-50%);
+    margin:0!important;white-space:nowrap;max-width:42vw;overflow:hidden;text-overflow:ellipsis;
+    font-size:1.02rem;pointer-events:none}
+  body.isApp .top-logo{height:24px}
   body.isApp .bell3{width:26px;height:26px;font-size:.68rem}
   body.isApp .bell3 .badge{min-width:12px;height:12px;font-size:.48rem}
   body.isApp .topbar .actions .btn{min-height:32px;padding:6px 12px;font-size:.72rem}
 
   /* conteudo usa a largura toda, respeitando o entalhe lateral */
   body.isApp .main>.content{padding-top:10px!important;padding-left:16px!important;padding-right:16px!important;
-    padding-bottom:58px!important}
+    padding-bottom:66px!important}
 
-  /* barra inferior baixinha para sobrar altura */
-  html.capNative body.isApp .mobnav{padding:3px 6px 3px!important}
-  body.isApp .mobnav{padding-left:10px!important;padding-right:10px!important}
-  body.isApp .mobnav a{flex:0 0 58px;width:58px;padding:3px 2px;gap:1px;font-size:.47rem;border-radius:10px}
-  body.isApp .mobnav a .icon{width:16px;height:16px}
+  /* barra inferior maior, ocupando a largura toda */
+  html.capNative body.isApp .mobnav{padding:6px 4px 6px!important}
+  body.isApp .mobnav{padding-left:10px!important;padding-right:10px!important;justify-content:space-between!important}
+  body.isApp .mobnav a{flex:1 1 0!important;width:auto!important;min-width:60px;padding:6px 3px;gap:3px;
+    font-size:.56rem;border-radius:12px}
+  body.isApp .mobnav a .icon{width:20px;height:20px}
 
   /* mais colunas: aproveita a largura */
   body.isApp .kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
