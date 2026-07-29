@@ -770,7 +770,7 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
   body.isApp .topbar .actions{order:3;flex:1 1 100%;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
   body.isApp .topbar #themeBtn{order:3}
   body.isApp .tb-right .actions{display:flex;gap:8px;flex:1 1 100%;order:3;flex-wrap:wrap;min-width:0}
-  body.isApp .tb-right .btn{min-height:36px;padding:8px 13px;font-size:.75rem;border-radius:11px;flex:0 0 auto}
+  body.isApp .tb-right .btn{min-height:32px;padding:6px 12px;font-size:.72rem;border-radius:10px;flex:0 0 auto}
   body.isApp #themeBtn{display:none}
   body.isApp .bell{width:34px;height:34px;flex:0 0 auto}
   body.isApp .bell3{width:30px;height:30px;font-size:.78rem;border-width:1.5px}
@@ -813,11 +813,11 @@ body.isApp .viewbar{flex:0 0 auto;position:static;padding-top:max(6px,calc(env(s
 html.isApp body::before{height:max(6px,calc(env(safe-area-inset-top,0px) - 12px))}
 /* No app nativo (Capacitor) a WebView JA comeca abaixo do notch: nao somar area segura de novo */
 html.capNative body::before{display:none}
-html.capNative body.isApp .topbar{padding-top:64px;padding-bottom:12px;gap:12px 10px}
+html.capNative body.isApp .topbar{padding-top:54px;padding-bottom:6px;gap:4px 10px}
 html.capNative body.isApp .viewbar{padding-top:12px}
 html.capNative body.isApp .main>.content{padding-top:0!important}
 html.capNative body.isApp .main>.content>*:first-child{margin-top:14px}
-html.capNative body.isApp .crmFiltros{margin-top:0!important;padding-top:11px!important;top:0!important}
+html.capNative body.isApp .crmFiltros{margin-top:0!important;padding-top:8px!important;padding-bottom:8px!important;top:0!important}
 html.capNative body.isApp .mobnav{padding-bottom:8px!important}
 html.capNative body.isApp .main>.content{padding-bottom:78px}
 html.capNative body.isApp #agionPtr{top:6px}
@@ -966,7 +966,7 @@ body.isApp #loginView{height:100dvh;max-height:100dvh}
   html.capNative body.isApp{padding-top:0!important;margin-top:0!important}
   html.capNative body.isApp #app,html.capNative body.isApp #app.show{padding-top:0!important;margin-top:0!important}
   html.capNative body.isApp .main{padding-top:0!important;margin-top:0!important}
-  html.capNative body.isApp .topbar{margin-top:0!important;padding-top:64px!important;padding-bottom:12px!important}
+  html.capNative body.isApp .topbar{margin-top:0!important;padding-top:54px!important;padding-bottom:6px!important;row-gap:4px!important}
 }
 /* ---------- 26. CELULAR DEITADO (landscape): aproveita a tela toda ---------- */
 @media (orientation:landscape) and (max-width:1180px){
