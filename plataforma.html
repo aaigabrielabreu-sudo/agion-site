@@ -970,7 +970,7 @@ body.isApp #loginView{height:100dvh;max-height:100dvh}
 @media (orientation:landscape) and (max-width:1180px){
   /* topo enxuto: deitado nao ha barra de status em cima, so entalhe na lateral */
   html.capNative body.isApp .topbar{padding-top:max(8px,env(safe-area-inset-top,0px))!important;padding-bottom:8px!important}
-  body.isApp .topbar{padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));gap:6px 10px}
+  body.isApp .topbar{padding-left:16px!important;padding-right:16px!important;gap:6px 10px}
   body.isApp .topbar h1{font-size:.98rem}
   body.isApp .top-logo{height:22px}
   body.isApp .bell3{width:26px;height:26px;font-size:.68rem}
@@ -978,14 +978,12 @@ body.isApp #loginView{height:100dvh;max-height:100dvh}
   body.isApp .topbar .actions .btn{min-height:32px;padding:6px 12px;font-size:.72rem}
 
   /* conteudo usa a largura toda, respeitando o entalhe lateral */
-  body.isApp .main>.content{padding-top:10px!important;
-    padding-left:max(14px,env(safe-area-inset-left,0px))!important;
-    padding-right:max(14px,env(safe-area-inset-right,0px))!important;
-    padding-bottom:calc(54px + env(safe-area-inset-bottom,0px))!important}
+  body.isApp .main>.content{padding-top:10px!important;padding-left:16px!important;padding-right:16px!important;
+    padding-bottom:58px!important}
 
   /* barra inferior baixinha para sobrar altura */
   html.capNative body.isApp .mobnav{padding:3px 6px 3px!important}
-  body.isApp .mobnav{padding-left:max(6px,env(safe-area-inset-left,0px));padding-right:max(6px,env(safe-area-inset-right,0px))}
+  body.isApp .mobnav{padding-left:10px!important;padding-right:10px!important}
   body.isApp .mobnav a{flex:0 0 58px;width:58px;padding:3px 2px;gap:1px;font-size:.47rem;border-radius:10px}
   body.isApp .mobnav a .icon{width:16px;height:16px}
 
@@ -996,7 +994,7 @@ body.isApp #loginView{height:100dvh;max-height:100dvh}
 
   /* KANBAN de verdade: colunas lado a lado, altura cheia, sem trava de rolagem */
   body.isApp .kanban{scroll-snap-type:none;gap:10px;align-items:stretch;
-    height:calc(100dvh - 132px - env(safe-area-inset-bottom,0px));padding-bottom:4px}
+    height:calc(100dvh - 150px);padding-bottom:4px}
   body.isApp .kcol{flex:0 0 272px;max-width:272px;scroll-snap-align:none;padding:11px;border-radius:14px;
     display:flex;flex-direction:column;min-height:0}
   body.isApp .kcol>.kbody,body.isApp .kcol>div:last-child{min-height:0;overflow-y:auto;scrollbar-width:none}
@@ -1009,7 +1007,7 @@ body.isApp #loginView{height:100dvh;max-height:100dvh}
   body.isApp .crmFiltros select{flex:0 0 150px!important;max-width:150px}
 
   /* conversas ocupam tudo */
-  body.isApp .waPanel>.wa{margin-bottom:calc(46px + env(safe-area-inset-bottom,0px))}
+  body.isApp .waPanel>.wa{margin-bottom:46px}
   body.isApp .fab{bottom:58px}
 }
 </style>
