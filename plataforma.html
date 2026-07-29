@@ -959,6 +959,13 @@ body.isApp #loginView{height:100dvh;max-height:100dvh}
   body.isApp .content{padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px))}
   body.isApp .mobnav{padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
 }
+/* ---------- 25. TOPO DO APP: zera qualquer sobra herdada acima da barra ---------- */
+@media(max-width:1024px){
+  html.capNative body.isApp{padding-top:0!important;margin-top:0!important}
+  html.capNative body.isApp #app,html.capNative body.isApp #app.show{padding-top:0!important;margin-top:0!important}
+  html.capNative body.isApp .main{padding-top:0!important;margin-top:0!important}
+  html.capNative body.isApp .topbar{margin-top:0!important;padding-top:58px!important}
+}
 </style>
 <script>(function(){try{
   if(!document.documentElement.classList.contains('isApp'))return;
