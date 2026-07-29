@@ -607,6 +607,14 @@ body.light .logo-img,body.light .top-logo{filter:none}
     _tp(); window.addEventListener('resize',_tp);
     window.addEventListener('orientationchange',function(){setTimeout(_tp,300)});
     setTimeout(_tp,800); setTimeout(_tp,2500);}
+    var _sc=function(){try{
+      var c=document.querySelector('.main>.content'); if(!c)return;
+      if(c.__agSc)return; c.__agSc=1;
+      c.addEventListener('scroll',function(){
+        document.body.classList.toggle('appScrolled', c.scrollTop>10);
+      },{passive:true});
+    }catch(e){}};
+    setInterval(_sc,1200);
     document.addEventListener('DOMContentLoaded',function(){document.body.classList.add('isApp');});
     if(document.body)document.body.classList.add('isApp');
   }
@@ -976,6 +984,46 @@ body.isApp #loginView{height:100dvh;max-height:100dvh}
   html.capNative body.isApp #app,html.capNative body.isApp #app.show{padding-top:0!important;margin-top:0!important}
   html.capNative body.isApp .main{padding-top:0!important;margin-top:0!important}
   html.capNative body.isApp .topbar{margin-top:0!important;padding-top:var(--agTop,58px)!important;padding-bottom:6px!important;row-gap:4px!important}
+}
+/* ---------- 27. VISAO CLIENTE (barra "Vendo como") + CARA DE APP NATIVO ---------- */
+@media(max-width:1024px){
+  /* a faixa "Vendo como" e a primeira coisa da tela: ela quem respeita o relogio */
+  html.capNative body.isApp #viewbar{padding-top:calc(var(--agTop,58px) + 2px)!important;padding-bottom:9px!important}
+  body.isApp #viewbar{font-size:.74rem;line-height:1.3;gap:6px;flex-wrap:wrap;padding-left:14px;padding-right:14px}
+  body.isApp #viewbar .btn{min-height:30px;padding:5px 12px;font-size:.7rem}
+  html.capNative body.isApp .main:has(#viewbar) .topbar{padding-top:8px!important}
+
+  /* --- TRANSICAO DE TELA estilo app (entra deslizando, nao "recarrega") --- */
+  body.isApp .content{animation:agIn .26s cubic-bezier(.22,.9,.3,1)}
+  @keyframes agIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  /* --- FEEDBACK DE TOQUE em tudo que e clicavel --- */
+  body.isApp .panel,body.isApp .kpi,body.isApp .lead,body.isApp .ccard,body.isApp .acctRow,
+  body.isApp .cfgRow,body.isApp .netrow,body.isApp .ni{transition:transform .12s ease,filter .12s ease}
+  body.isApp .lead:active,body.isApp .ccard:active,body.isApp .kpi:active,
+  body.isApp .ni:active,body.isApp .netrow:active{transform:scale(.985);filter:brightness(1.05)}
+
+  /* --- ABA ATIVA com "pop" --- */
+  body.isApp .mobnav a{transition:background .16s ease,color .16s ease,transform .16s ease}
+  body.isApp .mobnav a.on .icon{animation:agPop .28s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes agPop{0%{transform:scale(.82)}60%{transform:scale(1.14)}100%{transform:scale(1)}}
+  body.isApp .mobnav a:active{transform:scale(.94)}
+
+  /* --- MODAL como bottom-sheet com "puxador" --- */
+  body.isApp .modal{position:relative}
+  body.isApp .modal::before{content:'';position:absolute;top:7px;left:50%;transform:translateX(-50%);
+    width:38px;height:4px;border-radius:99px;background:rgba(255,255,255,.28)}
+  body.isApp.light .modal::before{background:rgba(11,42,38,.22)}
+  body.isApp .modal{padding-top:20px}
+
+  /* --- CABECALHO ENCOLHE ao rolar (assinatura de app iOS) --- */
+  body.isApp .topbar{transition:padding .18s ease}
+  body.isApp .topbar h1{transition:font-size .18s ease}
+  body.isApp.appScrolled .topbar{padding-bottom:3px!important}
+  body.isApp.appScrolled .topbar h1{font-size:.98rem}
+  body.isApp.appScrolled .top-logo{height:22px}
+  body.isApp .topbar{box-shadow:none;transition:box-shadow .2s ease,padding .18s ease}
+  body.isApp.appScrolled .topbar{box-shadow:0 6px 18px rgba(0,0,0,.35)}
 }
 /* ---------- 26. CELULAR DEITADO (landscape): aproveita a tela toda ---------- */
 @media (orientation:landscape) and (max-width:1180px){
