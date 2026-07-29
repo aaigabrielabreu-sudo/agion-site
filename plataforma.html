@@ -621,6 +621,17 @@ body.light .logo-img,body.light .top-logo{filter:none}
       },{passive:true});
     }catch(e){}};
     setInterval(_sc,1200);
+    var _logoDourado=function(){try{
+      var u='/logo-agion-dourado.png';
+      var els=document.querySelectorAll('.top-logo, .logo-img, #loginView img');
+      for(var k=0;k<els.length;k++){ var el=els[k];
+        if(el.getAttribute('data-agdour'))continue;
+        el.setAttribute('data-agdour','1');
+        el.setAttribute('src',u);
+        el.style.borderRadius='0'; el.style.background='transparent';
+      }
+    }catch(e){}};
+    _logoDourado(); setInterval(_logoDourado,900);
     document.addEventListener('DOMContentLoaded',function(){document.body.classList.add('isApp');});
     if(document.body)document.body.classList.add('isApp');
   }
