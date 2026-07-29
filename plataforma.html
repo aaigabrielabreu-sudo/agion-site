@@ -761,14 +761,20 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
   body.isApp .top-logo{height:26px}
   body.isApp .mobnav a{padding:5px 2px;gap:3px}
   body.isApp .mobnav a .icon{width:21px;height:21px}
-  body.isApp .tb-right{display:flex;align-items:center;gap:8px;flex:1 1 100%;flex-wrap:wrap;min-width:0}
+  /* sinos sobem para a linha do titulo; acoes ficam na linha de baixo */
+  body.isApp .tb-right{display:contents}
+  body.isApp .topbar>.tb-left{order:1;flex:1 1 auto;min-width:0}
+  body.isApp .topbar #bellWrap{order:2;flex:0 0 auto;margin-left:auto;align-self:flex-start;position:relative}
+  body.isApp .topbar .actions{order:3;flex:1 1 100%;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+  body.isApp .topbar #themeBtn{order:3}
   body.isApp .tb-right .actions{display:flex;gap:8px;flex:0 0 auto}
   body.isApp .tb-right .btn{min-height:36px;padding:8px 13px;font-size:.75rem;border-radius:11px;flex:0 0 auto}
   body.isApp #themeBtn{display:none}
   body.isApp .bell{width:34px;height:34px;flex:0 0 auto}
   body.isApp .bell3{width:27px;height:27px;font-size:.72rem}
   body.isApp .bell3 .badge{min-width:13px;height:13px;font-size:.52rem;top:-3px;right:-3px}
-  body.isApp .bells{gap:4px;flex:0 0 auto;margin-left:auto}
+  body.isApp .bells{gap:5px;flex:0 0 auto}
+  body.isApp .topbar{align-items:flex-start}
   /* painel de notificacoes: menor e colado na direita */
   body.isApp .notif{top:38px;right:0;left:auto;width:268px;max-width:82vw;border-radius:14px}
   body.isApp .notif h4{padding:10px 12px;font-size:.7rem}
