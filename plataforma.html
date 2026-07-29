@@ -751,8 +751,11 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
   body.isApp .topbar{padding:10px 14px;gap:8px 10px}
   body.isApp .topbar .tb-left{min-width:0;flex:1 1 100%}
   body.isApp .topbar .tb-left>div{min-width:0}
-  body.isApp .topbar h1{font-size:1.06rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  body.isApp .top-logo{height:28px}
+  body.isApp .topbar h1{font-size:1.02rem;line-height:1.12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.isApp .crumb{font-size:.6rem;letter-spacing:1.1px;line-height:1.25}
+  body.isApp .top-logo{height:26px}
+  body.isApp .mobnav a{padding:5px 2px;gap:3px}
+  body.isApp .mobnav a .icon{width:21px;height:21px}
   body.isApp .tb-right{display:flex;align-items:center;gap:8px;flex:1 1 100%;flex-wrap:wrap;min-width:0}
   body.isApp .tb-right .actions{display:flex;gap:8px;flex:0 0 auto}
   body.isApp .tb-right .btn{min-height:36px;padding:8px 13px;font-size:.75rem;border-radius:11px;flex:0 0 auto}
@@ -766,7 +769,7 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
 /* ---------- 16. BARRA INFERIOR: abas com rotulo, deslizando ---------- */
 @media(max-width:1024px){
   body.isApp .mobnav{justify-content:flex-start;overflow-x:auto;overflow-y:hidden;
-    gap:2px;padding:5px 8px calc(1px + env(safe-area-inset-bottom,0px));scrollbar-width:none}
+    gap:2px;padding:3px 8px max(2px,calc(env(safe-area-inset-bottom,0px) - 15px));scrollbar-width:none}
   body.isApp .mobnav::-webkit-scrollbar{display:none}
   body.isApp .mobnav a{flex:0 0 64px;width:64px;padding:7px 2px;font-size:.55rem;letter-spacing:.1px}
   body.isApp .mobnav a span{max-width:62px}
@@ -780,8 +783,10 @@ html.isApp{height:100%;overflow:hidden}
 html.isApp body{height:100dvh;max-height:100dvh;overflow:hidden;padding-top:0}
 body.isApp #app.show{height:100dvh;max-height:100dvh}
 body.isApp .main{height:100dvh;max-height:100dvh;min-height:0;overflow:hidden;display:flex;flex-direction:column}
-body.isApp .topbar{flex:0 0 auto;position:static;padding-top:calc(4px + env(safe-area-inset-top,0px));padding-bottom:9px;gap:6px 10px}
-body.isApp .viewbar{flex:0 0 auto;position:static;padding-top:calc(4px + env(safe-area-inset-top,0px))}
+body.isApp .topbar{flex:0 0 auto;position:static;padding-top:max(6px,calc(env(safe-area-inset-top,0px) - 12px));
+  padding-bottom:7px;gap:4px 10px}
+body.isApp .viewbar{flex:0 0 auto;position:static;padding-top:max(6px,calc(env(safe-area-inset-top,0px) - 12px))}
+html.isApp body::before{height:max(6px,calc(env(safe-area-inset-top,0px) - 12px))}
 body.isApp .main>.content{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
   -webkit-overflow-scrolling:touch;overscroll-behavior:none;scrollbar-width:none;
   padding-top:12px;padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))}
