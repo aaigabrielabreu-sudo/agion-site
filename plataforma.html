@@ -598,6 +598,15 @@ body.light .logo-img,body.light .top-logo{filter:none}
     if(cap)document.documentElement.classList.add('capNative');
     var mv=document.querySelector('meta[name="viewport"]');
     if(mv&&mv.content.indexOf('viewport-fit')<0){mv.setAttribute('content',mv.content+', viewport-fit=cover');}
+    var _mede=function(){try{
+      var sh=(window.screen&&window.screen.height)||0, ih=window.innerHeight||0;
+      var cobre = sh>0 && (sh-ih)<12;   /* WebView ocupa a tela inteira => precisa de area segura */
+      var r=document.documentElement;
+      r.style.setProperty('--appTop', cobre ? 'max(46px,env(safe-area-inset-top,0px))' : '14px');
+      r.style.setProperty('--appBot', cobre ? 'max(16px,env(safe-area-inset-bottom,0px))' : '4px');
+      r.classList.toggle('appFull', !!cobre);
+    }catch(e){}};
+    _mede(); window.addEventListener('resize',_mede); window.addEventListener('orientationchange',function(){setTimeout(_mede,250)});
     document.addEventListener('DOMContentLoaded',function(){document.body.classList.add('isApp');});
     if(document.body)document.body.classList.add('isApp');
   }
@@ -756,7 +765,8 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
   body.isApp .topbar .tb-left{min-width:0;flex:1 1 100%}
   body.isApp .topbar .tb-left>div{min-width:0}
   body.isApp .topbar h1{font-size:1.06rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  body.isApp .crumb{font-size:.62rem;letter-spacing:1.1px;line-height:1.3;margin-bottom:3px}
+  body.isApp .crumb{display:none}
+  body.isApp .topbar h1{margin:0}
   body.isApp .topbar .tb-left{gap:12px}
   body.isApp .top-logo{height:26px}
   body.isApp .mobnav a{padding:5px 2px;gap:3px}
@@ -812,10 +822,10 @@ body.isApp .viewbar{flex:0 0 auto;position:static;padding-top:max(6px,calc(env(s
 html.isApp body::before{height:max(6px,calc(env(safe-area-inset-top,0px) - 12px))}
 /* No app nativo (Capacitor) a WebView JA comeca abaixo do notch: nao somar area segura de novo */
 html.capNative body::before{display:none}
-html.capNative body.isApp .topbar{padding-top:14px;padding-bottom:14px;gap:12px 10px}
+html.capNative body.isApp .topbar{padding-top:var(--appTop,14px);padding-bottom:14px;gap:12px 10px}
 html.capNative body.isApp .viewbar{padding-top:12px}
 html.capNative body.isApp .main>.content{padding-top:16px}
-html.capNative body.isApp .mobnav{padding-bottom:4px}
+html.capNative body.isApp .mobnav{padding-bottom:var(--appBot,4px)}
 html.capNative body.isApp .main>.content{padding-bottom:78px}
 html.capNative body.isApp #agionPtr{top:6px}
 html.capNative body.isApp .modal{padding-bottom:22px}
