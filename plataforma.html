@@ -764,6 +764,21 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
   body.isApp .mobnav a{flex:0 0 64px;width:64px;padding:7px 2px;font-size:.55rem;letter-spacing:.1px}
   body.isApp .mobnav a span{max-width:62px}
 }
+/* ---------- 16b. LOGIN TRAVADO: nada de arrastar a tela no app ---------- */
+body.isApp.appLoginLock{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
+body.isApp #loginView{height:100dvh;min-height:100dvh;max-height:100dvh;overflow:hidden;overscroll-behavior:none;touch-action:manipulation}
+body.isApp #loginView>*{max-height:100%;overflow:auto;overscroll-behavior:contain;scrollbar-width:none}
+body.isApp #loginView>*::-webkit-scrollbar{display:none}
+/* ---------- 18. ROLAGEM DE APP: o documento NAO rola (fim do efeito elastico) ---------- */
+html.isApp{height:100%;overflow:hidden}
+html.isApp body{height:100dvh;max-height:100dvh;overflow:hidden;padding-top:0}
+body.isApp #app.show{height:100dvh;max-height:100dvh}
+body.isApp .main{height:100dvh;max-height:100dvh;min-height:0;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:none;scrollbar-width:none}
+body.isApp .main::-webkit-scrollbar{display:none}
+body.isApp .topbar{position:sticky;top:0;padding-top:calc(10px + env(safe-area-inset-top,0px))}
+body.isApp .viewbar{position:sticky;top:0;padding-top:calc(9px + env(safe-area-inset-top,0px))}
+body.isApp #loginView{height:100dvh;max-height:100dvh}
 /* ---------- 17. BARRA DE STATUS: nada passa por baixo do relogio ---------- */
 @media(max-width:1024px){
   body.isApp .topbar{top:env(safe-area-inset-top,0px)}
@@ -789,6 +804,18 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
     setTimeout(centraliza,300);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',liga);else liga();
+  /* trava a tela de login (sem arrastar) enquanto o app nao esta logado */
+  function trava(){
+    var a=document.getElementById('app');if(!a)return;
+    var logado=a.classList.contains('show');
+    document.body.classList.toggle('appLoginLock',!logado);
+  }
+  function ligaTrava(){
+    var a=document.getElementById('app');if(!a)return;
+    try{new MutationObserver(trava).observe(a,{attributes:true,attributeFilter:['class']})}catch(e){}
+    trava();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ligaTrava);else ligaTrava();
 }catch(e){}})();</script>
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
