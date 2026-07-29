@@ -608,7 +608,8 @@ body.light .logo-img,body.light .top-logo{filter:none}
       var d=document.createElement('div');
       d.id='agionDbg';
       d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#000;color:#0f0;font:12px/1.35 monospace;padding:3px 5px;pointer-events:none';
-      d.textContent='sat='+sat+' sab='+sab+' ih='+window.innerHeight+' sh='+(window.screen&&window.screen.height)+' vvT='+(window.visualViewport?Math.round(window.visualViewport.offsetTop):'-');
+      var tb=document.querySelector('.topbar'),ap=document.getElementById('app'),mn=document.querySelector('.main'),g=getComputedStyle;
+      d.textContent='sat='+sat+' sab='+sab+' ih='+window.innerHeight+' | bodyPT='+g(document.body).paddingTop+' appPT='+(ap?g(ap).paddingTop:'-')+' mainPT='+(mn?g(mn).paddingTop:'-')+' tbPT='+(tb?g(tb).paddingTop:'-');
       document.body.appendChild(d);
     }catch(e){}},1500);}
     document.addEventListener('DOMContentLoaded',function(){document.body.classList.add('isApp');});
