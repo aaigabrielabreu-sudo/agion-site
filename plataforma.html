@@ -671,8 +671,15 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
   body.isApp input[type=range]{height:10px;min-height:10px;padding:0;margin:12px 0 4px;border:none}
   body.isApp input[type=range]::-webkit-slider-thumb{width:28px;height:28px}
   body.isApp input[type=range]::-moz-range-thumb{width:28px;height:28px}
-  body.isApp .crmFiltros input,body.isApp .crmFiltros select{min-height:38px!important;font-size:.8rem!important}
-  body.isApp .crmFiltros .btn{min-height:38px}
+  body.isApp .crmFiltros{position:sticky;top:0;z-index:25;margin:0 -14px 10px!important;border-radius:0;
+    padding:8px 12px!important;gap:6px!important;background:#0C2C28;border:none;border-bottom:1px solid var(--line-gold);
+    box-shadow:0 6px 16px rgba(0,0,0,.28)}
+  body.isApp.light .crmFiltros{background:#F3F7F5}
+  body.isApp .crmFiltros input,body.isApp .crmFiltros select{min-height:34px!important;font-size:.74rem!important;
+    padding:5px 24px 5px 9px!important;flex:1 1 46%!important;max-width:none!important;border-radius:9px}
+  body.isApp .crmFiltros input{flex:1 1 100%!important;padding-right:9px!important}
+  body.isApp .crmFiltros select{background-position:calc(100% - 13px) 15px,calc(100% - 8px) 15px}
+  body.isApp .crmFiltros .btn{min-height:34px}
 }
 /* ---------- 8. TABELAS: rolagem lateral suave com cabecalho fixo ---------- */
 @media(max-width:1024px){
@@ -759,7 +766,7 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
 /* ---------- 16. BARRA INFERIOR: abas com rotulo, deslizando ---------- */
 @media(max-width:1024px){
   body.isApp .mobnav{justify-content:flex-start;overflow-x:auto;overflow-y:hidden;
-    gap:2px;padding:7px 8px calc(7px + env(safe-area-inset-bottom,0px));scrollbar-width:none}
+    gap:2px;padding:5px 8px calc(1px + env(safe-area-inset-bottom,0px));scrollbar-width:none}
   body.isApp .mobnav::-webkit-scrollbar{display:none}
   body.isApp .mobnav a{flex:0 0 64px;width:64px;padding:7px 2px;font-size:.55rem;letter-spacing:.1px}
   body.isApp .mobnav a span{max-width:62px}
@@ -772,12 +779,84 @@ body.isApp #loginView>*{max-height:100%;overflow:hidden}
 html.isApp{height:100%;overflow:hidden}
 html.isApp body{height:100dvh;max-height:100dvh;overflow:hidden;padding-top:0}
 body.isApp #app.show{height:100dvh;max-height:100dvh}
-body.isApp .main{height:100dvh;max-height:100dvh;min-height:0;overflow-y:auto;overflow-x:hidden;
-  -webkit-overflow-scrolling:touch;overscroll-behavior:none;scrollbar-width:none}
-body.isApp .main::-webkit-scrollbar{display:none}
-body.isApp .topbar{position:static;padding-top:calc(6px + env(safe-area-inset-top,0px));padding-bottom:10px;gap:6px 10px}
-body.isApp .viewbar{position:static;padding-top:calc(6px + env(safe-area-inset-top,0px))}
-body.isApp .main>.content{padding-top:10px}
+body.isApp .main{height:100dvh;max-height:100dvh;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+body.isApp .topbar{flex:0 0 auto;position:static;padding-top:calc(4px + env(safe-area-inset-top,0px));padding-bottom:9px;gap:6px 10px}
+body.isApp .viewbar{flex:0 0 auto;position:static;padding-top:calc(4px + env(safe-area-inset-top,0px))}
+body.isApp .main>.content{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:none;scrollbar-width:none;
+  padding-top:12px;padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+body.isApp .main>.content::-webkit-scrollbar{display:none}
+/* ---------- 20. AJUSTES (tela de configuracoes) ---------- */
+.cfgRow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.cfgRow:last-child{border-bottom:none}
+.cfgDot{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-weight:800;font-size:.82rem;border:1px solid;flex:0 0 auto}
+.cfgTxt{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 auto}
+.cfgTxt b{color:var(--head);font-size:.92rem}
+.cfgTxt span{color:var(--muted);font-size:.76rem}
+.cfgSw{flex:0 0 auto;width:50px;height:30px;border-radius:99px;background:rgba(143,217,204,.14);border:1px solid var(--line);position:relative;transition:.2s}
+.cfgSw i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--soft);transition:.2s}
+.cfgSw.on{background:rgba(197,160,89,.28);border-color:var(--line-gold)}
+.cfgSw.on i{left:25px;background:var(--grad-gold)}
+/* ---------- 21. SO NA WEB / PAINEL: coisas que somem no app ---------- */
+body.isApp .soWeb,body.isApp .carteiraPanel{display:none!important}
+/* ---------- 21b. CEREBRO DO BOT: um nivel so ---------- */
+.iaWrap{display:flex;gap:7px;flex-wrap:nowrap}
+.iaOpt{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:10px 8px;border-radius:12px;border:1px solid var(--line);background:rgba(10,28,34,.4);
+  color:var(--muted);font-weight:700;font-size:.8rem;white-space:nowrap;transition:.18s}
+.iaOpt i{width:9px;height:9px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 6px currentColor}
+.iaOpt.on{color:var(--gold2);border-color:var(--line-gold);background:rgba(197,160,89,.14)}
+#iaBox h2{font-size:1rem}
+/* ---------- 21c. CARTAO DE LEAD reorganizado ---------- */
+.ldTop{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
+.ldChips{display:flex;flex-wrap:wrap;gap:5px;flex:1 1 auto;min-width:0}
+.ldChips .ttype{font-size:.6rem;padding:3px 8px}
+.ldData{flex:0 0 auto;font-size:.64rem;color:var(--soft);text-align:right;line-height:1.3;white-space:nowrap}
+.ldHead{display:flex;align-items:center;gap:10px}
+.ldWho{flex:1 1 auto;min-width:0}
+.ldWho .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ldWho .ct{margin:1px 0 0}
+.ldScore{display:flex;align-items:center;gap:6px;margin-top:6px}
+.ldScore span{font-size:.62rem}
+.ldScore b{font-size:.66rem}
+.ldScoreBar{flex:1;height:4px;border-radius:3px;background:var(--line);overflow:hidden}
+.ldScoreBar>div{height:100%;border-radius:3px}
+.lead .acts{gap:5px;margin-top:9px}
+.lead .acts button{padding:6px 9px;font-size:.7rem;border-radius:8px}
+/* ---------- 21d. CONVERSAS EM TELA CHEIA no app ---------- */
+@media(max-width:1024px){
+  body.isApp .content:has(>.wa){padding:0;overflow:hidden;display:flex;flex-direction:column}
+  body.isApp .wa{flex:1 1 auto;height:auto!important;min-height:0;border-radius:0;border:none;
+    margin-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
+  body.isApp .wa-list{width:100%}
+  body.isApp .wa-hd{padding:9px 10px}
+  body.isApp .wa-inp{padding:8px 10px}
+  body.isApp .wa-item{padding:11px 12px}
+  /* contas/equipe: identidade em cima, acoes embaixo em linha */
+  body.isApp .acctRow{flex-direction:column;align-items:stretch;gap:10px;padding:14px 2px!important}
+  body.isApp .acctRow>span:first-child{width:100%;min-width:0}
+  body.isApp .acctRow>span:first-child>span:last-child{min-width:0;flex:1}
+  body.isApp .acctRow>span:last-child{justify-content:flex-start!important;gap:7px!important}
+  body.isApp .acctRow .btn{flex:1 1 auto;min-height:36px;font-size:.74rem;padding:8px 10px}
+  body.isApp .acctRow .note{white-space:normal;overflow-wrap:anywhere}
+}
+/* ---------- 22. CAPTACAO: conectores viram simbolos lado a lado ---------- */
+@media(max-width:1024px){
+  body.isApp .grid2:has(.intg){grid-template-columns:1fr 1fr;gap:10px}
+  body.isApp .intg{flex-direction:column;align-items:center;text-align:center;gap:7px;padding:12px 8px;margin-bottom:0;border-radius:16px}
+  body.isApp .intg .src{width:42px;height:42px;font-size:1.05rem}
+  body.isApp .intg>div{min-width:0;width:100%}
+  body.isApp .intg>div>div:first-child{font-size:.76rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.isApp .intg>div .note{display:none}
+  body.isApp .intg .btn{font-size:.68rem;min-height:32px;padding:6px 10px;border-radius:10px}
+  body.isApp .intg>span{font-size:.7rem!important}
+  body.isApp .banner{font-size:.78rem;line-height:1.45;padding:12px 14px}
+  body.isApp .banner span{display:none}
+  /* caixa de entrada de leads: cada item vira cartao */
+  body.isApp .panel>.row{flex-direction:column;align-items:flex-start;gap:8px;padding:12px 0}
+  body.isApp .panel>.row>div{min-width:0!important;width:100%}
+  body.isApp .panel>.row .btn{width:100%}
+}
 body.isApp #loginView{height:100dvh;max-height:100dvh}
 /* ---------- 19. CARTAO DE LEAD: resumo curto (toque para abrir) e selects legiveis ---------- */
 @media(max-width:1024px){
@@ -1334,10 +1413,11 @@ const mainPlan=c=>client(c).plans.find(p=>p.main);
 function navItems(){
   const R=effRole();
   const ICN_KPI='<svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-5"/><path d="M13 17V8"/><path d="M18 17v-9"/></svg>';
-  if(R==='master') return [['disparos','Disparos',ICN.bolt],['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check]];
-  if(R==='lider') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users]];
-  if(R==='especialista') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users]];
-  return [['dash','Início',ICN.dash],['plan','Planejamento',ICN.plan],['jornada','Jornada',ICN.target],['gastos','Gastos',ICN.money],['cota','Cota',ICN.cota]];
+  const ICN_CFG='<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+  if(R==='master') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check],['disparos','Disparos',ICN.bolt],['config','Ajustes',ICN_CFG]];
+  if(R==='lider') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users],['config','Ajustes',ICN_CFG]];
+  if(R==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['config','Ajustes',ICN_CFG]];
+  return [['dash','Início',ICN.dash],['plan','Planejamento',ICN.plan],['jornada','Jornada',ICN.target],['gastos','Gastos',ICN.money],['cota','Cota',ICN.cota],['config','Ajustes',ICN_CFG]];
 }
 function renderNav(){
   const items=navItems();
@@ -1360,7 +1440,9 @@ function seenKey(b){ return 'agion_seen_'+meId()+'_'+b; }
 function seenTs(b){ return +(localStorage.getItem(seenKey(b))||0); }
 function markSeen(b){ const it=bellData(b); const mx=it.reduce((m,x)=>x.noBadge?m:Math.max(m,x.ts),0); localStorage.setItem(seenKey(b),String(Math.max(mx,Date.now()))); }
 function unread(b){ const s=seenTs(b); return bellData(b).filter(it=>!it.noBadge&&it.ts>s).length; }
-function updateBell(){ const w=document.getElementById('bellWrap'); if(!w)return; if(session.role==='cliente'){w.innerHTML='';return;} try{ const bells=myBells(); const openB=w.querySelector('.notif'); const keep=openB?openB.getAttribute('data-b'):null; w.innerHTML='<div class="bells">'+bells.map(b=>{ const meta=BELLS[b]; const n=unread(b); const letter=b==='S'?'N':b; return '<button class="bell3" data-b="'+b+'" title="'+meta.lbl+'" aria-label="'+meta.lbl+'" style="--bc:'+meta.cor+'" onclick="toggleNotif(event,\''+b+'\')"><span>'+letter+'</span>'+(n?'<span class="badge">'+(n>9?'9+':n)+'</span>':'')+'</button>'; }).join('')+'</div>'; if(keep)renderNotif(keep); }catch(e){ w.innerHTML=''; } }
+function notifPrefs(){ try{ return Object.assign({C:true,P:true,E:true,S:true}, JSON.parse(localStorage.getItem('agion_notif')||'{}')); }catch(e){ return {C:true,P:true,E:true,S:true}; } }
+function notifSet(k,v){ const p=notifPrefs(); p[k]=!!v; try{localStorage.setItem('agion_notif',JSON.stringify(p))}catch(e){} updateBell(); }
+function updateBell(){ const w=document.getElementById('bellWrap'); if(!w)return; if(session.role==='cliente'){w.innerHTML='';return;} try{ const pf=notifPrefs(); const bells=myBells().filter(b=>pf[b]!==false); const openB=w.querySelector('.notif'); const keep=openB?openB.getAttribute('data-b'):null; w.innerHTML='<div class="bells">'+bells.map(b=>{ const meta=BELLS[b]; const n=unread(b); const letter=b==='S'?'N':b; return '<button class="bell3" data-b="'+b+'" title="'+meta.lbl+'" aria-label="'+meta.lbl+'" style="--bc:'+meta.cor+'" onclick="toggleNotif(event,\''+b+'\')"><span>'+letter+'</span>'+(n?'<span class="badge">'+(n>9?'9+':n)+'</span>':'')+'</button>'; }).join('')+'</div>'; if(keep)renderNotif(keep); }catch(e){ w.innerHTML=''; } }
 function toggleNotif(e,bell){ e&&e.stopPropagation(); const w=document.getElementById('bellWrap'); const open=w.querySelector('.notif'); const wasB=open?open.getAttribute('data-b'):null; if(open)open.remove(); if(wasB===bell)return; renderNotif(bell); markSeen(bell); const bd=w.querySelector('.bell3[data-b="'+bell+'"] .badge'); if(bd)bd.remove(); setTimeout(()=>document.addEventListener('click',closeNotifOnce),0); }
 function renderNotif(bell){ const w=document.getElementById('bellWrap'); if(!w)return; const meta=BELLS[bell]; const items=bellData(bell); const s=seenTs(bell); const L=bell==='S'?'N':bell; const html='<div class="notif" data-b="'+bell+'" style="--bc:'+meta.cor+'"><h4><span class="nlet" style="background:'+meta.cor+'">'+L+'</span>'+esc(meta.lbl)+'<button class="nread" onclick="notifClear(\''+bell+'\')">marcar como lido</button></h4><div class="nlist">'+(items.length?items.map(it=>'<div class="ni'+((!it.noBadge&&it.ts>s)?' unread':'')+'" onclick="go(\''+it.go+'\');closeNotif()"><span class="dot" style="background:'+meta.cor+'22;color:'+meta.cor+'">'+L+'</span><div><div class="tx">'+it.tx+'</div><div class="tm">'+(it.who?esc(it.who):'')+(it.who&&it.ts?' · ':'')+(it.ts?esc(timeAgo(it.ts))+' · '+esc(fmtWhen(it.ts)):'')+'</div></div></div>').join(''):'<div class="empty">Tudo em dia ✓</div>')+'</div></div>'; w.insertAdjacentHTML('beforeend',html); }
 function notifClear(bell){ markSeen(bell); closeNotif(); updateBell(); }
@@ -1504,7 +1586,7 @@ bootAuth();
 /* ===== Conversas estilo WhatsApp (bot Agion via VPS) ===== */
 const BOT_API='https://bot.agionconsorcios.com.br';
 function iaPanelHtml(){ return '<div class="panel" id="iaBox" style="margin-bottom:14px"><div class="row" style="align-items:center"><h2 style="margin:0">\ud83e\udde0 C\u00e9rebro do bot</h2><button class="btn btn-ghost btn-sm right" onclick="iaLoad()">\u21bb</button></div><div id="iaBody"><p class="note">Carregando\u2026</p></div></div>'; }
-async function iaLoad(){ var b=document.getElementById('iaBody'); if(!b)return; var r=await apiFetch('/api/ia'); if(!r||!r.ok){ b.innerHTML='<p class="note">N\u00e3o consegui falar com o rob\u00f4 agora.</p>'; return; } var p=(r.data&&r.data.provider)||'auto'; var ok=!!(r.data&&r.data.claude_ok); var opts=[['auto','\u26a1 Autom\u00e1tico','Claude primeiro, cai no Gemini se faltar cr\u00e9dito'],['claude','\ud83d\udfe3 S\u00f3 Claude','Usa sempre o Claude (melhor qualidade)'],['gemini','\ud83d\udd35 S\u00f3 Gemini','Usa sempre o Gemini (backup)']]; var botoes=opts.map(function(o){var on=(p===o[0]); return '<button onclick="iaSet(\''+o[0]+'\')" class="btn '+(on?'':'btn-ghost')+'" title="'+o[2]+'">'+o[1]+(on?' \u2713':'')+'</button>';}).join(' '); var lbl={auto:'Autom\u00e1tico',claude:'S\u00f3 Claude',gemini:'S\u00f3 Gemini'}[p]||p; b.innerHTML='<p class="note" style="margin:0 0 10px">Ativo agora: <b style="color:var(--head)">'+lbl+'</b>'+(ok?'':' \u00b7 \u26a0\ufe0f Claude sem chave configurada')+'</p><div style="display:flex;gap:8px;flex-wrap:wrap">'+botoes+'</div><p class="note" style="margin:10px 0 0;font-size:.78rem">A troca vale a partir da pr\u00f3xima mensagem que o bot receber \u2014 sem reiniciar nada.</p>'; }
+async function iaLoad(){ var b=document.getElementById('iaBody'); if(!b)return; var r=await apiFetch('/api/ia'); if(!r||!r.ok){ b.innerHTML='<p class="note">N\u00e3o consegui falar com o rob\u00f4 agora.</p>'; return; } var p=(r.data&&r.data.provider)||'auto'; var ok=!!(r.data&&r.data.claude_ok); var opts=[['auto','Autom\u00e1tico','#8FD9CC','Claude primeiro, cai no Gemini se faltar cr\u00e9dito'],['claude','Claude','#E07B39','Usa sempre o Claude (melhor qualidade)'],['gemini','Gemini','#FFFFFF','Usa sempre o Gemini (backup)']]; var botoes=opts.map(function(o){var on=(p===o[0]); return '<button onclick="iaSet(\''+o[0]+'\')" class="iaOpt'+(on?' on':'')+'" title="'+o[3]+'"><i style="background:'+o[2]+'"></i>'+o[1]+'</button>';}).join(''); var lbl={auto:'Autom\u00e1tico',claude:'Claude',gemini:'Gemini'}[p]||p; b.innerHTML='<div class="iaWrap">'+botoes+'</div><p class="note" style="margin:8px 0 0;font-size:.74rem">Ativo: <b style="color:var(--head)">'+lbl+'</b>'+(ok?'':' \u00b7 \u26a0\ufe0f Claude sem chave')+' \u00b7 vale da pr\u00f3xima mensagem</p>'; }
 async function iaSet(p){ var b=document.getElementById('iaBody'); if(b)b.innerHTML='<p class="note">Trocando\u2026</p>'; var r=await apiFetch('/api/ia',{method:'POST',body:JSON.stringify({provider:p})}); if(!r||!r.ok){ if(b)b.innerHTML='<p class="note">Falha ao trocar. Tente de novo.</p>'; setTimeout(iaLoad,1200); return; } iaLoad(); }
 function renderDisparos(C){
   setTop('Disparos','Mensagens e boletos que o bot enviou','');
@@ -1744,7 +1826,8 @@ function render(){
   const C=document.getElementById('content');
   if(isStaff()&&effRole()!=='cliente'){
     if(view.page==='dash') return renderAssessorDash(C);
-    if(view.page==='kpis') return renderKPIs(C);
+    if(view.page==='config') return renderConfig(C);
+    if(view.page==='kpis') return (isMaster()||isLider())?renderGerencial(C):renderAssessorDash(C);
     if(view.page==='crm') return renderCRM(C);
     if(view.page==='captacao') return renderCaptacao(C);
     if(view.page==='gerencial'&&(isMaster()||isLider())) return renderGerencial(C);
@@ -1760,6 +1843,7 @@ function render(){
     if(view.page==='editor') return renderEditor(C);
     if(view.page==='compare') return renderCompare(C);
   }else{
+    if(view.page==='config') return renderConfig(C);
     if(view.page==='dash') return renderClientDash(C);
     if(view.page==='plan') return renderClientPlan(C);
     if(view.page==='jornada') return renderJornada(C);
@@ -1800,7 +1884,7 @@ function renderCRM(C){
   C.innerHTML=cards+
     (naoDistrib.length?`<div class="banner"> ${naoDistrib.length} lead(s) aguardando distribuição. Use o seletor “Distribuir” em cada cartão para encaminhar a um especialista.</div>`:'')+
     `<div class="panel crmFiltros" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px;margin:14px 0">
-      <b style="font-size:.8rem">🔎 Filtrar:</b>
+      <b class="soWeb" style="font-size:.8rem">🔎 Filtrar:</b>
       <input id="crmBuscaInp" type="search" placeholder="Nome, contato…" value="${esc(view.crmBusca||'')}" oninput="crmSetBusca(this.value)" style="padding:6px 10px;font-size:.76rem;flex:1 1 140px;min-width:0;max-width:220px;background:var(--card2);border:1px solid var(--line);color:var(--head);border-radius:8px">
       <select onchange="crmSetValor(this.value)" style="padding:8px 12px;font-size:.82rem">
         <option value="todas">💰 Todos os valores</option>
@@ -1879,13 +1963,13 @@ function leadCard(l,i){
   const last=CRM_STAGES.length-1;
   const _sc=(typeof mktScore==='function')?mktScore(l):0;
   const _scCor=_sc>=70?'#4CAF7D':_sc>=45?'#C5A059':'#8FA6A0';
-  const _scBar=`<div style="display:flex;align-items:center;gap:7px;margin-top:5px" title="Score do lead (etapa + atividades + valor + recência)"><span style="font-size:.66rem;color:var(--soft)">⚡ Score</span><div style="flex:1;height:5px;border-radius:3px;background:var(--line);overflow:hidden"><div style="width:${_sc}%;height:100%;border-radius:3px;background:${_scCor}"></div></div><b style="font-size:.7rem;color:${_scCor}">${_sc}</b></div>`;
+  const _scBar=`<div class="ldScore" title="Score do lead (etapa + atividades + valor + recência)"><span>⚡</span><div class="ldScoreBar"><div style="width:${_sc}%;background:${_scCor}"></div></div><b style="color:${_scCor}">${_sc}</b></div>`;
   const _pm=(l.obs||'').match(/Parcela desejada:\s*R\$?\s*([\d.,]+)/i);
   const _parc=_pm?(+String(_pm[1]).replace(/\./g,'').replace(',','.'))||0:0;
   const _obsShow=(l.obs||'').replace(/^Parcela desejada:[^\n]*\n?/i,'');
   const _wad=(l.contato||'').replace(/\D/g,''); const _wan=(_wad.length>=10&&_wad.length<=11)?('55'+_wad):_wad;
   const _waBtn=_wan.length>=12?`<a href="https://wa.me/${_wan}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Falar no WhatsApp" style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#25D36622;border:1px solid #25D36666;flex:none"><svg viewBox="0 0 24 24" width="15" height="15" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.297-.497.1-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>`:'';
-  return `<div class="lead" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><span class="ttype tt-${l.tipo}">${l.tipo}</span> <span class="ttype" style="background:${leadCategoria(l).cor}26;border:1px solid ${leadCategoria(l).cor}66;color:${leadCategoria(l).cor}">${leadCategoria(l).ic} ${leadCategoria(l).lb}</span> <span class="ttype" style="background:${leadOrigem(l).cor}26;border:1px solid ${leadOrigem(l).cor}66;color:${leadOrigem(l).cor}">${leadOrigem(l).ic} ${leadOrigem(l).lb}</span> <div class="nm">${esc(l.nome)}</div> <div class="ct" style="display:flex;align-items:center;gap:8px"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">${esc(l.contato||'')}</span>${_waBtn}</div> <div class="note" style="margin-top:4px;color:var(--soft)">📅 ${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</div> ${leadPrefContato(l)?`<div class="note" style="margin-top:3px;color:var(--gold,#C5A059)">${leadPrefContato(l)}</div>`:''} ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''} ${_parc?`<div style="font-size:.78rem;color:var(--gold,#C5A059);font-weight:600;margin-top:2px">💳 Parcela desejada: ${BRL(_parc)}/mês</div>`:''} ${_scBar}
+  return `<div class="lead" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><div class="ldTop"><div class="ldChips"><span class="ttype" style="background:${leadCategoria(l).cor}26;border:1px solid ${leadCategoria(l).cor}66;color:${leadCategoria(l).cor}">${leadCategoria(l).ic} ${leadCategoria(l).lb}</span><span class="ttype" style="background:${leadOrigem(l).cor}26;border:1px solid ${leadOrigem(l).cor}66;color:${leadOrigem(l).cor}">${leadOrigem(l).ic} ${leadOrigem(l).lb}</span><span class="ttype tt-${l.tipo} chipTipo">${l.tipo}</span></div><span class="ldData">${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</span></div> <div class="ldHead"><div class="ldWho"><div class="nm">${esc(l.nome)}</div><div class="ct">${esc(l.contato||'')}</div></div>${_waBtn}</div> ${_scBar} ${leadPrefContato(l)?`<div class="note" style="margin-top:3px;color:var(--gold,#C5A059)">${leadPrefContato(l)}</div>`:''} ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''} ${_parc?`<div style="font-size:.78rem;color:var(--gold,#C5A059);font-weight:600;margin-top:2px">💳 Parcela desejada: ${BRL(_parc)}/mês</div>`:''}
     ${_obsShow?`<div class="note leadObs" style="margin-top:6px" onclick="this.classList.toggle('aberta');event.stopPropagation()">${esc(_obsShow)}</div>`:''}
     ${(l.atividades&&l.atividades.length)?`<div class="note" style="margin-top:6px;color:var(--soft)"> ${esc(l.atividades[l.atividades.length-1].texto)} · ${timeAgo(l.atividades[l.atividades.length-1].quando)}</div>`:''}
     <div class="note" style="margin-top:6px;color:var(--soft)">${l.ownerId?''+esc(user(l.ownerId).nome.split(' ')[0]):'⚠️ não distribuído'}</div> ${(isMaster()||isLider())?`<select onchange="crmAssign('${l.id}',this.value)" style="margin-top:6px;font-size:.74rem;padding:6px 8px"><option value="">— distribuir para —</option>${(db.accounts||[]).filter(a=>a.real&&a.ativo!==false&&((a.role==='especialista'&&(isMaster()||a.leaderId===meId()))||(a.role==='master'&&isMaster())||(a.role==='lider'&&(isMaster()||a.id===meId())))).map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`:''}
@@ -2003,7 +2087,7 @@ function renderCaptacao(C){
   const pend=(db.inbox||[]).filter(l=>!l.importado);
   C.innerHTML=`
    <div class="banner"> Os leads dos seus anúncios do <b>Google</b> e da <b>Meta</b> (Facebook/Instagram) caem aqui automaticamente; importe para o funil com um clique. <span style="opacity:.7">No protótipo os leads são simulados — em produção chegam por webhook/API (Meta Lead Ads & Google Lead Form Extensions).</span></div> <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.bolt}Leads aguardando</div><b>${pend.length}</b></div> <div class="kpi"><div class="lab">${ICN.funnel}Já importados</div><b>${(db.inbox||[]).filter(l=>l.importado).length}</b></div> </div> <div class="grid2"> ${['Google','Meta'].map(src=>{const it=db.integr[src]||{};return `<div class="intg"><div class="src src-${src}">${src==='Google'?'G':'∞'}</div> <div style="flex:1"><div style="font-weight:700;color:var(--head)">${src} ${src==='Meta'?'(Facebook/Instagram)':'Ads'}</div> <div class="note">${esc(it.conta||'')}</div> <div style="font-size:.78rem;margin-top:4px;color:${it.conectado?'var(--ok)':'var(--soft)'}"><span class="${it.conectado?'dot-on':'dot-off'}"></span> ${it.conectado?'Conectado':'Desconectado'}</div></div> <button class="btn btn-ghost btn-sm" onclick="toggleIntegr('${src}')">${it.conectado?'Desconectar':'Conectar'}</button></div>`;}).join('')}
-   </div> <div class="panel"><h2>${ICN.bolt} Caixa de entrada de leads <button class="btn btn-teal btn-sm right" onclick="simulLead()">Simular chegada de lead</button></h2> ${pend.map(l=>`<div class="row" style="padding:11px 0;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap"> <div style="flex:1;min-width:180px"><span class="lead-src src-${l.fonte}">${l.fonte}</span> <b style="color:var(--head);margin-left:6px">${esc(l.nome)}</b> <div class="note">${esc(l.contato)} · ${esc(l.campanha)}</div></div> <span class="ttype tt-${l.tipo}">${l.tipo}</span> <span class="note">${timeAgo(l.quando)}</span> <button class="btn btn-gold btn-sm" onclick="importLead('${l.id}')">Importar p/ funil</button> <button class="btn btn-ghost btn-sm" onclick="discardLead('${l.id}')">Descartar</button> </div>`).join('')||'<p class="note">Nenhum lead novo aguardando. </p>'}
+   </div> <div class="panel"><h2>${ICN.bolt} Caixa de entrada de leads <button class="btn btn-teal btn-sm right soWeb" onclick="simulLead()">Simular chegada de lead</button></h2> ${pend.map(l=>`<div class="row" style="padding:11px 0;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap"> <div style="flex:1;min-width:180px"><span class="lead-src src-${l.fonte}">${l.fonte}</span> <b style="color:var(--head);margin-left:6px">${esc(l.nome)}</b> <div class="note">${esc(l.contato)} · ${esc(l.campanha)}</div></div> <span class="ttype tt-${l.tipo}">${l.tipo}</span> <span class="note">${timeAgo(l.quando)}</span> <button class="btn btn-gold btn-sm" onclick="importLead('${l.id}')">Importar p/ funil</button> <button class="btn btn-ghost btn-sm" onclick="discardLead('${l.id}')">Descartar</button> </div>`).join('')||'<p class="note">Nenhum lead novo aguardando. </p>'}
    </div>`;
 }
 function toggleIntegr(src){db.integr[src].conectado=!db.integr[src].conectado;save();renderCaptacao(document.getElementById('content'));flash(src+(db.integr[src].conectado?' conectado':' desconectado'));}
@@ -2014,6 +2098,34 @@ function simulLead(){const nomes=['Pedro Henrique','Juliana Reis','Marcos Viníc
 /* ===================== DASHBOARD GERENCIAL ===================== */
 function _gerDays(n){ const out=[]; for(let i=n-1;i>=0;i--){ out.push(new Date(Date.now()-i*86400000)); } return out; }
 function _gerSrc(){ const src={}; (db.inbox||[]).forEach(function(l){ src[l.fonte||'Web']=(src[l.fonte||'Web']||0)+1; }); (db.crm||[]).forEach(function(l){ const m=/Origem:\s*([A-Za-zÀ-ú]+)/.exec(l.obs||''); if(m) src[m[1]]=(src[m[1]]||0)+1; else if(!l.obs) src['Manual']=(src['Manual']||0)+1; }); return src; }
+function renderConfig(C){
+  setTop('Ajustes','Preferências','');
+  const pf=notifPrefs(); const cli=(session.role==='cliente'||effRole()==='cliente');
+  const tema=document.body.classList.contains('light')?'Claro':'Escuro';
+  const linha=(k,lbl,desc,cor)=>`<div class="cfgRow">
+      <span class="cfgDot" style="background:${cor}22;color:${cor};border-color:${cor}55">${k==='S'?'N':k}</span>
+      <div class="cfgTxt"><b>${esc(lbl)}</b><span>${esc(desc)}</span></div>
+      <button class="cfgSw${pf[k]!==false?' on':''}" onclick="notifSet('${k}',!(${pf[k]!==false}));render()" aria-label="${esc(lbl)}"><i></i></button>
+    </div>`;
+  C.innerHTML=`
+  <div class="panel"><h2>🔔 Notificações</h2>
+    <p style="color:var(--muted);font-size:.84rem;margin:-6px 0 14px">Escolha o que você quer receber. O que estiver desligado some do topo.</p>
+    ${cli?'<div class="cfgRow"><div class="cfgTxt"><b>Avisos do seu planejamento</b><span>Novidades do seu plano e da sua cota</span></div></div>'
+        :linha('C','Clientes','Novos clientes, planos e cartas','#1F9E8B')+linha('P','Plataforma','Leads, tarefas e movimentos do funil','#5C86A8')+linha('E','Equipe','Atividades da sua equipe','#C5A059')}
+  </div>
+  <div class="panel"><h2>🎨 Aparência</h2>
+    <div class="cfgRow"><div class="cfgTxt"><b>Tema</b><span>Agora: ${tema}</span></div>
+      <button class="btn btn-ghost btn-sm" onclick="toggleTheme();render()">Alternar</button></div>
+  </div>
+  <div class="panel"><h2>👤 Conta</h2>
+    <div class="cfgRow"><div class="cfgTxt"><b>${esc(user(meId()).nome||'—')}</b><span>${esc(user(meId()).email||'')} · ${esc(roleLabel(effRole()))}</span></div></div>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:10px" onclick="logout()">Sair da conta</button>
+  </div>
+  <div class="panel"><h2>ℹ️ Sobre</h2>
+    <div class="cfgRow"><div class="cfgTxt"><b>Agion Wealth</b><span>Plataforma de planejamento financeiro</span></div></div>
+    <p style="color:var(--soft);font-size:.76rem;margin-top:8px">Consórcio para os seus sonhos, planejamento para a sua vida.</p>
+  </div>`;
+}
 function renderGerencial(C){
   setTop('Dashboard Gerencial','Visão executiva da operação','<button class="btn btn-ghost btn-sm" onclick="go(\'dash\')">← Painel</button>');
   const VC=visibleClients(), VL=visibleLeads();
@@ -2253,7 +2365,7 @@ function _reportData(){
    <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.users}${isMaster()?'Clientes (empresa)':'Meus clientes'}</div><b>${VC.length}</b></div> <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio sob gestão</div><b>${BRL(totPatr)}</b></div> <div class="kpi"><div class="lab">${ICN.funnel}Pipeline (CRM)</div><b>${BRL(cs.pipeline)}</b></div> <div class="kpi"><div class="lab">${ICN.check}Tarefas pendentes</div><b>${pendentes.length}</b></div> </div> <div class="grid2"> <div class="panel"><h2>${ICN.funnel} Funil de negócios <button class="btn btn-teal btn-sm right" onclick="go('crm')">Abrir CRM</button></h2> ${CRM_STAGES.map((st,i)=>{const n=VL.filter(l=>!l.perdido&&l.stage===i).length;const pct=ativosCrm?Math.round(n/ativosCrm*100):0;
          return `<div style="margin-bottom:10px"><div class="row" style="font-size:.82rem"><span style="color:var(--head)">${esc(st)}</span><span style="color:var(--muted)">${n}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`}).join('')}
      </div> <div class="panel"><h2>${ICN.check} Tarefas de hoje <button class="btn btn-teal btn-sm right" onclick="go('tarefas')">Ver todas</button></h2> ${pendentes.slice(0,5).map(t=>`<div class="task"><div class="tk-cb" onclick="taskToggle('${t.id}');go('dash')">${t.feito?'✓':''}</div><div class="tk-t">${esc(t.titulo)}</div><div class="tk-d">${esc(t.quando||'')}</div></div>`).join('')||'<p class="note">Sem tarefas pendentes </p>'}
-     </div> </div> ${VC.length?`<div class="panel"><h2>${ICN.wallet} Patrimônio sob gestão por ${grpKey?'especialista':'cliente'}</h2><div style="height:240px;margin-top:8px"><canvas id="dashChart"></canvas></div></div>`:''} <div class="panel"><h2>${ICN.users} Carteira de clientes <button class="btn btn-gold btn-sm right" onclick="newClient()">+ Novo cliente</button></h2> <table><thead><tr><th>Cliente</th><th class="r">Patrimônio</th><th class="r">Aporte/mês</th><th class="r">Aposentar</th><th></th></tr></thead><tbody> ${VC.slice(0,10).map(c=>{const m=mainPlan(c),t=totals(m);return `<tr><td><b style="color:var(--head)">${esc(c.nome)}</b><br><span style="color:var(--soft);font-size:.78rem">${esc(c.email||'')}${isMaster()?' · '+esc(user(c.ownerId).nome.split(' ')[0]):''}</span></td><td class="r">${BRL(t.patr)}</td><td class="r">${BRL(t.sobra)}</td><td class="r">${m.apos} anos</td><td class="r"><button class="btn btn-teal btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Abrir plano</button></td></tr>`}).join('')||'<tr><td colspan="5" class="note">Nenhum cliente ainda.</td></tr>'}${VC.length>10?`<tr><td colspan="5" style="text-align:center;padding-top:10px"><button class="btn btn-ghost btn-sm" onclick="go('users')">Ver todos os ${VC.length} clientes →</button></td></tr>`:''}
+     </div> </div> ${VC.length?`<div class="panel"><h2>${ICN.wallet} Patrimônio sob gestão por ${grpKey?'especialista':'cliente'}</h2><div style="height:240px;margin-top:8px"><canvas id="dashChart"></canvas></div></div>`:''} <div class="panel carteiraPanel"><h2>${ICN.users} Carteira de clientes <button class="btn btn-gold btn-sm right" onclick="newClient()">+ Novo cliente</button></h2> <table><thead><tr><th>Cliente</th><th class="r">Patrimônio</th><th class="r">Aporte/mês</th><th class="r">Aposentar</th><th></th></tr></thead><tbody> ${VC.slice(0,10).map(c=>{const m=mainPlan(c),t=totals(m);return `<tr><td><b style="color:var(--head)">${esc(c.nome)}</b><br><span style="color:var(--soft);font-size:.78rem">${esc(c.email||'')}${isMaster()?' · '+esc(user(c.ownerId).nome.split(' ')[0]):''}</span></td><td class="r">${BRL(t.patr)}</td><td class="r">${BRL(t.sobra)}</td><td class="r">${m.apos} anos</td><td class="r"><button class="btn btn-teal btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Abrir plano</button></td></tr>`}).join('')||'<tr><td colspan="5" class="note">Nenhum cliente ainda.</td></tr>'}${VC.length>10?`<tr><td colspan="5" style="text-align:center;padding-top:10px"><button class="btn btn-ghost btn-sm" onclick="go('users')">Ver todos os ${VC.length} clientes →</button></td></tr>`:''}
      </tbody></table> </div>`;
   if(VC.length) mkChart('dashChart',{type:'bar',data:{labels:chLabels,datasets:[{data:chData,backgroundColor:'#C5A059',borderRadius:6,maxBarThickness:60}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>BRL(c.parsed.y)}}},scales:{x:{grid:{display:false},ticks:{color:'#9DB5B1'}},y:{grid:{color:'rgba(143,217,204,.1)'},ticks:{color:'#9DB5B1',callback:v=>'R$ '+(v/1000).toFixed(0)+'k'}}}}});
 }
@@ -2378,7 +2490,7 @@ function contPanelsHtml(){
       if(a.role==='cliente') btns=`<button class="btn btn-ghost btn-sm" onclick="verComo('${a.id}')">👁 Visão cliente</button>`+btns;
       if(isM&&a.role==='cliente') btns+=`<button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="excluirConta('${a.id}')">Excluir</button>`;
     }
-    return `<div class="netrow" style="padding:13px 2px"><span style="display:flex;align-items:center;gap:14px">${avatar(a.id,38)}<span style="display:flex;flex-direction:column;gap:5px;line-height:1.3"><span><b style="color:var(--head)">${esc(a.nome)}</b>${chip}</span><span class="note">${sub}</span></span></span> <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${btns}</span></div>`;
+    return `<div class="netrow acctRow" style="padding:13px 2px"><span style="display:flex;align-items:center;gap:14px">${avatar(a.id,38)}<span style="display:flex;flex-direction:column;gap:5px;line-height:1.3"><span><b style="color:var(--head)">${esc(a.nome)}</b>${chip}</span><span class="note">${sub}</span></span></span> <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">${btns}</span></div>`;
   };
   const empty=lbl=>_contQ?'<p class="note">Nenhum resultado para “'+esc(_contQ)+'”.</p>':lbl;
   return `${lideres.length?`<div class="panel"><h2>${ICN.users} Líderes</h2>${lideres.map(rowAcc).join('')}</div>`:''}
@@ -2985,7 +3097,7 @@ function renderAssessorDash(C){
    <div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.users}${isMaster()?'Clientes (empresa)':'Meus clientes'}</div><b>${VC.length}</b></div> <div class="kpi grad"><div class="lab">${ICN.wallet}Patrimônio sob gestão</div><b>${BRL(totPatr)}</b></div> <div class="kpi"><div class="lab">${ICN.funnel}Pipeline (CRM)</div><b>${BRL(cs.pipeline)}</b></div> <div class="kpi"><div class="lab">${ICN.check}Tarefas pendentes</div><b>${pendentes.length}</b></div> </div> <div class="grid2"> <div class="panel"><h2>${ICN.funnel} Funil de negócios <button class="btn btn-teal btn-sm right" onclick="go('crm')">Abrir CRM</button></h2> ${CRM_STAGES.map((st,i)=>{const n=VL.filter(l=>!l.perdido&&l.stage===i).length;const pct=ativosCrm?Math.round(n/ativosCrm*100):0;
          return `<div style="margin-bottom:10px"><div class="row" style="font-size:.82rem"><span style="color:var(--head)">${esc(st)}</span><span style="color:var(--muted)">${n}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`}).join('')}
      </div> <div class="panel"><h2>${ICN.check} Tarefas de hoje <button class="btn btn-teal btn-sm right" onclick="go('tarefas')">Ver todas</button></h2> ${pendentes.slice(0,5).map(t=>`<div class="task"><div class="tk-cb" onclick="taskToggle('${t.id}');go('dash')">${t.feito?'✓':''}</div><div class="tk-t">${esc(t.titulo)}</div><div class="tk-d">${esc(t.quando||'')}</div></div>`).join('')||'<p class="note">Sem tarefas pendentes </p>'}
-     </div> </div> ${VC.length?`<div class="panel"><h2>${ICN.wallet} Patrimônio sob gestão por ${grpKey?'especialista':'cliente'}</h2><div style="height:240px;margin-top:8px"><canvas id="dashChart"></canvas></div></div>`:''} <div class="panel"><h2>${ICN.users} Carteira de clientes <button class="btn btn-gold btn-sm right" onclick="newClient()">+ Novo cliente</button></h2> <table><thead><tr><th>Cliente</th><th class="r">Patrimônio</th><th class="r">Aporte/mês</th><th class="r">Aposentar</th><th></th></tr></thead><tbody> ${VC.slice(0,10).map(c=>{const m=mainPlan(c),t=totals(m);return `<tr><td><b style="color:var(--head)">${esc(c.nome)}</b><br><span style="color:var(--soft);font-size:.78rem">${esc(c.email||'')}${isMaster()?' · '+esc(user(c.ownerId).nome.split(' ')[0]):''}</span></td><td class="r">${BRL(t.patr)}</td><td class="r">${BRL(t.sobra)}</td><td class="r">${m.apos} anos</td><td class="r"><button class="btn btn-teal btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Abrir plano</button></td></tr>`}).join('')||'<tr><td colspan="5" class="note">Nenhum cliente ainda.</td></tr>'}${VC.length>10?`<tr><td colspan="5" style="text-align:center;padding-top:10px"><button class="btn btn-ghost btn-sm" onclick="go('users')">Ver todos os ${VC.length} clientes →</button></td></tr>`:''}
+     </div> </div> ${VC.length?`<div class="panel"><h2>${ICN.wallet} Patrimônio sob gestão por ${grpKey?'especialista':'cliente'}</h2><div style="height:240px;margin-top:8px"><canvas id="dashChart"></canvas></div></div>`:''} <div class="panel carteiraPanel"><h2>${ICN.users} Carteira de clientes <button class="btn btn-gold btn-sm right" onclick="newClient()">+ Novo cliente</button></h2> <table><thead><tr><th>Cliente</th><th class="r">Patrimônio</th><th class="r">Aporte/mês</th><th class="r">Aposentar</th><th></th></tr></thead><tbody> ${VC.slice(0,10).map(c=>{const m=mainPlan(c),t=totals(m);return `<tr><td><b style="color:var(--head)">${esc(c.nome)}</b><br><span style="color:var(--soft);font-size:.78rem">${esc(c.email||'')}${isMaster()?' · '+esc(user(c.ownerId).nome.split(' ')[0]):''}</span></td><td class="r">${BRL(t.patr)}</td><td class="r">${BRL(t.sobra)}</td><td class="r">${m.apos} anos</td><td class="r"><button class="btn btn-teal btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Abrir plano</button></td></tr>`}).join('')||'<tr><td colspan="5" class="note">Nenhum cliente ainda.</td></tr>'}${VC.length>10?`<tr><td colspan="5" style="text-align:center;padding-top:10px"><button class="btn btn-ghost btn-sm" onclick="go('users')">Ver todos os ${VC.length} clientes →</button></td></tr>`:''}
      </tbody></table> </div>`;
   if(VC.length) mkChart('dashChart',{type:'bar',data:{labels:chLabels,datasets:[{data:chData,backgroundColor:'#C5A059',borderRadius:6,maxBarThickness:60}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>BRL(c.parsed.y)}}},scales:{x:{grid:{display:false},ticks:{color:'#9DB5B1'}},y:{grid:{color:'rgba(143,217,204,.1)'},ticks:{color:'#9DB5B1',callback:v=>'R$ '+(v/1000).toFixed(0)+'k'}}}}});
 }
