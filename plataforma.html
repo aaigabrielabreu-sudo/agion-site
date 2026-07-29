@@ -725,7 +725,9 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
 /* ---------- 14. SEM CORTE LATERAL: grades que respeitam a largura da tela ---------- */
 @media(max-width:1024px){
   html.isApp,html.isApp body{max-width:100%;overflow-x:hidden}
-  body.isApp .main{max-width:100vw;overflow-x:hidden}
+  body.isApp#app,body.isApp #app.show{grid-template-columns:minmax(0,1fr)}
+  body.isApp .main{max-width:100vw;overflow-x:hidden;min-width:0}
+  body.isApp .topbar{max-width:100%;overflow:hidden}
   body.isApp .content{max-width:100%}
   body.isApp .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
   body.isApp .grid2,body.isApp .grid3,body.isApp .cards{grid-template-columns:minmax(0,1fr)}
