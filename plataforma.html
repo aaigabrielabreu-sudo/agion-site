@@ -599,14 +599,20 @@ body.light .logo-img,body.light .top-logo{filter:none}
     var mv=document.querySelector('meta[name="viewport"]');
     if(mv&&mv.content.indexOf('viewport-fit')<0){mv.setAttribute('content',mv.content+', viewport-fit=cover');}
     if(cap){var _tp=function(){try{
-      var portrait=window.innerHeight>window.innerWidth;
-      var gap=((window.screen&&window.screen.height)||0)-window.innerHeight;
-      var v = portrait ? (gap>=20?'12px':'58px') : '8px';
-      document.documentElement.style.setProperty('--agTop',v);
+      var sat=0;
+      try{ var pr=document.createElement('div');
+        pr.style.cssText='position:fixed;top:0;left:0;width:1px;height:env(safe-area-inset-top,0px);pointer-events:none;opacity:0';
+        (document.body||document.documentElement).appendChild(pr);
+        sat=Math.round(pr.getBoundingClientRect().height); pr.remove();
+      }catch(e){}
+      var portrait=window.innerHeight>=window.innerWidth;
+      var v = portrait ? Math.max(56,sat)+'px' : Math.max(10,Math.round(sat*0.18))+'px';
+      document.documentElement.style.setProperty('--agTop', v);
     }catch(e){}};
     _tp(); window.addEventListener('resize',_tp);
-    window.addEventListener('orientationchange',function(){setTimeout(_tp,300)});
-    setTimeout(_tp,800); setTimeout(_tp,2500);}
+    window.addEventListener('orientationchange',function(){setTimeout(_tp,320);setTimeout(_tp,700)});
+    document.addEventListener('DOMContentLoaded',_tp);
+    setTimeout(_tp,600); setTimeout(_tp,1800);}
     var _sc=function(){try{
       var c=document.querySelector('.main>.content'); if(!c)return;
       if(c.__agSc)return; c.__agSc=1;
@@ -985,6 +991,12 @@ body.isApp #loginView{height:100dvh;max-height:100dvh}
   html.capNative body.isApp .main{padding-top:0!important;margin-top:0!important}
   html.capNative body.isApp .topbar{margin-top:0!important;padding-top:var(--agTop,58px)!important;padding-bottom:6px!important;row-gap:4px!important}
 }
+/* ---------- 28. BARREIRA DO NOTCH: do Dynamic Island para cima e regiao proibida ---------- */
+html.capNative body.isApp::before{content:''!important;display:block!important;position:fixed!important;
+  top:0;left:0;right:0;height:var(--agTop,58px);background:#0B2A26;z-index:900;pointer-events:none}
+html.capNative body.isApp.light::before{background:#0B2A26}
+html.capNative body.isApp #viewbar,html.capNative body.isApp .topbar,html.capNative body.isApp .viewbar{
+  position:relative;z-index:40}
 /* ---------- 27. VISAO CLIENTE (barra "Vendo como") + CARA DE APP NATIVO ---------- */
 @media(max-width:1024px){
   /* a faixa "Vendo como" e a primeira coisa da tela: ela quem respeita o relogio */
