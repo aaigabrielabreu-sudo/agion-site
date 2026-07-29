@@ -993,16 +993,24 @@ body.isApp #loginView{height:100dvh;max-height:100dvh}
   body.isApp .grid3{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 
   /* KANBAN de verdade: colunas lado a lado, altura cheia, sem trava de rolagem */
+  /* CRM vira tela de kanban: topo compacto e fixo, so as colunas rolam */
+  body.isApp .content:has(.kanban){display:flex;flex-direction:column;overflow:hidden!important;padding-bottom:6px!important}
+  body.isApp .content:has(.kanban)>.kpis{flex:0 0 auto;gap:8px;margin-bottom:8px}
+  body.isApp .content:has(.kanban) .kpi{padding:7px 11px}
+  body.isApp .content:has(.kanban) .kpi .lab{font-size:.66rem}
+  body.isApp .content:has(.kanban) .kpi b{font-size:1.02rem}
+  body.isApp .content:has(.kanban)>.banner{flex:0 0 auto;padding:7px 11px;font-size:.7rem;margin-bottom:8px}
+  body.isApp .content:has(.kanban)>.crmFiltros{flex:0 0 auto}
   body.isApp .kanban{scroll-snap-type:none;gap:10px;align-items:stretch;
-    height:calc(100dvh - 150px);padding-bottom:4px}
+    flex:1 1 auto;min-height:0;height:auto;padding-bottom:2px}
   body.isApp .kcol{flex:0 0 272px;max-width:272px;scroll-snap-align:none;padding:11px;border-radius:14px;
-    display:flex;flex-direction:column;min-height:0}
+    display:flex;flex-direction:column;min-height:0;max-height:100%}
   body.isApp .kcol>.kbody,body.isApp .kcol>div:last-child{min-height:0;overflow-y:auto;scrollbar-width:none}
   body.isApp .kcol .lead{padding:9px 10px}
   body.isApp .kcol .lead .nm{font-size:.82rem}
 
   /* filtros do CRM numa linha so */
-  body.isApp .crmFiltros{position:static;margin:0 0 10px!important;padding:8px 0!important;flex-wrap:nowrap;overflow-x:auto;gap:8px}
+  body.isApp .crmFiltros{position:static!important;margin:0 0 8px!important;padding:0!important;flex-wrap:nowrap!important;overflow-x:auto;gap:8px;background:none!important;box-shadow:none!important}
   body.isApp .crmFiltros input{flex:1 1 180px!important;min-width:150px}
   body.isApp .crmFiltros select{flex:0 0 150px!important;max-width:150px}
 
