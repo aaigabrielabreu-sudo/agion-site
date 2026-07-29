@@ -671,10 +671,10 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
   body.isApp input[type=range]{height:10px;min-height:10px;padding:0;margin:12px 0 4px;border:none}
   body.isApp input[type=range]::-webkit-slider-thumb{width:28px;height:28px}
   body.isApp input[type=range]::-moz-range-thumb{width:28px;height:28px}
-  body.isApp .crmFiltros{position:sticky;top:0;z-index:25;margin:0 -14px 10px!important;border-radius:0;
-    padding:8px 12px!important;gap:6px!important;background:#0C2C28;border:none;border-bottom:1px solid var(--line-gold);
-    box-shadow:0 6px 16px rgba(0,0,0,.28)}
-  body.isApp.light .crmFiltros{background:#F3F7F5}
+  body.isApp .crmFiltros{position:sticky;top:-12px;z-index:25;margin:-12px -14px 10px!important;border-radius:0;
+    padding:10px 12px!important;gap:6px!important;background:#0B2A26;border:none;border-bottom:1px solid var(--line-gold);
+    box-shadow:0 8px 18px rgba(0,0,0,.45)}
+  body.isApp.light .crmFiltros{background:#F3F7F5;box-shadow:0 8px 18px rgba(14,74,65,.12)}
   body.isApp .crmFiltros input,body.isApp .crmFiltros select{min-height:34px!important;font-size:.74rem!important;
     padding:5px 24px 5px 9px!important;flex:1 1 46%!important;max-width:none!important;border-radius:9px}
   body.isApp .crmFiltros input{flex:1 1 100%!important;padding-right:9px!important}
@@ -760,8 +760,7 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
   body.isApp .bell3{width:32px;height:32px}
   body.isApp .bells{gap:5px;flex:0 0 auto}
   body.isApp .userchip{flex:0 0 auto;padding:3px 5px 3px 4px}
-  body.isApp .userchip .meta,body.isApp .userchip .out{display:none}
-  body.isApp .userchip{border:none;padding:0}
+  body.isApp .userchip{display:none}
   body.isApp .userchip .out{padding:7px 12px;font-size:.72rem}
 }
 /* ---------- 16. BARRA INFERIOR: abas com rotulo, deslizando ---------- */
@@ -771,11 +770,6 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
   body.isApp .mobnav::-webkit-scrollbar{display:none}
   body.isApp .mobnav a{flex:0 0 64px;width:64px;padding:7px 2px;font-size:.55rem;letter-spacing:.1px}
   body.isApp .mobnav a span{max-width:62px}
-  /* Ajustes sempre visivel, colado na direita */
-  body.isApp .mobnav a:last-child{position:sticky;right:0;background:#08161B;
-    box-shadow:-14px 0 14px -4px #08161B;padding-left:6px}
-  body.isApp.light .mobnav a:last-child{background:#EEF4F1;box-shadow:-14px 0 14px -4px #EEF4F1}
-  body.isApp .mobnav a:last-child.on{background:rgba(197,160,89,.16)}
 }
 /* ---------- 16b. LOGIN TRAVADO: nada de arrastar a tela no app ---------- */
 body.isApp.appLoginLock{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
@@ -814,10 +808,43 @@ body.isApp .soWeb,body.isApp .carteiraPanel{display:none!important}
 .iaOpt.on{color:var(--gold2);border-color:var(--line-gold);background:rgba(197,160,89,.14)}
 #iaBox h2{font-size:1rem}
 /* ---------- 21c. CARTAO DE LEAD reorganizado ---------- */
-.ldTop{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
-.ldChips{display:flex;flex-wrap:wrap;gap:5px;flex:1 1 auto;min-width:0}
+.ldTop{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.ldChips{display:flex;flex-wrap:wrap;gap:5px;flex:1 1 auto;min-width:0;align-content:flex-start}
 .ldChips .ttype{font-size:.6rem;padding:3px 8px}
-.ldData{flex:0 0 auto;font-size:.64rem;color:var(--soft);text-align:right;line-height:1.3;white-space:nowrap}
+.ldTopR{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:118px}
+.ldDataRow{display:flex;align-items:center;gap:6px}
+.ldData{font-size:.64rem;color:var(--soft);line-height:1.3;white-space:nowrap}
+.ldEdit{width:24px;height:24px;border-radius:8px;border:1px solid var(--line);color:var(--muted);font-size:.72rem;line-height:1;display:grid;place-items:center;flex:0 0 auto}
+.ldEdit:hover{border-color:var(--line-gold);color:var(--gold2)}
+.ldTopR .ldScore{margin-top:0;width:100%}
+.lead .acts .aGanho{color:#4CAF7D;border-color:#4CAF7D66;background:rgba(76,175,125,.10)}
+.lead .acts .aCliente{color:var(--gold2);border-color:var(--line-gold);background:rgba(197,160,89,.12)}
+.lead .acts .aPerdeu{color:#E4636A;border-color:#E4636A55;background:rgba(228,99,106,.09)}
+/* ---------- 23. PUXAR PARA ATUALIZAR ---------- */
+#agionPtr{position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:50%;transform:translateX(-50%) translateY(-30px);
+  width:34px;height:34px;border-radius:50%;background:#0E322D;border:1px solid var(--line-gold);
+  display:grid;place-items:center;z-index:500;opacity:0;transition:opacity .18s;pointer-events:none;
+  box-shadow:0 6px 16px rgba(0,0,0,.35)}
+body.light #agionPtr{background:#FFF;border-color:rgba(14,74,65,.28)}
+#agionPtr i{width:15px;height:15px;border-radius:50%;border:2px solid var(--gold2);border-top-color:transparent;display:block;transition:transform .2s}
+#agionPtr.pronto i{transform:rotate(180deg);border-top-color:var(--gold2);border-right-color:transparent}
+#agionPtr.girando i{animation:ptrSpin .7s linear infinite;border-top-color:transparent}
+@keyframes ptrSpin{to{transform:rotate(360deg)}}
+/* ---------- 24. MARKETING: sub-abas em pilulas + automacoes enxutas ---------- */
+@media(max-width:1024px){
+  body.isApp #mktNav{flex-wrap:nowrap!important;overflow-x:auto;gap:7px!important;
+    margin:0 -14px 14px!important;padding:0 14px 8px;scrollbar-width:none;
+    border-bottom:1px solid var(--line)}
+  body.isApp #mktNav::-webkit-scrollbar{display:none}
+  body.isApp #mktNav .btn{flex:0 0 auto;min-height:36px;padding:8px 14px;font-size:.78rem;border-radius:999px;white-space:nowrap}
+  body.isApp .autoCard{padding:14px!important;gap:12px!important;border-radius:16px;margin-bottom:10px}
+  body.isApp .autoCard>div:first-child{min-width:0}
+  body.isApp .autoCard b{font-size:.9rem;line-height:1.3;display:block;margin-bottom:3px}
+  body.isApp .autoCard .note{font-size:.76rem;line-height:1.4}
+  body.isApp .autoCard label{flex:0 0 auto;flex-direction:column;gap:4px!important;align-items:center}
+  body.isApp .autoCard input[type=checkbox]{width:26px!important;height:26px!important;min-height:26px!important;accent-color:#C5A059}
+  body.isApp .autoCard label .note{font-size:.64rem}
+}
 .ldHead{display:flex;align-items:center;gap:10px}
 .ldWho{flex:1 1 auto;min-width:0}
 .ldWho .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -827,8 +854,10 @@ body.isApp .soWeb,body.isApp .carteiraPanel{display:none!important}
 .ldScore b{font-size:.66rem}
 .ldScoreBar{flex:1;height:4px;border-radius:3px;background:var(--line);overflow:hidden}
 .ldScoreBar>div{height:100%;border-radius:3px}
-.lead .acts{gap:5px;margin-top:9px}
-.lead .acts button{padding:6px 9px;font-size:.7rem;border-radius:8px}
+.lead .acts{gap:5px;margin-top:9px;flex-wrap:nowrap;overflow:hidden}
+.lead .acts button{padding:6px 8px;font-size:.68rem;border-radius:8px;white-space:nowrap;flex:0 1 auto;min-width:0}
+.lead .acts .aMove{flex:0 0 auto;padding:6px 7px}
+.lead .acts .aNota{flex:0 1 auto}
 /* ---------- 21d. CONVERSAS EM TELA CHEIA no app ---------- */
 @media(max-width:1024px){
   body.isApp .content:has(>.wa){padding:0;overflow:hidden;display:flex;flex-direction:column}
@@ -912,6 +941,50 @@ body.isApp #loginView{height:100dvh;max-height:100dvh}
     trava();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ligaTrava);else ligaTrava();
+
+  /* ---- puxar para atualizar (pull to refresh), como nas redes sociais ---- */
+  var ptrEl=null,ptrY=0,ptrOn=false,ptrBusy=false,ptrDist=0;
+  function ptrBadge(){
+    var b=document.getElementById('agionPtr');
+    if(!b){ b=document.createElement('div'); b.id='agionPtr'; b.innerHTML='<i></i>'; document.body.appendChild(b); }
+    return b;
+  }
+  function ptrShow(d,girando){
+    var b=ptrBadge(); var t=Math.min(d,90);
+    b.style.transform='translateX(-50%) translateY('+(t-10)+'px)';
+    b.style.opacity=Math.min(1,d/50);
+    b.classList.toggle('pronto',d>=70);
+    b.classList.toggle('girando',!!girando);
+  }
+  function ptrHide(){ var b=document.getElementById('agionPtr'); if(!b)return; b.style.opacity='0'; b.style.transform='translateX(-50%) translateY(-30px)'; b.classList.remove('girando','pronto'); }
+  async function ptrRun(){
+    if(ptrBusy)return; ptrBusy=true; ptrShow(80,true);
+    try{ if(typeof loadCloud==='function') await loadCloud(); }catch(e){}
+    try{ if(typeof updateBell==='function') updateBell(); }catch(e){}
+    try{ if(typeof render==='function') render(); }catch(e){}
+    setTimeout(function(){ ptrHide(); ptrBusy=false; },380);
+  }
+  function ptrStart(e){
+    var el=e.target&&e.target.closest?e.target.closest('.content'):null;
+    if(!el||el.scrollTop>2||ptrBusy){ ptrOn=false; return; }
+    ptrEl=el; ptrY=e.touches[0].clientY; ptrOn=true; ptrDist=0;
+  }
+  function ptrMove(e){
+    if(!ptrOn||!ptrEl)return;
+    var d=e.touches[0].clientY-ptrY;
+    if(d<=0||ptrEl.scrollTop>2){ if(ptrDist>0){ptrHide();ptrDist=0;} return; }
+    ptrDist=d*0.55; ptrShow(ptrDist,false);
+    if(ptrDist>4&&e.cancelable)e.preventDefault();
+  }
+  function ptrEnd(){
+    if(!ptrOn){return;} ptrOn=false;
+    if(ptrDist>=70){ ptrRun(); } else { ptrHide(); }
+    ptrDist=0;
+  }
+  document.addEventListener('touchstart',ptrStart,{passive:true});
+  document.addEventListener('touchmove',ptrMove,{passive:false});
+  document.addEventListener('touchend',ptrEnd,{passive:true});
+  document.addEventListener('touchcancel',ptrEnd,{passive:true});
 }catch(e){}})();</script>
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
@@ -1975,13 +2048,16 @@ function leadCard(l,i){
   const _obsShow=(l.obs||'').replace(/^Parcela desejada:[^\n]*\n?/i,'');
   const _wad=(l.contato||'').replace(/\D/g,''); const _wan=(_wad.length>=10&&_wad.length<=11)?('55'+_wad):_wad;
   const _waBtn=_wan.length>=12?`<a href="https://wa.me/${_wan}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Falar no WhatsApp" style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#25D36622;border:1px solid #25D36666;flex:none"><svg viewBox="0 0 24 24" width="15" height="15" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.297-.497.1-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>`:'';
-  return `<div class="lead" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><div class="ldTop"><div class="ldChips"><span class="ttype" style="background:${leadCategoria(l).cor}26;border:1px solid ${leadCategoria(l).cor}66;color:${leadCategoria(l).cor}">${leadCategoria(l).ic} ${leadCategoria(l).lb}</span><span class="ttype" style="background:${leadOrigem(l).cor}26;border:1px solid ${leadOrigem(l).cor}66;color:${leadOrigem(l).cor}">${leadOrigem(l).ic} ${leadOrigem(l).lb}</span><span class="ttype tt-${l.tipo} chipTipo">${l.tipo}</span></div><span class="ldData">${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</span></div> <div class="ldHead"><div class="ldWho"><div class="nm">${esc(l.nome)}</div><div class="ct">${esc(l.contato||'')}</div></div>${_waBtn}</div> ${_scBar} ${leadPrefContato(l)?`<div class="note" style="margin-top:3px;color:var(--gold,#C5A059)">${leadPrefContato(l)}</div>`:''} ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''} ${_parc?`<div style="font-size:.78rem;color:var(--gold,#C5A059);font-weight:600;margin-top:2px">💳 Parcela desejada: ${BRL(_parc)}/mês</div>`:''}
+  return `<div class="lead" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><div class="ldTop"><div class="ldChips"><span class="ttype" style="background:${leadCategoria(l).cor}26;border:1px solid ${leadCategoria(l).cor}66;color:${leadCategoria(l).cor}">${leadCategoria(l).ic} ${leadCategoria(l).lb}</span><span class="ttype" style="background:${leadOrigem(l).cor}26;border:1px solid ${leadOrigem(l).cor}66;color:${leadOrigem(l).cor}">${leadOrigem(l).ic} ${leadOrigem(l).lb}</span></div><div class="ldTopR"><div class="ldDataRow"><span class="ldData">${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</span><button class="ldEdit" title="Editar lead" onclick="openLead('${l.id}');event.stopPropagation()">✎</button></div>${_scBar}</div></div> <div class="ldHead"><div class="ldWho"><div class="nm">${esc(l.nome)}</div><div class="ct">${esc(l.contato||'')}</div></div>${_waBtn}</div> ${leadPrefContato(l)?`<div class="note" style="margin-top:3px;color:var(--gold,#C5A059)">${leadPrefContato(l)}</div>`:''} ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''} ${_parc?`<div style="font-size:.78rem;color:var(--gold,#C5A059);font-weight:600;margin-top:2px">💳 Parcela desejada: ${BRL(_parc)}/mês</div>`:''}
     ${_obsShow?`<div class="note leadObs" style="margin-top:6px" onclick="this.classList.toggle('aberta');event.stopPropagation()">${esc(_obsShow)}</div>`:''}
     ${(l.atividades&&l.atividades.length)?`<div class="note" style="margin-top:6px;color:var(--soft)"> ${esc(l.atividades[l.atividades.length-1].texto)} · ${timeAgo(l.atividades[l.atividades.length-1].quando)}</div>`:''}
     <div class="note" style="margin-top:6px;color:var(--soft)">${l.ownerId?''+esc(user(l.ownerId).nome.split(' ')[0]):'⚠️ não distribuído'}</div> ${(isMaster()||isLider())?`<select onchange="crmAssign('${l.id}',this.value)" style="margin-top:6px;font-size:.74rem;padding:6px 8px"><option value="">— distribuir para —</option>${(db.accounts||[]).filter(a=>a.real&&a.ativo!==false&&((a.role==='especialista'&&(isMaster()||a.leaderId===meId()))||(a.role==='master'&&isMaster())||(a.role==='lider'&&(isMaster()||a.id===meId())))).map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`:''}
-    <div class="acts"> ${i>0?`<button onclick="crmMove('${l.id}',-1)" title="Voltar etapa">◀</button>`:''}
-      ${i<last?`<button onclick="crmMove('${l.id}',1)" title="Avançar etapa">▶</button>`:''}
-      <button onclick="crmNote('${l.id}')"> Nota</button> <button onclick="openLead('${l.id}')">✎ Editar</button> <button onclick="crmToClient('${l.id}')">→ Cliente</button> <button onclick="crmLose('${l.id}')">Perdeu</button> </div></div>`;
+    <div class="acts"> ${i>0?`<button class="aMove" onclick="crmMove('${l.id}',-1)" title="Voltar etapa">◀</button>`:''}
+      ${i<last?`<button class="aMove" onclick="crmMove('${l.id}',1)" title="Avançar etapa">▶</button>`:''}
+      <button class="aNota" onclick="crmNote('${l.id}')">Nota</button>
+      ${i<last?`<button class="aGanho" onclick="crmGanho('${l.id}')" title="Marcar como ganho">✓ Ganho</button>`
+              :`<button class="aCliente" onclick="crmToClient('${l.id}')" title="Transformar em cliente">→ Cliente</button>`}
+      <button class="aPerdeu" onclick="crmLose('${l.id}')">Perdeu</button> </div></div>`;
 }
 function crmMove(id,d){const l=(db.crm).find(x=>x.id===id);const ns=Math.max(0,Math.min(CRM_STAGES.length-1,l.stage+d));if(ns!==l.stage){l.stage=ns;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[ns]+'"',quando:Date.now(),autorId:session.userId});logEvt('lead_mover','lead','Moveu o lead "'+l.nome+'" para "'+CRM_STAGES[ns]+'"',{lead:l.nome,etapa:CRM_STAGES[ns]});}saveLeadCloud(l);save();renderCRM(document.getElementById('content'));}
 let _dragId=null;
@@ -1991,6 +2067,7 @@ function kbOver(e){e.preventDefault();e.currentTarget.classList.add('dragover');
 function kbLeave(e){e.currentTarget.classList.remove('dragover');}
 function kbDrop(e,stage){e.preventDefault();e.currentTarget.classList.remove('dragover');if(roGuard()){_dragId=null;return;}const l=db.crm.find(x=>x.id===_dragId);_dragId=null;if(l&&l.stage!==stage){l.stage=stage;l.perdido=false;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[stage]+'"',quando:Date.now(),autorId:session.userId});logEvt('lead_mover','lead','Moveu o lead "'+l.nome+'" para "'+CRM_STAGES[stage]+'"',{lead:l.nome,etapa:CRM_STAGES[stage]});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Movido para '+CRM_STAGES[stage]);}}
 async function crmNote(id){if(roGuard())return;const t=await ask({title:'Nova atividade',msg:'Registre um contato, observação ou próximo passo:',input:true,ok:'Salvar'});if(!t||!t.trim())return;const l=db.crm.find(x=>x.id===id);l.atividades=l.atividades||[];l.atividades.push({texto:t.trim(),quando:Date.now(),autorId:session.userId});logEvt('lead_nota','lead','Registrou atividade no lead "'+l.nome+'"',{lead:l.nome,nota:t.trim()});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Atividade registrada');}
+function crmGanho(id){if(roGuard())return;const l=(db.crm).find(x=>x.id===id);if(!l)return;const ns=CRM_STAGES.length-1;if(l.stage!==ns){l.stage=ns;l.perdido=false;l.atividades=l.atividades||[];l.atividades.push({texto:'Marcado como GANHO',quando:Date.now(),autorId:session.userId});logEvt('lead_ganho','lead','Marcou o lead "'+l.nome+'" como ganho',{lead:l.nome});saveLeadCloud(l);save();}renderCRM(document.getElementById('content'));flash('Lead movido para Fechado (ganho) 🎉');}
 function crmLose(id){if(roGuard())return;const l=(db.crm).find(x=>x.id===id);l.perdido=true;logEvt('lead_perdido','lead','Marcou o lead "'+l.nome+'" como perdido',{lead:l.nome});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Lead marcado como perdido');}
 function crmRecuperar(id){const l=(db.crm).find(x=>x.id===id);l.perdido=false;save();renderCRM(document.getElementById('content'));flash('Lead reativado');}
 async function crmDel(id){if(!(await ask({title:'Excluir lead?',ok:'Excluir'})))return;db.crm=db.crm.filter(x=>x.id!==id);save();renderCRM(document.getElementById('content'));}
@@ -2193,7 +2270,7 @@ function mktOv(B){ const L=(db.crm||[]); const pend=(db.inbox||[]).filter(functi
   try{ const src=_gerSrc(); const ks=Object.keys(src); mkChart('mOri',{type:'doughnut',data:{labels:ks.length?ks:['Sem dados'],datasets:[{data:ks.length?ks.map(function(x){return src[x];}):[1],backgroundColor:['#0E4A41','#C5A059','#8FD9CC','#5BC0AE','#E8CC8B']}]},options:{maintainAspectRatio:false}}); }catch(e){}
 }
 function mktAutoTab(B){ const A=_mktLS();
-  const card=function(k,tit,sub){ return '<div class="panel" style="display:flex;align-items:center;gap:16px"><div style="flex:1"><b style="color:var(--head)">'+tit+'</b><br><span class="note">'+sub+'</span></div><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" style="width:20px;height:20px" '+(A[k]?'checked':'')+' onchange="mktToggle(\''+k+'\',this.checked)"><span class="note">'+(A[k]?'Ativa':'Inativa')+'</span></label></div>'; };
+  const card=function(k,tit,sub){ return '<div class="panel autoCard" style="display:flex;align-items:center;gap:16px"><div style="flex:1"><b style="color:var(--head)">'+tit+'</b><br><span class="note">'+sub+'</span></div><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" style="width:20px;height:20px" '+(A[k]?'checked':'')+' onchange="mktToggle(\''+k+'\',this.checked)"><span class="note">'+(A[k]?'Ativa':'Inativa')+'</span></label></div>'; };
   B.innerHTML='<div class="banner">Automações no estilo RD Station: quando o gatilho acontece, a ação roda sozinha. Os envios usam os templates aprovados do WhatsApp.</div>'
    +card('w','Boas-vindas automática','Novo lead importado com telefone recebe o template boas_vindas no WhatsApp na hora.')
    +card('a','Distribuição automática de leads','Novo lead (site ou WhatsApp) sem dono é distribuído em rodízio entre os especialistas — avisa o especialista e o líder.')
