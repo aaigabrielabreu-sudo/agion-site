@@ -773,12 +773,12 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
   body.isApp .tb-right .btn{min-height:36px;padding:8px 13px;font-size:.75rem;border-radius:11px;flex:0 0 auto}
   body.isApp #themeBtn{display:none}
   body.isApp .bell{width:34px;height:34px;flex:0 0 auto}
-  body.isApp .bell3{width:22px;height:22px;font-size:.6rem;border-width:1.2px}
-  body.isApp .bell3 .badge{min-width:11px;height:11px;font-size:.44rem;top:-3px;right:-3px;padding:0 2px}
-  body.isApp .bells{gap:5px;flex:0 0 auto}
+  body.isApp .bell3{width:30px;height:30px;font-size:.78rem;border-width:1.5px}
+  body.isApp .bell3 .badge{min-width:14px;height:14px;font-size:.54rem;top:-4px;right:-4px;padding:0 3px}
+  body.isApp .bells{gap:7px;flex:0 0 auto}
   body.isApp .topbar{align-items:flex-start}
   /* painel de notificacoes: menor e colado na direita */
-  body.isApp .notif{top:30px;right:0;left:auto;width:268px;max-width:82vw;border-radius:14px}
+  body.isApp .notif{top:38px;right:0;left:auto;width:268px;max-width:82vw;border-radius:14px}
   body.isApp .notif h4{padding:10px 12px;font-size:.7rem}
   body.isApp .notif .ni{padding:9px 12px;gap:9px}
   body.isApp .notif .ni .dot{width:24px;height:24px;border-radius:8px;font-size:.74rem}
@@ -813,10 +813,10 @@ body.isApp .viewbar{flex:0 0 auto;position:static;padding-top:max(6px,calc(env(s
 html.isApp body::before{height:max(6px,calc(env(safe-area-inset-top,0px) - 12px))}
 /* No app nativo (Capacitor) a WebView JA comeca abaixo do notch: nao somar area segura de novo */
 html.capNative body::before{display:none}
-html.capNative body.isApp .topbar{padding-top:max(14px,calc(env(safe-area-inset-top,0px) + 4px));padding-bottom:12px;gap:12px 10px}
+html.capNative body.isApp .topbar{padding-top:60px;padding-bottom:12px;gap:12px 10px}
 html.capNative body.isApp .viewbar{padding-top:12px}
 html.capNative body.isApp .main>.content{padding-top:16px}
-html.capNative body.isApp .mobnav{padding-bottom:max(4px,calc(env(safe-area-inset-bottom,0px) - 12px))}
+html.capNative body.isApp .mobnav{padding-bottom:18px}
 html.capNative body.isApp .main>.content{padding-bottom:78px}
 html.capNative body.isApp #agionPtr{top:6px}
 html.capNative body.isApp .modal{padding-bottom:22px}
