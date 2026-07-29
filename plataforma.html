@@ -656,6 +656,70 @@ body.isApp a,body.isApp button,body.isApp .lead,body.isApp .netrow{-webkit-tap-h
 /* ---------- 6. ROLAGEM: suave, sem barras, cabecalhos que acompanham ---------- */
 body.isApp .content,body.isApp .tbl-scroll,body.isApp .kbody{-webkit-overflow-scrolling:touch;scrollbar-width:none}
 body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar{display:none}
+/* ---------- 7. FORMULARIOS: campos confortaveis, sem zoom no foco ---------- */
+@media(max-width:1024px){
+  body.isApp label{font-size:.8rem;margin-bottom:8px}
+  body.isApp .field{margin-bottom:16px}
+  body.isApp input,body.isApp select,body.isApp textarea{padding:13px 14px;background:rgba(6,20,25,.55)}
+  body.isApp textarea{min-height:110px;line-height:1.5}
+  body.isApp select{-webkit-appearance:none;appearance:none;padding-right:38px;
+    background-image:linear-gradient(45deg,transparent 50%,#C5A059 50%),linear-gradient(135deg,#C5A059 50%,transparent 50%);
+    background-position:calc(100% - 20px) 21px,calc(100% - 14px) 21px;background-size:6px 6px,6px 6px;background-repeat:no-repeat}
+  body.isApp input[type=checkbox],body.isApp input[type=radio]{width:22px;height:22px;min-height:22px;accent-color:#C5A059}
+  body.isApp input[type=range]{height:10px;min-height:10px;padding:0;margin:12px 0 4px;border:none}
+  body.isApp input[type=range]::-webkit-slider-thumb{width:28px;height:28px}
+  body.isApp input[type=range]::-moz-range-thumb{width:28px;height:28px}
+  body.isApp .crmFiltros input,body.isApp .crmFiltros select{min-height:38px!important;font-size:.8rem!important}
+  body.isApp .crmFiltros .btn{min-height:38px}
+}
+/* ---------- 8. TABELAS: rolagem lateral suave com cabecalho fixo ---------- */
+@media(max-width:1024px){
+  body.isApp .tbl-scroll{max-height:none;border-radius:16px;overflow-x:auto;overscroll-behavior-x:contain}
+  body.isApp .tbl-scroll table{font-size:.8rem;white-space:nowrap}
+  body.isApp .tbl-scroll th,body.isApp .tbl-scroll td{padding:12px}
+  body.isApp .tbl-scroll thead th{position:sticky;top:0}
+}
+/* ---------- 9. FUNIL (CRM): colunas em pagina, deslizando com encaixe ---------- */
+@media(max-width:1024px){
+  body.isApp .kanban{gap:12px;padding:2px 0 12px;scroll-snap-type:x mandatory;scrollbar-width:none}
+  body.isApp .kanban::-webkit-scrollbar{display:none}
+  body.isApp .kcol{flex:0 0 84vw;max-width:84vw;scroll-snap-align:start;border-radius:18px;padding:14px}
+  body.isApp .kcol h4{font-size:.78rem}
+  body.isApp .lead{border-radius:16px;padding:14px}
+  body.isApp .lead .acts button{min-height:36px;padding:7px 11px;font-size:.72rem;border-radius:9px}
+}
+/* ---------- 10. GRAFICOS: altura estavel no celular ---------- */
+@media(max-width:1024px){
+  body.isApp canvas{max-height:250px}
+  body.isApp .gauge{width:152px;height:152px}
+  body.isApp .gauge canvas{height:152px!important;max-height:152px}
+}
+/* ---------- 11. ABAS, ETIQUETAS E CARTOES DE LISTA ---------- */
+@media(max-width:1024px){
+  body.isApp .tabs{padding:6px;border-radius:16px;gap:6px}
+  body.isApp .tabs button{padding:12px 8px;border-radius:12px;font-size:.82rem;min-height:44px}
+  body.isApp .chip{padding:6px 12px;font-size:.64rem}
+  body.isApp .ccard{border-radius:18px;padding:16px}
+  body.isApp .catrow{padding:13px 0}
+  body.isApp .j-node{padding-left:44px;padding-bottom:24px}
+}
+/* ---------- 12. CONVERSAS: canais em pilulas + area de digitar acessivel ---------- */
+@media(max-width:1024px){
+  body.isApp .chat-wrap{grid-template-columns:1fr;height:auto;border-radius:18px}
+  body.isApp .chat-side{border-right:none;border-bottom:1px solid var(--line);display:flex;flex-direction:row;
+    gap:8px;overflow-x:auto;overflow-y:hidden;padding:10px;scrollbar-width:none}
+  body.isApp .chat-side::-webkit-scrollbar{display:none}
+  body.isApp .chat-side .ch{flex:0 0 auto;white-space:nowrap;border-radius:999px;padding:9px 14px;font-size:.82rem}
+  body.isApp .chat-msgs{min-height:52dvh;max-height:60dvh;padding:14px}
+  body.isApp .msg{max-width:88%}
+  body.isApp .chat-input{padding:10px}
+  body.isApp .chat-input input{min-height:44px}
+}
+/* ---------- 13. BOTAO FLUTUANTE acima da barra inferior ---------- */
+@media(max-width:1024px){
+  body.isApp .fab{right:18px;bottom:calc(86px + env(safe-area-inset-bottom,0px));width:58px;height:58px;box-shadow:0 10px 26px rgba(197,160,89,.4)}
+  body.isApp .fab:active{transform:scale(.94)}
+}
 </style>
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
