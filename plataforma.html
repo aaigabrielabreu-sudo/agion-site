@@ -775,8 +775,9 @@ body.isApp #app.show{height:100dvh;max-height:100dvh}
 body.isApp .main{height:100dvh;max-height:100dvh;min-height:0;overflow-y:auto;overflow-x:hidden;
   -webkit-overflow-scrolling:touch;overscroll-behavior:none;scrollbar-width:none}
 body.isApp .main::-webkit-scrollbar{display:none}
-body.isApp .topbar{position:sticky;top:0;padding-top:calc(10px + env(safe-area-inset-top,0px))}
-body.isApp .viewbar{position:sticky;top:0;padding-top:calc(9px + env(safe-area-inset-top,0px))}
+body.isApp .topbar{position:static;padding-top:calc(6px + env(safe-area-inset-top,0px));padding-bottom:10px;gap:6px 10px}
+body.isApp .viewbar{position:static;padding-top:calc(6px + env(safe-area-inset-top,0px))}
+body.isApp .main>.content{padding-top:10px}
 body.isApp #loginView{height:100dvh;max-height:100dvh}
 /* ---------- 17. BARRA DE STATUS: nada passa por baixo do relogio ---------- */
 @media(max-width:1024px){
