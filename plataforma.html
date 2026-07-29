@@ -761,22 +761,23 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
   body.isApp .top-logo{height:26px}
   body.isApp .mobnav a{padding:5px 2px;gap:3px}
   body.isApp .mobnav a .icon{width:21px;height:21px}
-  /* sinos sobem para a linha do titulo; acoes ficam na linha de baixo */
+  /* sinos ANCORADOS no canto superior direito: nunca mudam de lugar */
   body.isApp .tb-right{display:contents}
-  body.isApp .topbar>.tb-left{order:1;flex:1 1 auto;min-width:0}
-  body.isApp .topbar #bellWrap{order:2;flex:0 0 auto;margin-left:auto;align-self:flex-start;position:relative}
+  body.isApp .topbar{position:relative}
+  body.isApp .topbar>.tb-left{order:1;flex:1 1 100%;min-width:0;padding-right:84px}
+  body.isApp .topbar #bellWrap{position:absolute;top:14px;right:14px;z-index:6}
   body.isApp .topbar .actions{order:3;flex:1 1 100%;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
   body.isApp .topbar #themeBtn{order:3}
   body.isApp .tb-right .actions{display:flex;gap:8px;flex:0 0 auto}
   body.isApp .tb-right .btn{min-height:36px;padding:8px 13px;font-size:.75rem;border-radius:11px;flex:0 0 auto}
   body.isApp #themeBtn{display:none}
   body.isApp .bell{width:34px;height:34px;flex:0 0 auto}
-  body.isApp .bell3{width:27px;height:27px;font-size:.72rem}
-  body.isApp .bell3 .badge{min-width:13px;height:13px;font-size:.52rem;top:-3px;right:-3px}
+  body.isApp .bell3{width:22px;height:22px;font-size:.6rem;border-width:1.2px}
+  body.isApp .bell3 .badge{min-width:11px;height:11px;font-size:.44rem;top:-3px;right:-3px;padding:0 2px}
   body.isApp .bells{gap:5px;flex:0 0 auto}
   body.isApp .topbar{align-items:flex-start}
   /* painel de notificacoes: menor e colado na direita */
-  body.isApp .notif{top:38px;right:0;left:auto;width:268px;max-width:82vw;border-radius:14px}
+  body.isApp .notif{top:30px;right:0;left:auto;width:268px;max-width:82vw;border-radius:14px}
   body.isApp .notif h4{padding:10px 12px;font-size:.7rem}
   body.isApp .notif .ni{padding:9px 12px;gap:9px}
   body.isApp .notif .ni .dot{width:24px;height:24px;border-radius:8px;font-size:.74rem}
