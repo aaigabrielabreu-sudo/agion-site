@@ -860,9 +860,14 @@ body.light #agionPtr{background:#FFF;border-color:rgba(14,74,65,.28)}
 .lead .acts .aNota{flex:0 1 auto}
 /* ---------- 21d. CONVERSAS EM TELA CHEIA no app ---------- */
 @media(max-width:1024px){
-  body.isApp .content:has(>.wa){padding:0;overflow:hidden;display:flex;flex-direction:column}
-  body.isApp .wa{flex:1 1 auto;height:auto!important;min-height:0;border-radius:0;border:none;
-    margin-bottom:calc(62px + env(safe-area-inset-bottom,0px))}
+  body.isApp .content:has(.waPanel){padding:0!important;overflow:hidden!important;display:flex;flex-direction:column}
+  body.isApp .waPanel{flex:1 1 auto;min-height:0;margin:0!important;border:none;border-radius:0;
+    display:flex;flex-direction:column;background:transparent}
+  body.isApp .waPanel>.wa{flex:1 1 auto;height:auto!important;min-height:0;border-radius:0;border:none;
+    margin-bottom:calc(58px + env(safe-area-inset-bottom,0px))}
+  body.isApp .wa-main{min-height:0}
+  body.isApp .wa-msgs,body.isApp .wa-body{flex:1 1 auto;min-height:0;overflow-y:auto}
+  body.isApp .wa-inp{flex:0 0 auto}
   body.isApp .wa-list{width:100%}
   body.isApp .wa-hd{padding:9px 10px}
   body.isApp .wa-inp{padding:8px 10px}
@@ -1774,7 +1779,7 @@ async function renderConversas(C){
   convCSS();
   setTop('Conversas','WhatsApp · atendimento e boletos');
   if(convState.poll){clearInterval(convState.poll);convState.poll=null;}
-  C.innerHTML='<div class="panel" style="padding:0;overflow:hidden"><div class="wa" id="waRoot"><div class="wa-list"><div class="wa-lhd"><input class="wa-srch" id="waSrch" placeholder="Buscar conversa…" oninput="convFilter(this.value)"><button class="wa-cico" title="Nova conversa" onclick="convNewChat()">✚</button><button class="wa-cico" title="Atualizar" onclick="renderConversas(document.getElementById(\'content\'))">⟳</button></div><div class="wa-items" id="waItems"><p class="note" style="padding:14px">Carregando…</p></div></div><div class="wa-main" id="waMain"><div class="wa-emp"><div style="font-size:42px">💬</div><b>Conversas do WhatsApp</b><p class="note" style="max-width:290px">Selecione um atendimento à esquerda ou toque em ✚ para iniciar uma nova conversa. Responda, envie templates e boletos por aqui.</p></div></div></div></div>';
+  C.innerHTML='<div class="panel waPanel" style="padding:0;overflow:hidden"><div class="wa" id="waRoot"><div class="wa-list"><div class="wa-lhd"><input class="wa-srch" id="waSrch" placeholder="Buscar conversa…" oninput="convFilter(this.value)"><button class="wa-cico" title="Nova conversa" onclick="convNewChat()">✚</button><button class="wa-cico" title="Atualizar" onclick="renderConversas(document.getElementById(\'content\'))">⟳</button></div><div class="wa-items" id="waItems"><p class="note" style="padding:14px">Carregando…</p></div></div><div class="wa-main" id="waMain"><div class="wa-emp"><div style="font-size:42px">💬</div><b>Conversas do WhatsApp</b><p class="note" style="max-width:290px">Selecione um atendimento à esquerda ou toque em ✚ para iniciar uma nova conversa. Responda, envie templates e boletos por aqui.</p></div></div></div></div>';
   await convLoadList();
   convState.poll=setInterval(function(){ if(!document.getElementById('waRoot')){clearInterval(convState.poll);convState.poll=null;return;} convLoadList(true); if(convState.phone) convRefreshChat(); },15000);
 }
