@@ -592,6 +592,8 @@ body.light .logo-img,body.light .top-logo{filter:none}
   var forced=/[?&]app=1/.test(location.search);
   if(cap||standalone||forced){
     document.documentElement.classList.add('isApp');
+    var mv=document.querySelector('meta[name="viewport"]');
+    if(mv&&mv.content.indexOf('viewport-fit')<0){mv.setAttribute('content',mv.content+', viewport-fit=cover');}
     document.addEventListener('DOMContentLoaded',function(){document.body.classList.add('isApp');});
     if(document.body)document.body.classList.add('isApp');
   }
@@ -761,6 +763,13 @@ body.isApp .content::-webkit-scrollbar,body.isApp .tbl-scroll::-webkit-scrollbar
   body.isApp .mobnav::-webkit-scrollbar{display:none}
   body.isApp .mobnav a{flex:0 0 64px;width:64px;padding:7px 2px;font-size:.55rem;letter-spacing:.1px}
   body.isApp .mobnav a span{max-width:62px}
+}
+/* ---------- 17. BARRA DE STATUS: nada passa por baixo do relogio ---------- */
+@media(max-width:1024px){
+  body.isApp .topbar{top:env(safe-area-inset-top,0px)}
+  body.isApp .viewbar{top:env(safe-area-inset-top,0px)}
+  body.isApp .tb-right{flex-wrap:nowrap}
+  body.isApp .topbar .tb-left{align-items:center}
 }
 </style>
 <script>(function(){try{
