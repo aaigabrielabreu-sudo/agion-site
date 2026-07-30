@@ -1,17 +1,17 @@
 {
-  "name": "Agion Wealth — Planejamento Financeiro",
+  "name": "Agion Wealth",
   "short_name": "Agion Wealth",
-  "description": "Plataforma de planejamento financeiro da Agion Consórcios.",
+  "description": "Plataforma de Planejamento Financeiro da Agion Consórcios",
   "start_url": "/plataforma",
-  "scope": "/plataforma",
+  "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#0D232B",
-  "theme_color": "#0D232B",
+  "orientation": "any",
+  "background_color": "#0B2A26",
+  "theme_color": "#0B2A26",
   "lang": "pt-BR",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "/agion-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/agion-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/agion-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
