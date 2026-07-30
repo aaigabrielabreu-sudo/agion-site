@@ -633,6 +633,74 @@ body.light .logo-img,body.light .top-logo{filter:none}
       },{passive:true});
     }catch(e){}};
     setInterval(_sc,1200);
+    /* AGION_LIVE_RELOAD - so em desenvolvimento (localhost). Em producao nunca roda. */
+    if(/^(localhost|127\.0\.0\.1|10\.|192\.168\.)/.test(location.hostname)){
+      var _lmv=null;
+      setInterval(function(){ try{
+        fetch(location.pathname+'?_lr='+Date.now(),{method:'HEAD',cache:'no-store'}).then(function(r){
+          var lm=r.headers.get('last-modified')||r.headers.get('etag');
+          if(_lmv&&lm&&lm!==_lmv){ location.reload(); }
+          if(lm)_lmv=lm;
+        }).catch(function(){});
+      }catch(e){} },1200);
+    }
+    /* AGION_NOTIF_NATIVA - avisa no celular quando entra lead novo.
+       Hoje: notificacao LOCAL (funciona ja). Amanha: push real, so plugar as chaves APNs. */
+    if(cap){ setTimeout(function(){ try{
+      var C=window.Capacitor, P=C&&C.Plugins||{};
+      var LN=P.LocalNotifications, PN=P.PushNotifications;
+
+      /* ---- permissao ---- */
+      if(LN&&LN.requestPermissions) LN.requestPermissions().catch(function(){});
+
+      /* ---- PUSH REAL (fica pronto; so funciona apos a conta Apple Developer + chaves APNs) ---- */
+      if(PN&&PN.requestPermissions){
+        PN.requestPermissions().then(function(r){
+          if(r&&r.receive==='granted'){ PN.register(); }
+        }).catch(function(){});
+        PN.addListener('registration',function(t){
+          try{
+            var tok=t&&t.value; if(!tok)return;
+            localStorage.setItem('agion_push_token',tok);
+            var u=(window.session&&session.userId)||'';
+            fetch('https://bot.agionconsorcios.com.br/api/push_token?key=agionlead2026',{
+              method:'POST',headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({token:tok,plataforma:'ios',userId:u})
+            }).catch(function(){});
+          }catch(e){}
+        });
+        PN.addListener('pushNotificationActionPerformed',function(){ try{ go('crm'); }catch(e){} });
+      }
+
+      /* ---- NOTIFICACAO LOCAL: dispara quando aparece lead novo ---- */
+      var _visto=Number(localStorage.getItem('agion_notif_lead_ts')||0);
+      var _id=Date.now()%100000;
+      function checaLeads(){ try{
+        if(!LN||!window.db||!window.session)return;
+        if(session.role==='cliente')return;
+        var novos=(db.crm||[]).filter(function(l){
+          return !l.perdido && Number(l.criadoEm||0)>_visto &&
+                 (typeof isMaster==='function'&&(isMaster()||isLider()||ownerVisible(l.ownerId)));
+        });
+        var inbox=(db.inbox||[]).filter(function(l){ return !l.importado && Number(l.criadoEm||0)>_visto; });
+        var total=novos.length+inbox.length;
+        if(!total)return;
+        var maisRecente=0;
+        novos.concat(inbox).forEach(function(l){ maisRecente=Math.max(maisRecente, Number(l.criadoEm||0)); });
+        _visto=maisRecente||Date.now();
+        localStorage.setItem('agion_notif_lead_ts', String(_visto));
+        var nome=(novos[0]&&novos[0].nome)||(inbox[0]&&inbox[0].nome)||'';
+        LN.schedule({notifications:[{
+          id:(++_id),
+          title: total>1 ? (total+' leads novos') : 'Novo lead',
+          body: total>1 ? 'Toque para abrir o CRM e distribuir.' : (nome? nome+' acabou de entrar. Toque para atender.' : 'Um lead acabou de entrar.'),
+          smallIcon:'ic_stat_icon', extra:{ir:'crm'}
+        }]}).catch(function(){});
+      }catch(e){} }
+      if(LN&&LN.addListener) LN.addListener('localNotificationActionPerformed',function(){ try{ go('crm'); }catch(e){} });
+      setInterval(checaLeads, 25000);
+      setTimeout(checaLeads, 6000);
+    }catch(e){} },2500); }
     document.addEventListener('DOMContentLoaded',function(){document.body.classList.add('isApp');});
     if(document.body)document.body.classList.add('isApp');
   }
@@ -1003,6 +1071,14 @@ body.isApp #loginView{height:100dvh;max-height:100dvh}
   html.capNative body.isApp .main{padding-top:0!important;margin-top:0!important}
   html.capNative body.isApp .topbar{margin-top:0!important;padding-top:var(--agTop,58px)!important;padding-bottom:6px!important;row-gap:4px!important}
 }
+/* ---------- 29. BADGE DE LEADS NOVOS NA BARRA DE ABAS ---------- */
+.mobnav a{position:relative}
+.navdot{position:absolute;top:1px;left:calc(50% + 6px);min-width:16px;height:16px;padding:0 4px;
+  border-radius:99px;background:#E0574F;color:#fff;font-size:.58rem;font-weight:800;font-style:normal;
+  display:flex;align-items:center;justify-content:center;line-height:1;
+  box-shadow:0 2px 6px rgba(0,0,0,.35);border:1.5px solid #08161B;z-index:3;animation:navPulse 2.2s ease-in-out infinite}
+@keyframes navPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+body.light .navdot{border-color:#F3F7F5}
 /* ---------- 28. BARREIRA DO NOTCH: do Dynamic Island para cima e regiao proibida ---------- */
 html.capNative body.isApp::before{content:''!important;display:block!important;position:fixed!important;
   top:0;left:0;right:0;height:var(--agBar,56px);background:#0B2A26;z-index:900;pointer-events:none}
@@ -1695,9 +1771,22 @@ function navItems(){
 function renderNav(){
   const items=navItems();
   document.getElementById('navi').innerHTML=items.map(([k,l,ic])=>`<a class="${view.page===k?'on':''}" onclick="go('${k}')">${ic}${l}</a>`).join('');
-  document.getElementById('mobnav').innerHTML=items.map(([k,l,ic])=>`<a class="${view.page===k?'on':''}" onclick="go('${k}')">${ic||''}<span>${l}</span></a>`).join('');
+  document.getElementById('mobnav').innerHTML=items.map(([k,l,ic])=>`<a class="${view.page===k?'on':''}" onclick="go('${k}')">${ic||''}${navBadge(k)}<span>${l}</span></a>`).join('');
 }
-function routeGo(page){ view.page=page; renderNav(); window.scrollTo(0,0); render(); }
+/* leads novos aguardando: badge nas abas CRM / Captacao / Clientes */
+function leadsNovos(){ try{
+  if(session.role==='cliente')return 0;
+  const vis=(db.crm||[]).filter(l=>!l.perdido && l.stage===0 && (isMaster()||isLider()||ownerVisible(l.ownerId)));
+  const inbox=(db.inbox||[]).filter(l=>!l.importado);
+  const marca=Number(localStorage.getItem('agion_leads_vistos')||0);
+  const novos=vis.filter(l=>Number(l.criadoEm||0)>marca).length + inbox.length;
+  return Math.max(0,novos);
+}catch(e){ return 0; } }
+function navBadge(k){ if(k!=='crm'&&k!=='captacao'&&k!=='users')return '';
+  const n=leadsNovos(); if(!n)return '';
+  return '<i class="navdot">'+(n>9?'9+':n)+'</i>'; }
+function marcarLeadsVistos(){ try{ localStorage.setItem('agion_leads_vistos', String(Date.now())); }catch(e){} }
+function routeGo(page){ view.page=page; if(page==='crm'||page==='captacao'||page==='users')marcarLeadsVistos(); renderNav(); window.scrollTo(0,0); render(); }
 function go(page){ routeGo(page); try{ if(page&&page!=='editor'&&page!=='compare'&&location.hash.slice(1)!==page) location.hash=page; }catch(e){} }
 addEventListener('hashchange',function(){ try{ if(!session.role) return; var p=location.hash.slice(1); if(!p) return; if(navItems().some(function(it){return it[0]===p}) && p!==view.page) routeGo(p); }catch(e){} });
 function skeleton(){return `<div class="skel"> <div class="sk" style="height:30px;width:40%"></div> <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin:18px 0"> ${'<div class="sk" style="height:92px"></div>'.repeat(4)}</div> <div class="sk" style="height:230px"></div> <div class="sk" style="height:160px"></div></div>`;}
