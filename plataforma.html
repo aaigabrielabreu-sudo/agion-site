@@ -590,6 +590,59 @@ body.light .logo-img,body.light .top-logo{filter:none}
      Tudo escopado em body.isApp — nao afeta o site nem a plataforma no navegador. -->
 <script>(function(){try{
   var ua=navigator.userAgent||'';
+  /* AGION_WEBPUSH - notificacao real no celular pelo app da tela de inicio (iOS 16.4+) e Android.
+     Nao precisa de conta Apple Developer. O service worker e SO de push (sem cache). */
+  window.AGION_VAPID='BACpDG9NTNBZcb5f3kHX1yj2tUZAVA7qoWRGp-VjQsWjGrhSL5nnl_vfYnmav4XoeifqgE95vTyr-cHSwLwlLp8';
+  window.agionPushStatus=function(){ try{
+    if(!('serviceWorker' in navigator)||!('PushManager' in window))return 'sem-suporte';
+    var st=(window.Notification&&Notification.permission)||'default';
+    if(st==='granted')return localStorage.getItem('agion_push_ok')==='1'?'ativo':'permitido';
+    if(st==='denied')return 'bloqueado';
+    return 'desligado';
+  }catch(e){ return 'sem-suporte'; } };
+  function _b64(base64){
+    var pad='='.repeat((4-base64.length%4)%4);
+    var b=(base64+pad).replace(/-/g,'+').replace(/_/g,'/');
+    var raw=atob(b), arr=new Uint8Array(raw.length);
+    for(var i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i);
+    return arr;
+  }
+  window.agionAtivarPush=async function(silencioso){
+    try{
+    if(!('serviceWorker' in navigator)||!('PushManager' in window)){
+      if(!silencioso&&typeof flash==='function')flash('Este navegador nao suporta notificacoes.');
+      return false;
+    }
+    var reg=await navigator.serviceWorker.register('/agion-push-sw.js',{scope:'/'});
+    await navigator.serviceWorker.ready;
+    var perm=Notification.permission;
+    if(perm!=='granted'){
+      if(silencioso)return false;
+      perm=await Notification.requestPermission();
+    }
+    if(perm!=='granted'){
+      if(!silencioso&&typeof flash==='function')flash('Notificacoes nao autorizadas.');
+      return false;
+    }
+    var sub=await reg.pushManager.getSubscription();
+    if(!sub){
+      sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_b64(window.AGION_VAPID)});
+    }
+    var u=(window.session&&session.userId)||'';
+    var papel=(window.session&&session.role)||'';
+    await fetch('https://bot.agionconsorcios.com.br/api/push_sub?key=agionlead2026',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sub:sub.toJSON?sub.toJSON():sub,userId:u,papel:papel,ua:navigator.userAgent.slice(0,120)})
+    });
+    localStorage.setItem('agion_push_ok','1');
+    if(!silencioso&&typeof flash==='function')flash('Notificacoes ativadas neste aparelho.');
+    return true;
+    }catch(e){ if(!silencioso&&typeof flash==='function')flash('Nao foi possivel ativar as notificacoes.'); return false; }
+  };
+  /* se ja foi autorizado antes, reassina em silencio a cada abertura */
+  setTimeout(function(){ try{
+    if(window.Notification&&Notification.permission==='granted') window.agionAtivarPush(true);
+  }catch(e){} },3000);
   var cap=!!(window.Capacitor||window.cordova);
   var standalone=(window.navigator.standalone===true)||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches);
   var forced=/[?&]app=1/.test(location.search);
@@ -701,59 +754,6 @@ body.light .logo-img,body.light .top-logo{filter:none}
       setInterval(checaLeads, 25000);
       setTimeout(checaLeads, 6000);
     }catch(e){} },2500); }
-    /* AGION_WEBPUSH - notificacao real no celular pelo app da tela de inicio (iOS 16.4+) e Android.
-       Nao precisa de conta Apple Developer. O service worker e SO de push (sem cache). */
-    window.AGION_VAPID='BACpDG9NTNBZcb5f3kHX1yj2tUZAVA7qoWRGp-VjQsWjGrhSL5nnl_vfYnmav4XoeifqgE95vTyr-cHSwLwlLp8';
-    window.agionPushStatus=function(){ try{
-      if(!('serviceWorker' in navigator)||!('PushManager' in window))return 'sem-suporte';
-      var st=(window.Notification&&Notification.permission)||'default';
-      if(st==='granted')return localStorage.getItem('agion_push_ok')==='1'?'ativo':'permitido';
-      if(st==='denied')return 'bloqueado';
-      return 'desligado';
-    }catch(e){ return 'sem-suporte'; } };
-    function _b64(base64){
-      var pad='='.repeat((4-base64.length%4)%4);
-      var b=(base64+pad).replace(/-/g,'+').replace(/_/g,'/');
-      var raw=atob(b), arr=new Uint8Array(raw.length);
-      for(var i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i);
-      return arr;
-    }
-    window.agionAtivarPush=async function(silencioso){
-      try{
-        if(!('serviceWorker' in navigator)||!('PushManager' in window)){
-          if(!silencioso&&typeof flash==='function')flash('Este navegador nao suporta notificacoes.');
-          return false;
-        }
-        var reg=await navigator.serviceWorker.register('/agion-push-sw.js',{scope:'/'});
-        await navigator.serviceWorker.ready;
-        var perm=Notification.permission;
-        if(perm!=='granted'){
-          if(silencioso)return false;
-          perm=await Notification.requestPermission();
-        }
-        if(perm!=='granted'){
-          if(!silencioso&&typeof flash==='function')flash('Notificacoes nao autorizadas.');
-          return false;
-        }
-        var sub=await reg.pushManager.getSubscription();
-        if(!sub){
-          sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_b64(window.AGION_VAPID)});
-        }
-        var u=(window.session&&session.userId)||'';
-        var papel=(window.session&&session.role)||'';
-        await fetch('https://bot.agionconsorcios.com.br/api/push_sub?key=agionlead2026',{
-          method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({sub:sub.toJSON?sub.toJSON():sub,userId:u,papel:papel,ua:navigator.userAgent.slice(0,120)})
-        });
-        localStorage.setItem('agion_push_ok','1');
-        if(!silencioso&&typeof flash==='function')flash('Notificacoes ativadas neste aparelho.');
-        return true;
-      }catch(e){ if(!silencioso&&typeof flash==='function')flash('Nao foi possivel ativar as notificacoes.'); return false; }
-    };
-    /* se ja foi autorizado antes, reassina em silencio a cada abertura */
-    setTimeout(function(){ try{
-      if(window.Notification&&Notification.permission==='granted') window.agionAtivarPush(true);
-    }catch(e){} },3000);
     document.addEventListener('DOMContentLoaded',function(){document.body.classList.add('isApp');});
     if(document.body)document.body.classList.add('isApp');
   }
