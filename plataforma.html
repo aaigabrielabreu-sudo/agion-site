@@ -1124,6 +1124,13 @@ body.isApp #loginView{height:100dvh;max-height:100dvh}
   html.capNative body.isApp .main{padding-top:0!important;margin-top:0!important}
   html.capNative body.isApp .topbar{margin-top:0!important;padding-top:var(--agTop,58px)!important;padding-bottom:6px!important;row-gap:4px!important}
 }
+/* ---------- 30. APP (inclui o instalado pela Tela de Inicio): filtro SOBE e cola no cabecalho ---------- */
+@media(max-width:1024px){
+  body.isApp .main>.content{padding-top:0!important}
+  body.isApp .main>.content>*:first-child{margin-top:14px}
+  body.isApp .crmFiltros{margin-top:0!important;top:0!important;
+    padding-top:8px!important;padding-bottom:8px!important}
+}
 /* ---------- 29. BADGE DE LEADS NOVOS NA BARRA DE ABAS ---------- */
 .mobnav a{position:relative}
 .navdot{position:absolute;top:1px;left:calc(50% + 6px);min-width:16px;height:16px;padding:0 4px;
