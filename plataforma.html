@@ -41,7 +41,7 @@ body.appLoginLock{overflow:hidden;position:fixed;inset:0;width:100%}
   --teal:#8FD9CC;--teal-ink:#0A2026;--gold:#C5A059;--gold2:#E8CC8B;
   --grad-gold:linear-gradient(115deg,#A8853E,#E8CC8B 45%,#C5A059 85%);
   --grad-hero:linear-gradient(100deg,#8FD9CC,#E8CC8B 50%,#C5A059);
-  --ink:#DCE9E7;--muted:#9DB5B1;--soft:#6E8B88;--line:rgba(143,217,204,.16);--line-gold:rgba(197,160,89,.28);
+  --mixbase:#07201B;--ink:#DCE9E7;--muted:#9DB5B1;--soft:#6E8B88;--line:rgba(143,217,204,.16);--line-gold:rgba(197,160,89,.28);
   --head:#F2FAF8;
   --serif:'Lora',Georgia,serif;--display:'Cinzel',serif;--sans:'DM Sans',-apple-system,sans-serif;
   --ok:#34d399;--warn:#fbbf24;--bad:#f87171;
@@ -49,7 +49,7 @@ body.appLoginLock{overflow:hidden;position:fixed;inset:0;width:100%}
 body.light{
   --bg:#FAFDFC;--bg2:#F1F7F4;--card:#E8F2EC;--card2:#E1EDE6;--card3:#D7E7DF;
   --teal:#0E4A41;--teal-ink:#ffffff;--gold:#8F6F2C;--gold2:#725421;
-  --ink:#0B100E;--muted:#333C39;--soft:#5A6763;--line:rgba(14,74,65,.32);--line-gold:rgba(143,111,44,.42);
+  --mixbase:#FFFFFF;--ink:#0B100E;--muted:#333C39;--soft:#5A6763;--line:rgba(14,74,65,.32);--line-gold:rgba(143,111,44,.42);
   --head:#050B09;
 }
 /* modo claro: fundo branco; TUDO acima do fundo = card verde da Agion c/ borda verde */
@@ -551,7 +551,7 @@ body.light .logo-img,body.light .top-logo{filter:none}
 }
 .print-cover{display:none}
 @media print{
-  body{--bg:#fff;--bg2:#fff;--card:#F3F7F5;--card2:#EEF4F1;--card3:#E7F0EC;--ink:#1c3338;--head:#0C343B;--muted:#4a5e60;--soft:#7d9490;--line:#cfe0da;--line-gold:#cdb98a;--teal:#1A535C;--gold2:#A8853E;background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{--bg:#fff;--bg2:#fff;--card:#F3F7F5;--card2:#EEF4F1;--card3:#E7F0EC;--mixbase:#FFFFFF;--ink:#1c3338;--head:#0C343B;--muted:#4a5e60;--soft:#7d9490;--line:#cfe0da;--line-gold:#cdb98a;--teal:#1A535C;--gold2:#A8853E;background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body::before,.side,.mobnav,.topbar,.subnav,.toolbar,.fab,.bell,.userchip,.banner,.lever,.disclaimer .btn,.j-addstep,.additem,.delrow,.btn{display:none!important}
   /* marca d'água Agion em todas as páginas */
   body::after{display:block!important;position:fixed;inset:-6%;z-index:-1;background-image:url('https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png');background-repeat:repeat;background-size:240px;filter:none;opacity:.05;transform:rotate(-10deg)}
@@ -2395,7 +2395,7 @@ function leadCard(l,i){
   const _waBtn=_wan.length>=12?`<a href="https://wa.me/${_wan}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Falar no WhatsApp" style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#25D36622;border:1px solid #25D36666;flex:none"><svg viewBox="0 0 24 24" width="15" height="15" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.297-.497.1-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>`:'';
   const _reu=/AGENDADO REUNIAO/i.test(l.obs||'');
   const _cor0=_reu?'#1F6B7A':leadCategoria(l).cor;
-  const _cardSty=`background:color-mix(in srgb, ${_cor0} ${_reu?22:15}%, var(--card2));border-color:color-mix(in srgb, ${_cor0} 48%, transparent);`;
+  const _cardSty=`background:color-mix(in srgb, ${_cor0} ${_reu?58:48}%, var(--mixbase));border-color:color-mix(in srgb, ${_cor0} 70%, transparent);`;
   return `<div class="lead" style="${_cardSty}" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><div class="ldTop"><div class="ldChips"><span class="ttype" style="background:${leadCategoria(l).cor}26;border:1px solid ${leadCategoria(l).cor}66;color:${leadCategoria(l).cor}">${leadCategoria(l).ic} ${leadCategoria(l).lb}</span><span class="ttype" style="background:${leadOrigem(l).cor}26;border:1px solid ${leadOrigem(l).cor}66;color:${leadOrigem(l).cor}">${leadOrigem(l).ic} ${leadOrigem(l).lb}</span></div><div class="ldTopR"><div class="ldDataRow"><span class="ldData">${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</span><button class="ldEdit" title="Editar lead" onclick="openLead('${l.id}');event.stopPropagation()">✎</button></div>${_scBar}</div></div> <div class="ldHead"><div class="ldWho"><div class="nm">${esc(l.nome)}</div><div class="ct">${esc(l.contato||'')}</div></div>${_waBtn}</div> ${leadPrefContato(l)?`<div class="note" style="margin-top:3px;color:var(--gold,#C5A059)">${leadPrefContato(l)}</div>`:''} ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''} ${_parc?`<div style="font-size:.78rem;color:var(--gold,#C5A059);font-weight:600;margin-top:2px">💳 Parcela desejada: ${BRL(_parc)}/mês</div>`:''}
     ${_obsShow?`<div class="note leadObs" style="margin-top:6px" onclick="this.classList.toggle('aberta');event.stopPropagation()">${esc(_obsShow)}</div>`:''}
     ${(l.atividades&&l.atividades.length)?`<div class="note" style="margin-top:6px;color:var(--soft)"> ${esc(l.atividades[l.atividades.length-1].texto)} · ${timeAgo(l.atividades[l.atividades.length-1].quando)}</div>`:''}
