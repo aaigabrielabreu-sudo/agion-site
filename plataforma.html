@@ -134,6 +134,28 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 
 .field{margin-bottom:14px}
 .note{font-size:.74rem;color:var(--soft);line-height:1.5}
 .lead .note{color:#FFFFFF}
+.lead{padding:16px}
+.ldSep{height:1px;background:rgba(255,255,255,.13);margin:12px 0}
+.lead .nm{font-size:1.45rem;line-height:1.15;letter-spacing:-.01em}
+.lead .ct{font-size:.9rem;margin:3px 0 0}
+.ldPref{font-size:.86rem;color:var(--gold2,#E8CC8B);margin-top:8px}
+.lead .vl{font-size:1.85rem;font-weight:600;margin-top:10px;letter-spacing:-.02em}
+.ldRow{display:flex;align-items:center;gap:11px;margin-top:11px}
+.ldIco{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:.9rem}
+.ldIco.sq{border-radius:9px;background:rgba(255,255,255,.07)}
+.ldLbl{font-size:.68rem;letter-spacing:.09em;color:var(--soft);text-transform:uppercase}
+.ldVal{font-size:1.06rem;color:#fff;font-weight:500;margin-top:1px}
+.ldOri{font-size:.74rem;letter-spacing:.06em;color:#7FD1A8;font-weight:600}
+.lead .leadObs{margin-top:12px;font-size:.83rem;line-height:1.55}
+.ldNotaWrap{display:flex;justify-content:flex-end;margin-top:10px}
+.ldNotaBtn{font-size:.78rem!important;padding:7px 13px!important;border-radius:9px!important}
+.ldAtv{font-size:.83rem;color:var(--soft)}
+.ldOwner{font-size:.83rem;color:var(--soft);margin-top:11px}
+.ldSel{margin-top:11px;border:1px solid rgba(255,255,255,.18);border-radius:11px;padding:8px 11px}
+.ldSel label{display:block;font-size:.68rem;color:var(--soft);margin-bottom:2px}
+.ldSel select{width:100%;background:transparent;border:0;color:#fff;font-size:.94rem;padding:0}
+.lead .acts{gap:8px;margin-top:14px}
+.lead .acts button{font-size:.86rem;padding:11px 15px;border-radius:11px;font-weight:600}
 body.light .lead .note{color:#0B100E}
 /* ===== LOGIN ===== */
 #loginView{display:flex;align-items:center;justify-content:center;height:100dvh;min-height:100dvh;padding:20px;overflow:hidden;overscroll-behavior:none;padding-top:calc(20px + env(safe-area-inset-top));padding-bottom:calc(20px + env(safe-area-inset-bottom))}
@@ -2399,16 +2421,16 @@ function leadCard(l,i){
   const _reu=/AGENDADO REUNIAO/i.test(l.obs||'');
   const _cor0=_reu?'#1F6B7A':leadCategoria(l).cor;
   const _cardSty=`background:color-mix(in srgb, ${_cor0} ${_reu?58:48}%, var(--mixbase));border-color:color-mix(in srgb, ${_cor0} 70%, transparent);`;
-  return `<div class="lead" style="${_cardSty}" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><div class="ldTop"><div class="ldChips"><span class="ttype" style="background:${leadCategoria(l).cor}26;border:1px solid ${leadCategoria(l).cor}66;color:${leadCategoria(l).cor}">${leadCategoria(l).ic} ${leadCategoria(l).lb}</span><span class="ttype" style="background:${leadOrigem(l).cor}26;border:1px solid ${leadOrigem(l).cor}66;color:${leadOrigem(l).cor}">${leadOrigem(l).ic} ${leadOrigem(l).lb}</span></div><div class="ldTopR"><div class="ldDataRow"><span class="ldData">${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</span><button class="ldEdit" title="Editar lead" onclick="openLead('${l.id}');event.stopPropagation()">✎</button></div>${_scBar}</div></div> <div class="ldHead"><div class="ldWho"><div class="nm">${esc(l.nome)}</div><div class="ct">${esc(l.contato||'')}</div></div>${_waBtn}</div> ${leadPrefContato(l)?`<div class="note" style="margin-top:3px;color:var(--gold,#C5A059)">${leadPrefContato(l)}</div>`:''} ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''} ${_parc?`<div style="font-size:.78rem;color:var(--gold,#C5A059);font-weight:600;margin-top:2px">💳 Parcela desejada: ${BRL(_parc)}/mês</div>`:''}
-    ${_obsShow?`<div class="note leadObs" style="margin-top:6px" onclick="this.classList.toggle('aberta');event.stopPropagation()">${esc(_obsShow)}</div>`:''}
-    ${(l.atividades&&l.atividades.length)?`<div class="note" style="margin-top:6px;color:var(--soft)"> ${esc(l.atividades[l.atividades.length-1].texto)} · ${timeAgo(l.atividades[l.atividades.length-1].quando)}</div>`:''}
-    <div class="note" style="margin-top:6px;color:var(--soft)">${l.ownerId?''+esc(user(l.ownerId).nome.split(' ')[0]):'⚠️ não distribuído'}</div> ${(isMaster()||isLider())?`<select onchange="crmAssign('${l.id}',this.value)" style="margin-top:6px;font-size:.74rem;padding:6px 8px"><option value="">— distribuir para —</option>${(db.accounts||[]).filter(a=>a.real&&a.ativo!==false&&((a.role==='especialista'&&(isMaster()||a.leaderId===meId()))||(a.role==='master'&&isMaster())||(a.role==='lider'&&(isMaster()||a.id===meId())))).map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`:''}
-    <div class="acts"> ${i>0?`<button class="aMove" onclick="crmMove('${l.id}',-1)" title="Voltar etapa">◀</button>`:''}
-      ${i<last?`<button class="aMove" onclick="crmMove('${l.id}',1)" title="Avançar etapa">▶</button>`:''}
-      <button class="aNota" onclick="crmNote('${l.id}')">Nota</button>
+  return `<div class="lead" style="${_cardSty}" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><div class="ldTop"><div class="ldChips"><span class="ttype" style="background:${leadCategoria(l).cor}26;border:1px solid ${leadCategoria(l).cor}66;color:${leadCategoria(l).cor}">${leadCategoria(l).ic} ${leadCategoria(l).lb}</span><span class="ttype" style="background:${leadOrigem(l).cor}26;border:1px solid ${leadOrigem(l).cor}66;color:${leadOrigem(l).cor}">${leadOrigem(l).ic} ${leadOrigem(l).lb}</span></div><div class="ldTopR"><div class="ldDataRow"><span class="ldData">${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</span><button class="ldEdit" title="Editar lead" onclick="openLead('${l.id}');event.stopPropagation()">✎</button></div>${_scBar}</div></div> <div class="ldHead"><div class="ldWho"><div class="nm">${esc(l.nome)}</div><div class="ct">${esc(l.contato||'')}</div></div>${_waBtn}</div> ${leadPrefContato(l)?`<div class="note" style="margin-top:3px;color:var(--gold,#C5A059)">${leadPrefContato(l)}</div>`:''} ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''} ${_parc?`<div class="ldRow"><span class="ldIco">🗓️</span><div><div class="ldLbl">Parcela mensal</div><div class="ldVal">${BRL(_parc)}/mês</div></div></div>`:''}
+    <div class="ldSep"></div><div class="ldRow"><span class="ldIco sq">📋</span><div><span class="ldOri">ORIGEM:</span> ${leadOrigem(l).lb}</div></div>${_obsShow?`<div class="note leadObs" style="margin-top:6px" onclick="this.classList.toggle('aberta');event.stopPropagation()">${esc(_obsShow)}</div>`:''}
+    <div class="ldNotaWrap"><button class="aNota ldNotaBtn" onclick="crmNote('${l.id}');event.stopPropagation()">✎ Editar nota</button></div><div class="ldSep"></div>${(l.atividades&&l.atividades.length)?`<div class="ldRow"><span class="ldIco">↪</span><span class="ldAtv"> ${esc(l.atividades[l.atividades.length-1].texto)} · ${timeAgo(l.atividades[l.atividades.length-1].quando)}</span></div>`:''}
+    <div class="ldOwner">${l.ownerId?''+esc(user(l.ownerId).nome.split(' ')[0]):'⚠️ não distribuído'}</div> ${(isMaster()||isLider())?`<div class="ldSel"><label>Selecionar especialista</label><select onchange="crmAssign('${l.id}',this.value)"><option value="">— distribuir para —</option>${(db.accounts||[]).filter(a=>a.real&&a.ativo!==false&&((a.role==='especialista'&&(isMaster()||a.leaderId===meId()))||(a.role==='master'&&isMaster())||(a.role==='lider'&&(isMaster()||a.id===meId())))).map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select></div>`:''}
+    <div class="acts"> ${i>0?`<button class="aMove" onclick="crmMove('${l.id}',-1)" title="Voltar etapa">←</button>`:''}
+      ${i<last?`<button class="aMove" onclick="crmMove('${l.id}',1)" title="Avançar etapa">→</button>`:''}
+      
       ${i<last?`<button class="aGanho" onclick="crmGanho('${l.id}')" title="Marcar como ganho">✓ Ganho</button>`
               :`<button class="aCliente" onclick="crmToClient('${l.id}')" title="Transformar em cliente">→ Cliente</button>`}
-      <button class="aPerdeu" onclick="crmLose('${l.id}')">Perdeu</button> </div></div>`;
+      <button class="aPerdeu" onclick="crmLose('${l.id}')">✕ Perdeu</button> </div></div>`;
 }
 function crmMove(id,d){const l=(db.crm).find(x=>x.id===id);const ns=Math.max(0,Math.min(CRM_STAGES.length-1,l.stage+d));if(ns!==l.stage){l.stage=ns;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[ns]+'"',quando:Date.now(),autorId:session.userId});logEvt('lead_mover','lead','Moveu o lead "'+l.nome+'" para "'+CRM_STAGES[ns]+'"',{lead:l.nome,etapa:CRM_STAGES[ns]});}saveLeadCloud(l);save();renderCRM(document.getElementById('content'));}
 let _dragId=null;
