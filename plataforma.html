@@ -2044,6 +2044,7 @@ function _dispFiltra(q){ q=(q||'').toLowerCase(); var els=document.querySelector
 let convState={phone:null,list:[],msgs:[],nome:null,filter:'',templates:null,poll:null};
 const TPL_META={
   boas_vindas:{label:'👋 Boas-vindas (1º contato)',vars:[{k:'nome'}]},
+  boas_vindas_simulacao:{label:'🧮 Boas-vindas (simulação)',vars:[{k:'nome'},{k:'valor',ask:'Valor da simulação (ex: R$ 300.000):'},{k:'bem',ask:'Para qual bem? (ex: imóvel, carro, procedimento):'}]},
   lembrete_vencimento:{label:'📅 Lembrete de vencimento',vars:[{k:'nome'},{k:'data',ask:'Vence em (ex: 10/07):'}]},
   boleto_atraso:{label:'⏰ Boleto em atraso',vars:[{k:'nome'},{k:'data',ask:'Venceu em (ex: 05/07):'}]},
   segunda_via:{label:'📄 2ª via (aviso)',vars:[{k:'nome'}]},
