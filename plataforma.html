@@ -1602,11 +1602,13 @@ function projetar(p){
     let def=0; if(frac<1){ for(let m=0;m<cm;m++) def+=base*Math.pow(1+rj,Math.floor(m/12))*(1-frac); }
     const dil=def/Math.max(1,prazo-cm);
     const cYr=Math.floor(cm/12);
-    // L · LANCE — % sobre o CRÉDITO ATUALIZADO no mês da contemplação; abate o saldo devedor e
-    // derruba a parcela restante na mesma proporção (confere com o Método REAL: 40% no mês 30 => parcela -45%).
+    // L · LANCE — % sobre o crédito vigente na contemplação; abate o saldo devedor e derruba a parcela restante.
+    // REGRA: o crédito só é corrigido no ANIVERSÁRIO da carta. Contemplou antes do aniversário, NÃO pega o
+    // reajuste do crédito — só a parcela continua sendo reajustada. Por isso o expoente é o nº de aniversários
+    // COMPLETOS (degrau), nunca mês fracionado.
     const lp=Math.max(0,Math.min(90,+co.lance||0))/100;
     const emb=(co.lanceTipo==='embutido');                              // embutido usa parte do próprio crédito
-    const cartaAt=cr*Math.pow(1+rj,cm/12);                              // crédito corrigido (mês fracionário)
+    const cartaAt=cr*Math.pow(1+rj,cYr);                                // crédito vigente = aniversários completos
     const lanceVal=lp>0?cartaAt*lp:0;
     const saldoDev=base*Math.max(0,prazo-cm)+def;                        // saldo devedor na contemplação
     const fatorPos=(lanceVal>0&&saldoDev>0)?Math.max(0,(saldoDev-lanceVal)/saldoDev):1;
