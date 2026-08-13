@@ -135,10 +135,11 @@ function cstSetPerfil(v){ cstView.perfil=v; cstListaHTML(true); }
 function cstSetOrd(v){ cstView.ord=v; cstListaHTML(true); }
 
 /* ------------------------- HELPERS DE FORMATO ------------------------- */
-function _pc(v,d){ var n=(+v||0); return (n>0?'+':'')+n.toFixed(d===undefined?2:d)+'%'; }
+function _nb(v,d){ return (+v||0).toFixed(d===undefined?2:d).replace('.',','); }
+function _pc(v,d){ var n=(+v||0); return (n>0?'+':'')+_nb(n,d)+'%'; }
 function _cls(v){ return (+v||0)>=0 ? 'cst-up' : 'cst-dn'; }
 function _dt(iso){ if(!iso) return '—'; var p=String(iso).split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
-function _mi(v){ v=+v||0; return v>=1e6 ? 'R$ '+(v/1e6).toLocaleString('pt-BR',{maximumFractionDigits:1})+' mi'
+function _mi(v){ v=+v||0; return v>=1e6 ? 'R$ '+(v/1e6).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' mi'
                         : v>=1e3 ? 'R$ '+(v/1e3).toLocaleString('pt-BR',{maximumFractionDigits:0})+' mil' : BRL(v); }
 function _ini(n){ var p=String(n||'').trim().split(/\s+/); return ((p[0]||'')[0]||'')+((p[p.length-1]||'')[0]||''); }
 
@@ -230,7 +231,7 @@ function cstRenderGeral(C){
 
   var kpis=[
     ['Patrimônio sob custódia', _mi(tot), carts.length+' carteiras ativas', 'gold'],
-    ['Receita mensal', BRL(rec), 'fee médio '+(tot>0?(rec*12/tot*100).toFixed(2):'0')+'% a.a.', 'gold'],
+    ['Receita mensal', BRL(rec), 'fee médio '+(tot>0?_nb(rec*12/tot*100):'0')+'% a.a.', 'gold'],
     ['Receita anual', _mi(rec*12), 'projetada sobre a custódia atual', ''],
     ['Resultado gerado', _mi(res), _pc(resPc)+' sobre o capital', ''],
     ['Captação líquida', _mi(liq), _mi(ap)+' aportado · '+_mi(rg)+' resgatado', ''],
@@ -245,15 +246,15 @@ function cstRenderGeral(C){
       '<div class="cst-mini">'+
         '<div>Patrimônio<b>'+_mi(d.pat)+'</b></div>'+
         '<div>Anualizado<b class="'+_cls(m.ano)+'">'+_pc(m.ano,1)+'</b></div>'+
-        '<div>Volatilidade<b>'+m.vol.toFixed(2)+'%</b></div>'+
-        '<div>Sharpe<b>'+m.sharpe.toFixed(2)+'</b></div>'+
+        '<div>Volatilidade<b>'+_nb(m.vol)+'%</b></div>'+
+        '<div>Sharpe<b>'+_nb(m.sharpe)+'</b></div>'+
       '</div></div>';
   }).join('');
 
   var faixasHTML=CST_FEE.map(function(f){
     var d=faixas[f.rot]; if(!d) return '';
     return '<tr style="cursor:default"><td>'+esc(f.rot)+'</td>'+
-      '<td class="num">'+f.taxa.toFixed(2)+'% a.a.</td>'+
+      '<td class="num">'+_nb(f.taxa)+'% a.a.</td>'+
       '<td class="num">'+d.n+'</td>'+
       '<td class="num">'+_mi(d.pat)+'</td>'+
       '<td class="num" style="color:#C5A059;font-weight:600">'+BRL(d.rec)+'</td></tr>';
@@ -284,7 +285,7 @@ function cstRenderGeral(C){
       '<div class="cst-scroll"><table class="cst-tb"><thead><tr>'+
         '<th>Faixa</th><th class="num">Taxa</th><th class="num">Clientes</th><th class="num">Patrimônio</th><th class="num">Receita / mês</th>'+
       '</tr></thead><tbody>'+faixasHTML+
-      '<tr style="cursor:default;font-weight:600"><td>Total</td><td class="num">'+(tot>0?(rec*12/tot*100).toFixed(2):'0')+'% a.a.</td>'+
+      '<tr style="cursor:default;font-weight:600"><td>Total</td><td class="num">'+(tot>0?_nb(rec*12/tot*100):'0')+'% a.a.</td>'+
       '<td class="num">'+carts.length+'</td><td class="num">'+_mi(tot)+'</td>'+
       '<td class="num" style="color:#C5A059">'+BRL(rec)+'</td></tr>'+
       '</tbody></table></div></div>'+
@@ -370,7 +371,7 @@ function cstRenderCliente(C){
     ['Resultado', BRL(p.lucro), _pc(rent)+' sobre o investido', ''],
     ['No período', _pc(m.acum), 'desde '+_dt(cart.inicio), ''],
     ['Últimos 30 dias', _pc(m.mes), 'variação da cota', ''],
-    ['Índice Sharpe', m.sharpe.toFixed(2), 'retorno por risco (CDI '+CST_CDI+'%)', '']
+    ['Índice Sharpe', _nb(m.sharpe), 'retorno por risco (CDI '+CST_CDI+'%)', '']
   ];
 
   var ativos=(CST_ATIVOS[cart.perfil]||[]).map(function(a){
@@ -415,7 +416,7 @@ function cstRenderCliente(C){
         '<p class="hint">Alocação-alvo da estratégia '+esc(cart.perfil)+'</p>'+ativos+'</div>'+
       '<div class="cst-card"><h3>Taxa de consultoria</h3><p class="hint">'+esc(f.faixa)+'</p>'+
         '<div class="cst-kpi" style="border:0;padding:0;background:none">'+
-          '<div class="v" style="color:#C5A059;font-size:30px">'+f.taxa.toFixed(2)+'%<span style="font-size:14px;color:var(--muted,#9DB5B1);font-weight:500"> ao ano</span></div>'+
+          '<div class="v" style="color:#C5A059;font-size:30px">'+_nb(f.taxa)+'%<span style="font-size:14px;color:var(--muted,#9DB5B1);font-weight:500"> ao ano</span></div>'+
         '</div>'+
         '<div class="cst-mini" style="grid-template-columns:1fr 1fr">'+
           '<div>Cobrança mensal<b>'+BRL2(f.mensal)+'</b></div>'+
@@ -475,7 +476,7 @@ function cstGraficos(){
       })},
     options:{plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:9,boxHeight:9,usePointStyle:true,pointStyle:'circle',padding:14,font:{size:11}}},
       tooltip:{callbacks:{title:function(t){return _dt(t[0].label);},
-        label:function(c){return c.dataset.label+': '+c.parsed.y.toFixed(2);}}}},
+        label:function(c){return c.dataset.label+': '+_nb(c.parsed.y);}}}},
       interaction:{mode:'index',intersect:false},
       scales:{y:{ticks:{maxTicksLimit:6},grid:{color:'rgba(255,255,255,.05)'}},
               x:_cstEixoData(base.map(function(x){return x.data;}))}}
