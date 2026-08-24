@@ -2104,6 +2104,8 @@ async function apiFetch(path,opts){
 function convDig(p){return (p||'').replace(/\D/g,'');}
 function convFmtPhone(p){p=convDig(p);if(p.length>=12)return '+'+p.slice(0,2)+' ('+p.slice(2,4)+') '+p.slice(4,9)+'-'+p.slice(9);if(p.length>=10)return '+'+p.slice(0,2)+' '+p.slice(2);return p;}
 function convTimeHM(ts){try{return new Date((ts||0)*1000).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}catch(e){return'';}}
+
+function convDataHora(ts){/*DATANALISTA_20260819*/try{var d=new Date((ts||0)*1000);var n=new Date();var hm=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});var k=function(x){return x.getFullYear()+'-'+x.getMonth()+'-'+x.getDate();};if(k(d)===k(n))return hm;var o=new Date(n.getTime()-86400000);if(k(d)===k(o))return 'Ontem '+hm;var dif=(n.getTime()-d.getTime())/86400000;if(dif>0&&dif<7)return d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','')+' '+hm;return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+hm;}catch(e){return'';}}
 function convDayKey(ts){const d=new Date((ts||0)*1000);return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();}
 function convDayLabel(ts){const d=new Date((ts||0)*1000),now=Date.now()/1000;if(convDayKey(ts)===convDayKey(now))return 'Hoje';if(convDayKey(ts)===convDayKey(now-86400))return 'Ontem';return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});}
 function convInitials(s){s=(s||'').trim();if(!s)return '#';const p=s.split(/\s+/);return (((p[0]||'')[0]||'')+((p.length>1?p[p.length-1][0]:'')||'')).toUpperCase();}
@@ -2178,7 +2180,7 @@ function convRenderList(){
   el.innerHTML=list.map(function(c){
     const nome=c.nome||convFmtPhone(c.phone);
     const prev=(c.ultdir==='in'?'':'✓ ')+(c.ultima||'');
-    return '<div class="wa-item '+(convState.phone===c.phone?'on':'')+'" onclick="convOpen(\''+c.phone+'\')"><div class="wa-av" style="background:'+convColor(c.phone)+'">'+esc(convInitials(nome))+'</div><div class="wa-it-main"><div class="wa-it-top"><span class="wa-it-nm">'+esc(nome)+'</span><span class="wa-it-tm">'+convTimeHM(c.ults)+'</span></div><div class="wa-it-top"><span class="wa-it-pv">'+esc(prev)+'</span>'+(convUnread(c)?'<span class="wa-dot"></span>':'')+'</div></div></div>';
+    return '<div class="wa-item '+(convState.phone===c.phone?'on':'')+'" onclick="convOpen(\''+c.phone+'\')"><div class="wa-av" style="background:'+convColor(c.phone)+'">'+esc(convInitials(nome))+'</div><div class="wa-it-main"><div class="wa-it-top"><span class="wa-it-nm">'+esc(nome)+'</span><span class="wa-it-tm">'+convDataHora(c.ults)+'</span></div><div class="wa-it-top"><span class="wa-it-pv">'+esc(prev)+'</span>'+(convUnread(c)?'<span class="wa-dot"></span>':'')+'</div></div></div>';
   }).join('');
 }
 async function convOpen(phone){
