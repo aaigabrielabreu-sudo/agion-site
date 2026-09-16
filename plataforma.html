@@ -2659,7 +2659,7 @@ function mktScanStale(){ let done=[]; try{done=JSON.parse(localStorage.getItem('
 }
 async function renderMarketing(C){
   setTop('Marketing','Automação de marketing e relacionamento','<button class="btn btn-gold btn-sm" onclick="tplBuilder()">+ Criar template</button>');
-  const tabs=[['ov','Visão geral'],['auto','Automações'],['score','Leads & Scoring'],['tpl','Templates'],['camp','Campanhas'],['intg','Integrações']];
+  const tabs=[['ov','Visão geral'],['auto','Automações'],['score','Leads & Scoring'],['tpl','Templates'],['camp','Campanhas'],['intg','Integrações'],['prop','Propostas']];
   C.innerHTML='<div id="mktNav" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">'+tabs.map(function(x){ return '<button data-k="'+x[0]+'" class="btn btn-ghost btn-sm" onclick="mktSub(\''+x[0]+'\')">'+x[1]+'</button>'; }).join('')+'</div><div id="mktBody"></div>';
   mktSub(window.__mktTab||'ov');
 }
@@ -2668,7 +2668,9 @@ function mktSub(k){ window.__mktTab=k; const B=document.getElementById('mktBody'
   if(k==='ov')return mktOv(B); if(k==='auto')return mktAutoTab(B); if(k==='score')return mktScoreTab(B); if(k==='tpl')return mktTplTab(B);
   if(k==='camp'){ B.innerHTML='<div class="panel"><h2>'+ICN.spark+' Campanhas</h2>'+marketingCampaignsHtml()+'</div>'; try{marketingChart();}catch(e){} return; }
   if(k==='intg')return mktIntgTab(B);
+  if(k==='prop')return mktPropTab(B);
 }
+function mktPropTab(B){ B.innerHTML='<div class="panel" style="padding:0;overflow:hidden"><div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line,#e7dec9)"><h2 style="margin:0">'+ICN.spark+' Gerador de propostas</h2><a class="btn btn-ghost btn-sm" href="propostas.html" target="_blank" rel="noopener">Abrir em nova aba ↗</a></div><iframe src="propostas.html" title="Gerador de propostas Agion" style="width:100%;height:calc(100vh - 220px);min-height:720px;border:0;display:block"></iframe></div>'; }
 function mktOv(B){ const L=(db.crm||[]); const pend=(db.inbox||[]).filter(function(l){return !l.importado;}).length; const tot=L.length+pend;
   const qual=L.filter(function(l){return !l.perdido&&l.stage>=1;}).length; const op=L.filter(function(l){return !l.perdido&&l.stage>=2;}).length; const won=L.filter(function(l){return l.stage>=4&&!l.perdido;}).length;
   const conv=tot?Math.round(won/tot*100):0;
