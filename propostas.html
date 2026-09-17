@@ -157,6 +157,7 @@ textarea{resize:vertical;min-height:44px}
       <button class="btn gold" id="btnGerar" onclick="gerar()">Gerar prévia</button>
       <button class="btn green" id="btnPng" onclick="baixarPNG()">Baixar PNG</button>
       <button class="btn green" id="btnPdf" onclick="baixarPDF()">Baixar PDF</button>
+      <button class="btn gold" id="btnSalvarCliente" onclick="emitProposta()" style="display:none">💾 Salvar no cliente</button>
       <span class="hint" id="status"></span>
     </div>
   </div>
@@ -756,6 +757,40 @@ async function baixarPDF(){if(!CANVASES.length){await gerar();}if(!CANVASES.leng
  const {jsPDF}=window.jspdf;let pdf=null;
  CANVASES.forEach((it,i)=>{const cv=it.cv,wmm=190,hmm=wmm*cv.height/cv.width;if(i===0)pdf=new jsPDF({unit:'mm',format:[wmm,hmm],orientation:hmm>=wmm?'portrait':'landscape'});else pdf.addPage([wmm,hmm]);pdf.addImage(cv.toDataURL('image/png'),'PNG',0,0,wmm,hmm);});
  pdf.save(fileBase()+'.pdf');setStatus('PDF baixado ✓');}
+
+/* ===== Ponte CRM (embutido na plataforma) ===== */
+window.__CRM=false;
+function _blobB64(blob){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(String(r.result).split(',')[1]);};r.onerror=rej;r.readAsDataURL(blob);});}
+async function emitProposta(){
+  try{
+    if(!CANVASES.length){await gerar();}
+    if(!CANVASES.length){setStatus('Nada para salvar — gere a prévia primeiro.');return;}
+    setStatus('Preparando arquivos…');
+    var jsP=window.jspdf&&window.jspdf.jsPDF;
+    if(!jsP){setStatus('PDF indisponível (biblioteca não carregou).');return;}
+    var pdf=null;
+    CANVASES.forEach(function(it,i){var cv=it.cv,wmm=190,hmm=wmm*cv.height/cv.width;if(i===0)pdf=new jsP({unit:'mm',format:[wmm,hmm],orientation:hmm>=wmm?'portrait':'landscape'});else pdf.addPage([wmm,hmm]);pdf.addImage(cv.toDataURL('image/png'),'PNG',0,0,wmm,hmm);});
+    var pdfB64=await _blobB64(pdf.output('blob'));
+    var pngB64=CANVASES[0].cv.toDataURL('image/png').split(',')[1];
+    var base=(typeof fileBase==='function'?fileBase():'proposta');
+    parent.postMessage({type:'agion-proposta',tipo:TIPO,base:base,
+      pdf:{name:base+'.pdf',b64:pdfB64,mime:'application/pdf'},
+      png:{name:base+'.png',b64:pngB64,mime:'image/png'}},'*');
+    setStatus('Enviado para o cliente ✓');
+  }catch(e){setStatus('Erro ao salvar: '+(e&&e.message||e));}
+}
+window.addEventListener('message',function(ev){
+  var d=ev&&ev.data||{}; if(d.type!=='agion-prefill')return;
+  __CRM=(d.mode==='crm');
+  try{
+    if(d.tab==='completo'||d.tab==='resumido')setTipo(d.tab);
+    if(Array.isArray(d.cartas)){var box=document.getElementById('c_cartas');if(box){box.innerHTML='';d.cartas.forEach(function(c){addCarta(c.tipo||'padrao',c);});}}
+    if(d.fields){Object.keys(d.fields).forEach(function(k){var el=document.getElementById(k);if(el&&d.fields[k]!=null)el.value=d.fields[k];});}
+    if(__CRM){var b=document.getElementById('btnSalvarCliente');if(b)b.style.display='';}
+    if(typeof liveUpdate==='function')liveUpdate();
+  }catch(e){}
+});
+try{parent.postMessage({type:'agion-ready'},'*');}catch(e){}
 </script>
 </body>
 </html>
