@@ -8,6 +8,28 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ===== Gate de acesso: exige login (mesmo Supabase da plataforma) =====
+   - Se estiver embutido na plataforma (iframe), o parent já autenticou → passa direto.
+   - Se acessado direto (/propostas) sem sessão → redireciona para o login. */
+(function(){
+  if(window.self!==window.top) return; // embutido na plataforma
+  var SUPA_URL='https://sfekirqoflozylghwlbe.supabase.co', SUPA_KEY='sb_publishable_Ds4PlQmsvnny5GdALHvVYQ_RHgtFXw2';
+  try{document.documentElement.style.visibility='hidden';}catch(e){}
+  function login(){ try{location.replace('/plataforma');}catch(e){location.href='/plataforma';} }
+  function show(){ try{document.documentElement.style.visibility='';}catch(e){} }
+  function check(){
+    try{
+      var sc=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPA_URL,SUPA_KEY):null;
+      if(!sc){ login(); return; }
+      sc.auth.getSession().then(function(r){ (r&&r.data&&r.data.session)?show():login(); }).catch(login);
+    }catch(e){ login(); }
+  }
+  if(window.supabase&&window.supabase.createClient){ check(); }
+  else { var n=0,iv=setInterval(function(){ if(window.supabase&&window.supabase.createClient){clearInterval(iv);check();} else if(++n>80){clearInterval(iv);login();} },50); }
+})();
+</script>
 <style>
 :root{color-scheme:light;
  --bg:#FBFAF6; --ink:#0B2A26; --ink2:#12463D; --gold:#C5A059; --goldd:#A6853F; --goldl:#E8CC8B;
