@@ -3669,25 +3669,38 @@ function masterReportPDF(){
 <div id="propostaModal" class="modal-bg hidden"> <div class="modal" style="max-width:1120px;width:96vw;max-height:92vh;display:flex;flex-direction:column;gap:8px">
   <div class="row" style="justify-content:space-between;align-items:center"><h3 id="propTitle" style="margin:0">Propostas</h3><button class="btn btn-ghost btn-sm" onclick="fecharProposta()">Fechar</button></div>
   <div id="propAnexos"></div>
-  <div class="row" style="gap:8px;align-items:center"><button class="btn btn-gold btn-sm" id="propNovaBtn" onclick="propNova()">＋ Nova proposta</button><span class="note" id="propHint"></span></div>
+  <div class="panel" style="margin:0">
+    <h2 style="font-size:1rem">🤖 Montar com IA</h2>
+    <p class="note" style="margin:-4px 0 8px">Suba o print do grupo com os dados do cliente e escreva o que quer. A IA lê a imagem e monta a proposta pré-preenchida.</p>
+    <div class="row" style="gap:10px;flex-wrap:wrap;align-items:flex-start">
+      <input type="file" id="propIaFile" accept="image/*" style="max-width:230px">
+      <textarea id="propIaTxt" rows="2" placeholder="Ex.: parcela reduzida, incluir lance embutido 30%, 2 cotas lado a lado, deck completo com reajuste e renda 1%." style="flex:1;min-width:240px;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:9px 12px;border-radius:10px;font:inherit"></textarea>
+      <button class="btn btn-gold btn-sm" id="propIaBtn" onclick="propIaGerar()">Gerar com IA</button>
+    </div>
+    <div class="note" id="propIaStatus" style="margin-top:6px"></div>
+  </div>
+  <div class="row" style="gap:8px;align-items:center"><button class="btn btn-ghost btn-sm" id="propNovaBtn" onclick="propNova()">＋ Montar manualmente</button><span class="note" id="propHint"></span></div>
   <div id="propGenWrap" style="flex:1;min-height:0;display:none"><iframe id="propGen" title="Gerador de propostas" style="width:100%;height:100%;min-height:520px;border:1px solid var(--line);border-radius:10px;display:block"></iframe></div>
  </div></div>
 <script>
 (function(){
- let ctx=null;
+ let ctx=null, pending=null;
  function toBR(n){n=+n||0;return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
  function b64toBlob(b64,mime){const bin=atob(b64),len=bin.length,arr=new Uint8Array(len);for(let i=0;i<len;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mime});}
+ function fileB64(f){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(String(r.result).split(',')[1]);};r.onerror=rej;r.readAsDataURL(f);});}
  function el(id){return document.getElementById(id);}
+ function openGen(hint){pending=pending||null;el('propGenWrap').style.display='block';el('propHint').textContent=hint||'';el('propGen').src='propostas.html';}
  window.abrirProposta=function(cid){
    const c=(db.clients||[]).find(x=>x.id===cid); if(!c){flash('Cliente não encontrado');return;}
    if(!c.ownerId){flash('Cliente sem responsável definido — distribua o cliente antes.');return;}
-   ctx={cid:cid,ownerId:c.ownerId,nome:c.nome};
+   ctx={cid:cid,ownerId:c.ownerId,nome:c.nome}; pending=null;
    el('propTitle').textContent='Propostas — '+c.nome;
    el('propGenWrap').style.display='none'; el('propGen').src='about:blank'; el('propHint').textContent='';
+   try{el('propIaTxt').value='';el('propIaFile').value='';el('propIaStatus').textContent='';}catch(e){}
    el('propostaModal').classList.remove('hidden');
    carregarAnexos();
  };
- window.fecharProposta=function(){el('propostaModal').classList.add('hidden');el('propGen').src='about:blank';ctx=null;};
+ window.fecharProposta=function(){el('propostaModal').classList.add('hidden');el('propGen').src='about:blank';ctx=null;pending=null;};
  async function carregarAnexos(){
    const box=el('propAnexos'); box.innerHTML='<p class="note">Carregando anexos…</p>';
    if(typeof supa==='undefined'||!supa){box.innerHTML='<p class="note">Sem conexão com o Supabase.</p>';return;}
@@ -3707,10 +3720,28 @@ function masterReportPDF(){
      box.innerHTML='<div class="panel" style="margin:0"><h2 style="font-size:1rem">📎 Anexos deste cliente</h2>'+rows.join('')+'</div>';
    }catch(e){box.innerHTML='<p class="note">Erro ao carregar anexos: '+esc(e.message||e)+'</p>';}
  }
- window.propNova=function(){
-   el('propGenWrap').style.display='block';
-   el('propHint').textContent='Ajuste os dados e clique em “Salvar no cliente”.';
-   el('propGen').src='propostas.html';
+ window.propNova=function(){ pending=buildPrefill(); openGen('Ajuste os dados e clique em “Salvar no cliente”.'); };
+ window.propIaGerar=async function(){
+   if(!ctx)return;
+   const st=el('propIaStatus'); const txt=(el('propIaTxt').value||'').trim();
+   const f=(el('propIaFile').files&&el('propIaFile').files[0])||null;
+   if(!f&&!txt){flash('Suba um print ou escreva a instrução.');return;}
+   if(typeof supa==='undefined'||!supa){flash('Sem conexão com o Supabase.');return;}
+   st.textContent='A IA está lendo o print e montando a proposta…'; el('propIaBtn').disabled=true;
+   try{
+     let image=null, mime=null;
+     if(f){ mime=f.type||'image/png'; image=await fileB64(f); }
+     let consultor=''; try{consultor=(user(ctx.ownerId).nome)||'';}catch(e){}
+     const res=await supa.functions.invoke('montar-proposta',{body:{image:image,mime:mime,instruction:txt,context:{consultor:consultor,cliente:ctx.nome}}});
+     if(res.error){ throw new Error((res.error&&res.error.message)||'Falha ao chamar a função'); }
+     const out=res.data||{};
+     if(!out.ok||!out.prefill){ throw new Error(out.error||'A IA não retornou uma proposta válida.'); }
+     const pf=out.prefill; pf.type='agion-prefill'; pf.mode='crm';
+     pending=pf;
+     openGen('Prévia montada pela IA — confira e clique em “Salvar no cliente”.');
+     st.textContent='✓ '+(pf.resumo_ia||'Proposta montada pela IA. Confira a prévia abaixo.');
+   }catch(e){ st.textContent='Erro: '+(e.message||e); }
+   el('propIaBtn').disabled=false;
  };
  function buildPrefill(){
    const c=(db.clients||[]).find(x=>x.id===ctx.cid); const m=(typeof mainPlan==='function')?mainPlan(c):null;
@@ -3736,7 +3767,7 @@ function masterReportPDF(){
  }
  window.addEventListener('message',function(ev){
    const d=ev&&ev.data||{}; if(!ctx)return;
-   if(d.type==='agion-ready'){ try{el('propGen').contentWindow.postMessage(buildPrefill(),'*');}catch(e){} }
+   if(d.type==='agion-ready'){ try{el('propGen').contentWindow.postMessage(pending||buildPrefill(),'*');}catch(e){} }
    else if(d.type==='agion-proposta'){ uploadProposta(d); }
  });
 })();

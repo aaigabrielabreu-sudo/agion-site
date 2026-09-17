@@ -786,6 +786,8 @@ window.addEventListener('message',function(ev){
     if(d.tab==='completo'||d.tab==='resumido')setTipo(d.tab);
     if(Array.isArray(d.cartas)){var box=document.getElementById('c_cartas');if(box){box.innerHTML='';d.cartas.forEach(function(c){addCarta(c.tipo||'padrao',c);});}}
     if(d.fields){Object.keys(d.fields).forEach(function(k){var el=document.getElementById(k);if(el&&d.fields[k]!=null)el.value=d.fields[k];});}
+    if(Array.isArray(d.pages)&&typeof PAGES!=='undefined'){PAGES.forEach(function(p){var cb=document.getElementById('pg_'+p.id);if(cb)cb.checked=(d.pages.indexOf(p.id)>=0)||p.id==='capa'||p.id==='cta';});}
+    if(Array.isArray(d.rows)&&d.rows.length&&typeof addRow==='function'){var rb=document.getElementById('r_rows');if(rb){rb.innerHTML='';d.rows.forEach(function(r){addRow(r[0],r[1]);});}}
     if(__CRM){var b=document.getElementById('btnSalvarCliente');if(b)b.style.display='';}
     if(typeof liveUpdate==='function')liveUpdate();
   }catch(e){}
