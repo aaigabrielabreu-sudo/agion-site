@@ -3666,23 +3666,52 @@ function masterReportPDF(){
 </script>
 <script src="/plat-consultoria.js?v=4"></script>
 
-<!-- ===== Fase 2: Propostas (anexos por cliente) ===== -->
-<div id="propostaModal" class="modal-bg hidden"> <div class="modal" style="max-width:1120px;width:96vw;max-height:92vh;display:flex;flex-direction:column;gap:8px">
-  <div class="row" style="justify-content:space-between;align-items:center"><h3 id="propTitle" style="margin:0">Propostas</h3><button class="btn btn-ghost btn-sm" onclick="fecharProposta()">Fechar</button></div>
-  <div id="propAnexos"></div>
-  <div class="panel" style="margin:0">
-    <h2 style="font-size:1rem">🤖 Montar com IA</h2>
-    <p class="note" style="margin:-4px 0 8px">Suba o print do grupo com os dados do cliente e escreva o que quer. A IA lê a imagem e monta a proposta pré-preenchida.</p>
-    <div class="row" style="gap:10px;flex-wrap:wrap;align-items:flex-start">
-      <input type="file" id="propIaFile" accept="image/*" style="max-width:230px">
-      <textarea id="propIaTxt" rows="2" placeholder="Ex.: parcela reduzida, incluir lance embutido 30%, 2 cotas lado a lado, deck completo com reajuste e renda 1%." style="flex:1;min-width:240px;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:9px 12px;border-radius:10px;font:inherit"></textarea>
-      <button class="btn btn-gold btn-sm" id="propIaBtn" onclick="propIaGerar()">Gerar com IA</button>
-    </div>
-    <div class="note" id="propIaStatus" style="margin-top:6px"></div>
+<!-- ===== Propostas (anexos por lead) — identidade Agion ===== -->
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<div id="propostaModal" class="modal-bg hidden">
+ <div style="background:#FBFAF6;color:#0B2A26;max-width:1180px;width:96vw;max-height:92vh;border-radius:20px;border:1px solid #E7DEC9;box-shadow:0 34px 90px rgba(0,0,0,.55);display:flex;flex-direction:column;overflow:hidden;font-family:'Poppins',system-ui,sans-serif">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 28px;background:linear-gradient(180deg,#FBF6EC,#FBFAF6);border-bottom:1px solid #E7DEC9">
+   <div style="display:flex;align-items:center;gap:14px">
+    <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#C5A059,#A6853F);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Lora',serif;font-size:1.3rem;box-shadow:0 6px 16px rgba(166,133,63,.35)">A</div>
+    <div><div style="font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:#A6853F;font-weight:700">Agion · Propostas</div>
+     <div id="propTitle" style="font-family:'Lora',Georgia,serif;font-size:1.5rem;color:#12463D;line-height:1.15;margin-top:2px">Propostas</div></div>
+   </div>
+   <button onclick="fecharProposta()" style="background:#fff;border:1px solid #E7DEC9;color:#6E8078;border-radius:11px;padding:9px 16px;cursor:pointer;font:inherit;font-size:.85rem">Fechar</button>
   </div>
-  <div class="row" style="gap:8px;align-items:center"><button class="btn btn-ghost btn-sm" id="propNovaBtn" onclick="propNova()">＋ Montar manualmente</button><span class="note" id="propHint"></span></div>
-  <div id="propGenWrap" style="flex:1;min-height:0;display:none"><iframe id="propGen" title="Gerador de propostas" style="width:100%;height:100%;min-height:520px;border:1px solid var(--line);border-radius:10px;display:block"></iframe></div>
- </div></div>
+  <div style="padding:22px 28px;overflow:auto;display:flex;flex-direction:column;gap:20px">
+   <div style="background:#FBF6EC;border:1px solid #E7DEC9;border-radius:18px;padding:22px 24px">
+    <div style="display:flex;align-items:center;gap:11px;margin-bottom:4px">
+     <div style="width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,#3E8E9C,#2F7280);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.05rem">✦</div>
+     <div style="font-family:'Lora',Georgia,serif;font-size:1.2rem;color:#12463D">Montar com IA</div>
+    </div>
+    <p style="margin:2px 0 16px;color:#6E8078;font-size:.9rem;line-height:1.55">Suba o print do grupo com os dados do cliente e escreva o que você quer. A IA lê a imagem e monta a proposta pré-preenchida.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:stretch">
+     <label style="flex:0 0 auto;display:flex;align-items:center;gap:9px;background:#fff;border:1.5px dashed #C5A059;border-radius:13px;padding:0 16px;min-height:78px;cursor:pointer;color:#A6853F;font-weight:600;font-size:.85rem;max-width:210px">
+      <span style="font-size:1.2rem">📎</span><span id="propIaFileLbl">Selecionar print do grupo</span>
+      <input type="file" id="propIaFile" accept="image/*" style="display:none" onchange="propIaFileName(this)">
+     </label>
+     <textarea id="propIaTxt" rows="3" placeholder="Ex.: parcela reduzida, incluir lance embutido 30%, 2 cotas lado a lado, deck completo com reajuste e renda 1%." style="flex:1;min-width:260px;background:#fff;border:1px solid #E7DEC9;color:#0B2A26;padding:13px 15px;border-radius:13px;font:inherit;font-size:.9rem;resize:vertical;line-height:1.5"></textarea>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;margin-top:16px;flex-wrap:wrap">
+     <button id="propIaBtn" onclick="propIaGerar()" style="background:linear-gradient(135deg,#C5A059,#A6853F);color:#fff;border:0;border-radius:13px;padding:13px 24px;font-weight:700;cursor:pointer;font:inherit;font-size:.9rem;box-shadow:0 8px 20px rgba(166,133,63,.35)">✦ Gerar com IA</button>
+     <button onclick="propNova()" style="background:transparent;border:1.5px solid #C5A059;color:#A6853F;border-radius:13px;padding:12px 20px;cursor:pointer;font:inherit;font-weight:600;font-size:.88rem">Montar manualmente</button>
+     <span id="propIaStatus" style="color:#6E8078;font-size:.85rem;flex:1;min-width:180px;line-height:1.45"></span>
+    </div>
+   </div>
+   <div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+     <span style="font-family:'Lora',Georgia,serif;font-size:1.15rem;color:#12463D">Histórico de propostas</span>
+     <span id="propAnexCount" style="background:#E7DEC9;color:#6E8078;border-radius:20px;padding:3px 11px;font-size:.68rem;font-weight:700;letter-spacing:.03em"></span>
+    </div>
+    <div id="propAnexos"></div>
+   </div>
+   <div id="propGenWrap" style="display:none">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font-family:'Lora',Georgia,serif;font-size:1.1rem;color:#12463D">Prévia</span><span id="propHint" style="color:#6E8078;font-size:.82rem"></span></div>
+    <iframe id="propGen" title="Gerador de propostas" style="width:100%;height:72vh;min-height:560px;border:1px solid #E7DEC9;border-radius:16px;display:block;background:#fff"></iframe>
+   </div>
+  </div>
+ </div>
+</div>
 <script>
 (function(){
  let ctx=null, pending=null;
@@ -3691,6 +3720,7 @@ function masterReportPDF(){
  function fileB64(f){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(String(r.result).split(',')[1]);};r.onerror=rej;r.readAsDataURL(f);});}
  function el(id){return document.getElementById(id);}
  function openGen(hint){pending=pending||null;el('propGenWrap').style.display='block';el('propHint').textContent=hint||'';el('propGen').src='propostas.html';}
+ window.propIaFileName=function(inp){var l=el('propIaFileLbl');if(!l)return;var f=inp&&inp.files&&inp.files[0];l.textContent=f?(f.name.length>26?f.name.slice(0,24)+'…':f.name):'Selecionar print do grupo';};
  window.abrirProposta=function(id,kind){
    kind=kind||'lead';
    const ent = kind==='cliente' ? (db.clients||[]).find(x=>x.id===id) : (db.crm||[]).find(x=>x.id===id);
@@ -3699,29 +3729,39 @@ function masterReportPDF(){
    ctx={cid:id,ownerId:ent.ownerId,nome:ent.nome,kind:kind}; pending=null;
    el('propTitle').textContent='Propostas — '+ent.nome;
    el('propGenWrap').style.display='none'; el('propGen').src='about:blank'; el('propHint').textContent='';
-   try{el('propIaTxt').value='';el('propIaFile').value='';el('propIaStatus').textContent='';}catch(e){}
+   try{el('propIaTxt').value='';el('propIaFile').value='';el('propIaStatus').textContent='';var _l=el('propIaFileLbl');if(_l)_l.textContent='Selecionar print do grupo';}catch(e){}
    el('propostaModal').classList.remove('hidden');
    carregarAnexos();
  };
  window.fecharProposta=function(){el('propostaModal').classList.add('hidden');el('propGen').src='about:blank';ctx=null;pending=null;};
  async function carregarAnexos(){
-   const box=el('propAnexos'); box.innerHTML='<p class="note">Carregando anexos…</p>';
-   if(typeof supa==='undefined'||!supa){box.innerHTML='<p class="note">Sem conexão com o Supabase.</p>';return;}
+   const box=el('propAnexos'), cnt=el('propAnexCount');
+   box.innerHTML='<div style="color:#6E8078;font-size:.85rem;padding:8px 2px">Carregando…</div>'; if(cnt)cnt.textContent='';
+   if(typeof supa==='undefined'||!supa){box.innerHTML='<div style="color:#6E8078;font-size:.85rem">Sem conexão com o Supabase.</div>';return;}
    try{
      const dir=ctx.ownerId+'/'+ctx.cid;
      const {data,error}=await supa.storage.from('propostas').list(dir,{limit:200,sortBy:{column:'name',order:'desc'}});
-     if(error){box.innerHTML='<p class="note">Não foi possível listar os anexos ('+esc(error.message||'')+').</p>';return;}
+     if(error){box.innerHTML='<div style="color:#B4532F;font-size:.85rem">Não foi possível listar ('+esc(error.message||'')+').</div>';return;}
      const pdfs=(data||[]).filter(f=>/\.pdf$/i.test(f.name));
-     if(!pdfs.length){box.innerHTML='<div class="panel" style="margin:0"><h2 style="font-size:1rem">📎 Anexos deste cliente</h2><p class="note" style="margin:0">Nenhuma proposta salva ainda.</p></div>';return;}
+     if(cnt)cnt.textContent=pdfs.length?(pdfs.length+(pdfs.length>1?' propostas':' proposta')):'nenhuma ainda';
+     if(!pdfs.length){box.innerHTML='<div style="background:#fff;border:1.5px dashed #E7DEC9;border-radius:16px;padding:26px;text-align:center;color:#6E8078;font-size:.9rem">Nenhuma proposta salva ainda.<br><span style="font-size:.82rem">Use o painel acima para montar a primeira.</span></div>';return;}
      const rows=await Promise.all(pdfs.map(async f=>{
        const parts=f.name.replace(/\.pdf$/i,'').split('-'); const ts=parts[0], tipo=parts[1]||'proposta';
-       const dt=(/^\d{10,}$/.test(ts))?new Date(+ts).toLocaleString('pt-BR'):'';
-       let url='#'; try{const {data:su}=await supa.storage.from('propostas').createSignedUrl(dir+'/'+f.name,3600); if(su&&su.signedUrl)url=su.signedUrl;}catch(e){}
-       const lbl=tipo==='completo'?'Proposta completa':tipo==='resumido'?'Proposta resumida':tipo;
-       return '<div class="netrow" style="padding:10px 2px"><span><b style="color:var(--head)">'+esc(lbl)+'</b> <span class="note" style="margin-left:6px">'+esc(dt)+'</span></span><a class="btn btn-ghost btn-sm" href="'+url+'" target="_blank" rel="noopener">Baixar PDF</a></div>';
+       const dt=(/^\d{10,}$/.test(ts))?new Date(+ts).toLocaleString('pt-BR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+       let pdfUrl='#',pngUrl='';
+       try{const {data:su}=await supa.storage.from('propostas').createSignedUrl(dir+'/'+f.name,3600); if(su&&su.signedUrl)pdfUrl=su.signedUrl;}catch(e){}
+       try{const {data:sp}=await supa.storage.from('propostas').createSignedUrl(dir+'/'+f.name.replace(/\.pdf$/i,'.png'),3600); if(sp&&sp.signedUrl)pngUrl=sp.signedUrl;}catch(e){}
+       const lbl=tipo==='completo'?'Proposta completa':tipo==='resumido'?'Proposta resumida':'Proposta';
+       const cor=tipo==='completo'?'#3E8E9C':'#C5A059';
+       const thumb=pngUrl?('<img src="'+pngUrl+'" style="width:54px;height:72px;object-fit:cover;border-radius:9px;border:1px solid #E7DEC9;background:#fff;flex:none">'):('<div style="width:54px;height:72px;border-radius:9px;border:1px solid #E7DEC9;background:#FBF6EC;flex:none"></div>');
+       return '<div style="display:flex;align-items:center;gap:15px;background:#fff;border:1px solid #E7DEC9;border-radius:15px;padding:13px 15px;margin-bottom:11px;box-shadow:0 2px 10px rgba(11,42,38,.04)">'+thumb+
+        '<div style="flex:1;min-width:0"><div style="font-family:\'Lora\',Georgia,serif;font-size:1.05rem;color:#12463D">'+esc(lbl)+'</div>'+
+        '<div style="margin-top:5px"><span style="font-size:.64rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:'+cor+';background:'+cor+'1A;border:1px solid '+cor+'44;border-radius:20px;padding:3px 10px">'+esc(tipo)+'</span>'+
+        '<span style="color:#6E8078;font-size:.8rem;margin-left:10px">'+esc(dt)+'</span></div></div>'+
+        '<a href="'+pdfUrl+'" target="_blank" rel="noopener" style="background:linear-gradient(135deg,#C5A059,#A6853F);color:#fff;text-decoration:none;border-radius:11px;padding:10px 18px;font-weight:700;font-size:.82rem;white-space:nowrap;box-shadow:0 6px 16px rgba(166,133,63,.3)">Baixar PDF</a></div>';
      }));
-     box.innerHTML='<div class="panel" style="margin:0"><h2 style="font-size:1rem">📎 Anexos deste cliente</h2>'+rows.join('')+'</div>';
-   }catch(e){box.innerHTML='<p class="note">Erro ao carregar anexos: '+esc(e.message||e)+'</p>';}
+     box.innerHTML=rows.join('');
+   }catch(e){box.innerHTML='<div style="color:#B4532F;font-size:.85rem">Erro ao carregar: '+esc(e.message||e)+'</div>';}
  }
  window.propNova=function(){ pending=buildPrefill(); openGen('Ajuste os dados e clique em “Salvar no cliente”.'); };
  window.propIaGerar=async function(){
