@@ -3636,8 +3636,9 @@ function masterReportPDF(){
 (function(){
   var _lt=null,_sub=false;
   function _busy(){var ae=document.activeElement;
-    if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))return true;
+    if(ae&&(/^(INPUT|TEXTAREA|SELECT|IFRAME)$/.test(ae.tagName)||ae.isContentEditable))return true;
     if(document.querySelector('.modal-bg:not(.hidden)'))return true;
+    if(document.querySelector('iframe[src*="propostas"]'))return true;
     if(document.querySelector('.dragging'))return true;return false;}
   function liveRefresh(){clearTimeout(_lt);_lt=setTimeout(async function(){
     try{if(typeof session==='undefined'||!session)return;}catch(e){return;}
@@ -3661,7 +3662,7 @@ function masterReportPDF(){
       .subscribe();_sub=true;return true;}catch(e){return false;}}
   var _iv=setInterval(function(){if(trySub())clearInterval(_iv);},1500);
   document.addEventListener('visibilitychange',function(){if(!document.hidden)liveRefresh();});
-  setInterval(function(){liveRefresh();},25000);
+  setInterval(function(){liveRefresh();},60000);
 })();
 </script>
 <script src="/plat-consultoria.js?v=4"></script>
