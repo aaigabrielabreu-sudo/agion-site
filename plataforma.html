@@ -3634,7 +3634,13 @@ function masterReportPDF(){
 }
 /* === AUTO-LIVE Agion: mantem CRM/clientes/tarefas atualizados sem F5 (aditivo) === */
 (function(){
-  var _lt=null,_sub=false;
+  var _lt=null,_sub=false,_lastSig=null;
+  function _sig(){try{
+    var L=(db.crm||[]).map(function(l){return l.id+':'+l.stage+':'+(l.perdido?1:0)+':'+(l.ownerId||'')+':'+((l.atividades||[]).length)+':'+(l.valor||0)+':'+(l.nome||'');}).join('|');
+    var C=(db.clients||[]).map(function(c){return c.id+':'+(c.ownerId||'')+':'+(c.nome||'')+':'+((c.plans||[]).length);}).join('|');
+    var T=(db.tasks||[]).map(function(t){return t.id+':'+(t.feito?1:0);}).join('|');
+    return L+'#'+C+'#'+T;
+  }catch(e){return null;}}
   function _busy(){var ae=document.activeElement;
     if(ae&&(/^(INPUT|TEXTAREA|SELECT|IFRAME)$/.test(ae.tagName)||ae.isContentEditable))return true;
     if(document.querySelector('.modal-bg:not(.hidden)'))return true;
@@ -3643,9 +3649,13 @@ function masterReportPDF(){
   function liveRefresh(){clearTimeout(_lt);_lt=setTimeout(async function(){
     try{if(typeof session==='undefined'||!session)return;}catch(e){return;}
     if(document.hidden)return; if(_busy()){_lt=setTimeout(liveRefresh,3000);return;}
-    var snap=[].map.call(document.querySelectorAll('.crmFiltros input,.crmFiltros select'),function(el){return el.value;});
     try{if(typeof loadCloud==='function')await loadCloud();}catch(e){}
     try{if(typeof updateBell==='function')updateBell();}catch(e){}
+    var sig=_sig();
+    if(sig!==null&&sig===_lastSig)return;            // nada mudou → não re-renderiza (sem piscar)
+    _lastSig=sig;
+    if(_busy()){_lt=setTimeout(liveRefresh,3000);return;}  // usuário começou a interagir durante o load
+    var snap=[].map.call(document.querySelectorAll('.crmFiltros input,.crmFiltros select'),function(el){return el.value;});
     try{if(typeof render==='function')render();}catch(e){}
     var els=[].slice.call(document.querySelectorAll('.crmFiltros input,.crmFiltros select'));
     if(snap.length&&els.length===snap.length){els.forEach(function(el,i){if(el.value!==snap[i]){el.value=snap[i];el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}});}
