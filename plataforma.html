@@ -2163,7 +2163,7 @@ async function renderConversas(C){
   setTop('Conversas','WhatsApp · atendimento e boletos');
   if(convState.poll){clearInterval(convState.poll);convState.poll=null;}
   C.innerHTML='<div class="panel waPanel" style="padding:0;overflow:hidden"><div class="wa" id="waRoot"><div class="wa-list"><div class="wa-lhd"><input class="wa-srch" id="waSrch" placeholder="Buscar conversa…" oninput="convFilter(this.value)"><button class="wa-cico" title="Nova conversa" onclick="convNewChat()">✚</button><button class="wa-cico" title="Atualizar" onclick="renderConversas(document.getElementById(\'content\'))">⟳</button></div><div class="wa-items" id="waItems"><p class="note" style="padding:14px">Carregando…</p></div></div><div class="wa-main" id="waMain"><div class="wa-emp"><div style="font-size:42px">💬</div><b>Conversas do WhatsApp</b><p class="note" style="max-width:290px">Selecione um atendimento à esquerda ou toque em ✚ para iniciar uma nova conversa. Responda, envie templates e boletos por aqui.</p></div></div></div></div>';
-  await convLoadList();
+  convState._lsig=null; await convLoadList();
   convState.poll=setInterval(function(){ if(!document.getElementById('waRoot')){clearInterval(convState.poll);convState.poll=null;return;} convLoadList(true); if(convState.phone) convRefreshChat(); },15000);
 }
 async function convLoadList(silent){
@@ -2176,6 +2176,8 @@ function convRenderList(){
   const el=document.getElementById('waItems'); if(!el)return;
   let list=convState.list;
   if(convState.filter){ list=list.filter(function(c){return ((c.nome||'')+' '+c.phone).toLowerCase().indexOf(convState.filter)>=0;}); }
+  var _lsig=convState.filter+'|'+(convState.phone||'')+'|'+list.map(function(c){return c.phone+':'+c.ults+':'+(c.ultima||'')+':'+(convUnread(c)?1:0);}).join(',');
+  if(_lsig===convState._lsig)return; convState._lsig=_lsig;
   if(!list.length){ el.innerHTML='<p class="note" style="padding:14px">'+(convState.filter?'Nada encontrado.':'Nenhuma conversa ainda. Toque em ✚ para iniciar uma.')+'</p>'; return; }
   el.innerHTML=list.map(function(c){
     const nome=c.nome||convFmtPhone(c.phone);
