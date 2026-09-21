@@ -469,7 +469,7 @@ function build(s,pg,DEN,D,cartas,cw,first){
    ctr(x,nw+' formas',y+50,fLora(66,'700'),C.ink,W);y+=86;ctr(x,'de conquistar',y+50,fLora(66,'700'),C.ink,W);y+=86;ctr(x,'o seu crédito',y+40,fLora(50,'600'),C.goldd,W);y+=110;
    for(const ln of wrapText(x,nw+' caminhos com o mesmo objetivo. Entenda cada um, com calma, e escolha o que faz mais sentido para você.',fPop(25,'400'),880)){ctr(x,ln,y+28,fPop(25,'400'),C.mut,W);y+=40;}
   }
-  y+=54;x.font=fPop(24,'500');const cc='Consultora: '+D.cons,cwd=tw(x,cc)+60,cx0=(W-cwd)/2;rr(x,cx0,y,cx0+cwd,y+72,36);x.fillStyle=C.cream;x.fill();x.strokeStyle=C.gold;x.lineWidth=1;x.stroke();x.fillStyle=C.ink2;x.fillText(cc,cx0+30,y+47);y+=110;
+  y+=54;x.font=fPop(24,'500');const cc='Consultor(a): '+D.cons,cwd=tw(x,cc)+60,cx0=(W-cwd)/2;rr(x,cx0,y,cx0+cwd,y+72,36);x.fillStyle=C.cream;x.fill();x.strokeStyle=C.gold;x.lineWidth=1;x.stroke();x.fillStyle=C.ink2;x.fillText(cc,cx0+30,y+47);y+=110;
   ctr(x,'Enviada em '+D.data+' · Validade: '+D.val,y+18,fPop(16,'400'),C.mut,W);y+=30;return crop(c,y+120);
  }
  headerTop(x);
