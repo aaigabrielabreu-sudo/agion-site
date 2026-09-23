@@ -389,7 +389,10 @@ function renderResumido(){
  const rowh=92,top=y,pad=34;
  rows.forEach((r,i)=>{x.fillStyle=(i%2===0?C.white:C.cream2);x.fillRect(MX,y,W-2*MX,rowh);
   left(x,r[0],MX+pad,y+rowh/2+10,fPop(30,'500'),C.ink2);
-  x.font=fPop(33,'700');const vw=tw(x,r[1]);x.fillStyle=C.goldd;x.fillText(r[1],W-MX-pad-vw,y+rowh/2+11);y+=rowh;});
+  // valor: encolhe a fonte ate caber, pra nao invadir o rotulo (ex.: soma de cartas "138x + 56x + 18x")
+  x.font=fPop(30,'500');const lbw=tw(x,r[0]);const availV=(W-2*MX-2*pad)-lbw-30;
+  let vs=33;x.font=fPop(vs,'700');while(vs>16&&tw(x,r[1])>availV){vs--;x.font=fPop(vs,'700');}
+  const vw=tw(x,r[1]);x.fillStyle=C.goldd;x.fillText(r[1],W-MX-pad-vw,y+rowh/2+11+Math.round((33-vs)/3));y+=rowh;});
  x.strokeStyle=C.line;x.lineWidth=3;rr(x,MX,top,W-MX,y,22);x.stroke();y+=44;
  for(const ln of wrapText(x,document.getElementById('r_estr1').value,fPop(25,'400'),W-2*MX-30)){ctr(x,ln,y,fPop(25,'400'),C.mut,W);y+=40;}
  for(const ln of wrapText(x,document.getElementById('r_estr2').value,fPop(27,'700'),W-2*MX-30)){ctr(x,ln,y,fPop(27,'700'),C.ink,W);y+=40;}
