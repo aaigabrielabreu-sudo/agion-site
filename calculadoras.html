@@ -2,25 +2,19 @@
 <script>
 /* Agion — guard de sessão: só abre para quem está logado na plataforma */
 (function(){try{document.documentElement.style.visibility='hidden';}catch(e){}})();
-(async function(){
-  var SUPA='https://sfekirqoflozylghwlbe.supabase.co';
-  var ANON='sb_publishable_Ds4PlQmsvnny5GdALHvVYQ_RHgtFXw2';
+(function(){
   function show(){try{document.documentElement.style.visibility='';}catch(e){}}
-  function deny(){location.replace('/plataforma');}
+  function deny(){try{location.replace('/plataforma');}catch(e){location.href='/plataforma';}}
   try{
-    var at=null;
+    var ok=false;
     for(var i=0;i<localStorage.length;i++){
       var k=localStorage.key(i);
-      if(k && k.indexOf('auth-token')>-1){
-        try{ var v=JSON.parse(localStorage.getItem(k));
-          at = v && (v.access_token || (v.currentSession&&v.currentSession.access_token) || (Array.isArray(v)&&v[0]));
-        }catch(_){}
-        if(at) break;
+      if(k && k.indexOf('sb-')===0 && k.indexOf('auth-token')>-1){
+        var v=null; try{v=JSON.parse(localStorage.getItem(k));}catch(_){}
+        if(v && (v.refresh_token || v.access_token || (v.currentSession&&(v.currentSession.refresh_token||v.currentSession.access_token)))){ ok=true; break; }
       }
     }
-    if(!at){ deny(); return; }
-    var r=await fetch(SUPA+'/auth/v1/user',{headers:{apikey:ANON,Authorization:'Bearer '+at}});
-    if(r && r.ok){ show(); } else { deny(); }
+    ok ? show() : deny();
   }catch(e){ deny(); }
 })();
 </script>
