@@ -121,7 +121,15 @@ h1 .g{color:var(--goldd)}
  color:var(--petd);padding:9px 16px;border-radius:999px;font-size:13px;font-weight:700;white-space:nowrap}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:44px;line-height:1.7}
 .foot b{color:var(--goldd)}
-@media print{body{padding:0}.pbtn{display:none}.box{box-shadow:none;break-inside:avoid}.hero{box-shadow:none}.scn{break-inside:avoid}}
+@media print{
+ @page{margin:11mm}
+ html,body{background:#fff!important;padding:0!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ .pbtn{display:none!important}
+ .box,.hero,.scn,.panel,.card{box-shadow:none!important}
+ .box,.scn,.panel,.hero,.grid,.res{break-inside:avoid;page-break-inside:avoid}
+ .scnhd,.sec{break-after:avoid}
+}
 </style>
 
 <div class="wrap">

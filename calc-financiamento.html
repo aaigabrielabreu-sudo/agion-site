@@ -101,7 +101,18 @@ input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 
 .big-cta .s{font-size:13.5px;color:var(--mut);max-width:560px;margin:2px auto 0}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:20px;line-height:1.6}
 @media(max-width:680px){.grid3{grid-template-columns:1fr}.cmp{grid-template-columns:1fr}.vstats{grid-template-columns:1fr}}
-@media print{.btn{display:none}body{background:#fff}}
+@media print{
+ @page{margin:11mm}
+ html,body{background:#fff !important}
+ *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+ .btn{display:none !important}
+ .wrap{max-width:100% !important;padding:0 !important}
+ .hero{padding:4px 0 2px}
+ .card,.verdict,.big-cta{box-shadow:none !important}
+ .card,.verdict,.big-cta,.cmp,.pane,.canvas-box,.vstat,.win-note{break-inside:avoid;page-break-inside:avoid}
+ .verdict{margin:10px 0}
+ .canvas-box{height:250px}
+}
 </style>
 
 <div class="wrap">
@@ -161,10 +172,10 @@ input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 
   </div>
   <div class="pane">
    <h4>Financiamento <span class="tag" id="f_sys_tag">PRICE</span></h4>
-   <div class="cet">Custo efetivo (CET) <b id="f_cet">—</b> ao ano</div>
+   <div class="cet">CET <b id="f_cet">—</b> a.a. <small style="opacity:.8">· mesma taxa em Price e SAC</small></div>
    <div class="line"><span class="k">Entrada</span><span class="v" id="o_f_ent">—</span></div>
    <div class="line"><span class="k" id="o_f_parc_k">Parcela fixa</span><span class="v" id="o_f_parc">—</span></div>
-   <div class="line"><span class="k">Juros pagos</span><span class="v" id="o_f_extra">—</span></div>
+   <div class="line"><span class="k">Juros totais pagos</span><span class="v" id="o_f_extra" style="color:var(--red)">—</span></div>
    <div class="line"><span class="k">Total desembolsado</span><span class="v tot" id="o_f_tot">—</span></div>
   </div>
  </div>
