@@ -27,7 +27,7 @@
 :root{
  --ink:#0a2721;--ink2:#0f3a31;--paper:#fbf8f1;--paper2:#f4eee1;--card:#ffffff;
  --gold:#c8a860;--goldd:#a3833f;--goldl:#ecd9a6;--line:#e9e0cc;--mut:#7c8a82;
- --pet:#3f8f9d;--petd:#2c6a76;--red:#b45647;--redd:#8f4436;--green:#3f8f6a;
+ --pet:#3f8f9d;--petd:#2c6a76;--red:#b45647;--green:#3f8f6a;
  --shadow:0 10px 40px -18px rgba(10,39,33,.35);
 }
 *{box-sizing:border-box}
@@ -35,44 +35,43 @@ body{margin:0;color:var(--ink);font-family:'Inter',system-ui,sans-serif;
  background:radial-gradient(120% 80% at 50% -10%, #fffdf8 0%, var(--paper) 60%);padding:0 0 70px}
 .wrap{max-width:900px;margin:0 auto;padding:0 18px}
 .serif{font-family:'Fraunces',Georgia,serif}
-/* topbar */
-.top{display:flex;align-items:center;justify-content:space-between;padding:20px 0 8px}
-.brand{display:flex;align-items:center;gap:11px}
-.logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(140deg,#12463d,#0a2721);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
-.logo span{font-family:'Fraunces',serif;font-weight:700;color:var(--goldl);font-size:20px;letter-spacing:.02em}
-.brand .bn{font-family:'Fraunces',serif;font-weight:600;font-size:17px;line-height:1}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 0 6px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:52px;height:52px;border-radius:14px;background:linear-gradient(140deg,#12463d,#0a2721);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);overflow:hidden}
+.logo img{width:78%;height:78%;object-fit:contain;display:block}
+.brand .bn{font-family:'Fraunces',serif;font-weight:600;font-size:18px;line-height:1}
 .brand .bs{font-size:9.5px;letter-spacing:.19em;color:var(--goldd);margin-top:4px;font-weight:600}
 .btn{border:1px solid var(--line);background:#fff;color:var(--ink2);border-radius:999px;padding:10px 17px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
 .btn:hover{border-color:var(--gold);color:var(--goldd)}
-/* hero */
-.hero{text-align:center;padding:26px 0 8px}
+.hero{text-align:center;padding:16px 0 2px}
 .kicker{color:var(--goldd);font-size:12px;letter-spacing:.22em;font-weight:700}
-.hero h1{font-weight:600;font-size:clamp(30px,6vw,46px);line-height:1.06;margin:12px 0 6px;letter-spacing:-.01em}
+.hero h1{font-weight:600;font-size:clamp(27px,5.4vw,40px);line-height:1.08;margin:10px 0 4px;letter-spacing:-.01em}
 .hero h1 em{font-style:normal;color:var(--goldd)}
-.hero p{color:var(--mut);font-size:15px;max-width:560px;margin:8px auto 0}
-/* verdict */
-.verdict{background:linear-gradient(155deg,#0f3a31,#0a2721);color:#fff;border-radius:22px;padding:26px 28px;margin:24px 0;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero p{color:var(--mut);font-size:14.5px;max-width:560px;margin:6px auto 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 24px;margin:18px 0;box-shadow:0 6px 28px -22px rgba(10,39,33,.4)}
+.card>h3{font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--goldd);margin:0 0 4px;font-weight:700}
+.card>h3+.hh{font-size:12.5px;color:var(--mut);margin:0 0 16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 26px}
+.sec{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--pet);font-weight:700;margin:12px 0 2px;grid-column:1/-1;display:flex;align-items:center;gap:10px}
+.sec .seg{margin-left:auto}
+.f{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--paper2)}
+.f label{font-size:13.5px;color:var(--ink2);flex:1}
+.f label small{display:block;color:var(--mut);font-size:11px;margin-top:1px}
+input{width:120px;padding:9px 11px;border:1px solid var(--line);border-radius:11px;font-size:15px;font-family:inherit;text-align:right;color:var(--ink);background:var(--paper);transition:.15s}
+input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 0 3px rgba(63,143,157,.12)}
+.seg{display:inline-flex;background:var(--paper2);border-radius:999px;padding:3px;gap:2px}
+.seg button{border:none;background:transparent;color:var(--mut);font-family:inherit;font-size:12px;font-weight:600;padding:6px 14px;border-radius:999px;cursor:pointer;transition:.15s}
+.seg button.on{background:var(--ink);color:#fff}
+.verdict{background:linear-gradient(155deg,#0f3a31,#0a2721);color:#fff;border-radius:22px;padding:26px 28px;margin:18px 0;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .verdict:before{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(closest-side,rgba(200,168,96,.22),transparent)}
 .verdict .vk{color:var(--goldl);font-size:12px;letter-spacing:.14em;font-weight:600;text-transform:uppercase}
-.verdict .vbig{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,7vw,50px);line-height:1.05;margin:6px 0 4px}
+.verdict .vbig{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(28px,6.2vw,46px);line-height:1.06;margin:6px 0 4px}
 .verdict .vsub{color:#bcd3cc;font-size:14.5px;max-width:640px}
 .vstats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
 .vstat{background:rgba(255,255,255,.06);border:1px solid rgba(236,217,166,.16);border-radius:14px;padding:14px 16px}
 .vstat .k{font-size:11px;letter-spacing:.06em;color:var(--goldl);text-transform:uppercase;font-weight:600}
-.vstat .v{font-family:'Fraunces',serif;font-weight:600;font-size:24px;margin-top:5px}
+.vstat .v{font-family:'Fraunces',serif;font-weight:600;font-size:23px;margin-top:5px}
 .vstat .s{font-size:11.5px;color:#9fb8b0;margin-top:2px}
-/* cards */
-.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 24px;margin-bottom:18px;box-shadow:0 6px 28px -22px rgba(10,39,33,.4)}
-.card>h3{font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--goldd);margin:0 0 16px;font-weight:700}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 26px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 26px}
-.sec{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--pet);font-weight:700;margin:6px 0 4px;grid-column:1/-1}
-.f{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--paper2)}
-.f label{font-size:13.5px;color:var(--ink2);flex:1}
-.f label small{display:block;color:var(--mut);font-size:11px;margin-top:1px}
-input{width:118px;padding:9px 11px;border:1px solid var(--line);border-radius:11px;font-size:15px;font-family:inherit;text-align:right;color:var(--ink);background:var(--paper);transition:.15s}
-input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 0 3px rgba(63,143,157,.12)}
-/* compare */
 .cmp{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .pane{border-radius:18px;padding:18px 20px;border:1px solid var(--line);background:var(--card)}
 .pane.win{background:linear-gradient(160deg,#103b32,#0a2721);border-color:#0a2721;color:#fff;box-shadow:var(--shadow)}
@@ -87,28 +86,27 @@ input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 
 .line .v{font-family:'Fraunces',serif;font-weight:600;font-size:17px}
 .line .v.tot{font-size:22px}
 .pane.win .line .v{color:#fff}
-/* chart */
 .chead{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px;flex-wrap:wrap;gap:6px}
 .chead h3{margin:0}
 .chead .hint{font-size:12px;color:var(--mut)}
 .canvas-box{position:relative;height:300px;margin-top:8px}
-.pills{display:flex;gap:8px;margin:2px 0 10px;flex-wrap:wrap}
+.pills{display:flex;gap:14px;margin:2px 0 10px;flex-wrap:wrap}
 .pill{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px}
 .pill i{width:16px;height:3px;border-radius:2px;display:inline-block}
 .win-note{background:linear-gradient(160deg,var(--paper2),#fff);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:14px;padding:16px 18px;font-size:14px;color:var(--ink2);line-height:1.6;margin-top:6px}
 .win-note b{color:var(--ink)}
-.big-cta{text-align:center;padding:22px;border-radius:20px;background:linear-gradient(160deg,#faf4e6,#fff);border:1px solid var(--line);margin-bottom:18px}
+.big-cta{text-align:center;padding:22px;border-radius:20px;background:linear-gradient(160deg,#faf4e6,#fff);border:1px solid var(--line);margin:18px 0}
 .big-cta .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--goldd);font-weight:700}
-.big-cta .v{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,7vw,44px);color:var(--petd);margin:6px 0 2px}
+.big-cta .v{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(26px,6vw,40px);color:var(--petd);margin:6px 0 2px}
 .big-cta .s{font-size:13.5px;color:var(--mut);max-width:560px;margin:2px auto 0}
 .foot{text-align:center;color:var(--mut);font-size:12px;margin-top:20px;line-height:1.6}
-@media(max-width:680px){.grid3,.grid2{grid-template-columns:1fr}.cmp{grid-template-columns:1fr}.vstats{grid-template-columns:1fr}}
+@media(max-width:680px){.grid3{grid-template-columns:1fr}.cmp{grid-template-columns:1fr}.vstats{grid-template-columns:1fr}}
 @media print{.btn{display:none}body{background:#fff}}
 </style>
 
 <div class="wrap">
  <div class="top">
-  <div class="brand"><div class="logo"><span>AG</span></div>
+  <div class="brand"><div class="logo"><img src="/agion-logo.png" alt="Agion"></div>
    <div><div class="bn">Agion Consórcios</div><div class="bs">PLANEJAMENTO E CONSULTORIA</div></div></div>
   <button class="btn" onclick="window.print()">⎙ Imprimir / PDF</button>
  </div>
@@ -116,24 +114,14 @@ input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 
  <div class="hero">
   <div class="kicker">FINANCIAMENTO × CONSÓRCIO</div>
   <h1 class="serif">A mesma compra. <em>Dois futuros.</em></h1>
-  <p>Compare o custo real dos dois — e veja o que acontece quando você investe, todo mês, o dinheiro que sobra a 1% ao mês.</p>
- </div>
-
- <div class="verdict">
-  <div class="vk">Veredito</div>
-  <div class="vbig serif" id="v_head">—</div>
-  <div class="vsub" id="v_sub">—</div>
-  <div class="vstats">
-   <div class="vstat"><div class="k">Economia no total</div><div class="v" id="v_eco">—</div><div class="s">consórcio vs financiamento</div></div>
-   <div class="vstat"><div class="k">Diferença investida vira</div><div class="v" id="v_pot">—</div><div class="s" id="v_pot_s">a 1% ao mês, no fim do prazo</div></div>
-   <div class="vstat"><div class="k">Paga 100% da carta em</div><div class="v" id="v_bk">—</div><div class="s">só com a sobra investida</div></div>
-  </div>
+  <p>Preencha os dados abaixo e veja, em números, o custo real de cada opção — e o que acontece quando você investe a diferença.</p>
  </div>
 
  <div class="card">
   <h3>Parâmetros da simulação</h3>
+  <div class="hh">Ajuste tudo à realidade do cliente; os resultados recalculam na hora.</div>
   <div class="grid3">
-   <div class="sec">Bem</div>
+   <div class="sec">Bem &amp; investimento</div>
    <div class="f"><label>Crédito / valor do bem</label><input id="cred" value="500000"></div>
    <div class="f"><label>Investir a sobra <small>rendimento mensal</small></label><input id="rinv" value="1"></div>
    <div class="f"><label>CDI <small>referência ao ano</small></label><input id="cdi" value="10.5"></div>
@@ -142,10 +130,23 @@ input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 
    <div class="f"><label>Parcela inicial</label><input id="c_parc" value="2795"></div>
    <div class="f"><label>Prazo (meses)</label><input id="c_prazo" value="180"></div>
    <div class="f"><label>Reajuste (%/ano)</label><input id="c_reaj" value="6"></div>
-   <div class="sec">Financiamento</div>
+   <div class="sec">Financiamento
+     <span class="seg" id="segSys"><button data-s="PRICE" class="on">Price</button><button data-s="SAC">SAC</button></span>
+   </div>
    <div class="f"><label>Entrada (%)</label><input id="f_ent" value="20"></div>
    <div class="f"><label>Juros (%/mês)</label><input id="f_juro" value="1.09"></div>
    <div class="f"><label>Prazo (meses)</label><input id="f_prazo" value="360"></div>
+  </div>
+ </div>
+
+ <div class="verdict">
+  <div class="vk">Veredito</div>
+  <div class="vbig serif" id="v_head">—</div>
+  <div class="vsub" id="v_sub">—</div>
+  <div class="vstats">
+   <div class="vstat"><div class="k">Economia no total</div><div class="v" id="v_eco">—</div><div class="s">consórcio vs financiamento</div></div>
+   <div class="vstat"><div class="k">Diferença investida vira</div><div class="v" id="v_pot">—</div><div class="s" id="v_pot_s">a 1% ao mês</div></div>
+   <div class="vstat"><div class="k">Paga 100% da carta em</div><div class="v" id="v_bk">—</div><div class="s">só com a sobra investida</div></div>
   </div>
  </div>
 
@@ -159,10 +160,10 @@ input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 
    <div class="line"><span class="k">Total desembolsado</span><span class="v tot" id="o_c_tot">—</span></div>
   </div>
   <div class="pane">
-   <h4>Financiamento <span class="tag">COM JUROS</span></h4>
+   <h4>Financiamento <span class="tag" id="f_sys_tag">PRICE</span></h4>
    <div class="cet">Custo efetivo (CET) <b id="f_cet">—</b> ao ano</div>
    <div class="line"><span class="k">Entrada</span><span class="v" id="o_f_ent">—</span></div>
-   <div class="line"><span class="k">Parcela fixa</span><span class="v" id="o_f_parc">—</span></div>
+   <div class="line"><span class="k" id="o_f_parc_k">Parcela fixa</span><span class="v" id="o_f_parc">—</span></div>
    <div class="line"><span class="k">Juros pagos</span><span class="v" id="o_f_extra">—</span></div>
    <div class="line"><span class="k">Total desembolsado</span><span class="v tot" id="o_f_tot">—</span></div>
   </div>
@@ -197,11 +198,17 @@ const money=v=>'R$ '+Math.round(v).toLocaleString('pt-BR');
 const moneyK=v=>Math.abs(v)>=1e6?('R$ '+(v/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+' mi'):('R$ '+Math.round(v/1e3)+' mil');
 const pct=(v,d=1)=>v.toLocaleString('pt-BR',{maximumFractionDigits:d})+'%';
 const parcC=(p0,rA,m)=>p0*Math.pow(1+rA,Math.floor(m/12));
-// IRR mensal por bisseção: acha x tal que NPV(pagamentos)=C
-function cetMensal(C,ent,pmts){ // pmts: array de parcelas (m=1..n)
+let SYS='PRICE';
+function finSchedule(fin,i,n){
+ let arr=[],juros=0;
+ if(SYS==='SAC'){let amort=fin/n,saldo=fin;for(let m=0;m<n;m++){let j=saldo*i;arr.push(amort+j);juros+=j;saldo-=amort;}}
+ else{let pmt=i>0?fin*i/(1-Math.pow(1+i,-n)):fin/n;for(let m=0;m<n;m++)arr.push(pmt);juros=pmt*n-fin;}
+ return {arr,juros};
+}
+function cetMensal(C,ent,pmts){
  const f=x=>{let s=ent;for(let m=0;m<pmts.length;m++)s+=pmts[m]/Math.pow(1+x,m+1);return s-C;};
- let lo=0,hi=.5,fm; if(f(0)<=0)return 0;
- for(let it=0;it<80;it++){let mid=(lo+hi)/2;fm=f(mid);if(fm>0)lo=mid;else hi=mid;}
+ let lo=0,hi=.5; if(f(0)<=0)return 0;
+ for(let it=0;it<80;it++){let mid=(lo+hi)/2;if(f(mid)>0)lo=mid;else hi=mid;}
  return (lo+hi)/2;
 }
 let CH1,CH2;
@@ -209,51 +216,46 @@ function calc(){
  const C=num('cred'), rInv=num('rinv')/100, cdiA=num('cdi')/100, rCdi=Math.pow(1+cdiA,1/12)-1;
  const cEntP=num('c_ent')/100, cP0=num('c_parc'), nC=Math.max(1,Math.round(num('c_prazo'))), rA=num('c_reaj')/100;
  const fEntP=num('f_ent')/100, iF=num('f_juro')/100, nF=Math.max(1,Math.round(num('f_prazo')));
- // consórcio
  const cEnt=C*cEntP; let cPmts=[],cSum=0,cPf=cP0;
  for(let m=0;m<nC;m++){const p=parcC(cP0,rA,m);cPmts.push(p);cSum+=p;cPf=p;}
  const cTot=cEnt+cSum, cExtra=cTot-C, cCet=cetMensal(C,cEnt,cPmts);
- // financiamento
  const fEnt=C*fEntP, fin=C*(1-fEntP);
- const pmtF = iF>0 ? fin*iF/(1-Math.pow(1+iF,-nF)) : fin/nF;
- const fTot=fEnt+nF*pmtF, fJuros=nF*pmtF-fin, fCet=cetMensal(C,fEnt,new Array(nF).fill(pmtF));
- // investir a diferença (consorciado poupa a diferença de parcela; e a diferença de entrada em m0)
+ const {arr:fArr,juros:fJuros}=finSchedule(fin,iF,nF);
+ const fTot=fEnt+fArr.reduce((a,b)=>a+b,0), fCet=cetMensal(C,fEnt,fArr);
  const H=Math.max(nC,nF);
- let pot1=Math.max(0,fEnt-cEnt), potC=Math.max(0,fEnt-cEnt); // começa com sobra de entrada
- const arrPot1=[pot1],arrPotC=[potC],arrPc=[],arrPf=[],arrDiff=[]; let bkMonth=null,bkAtEndCheck=null;
+ let pot1=Math.max(0,fEnt-cEnt), potC=Math.max(0,fEnt-cEnt);
+ const arrPot1=[pot1],arrPotC=[potC],arrPc=[],arrPf=[],arrDiff=[]; let bkMonth=null;
  for(let m=0;m<H;m++){
-   const pc = m<nC?parcC(cP0,rA,m):0;
-   const pf = m<nF?pmtF:0;
-   const d = pf-pc; // sobra do consorciado (pode ser negativa após fim do financiamento)
+   const pc=m<nC?parcC(cP0,rA,m):0, pf=m<nF?fArr[m]:0, d=pf-pc;
    arrPc.push(pc);arrPf.push(pf);arrDiff.push(Math.max(0,d));
-   pot1 = pot1*(1+rInv) + Math.max(0,d);
-   potC = potC*(1+rCdi) + Math.max(0,d);
+   pot1=pot1*(1+rInv)+Math.max(0,d); potC=potC*(1+rCdi)+Math.max(0,d);
    arrPot1.push(pot1);arrPotC.push(potC);
-   if(bkMonth===null && pot1>=C) bkMonth=m+1;
+   if(bkMonth===null&&pot1>=C)bkMonth=m+1;
  }
  const potEnd=pot1, potCdiEnd=potC;
- // preencher números
  $('o_c_ent').textContent=money(cEnt); $('o_c_parc').textContent=money(cP0)+' → '+money(cPf);
  $('o_c_extra').textContent=money(cExtra); $('o_c_tot').textContent=money(cTot);
- $('o_f_ent').textContent=money(fEnt); $('o_f_parc').textContent=money(pmtF);
+ $('o_f_ent').textContent=money(fEnt);
+ $('f_sys_tag').textContent=SYS;
+ if(SYS==='SAC'){$('o_f_parc_k').textContent='Parcela 1ª → última';$('o_f_parc').textContent=money(fArr[0])+' → '+money(fArr[nF-1]);}
+ else{$('o_f_parc_k').textContent='Parcela fixa';$('o_f_parc').textContent=money(fArr[0]);}
  $('o_f_extra').textContent=money(fJuros); $('o_f_tot').textContent=money(fTot);
- $('c_cet').textContent=pct((Math.pow(1+cCet,12)-1)*100); $('f_cet').textContent=pct((Math.pow(1+fCet,12)-1)*100);
+ const cCetA=(Math.pow(1+cCet,12)-1)*100, fCetA=(Math.pow(1+fCet,12)-1)*100;
+ $('c_cet').textContent=pct(cCetA); $('f_cet').textContent=pct(fCetA);
  const eco=fTot-cTot;
  $('v_eco').textContent=money(Math.abs(eco));
  $('v_pot').textContent=moneyK(potEnd); $('v_pot_s').textContent='a 1% a.m. em '+H+' meses';
- $('v_bk').textContent = bkMonth? (bkMonth+' meses') : '— ';
- // veredito
+ $('v_bk').textContent=bkMonth?(bkMonth+' meses'):'—';
  $('v_head').textContent = eco>=0 ? 'O consórcio sai '+money(eco)+' mais barato.' : 'Aqui o financiamento leva por '+money(-eco)+'.';
- $('v_sub').textContent = 'CET de '+pct((Math.pow(1+cCet,12)-1)*100)+' a.a. no consórcio contra '+pct((Math.pow(1+fCet,12)-1)*100)+' a.a. no financiamento. E ainda sobra dinheiro todo mês pra investir.';
- // cta
- if(bkMonth){ $('cta_v').textContent='No mês '+bkMonth+', a sobra investida já vale a carta inteira.';
+ $('v_sub').textContent='CET de '+pct(cCetA)+' a.a. no consórcio contra '+pct(fCetA)+' a.a. no financiamento ('+SYS+'). E ainda sobra dinheiro todo mês pra investir.';
+ if(bkMonth){$('cta_v').textContent='No mês '+bkMonth+', a sobra investida já vale a carta inteira.';
    $('cta_s').textContent='Investindo a diferença a 1% ao mês, em '+bkMonth+' meses ('+(bkMonth/12).toFixed(1)+' anos) o valor guardado atinge '+money(C)+' — o crédito inteiro, só com o que sobrou.';}
- else{ $('cta_v').textContent='No fim do prazo, a sobra investida chega a '+money(potEnd)+'.';
-   $('cta_s').textContent='Nesta configuração a sobra investida não atinge 100% da carta ('+money(C)+') dentro do prazo, mas acumula '+money(potEnd)+' a 1% ao mês.';}
- $('note').innerHTML='A parcela do consórcio começa <b>'+money(pmtF-cP0)+'</b> menor por mês. Investindo essa diferença a 1% ao mês, no fim você acumula <b>'+money(potEnd)+'</b> (a '+pct(num('cdi'))+' de CDI seriam '+money(potCdiEnd)+'). '+(bkMonth?('E já no mês <b>'+bkMonth+'</b> esse dinheiro guardado paga 100% da carta de '+money(C)+'.'):'')+' No consórcio não há juros: o custo além do crédito é <b>'+money(cExtra)+'</b>, contra <b>'+money(fJuros)+'</b> de juros no financiamento.';
- try{ if(window.Chart) draw(arrPc,arrPf,arrDiff,arrPot1,arrPotC,C,H,bkMonth); }catch(e){}
+ else{$('cta_v').textContent='No fim do prazo, a sobra investida chega a '+money(potEnd)+'.';
+   $('cta_s').textContent='Nesta configuração a sobra investida acumula '+money(potEnd)+' a 1% ao mês, sem atingir 100% da carta ('+money(C)+') no prazo.';}
+ $('note').innerHTML='A parcela do consórcio começa <b>'+money(fArr[0]-cP0)+'</b> menor por mês. Investindo essa diferença a 1% ao mês, no fim você acumula <b>'+money(potEnd)+'</b> (a '+pct(num('cdi'))+' de CDI seriam '+money(potCdiEnd)+'). '+(bkMonth?('E já no mês <b>'+bkMonth+'</b> esse dinheiro guardado paga 100% da carta de '+money(C)+'.'):'')+' No consórcio não há juros: o custo além do crédito é <b>'+money(cExtra)+'</b>, contra <b>'+money(fJuros)+'</b> de juros no financiamento ('+SYS+').';
+ try{ if(window.Chart) draw(arrPc,arrPf,arrDiff,arrPot1,arrPotC,C,H); }catch(e){}
 }
-function draw(pc,pf,diff,pot1,potC,C,H,bk){
+function draw(pc,pf,diff,pot1,potC,C,H){
  const labels=Array.from({length:H},(_,m)=>m+1);
  const fmt=v=>'R$ '+(v>=1e6?(v/1e6).toFixed(1)+'mi':Math.round(v/1e3)+'k');
  const grid={color:'#ece4d2'}, tick={color:'#7c8a82',font:{family:'Inter',size:10}};
@@ -275,9 +277,10 @@ function draw(pc,pf,diff,pot1,potC,C,H,bk){
 }
 function baseOpts(fmt,grid,tick){return {responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
  plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+money(c.parsed.y)},
-   backgroundColor:'#0a2721',titleColor:'#ecd9a6',bodyColor:'#fff',padding:10,cornerRadius:10,displayColors:true}},
+   backgroundColor:'#0a2721',titleColor:'#ecd9a6',bodyColor:'#fff',padding:10,cornerRadius:10}},
  scales:{x:{grid:{display:false},ticks:{...tick,maxTicksLimit:7,callback:function(v){return 'm'+this.getLabelForValue(v)}}},
    y:{grid,ticks:{...tick,callback:fmt},beginAtZero:true}}};}
+document.querySelectorAll('#segSys button').forEach(b=>b.onclick=()=>{SYS=b.dataset.s;document.querySelectorAll('#segSys button').forEach(x=>x.classList.toggle('on',x===b));calc();});
 document.querySelectorAll('input').forEach(el=>el.addEventListener('input',calc));
 window.addEventListener('resize',()=>{if(CH1)CH1.resize();if(CH2)CH2.resize();});
 window.addEventListener('load',calc); calc();
