@@ -1863,9 +1863,9 @@ function navItems(){
   const R=effRole();
   const ICN_KPI='<svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-5"/><path d="M13 17V8"/><path d="M18 17v-9"/></svg>';
   const ICN_CFG='<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
-  if(R==='master') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['consultoria','Consultoria',ICN.wallet],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check],['disparos','Disparos',ICN.bolt],['config','Ajustes',ICN_CFG]];
-  if(R==='lider') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users],['config','Ajustes',ICN_CFG]];
-  if(R==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['config','Ajustes',ICN_CFG]];
+  if(R==='master') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['consultoria','Consultoria',ICN.wallet],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check],['disparos','Disparos',ICN.bolt],['config','Ajustes',ICN_CFG]];
+  if(R==='lider') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users],['config','Ajustes',ICN_CFG]];
+  if(R==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['config','Ajustes',ICN_CFG]];
   return [['dash','Início',ICN.dash],['plan','Planejamento',ICN.plan],['jornada','Jornada',ICN.target],['gastos','Gastos',ICN.money],['cota','Cota',ICN.cota],['config','Ajustes',ICN_CFG]];
 }
 function renderNav(){
@@ -2300,6 +2300,7 @@ function render(){
     if(view.page==='crm') return renderCRM(C);
     if(view.page==='captacao') return renderCaptacao(C);
     if(view.page==='gerencial'&&(isMaster()||isLider())) return renderGerencial(C);
+    if(view.page==='ferramentas') return renderFerramentas(C);
     if(view.page==='marketing') return renderMarketing(C);
     if(view.page==='disparos'&&isMaster()) return renderDisparos(C);
     if(view.page==='feed') return renderFeed(C);
@@ -2660,6 +2661,24 @@ function mktScanStale(){ let done=[]; try{done=JSON.parse(localStorage.getItem('
   (db.crm||[]).forEach(function(l){ if(l.perdido||l.stage>=4)return; const acts=l.atividades||[]; const last=acts.length?(acts[acts.length-1].quando||0):(l.criadoEm||0); if(Date.now()-last>3*86400000&&done.indexOf(l.id)<0){ const t={id:uuid(),titulo:'Retomar lead: '+l.nome,quando:'',feito:false,ownerId:l.ownerId||meId()}; db.tasks.push(t); saveTaskCloud(t); done.push(l.id); n++; } });
   localStorage.setItem('agion_stale',JSON.stringify(done)); save(); flash(n?('Criadas '+n+' tarefa(s) de leads parados'):'Nenhum lead parado novo ✓');
 }
+async function renderFerramentas(C){
+ setTop('Ferramentas');
+ var tools=[["Financiamento × Consórcio","Compare custo real, CET, SAC/Price e invista a diferença que sobra.","/calc-financiamento","#3f8f9d"],["Escada Financeira","Monte a escada de cartas que se paga sozinha.","/escada-financeira","#c8a860"],["Alavancagem Patrimonial","Simule vender a carta contemplada ou virar renda de imóvel.","/calc-alavancagem","#2c6a76"]];
+ var w=document.createElement("div"); w.style.maxWidth="920px"; w.style.margin="0 auto";
+ var h=document.createElement("div"); h.style.cssText="margin:2px 0 16px"; h.innerHTML='<div style="font-size:12px;letter-spacing:.14em;color:#a6853f;font-weight:700">FERRAMENTAS DE SIMULAÇÃO</div><div style="color:#6e8078;font-size:14px;margin-top:4px">Abrem em nova aba. Use na frente do cliente.</div>'; w.appendChild(h);
+ var g=document.createElement("div"); g.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px";
+ tools.forEach(function(x){
+  var d=document.createElement("div");
+  d.style.cssText="cursor:pointer;background:#fff;border:1px solid #e7dec9;border-radius:16px;padding:20px;box-shadow:0 8px 26px -20px rgba(11,42,38,.5);transition:transform .15s";
+  d.innerHTML='<div style="width:46px;height:46px;border-radius:12px;background:'+x[3]+';margin-bottom:13px"></div><div style="font-weight:700;font-size:16px;color:#0b2a26;margin-bottom:6px">'+x[0]+'</div><div style="font-size:13px;color:#6e8078;line-height:1.5">'+x[1]+'</div><div style="margin-top:13px;font-size:13px;font-weight:700;color:#a6853f">Abrir ↗</div>';
+  d.addEventListener("mouseover",function(){d.style.transform="translateY(-3px)";});
+  d.addEventListener("mouseout",function(){d.style.transform="";});
+  d.addEventListener("click",function(){window.open(x[2],"_blank");});
+  g.appendChild(d);
+ });
+ w.appendChild(g); C.innerHTML=""; C.appendChild(w);
+}
+
 async function renderMarketing(C){
   setTop('Marketing','Automação de marketing e relacionamento','<button class="btn btn-gold btn-sm" onclick="tplBuilder()">+ Criar template</button>');
   const tabs=[['ov','Visão geral'],['auto','Automações'],['score','Leads & Scoring'],['tpl','Templates'],['camp','Campanhas'],['intg','Integrações'],['prop','Propostas']];
