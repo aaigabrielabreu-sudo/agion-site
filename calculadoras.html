@@ -1,0 +1,191 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadoras · Consórcio</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --ink:#0b2a26;--ink2:#12463d;--gold:#c5a059;--goldd:#a6853f;--goldl:#e8cc8b;
+ --mut:#6e8078;--line:#e7dec9;--cream:#fbf6ec;--pet:#3e8e9c;--petd:#2f7280;
+ --red:#a8564a;--bg:#fbfaf6;--lime:#c2f970;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Poppins',system-ui,sans-serif;padding:22px 16px 60px}
+.wrap{max-width:760px;margin:0 auto}
+.brand{text-align:center;margin-bottom:6px;font-family:'Lora',serif;font-weight:700;font-size:15px;letter-spacing:.14em;color:var(--goldd)}
+h1{font-family:'Lora',serif;text-align:center;font-size:30px;margin:2px 0 4px}
+.sub{text-align:center;color:var(--mut);font-size:14px;margin-bottom:22px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+.tab{border:1px solid var(--line);background:#fff;color:var(--ink2);padding:9px 16px;border-radius:999px;cursor:pointer;font-size:14px;font-weight:500}
+.tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.panel{display:none}.panel.on{display:block}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px}
+.card h2{font-family:'Lora',serif;font-size:19px;margin:0 0 14px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:10px 0}
+.row label{font-size:14px;color:var(--ink2);flex:1}
+.row .hint{display:block;font-size:11.5px;color:var(--mut)}
+input{width:150px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;font-size:15px;font-family:inherit;text-align:right;color:var(--ink);background:var(--bg)}
+input:focus{outline:none;border-color:var(--pet)}
+.res{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+.box{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--cream)}
+.box.win{border:2px solid var(--pet)}
+.box .k{font-size:11.5px;font-weight:600;letter-spacing:.04em;color:var(--mut);text-transform:uppercase}
+.box .v{font-family:'Lora',serif;font-weight:700;font-size:26px;margin-top:4px;color:var(--ink)}
+.box .v.pet{color:var(--petd)}.box .v.red{color:var(--red)}
+.box .s{font-size:12px;color:var(--mut);margin-top:3px}
+.note{background:var(--cream);border:1px solid var(--line);border-left:5px solid var(--gold);border-radius:12px;padding:12px 16px;font-size:13.5px;color:var(--ink2);margin-top:14px;line-height:1.5}
+.big{font-family:'Lora',serif;font-weight:700;font-size:34px;text-align:center;color:var(--petd);margin:6px 0}
+.foot{text-align:center;color:var(--mut);font-size:12px;margin-top:26px}
+h3{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--goldd);margin:2px 0 10px}
+</style>
+
+<div class="wrap">
+ <div class="brand">CALCULADORAS · CONSÓRCIO</div>
+ <h1>Carta contemplada — simulações</h1>
+ <div class="sub">Ajuste os campos; os resultados recalculam na hora.</div>
+
+ <div class="tabs">
+  <button class="tab on" data-t="carro">Carro · carta × financiamento</button>
+  <button class="tab" data-t="fin">Alavancagem financeira</button>
+  <button class="tab" data-t="pat">Alavancagem patrimonial</button>
+ </div>
+
+ <!-- ===== CARRO ===== -->
+ <div class="panel on" id="carro">
+  <div class="card">
+   <h3>Carta contemplada</h3>
+   <div class="row"><label>Valor do carro / crédito <span class="hint">quanto o cliente vai comprar</span></label><input id="c_cred" value="112800"></div>
+   <div class="row"><label>Entrada da carta (%)</label><input id="c_ent" value="38.33"></div>
+   <div class="row"><label>Parcela inicial da carta (R$)</label><input id="c_parc" value="1640"></div>
+   <div class="row"><label>Prazo da carta (meses)</label><input id="c_prazo" value="82"></div>
+   <div class="row"><label>Reajuste da parcela (%/ano)</label><input id="c_reaj" value="3"></div>
+   <h3 style="margin-top:16px">Financiamento</h3>
+   <div class="row"><label>Entrada do financiamento (%)</label><input id="f_ent" value="30"></div>
+   <div class="row"><label>Taxa de juros (%/mês)</label><input id="f_juro" value="2.6"></div>
+   <div class="row"><label>Prazo do financiamento (meses)</label><input id="f_prazo" value="60"></div>
+  </div>
+  <div class="card">
+   <h2>Resultado</h2>
+   <div class="res">
+    <div class="box win"><div class="k">Carta · entrada</div><div class="v pet" id="o_c_ent">—</div></div>
+    <div class="box"><div class="k">Financ. · entrada</div><div class="v" id="o_f_ent">—</div></div>
+    <div class="box win"><div class="k">Carta · parcela inicial</div><div class="v pet" id="o_c_parc">—</div><div class="s" id="o_c_parc_s"></div></div>
+    <div class="box"><div class="k">Financ. · parcela</div><div class="v red" id="o_f_parc">—</div></div>
+    <div class="box win"><div class="k">Carta · total pago</div><div class="v pet" id="o_c_tot">—</div></div>
+    <div class="box"><div class="k">Financ. · total pago</div><div class="v red" id="o_f_tot">—</div></div>
+   </div>
+   <div class="note" id="o_note">—</div>
+  </div>
+ </div>
+
+ <!-- ===== FINANCEIRA ===== -->
+ <div class="panel" id="fin">
+  <div class="card">
+   <h3>Venda de ágio + rendimento</h3>
+   <div class="row"><label>Valor da carta (crédito)</label><input id="af_cred" value="1587571"></div>
+   <div class="row"><label>Ágio na venda (%)</label><input id="af_agio" value="25"></div>
+   <div class="row"><label>Taxa de administração (%)</label><input id="af_adm" value="25"></div>
+   <div class="row"><label>Rendimento do capital (%/mês)</label><input id="af_rende" value="1"></div>
+   <div class="row"><label>Parcela do plano (R$)</label><input id="af_parc" value="4100"></div>
+  </div>
+  <div class="card">
+   <h2>Resultado</h2>
+   <div class="res">
+    <div class="box win"><div class="k">Ágio recebido</div><div class="v pet" id="af_o_agio">—</div><div class="s">lucro na venda da carta</div></div>
+    <div class="box"><div class="k">Saldo devedor (carta + adm)</div><div class="v" id="af_o_saldo">—</div></div>
+    <div class="box win"><div class="k">Rendimento do ágio</div><div class="v pet" id="af_o_rend">—</div><div class="s">por mês, a 1% a.m.</div></div>
+    <div class="box"><div class="k">Cobre a parcela?</div><div class="v" id="af_o_cobre">—</div><div class="s" id="af_o_cobre_s"></div></div>
+   </div>
+   <div class="note">Guardando o ágio e rendendo ~1% ao mês, o degrau "se paga" quando o rendimento passa a cobrir a parcela. É a lógica da escada: só sobe quando a carta se paga sozinha.</div>
+  </div>
+ </div>
+
+ <!-- ===== PATRIMONIAL ===== -->
+ <div class="panel" id="pat">
+  <div class="card">
+   <h3>Aluguel paga a parcela · reaplica a sobra</h3>
+   <div class="row"><label>Crédito da carta (R$)</label><input id="p_cred" value="1600000"></div>
+   <div class="row"><label>Nº de imóveis de renda</label><input id="p_nimo" value="4"></div>
+   <div class="row"><label>Aluguel por imóvel (R$/mês)</label><input id="p_alug" value="4000"></div>
+   <div class="row"><label>Parcela pós-contemplação por carta (R$)</label><input id="p_parc" value="9743"></div>
+   <h3 style="margin-top:16px">Reaplicação da sobra</h3>
+   <div class="row"><label>Valor da nova carta (R$)</label><input id="p_ncred" value="400000"></div>
+   <div class="row"><label>Parcela da nova carta (R$/mês)</label><input id="p_nparc" value="1230"></div>
+  </div>
+  <div class="card">
+   <h2>Resultado (por ciclo)</h2>
+   <div class="res">
+    <div class="box"><div class="k">Renda de aluguel</div><div class="v" id="p_o_renda">—</div><div class="s" id="p_o_renda_s"></div></div>
+    <div class="box red"><div class="k">Parcela total</div><div class="v red" id="p_o_parc">—</div></div>
+   </div>
+   <div class="big" id="p_o_sobra">—</div>
+   <div style="text-align:center;color:var(--mut);font-size:13px;margin-top:-2px">de sobra por mês</div>
+   <div class="note" id="p_o_note">—</div>
+  </div>
+ </div>
+
+ <div class="foot">Simulações aproximadas para apresentação comercial. Valores reais dependem do grupo e da administradora.</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const num=id=>{let v=parseFloat(($(id).value+'').replace(/\./g,'').replace(',','.'));return isNaN(v)?0:v;}
+const money=v=>'R$ '+Math.round(v).toLocaleString('pt-BR');
+const pct=v=>v.toLocaleString('pt-BR',{maximumFractionDigits:0})+'%';
+
+// tabs
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+ document.querySelectorAll('.panel').forEach(x=>x.classList.remove('on'));
+ b.classList.add('on'); $(b.dataset.t).classList.add('on');
+});
+
+function somaReaj(parc,prazo,reajA){let s=0;for(let m=0;m<prazo;m++)s+=parc*Math.pow(1+reajA,Math.floor(m/12));return s;}
+
+function calcCarro(){
+ const cred=num('c_cred'),ent=num('c_ent')/100,parc=num('c_parc'),prazo=num('c_prazo'),reaj=num('c_reaj')/100;
+ const fent=num('f_ent')/100,i=num('f_juro')/100,n=num('f_prazo');
+ const cEnt=cred*ent, cTot=cEnt+somaReaj(parc,prazo,reaj);
+ const fEnt=cred*fent, fin=cred*(1-fent);
+ const pmt = i>0 ? fin*i/(1-Math.pow(1+i,-n)) : fin/n;
+ const fTot=fEnt+n*pmt;
+ $('o_c_ent').textContent=money(cEnt); $('o_f_ent').textContent=money(fEnt);
+ $('o_c_parc').textContent=money(parc); $('o_f_parc').textContent=money(pmt);
+ $('o_c_tot').textContent=money(cTot); $('o_f_tot').textContent=money(fTot);
+ const red = pmt>0 ? (1-parc/pmt)*100 : 0;
+ $('o_c_parc_s').textContent = '−'+pct(red)+' vs financiamento';
+ const dif=fTot-cTot;
+ $('o_note').innerHTML = 'A parcela inicial da carta é <b>'+money(pmt-parc)+'</b> menor por mês ('+pct(red)+' abaixo). '+
+   (dif>=0 ? 'No total, mesmo com o reajuste, a carta sai <b>'+money(dif)+'</b> mais barata que o financiamento.'
+          : 'No total, a carta fica <b>'+money(-dif)+'</b> acima do financiamento — a vantagem aqui é a parcela menor e o sem-juros.');
+}
+
+function calcFin(){
+ const cred=num('af_cred'),agio=num('af_agio')/100,adm=num('af_adm')/100,rende=num('af_rende')/100,parc=num('af_parc');
+ const agioR=cred*agio, saldo=cred*(1+adm), rend=agioR*rende;
+ $('af_o_agio').textContent=money(agioR);
+ $('af_o_saldo').textContent=money(saldo);
+ $('af_o_rend').textContent=money(rend);
+ const cobre = parc>0 ? rend/parc*100 : 0;
+ $('af_o_cobre').textContent=pct(cobre);
+ $('af_o_cobre').className='v '+(cobre>=100?'pet':'red');
+ $('af_o_cobre_s').textContent = cobre>=100 ? 'o rendimento já paga a parcela' : 'falta pro rendimento cobrir a parcela';
+}
+
+function calcPat(){
+ const cred=num('p_cred'),nimo=num('p_nimo'),alug=num('p_alug'),parc=num('p_parc');
+ const nc=num('p_ncred'),np=num('p_nparc');
+ const renda=nimo*alug, parcTot=parc, sobra=renda-parcTot;
+ $('p_o_renda').textContent=money(renda);
+ $('p_o_renda_s').textContent=nimo+' imóveis × '+money(alug);
+ $('p_o_parc').textContent=money(parcTot);
+ $('p_o_sobra').textContent=money(sobra);
+ const novas = np>0 ? Math.floor(sobra/np) : 0;
+ $('p_o_note').innerHTML = sobra>0
+   ? 'Com a sobra de <b>'+money(sobra)+'/mês</b>, dá pra bancar <b>'+novas+'</b> nova(s) carta(s) de '+money(nc)+' (parcela '+money(np)+'). É assim que o patrimônio cresce em ciclos.'
+   : 'Nesta configuração o aluguel não cobre a parcela. Ajuste o aluguel, o nº de imóveis ou a parcela.';
+}
+
+function all(){calcCarro();calcFin();calcPat();}
+document.querySelectorAll('input').forEach(el=>el.addEventListener('input',all));
+all();
+</script>
