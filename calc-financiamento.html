@@ -301,8 +301,21 @@ window.addEventListener('load',calc); calc();
 <script>
 async function baixarPDF(btn){
  var old=btn.innerHTML; btn.innerHTML="Gerando…"; btn.style.opacity=".6"; btn.disabled=true;
+ var swaps=[];
  try{
-  if(window.CH1)window.CH1.resize(); if(window.CH2)window.CH2.resize();
+  var ids=["ch1","ch2"];
+  for(var i=0;i<ids.length;i++){
+    var cv=document.getElementById(ids[i]);
+    var ch=(window.Chart&&Chart.getChart)?Chart.getChart(ids[i]):null;
+    if(cv&&ch){
+      try{ch.options.animation=false;ch.update("none");ch.draw();}catch(e){}
+      var data=ch.toBase64Image("image/png",1.0);
+      var im=document.createElement("img");
+      im.style.cssText="position:absolute;inset:0;width:100%;height:100%;object-fit:contain";
+      await new Promise(function(res){im.onload=res;im.onerror=res;im.src=data;});
+      cv.style.visibility="hidden"; cv.parentNode.appendChild(im); swaps.push({cv:cv,im:im});
+    }
+  }
   var el=document.querySelector('.wrap');
   var canvas=await html2canvas(el,{scale:2,backgroundColor:"#fbf8f1",useCORS:true,logging:false,windowWidth:el.scrollWidth,
     onclone:function(doc){doc.querySelectorAll(".btn").forEach(function(b){b.style.display="none";});}});
@@ -312,6 +325,7 @@ async function baixarPDF(btn){
   pdf.addImage(img,"JPEG",0,0,pdfW,pdfH,undefined,"FAST");
   pdf.save("Agion-Financiamento-x-Consorcio.pdf");
  }catch(e){ alert("Não consegui gerar o PDF: "+e.message); }
+ swaps.forEach(function(s){ s.im.remove(); s.cv.style.visibility=""; });
  btn.innerHTML=old; btn.style.opacity=""; btn.disabled=false;
 }
 </script>
