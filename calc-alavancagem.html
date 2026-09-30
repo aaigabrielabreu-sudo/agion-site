@@ -1,4 +1,29 @@
 <meta charset="utf-8">
+<script>
+/* Agion — guard de sessão: só abre para quem está logado na plataforma */
+(function(){try{document.documentElement.style.visibility='hidden';}catch(e){}})();
+(async function(){
+  var SUPA='https://sfekirqoflozylghwlbe.supabase.co';
+  var ANON='sb_publishable_Ds4PlQmsvnny5GdALHvVYQ_RHgtFXw2';
+  function show(){try{document.documentElement.style.visibility='';}catch(e){}}
+  function deny(){location.replace('/plataforma');}
+  try{
+    var at=null;
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(k && k.indexOf('auth-token')>-1){
+        try{ var v=JSON.parse(localStorage.getItem(k));
+          at = v && (v.access_token || (v.currentSession&&v.currentSession.access_token) || (Array.isArray(v)&&v[0]));
+        }catch(_){}
+        if(at) break;
+      }
+    }
+    if(!at){ deny(); return; }
+    var r=await fetch(SUPA+'/auth/v1/user',{headers:{apikey:ANON,Authorization:'Bearer '+at}});
+    if(r && r.ok){ show(); } else { deny(); }
+  }catch(e){ deny(); }
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Agion · Calculadora de Alavancagem</title>
 <style>
