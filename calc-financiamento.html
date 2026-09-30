@@ -23,6 +23,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
  --ink:#0a2721;--ink2:#0f3a31;--paper:#fbf8f1;--paper2:#f4eee1;--card:#ffffff;
@@ -109,7 +111,7 @@ input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 
  .wrap{max-width:100% !important;padding:0 !important}
  .hero{padding:4px 0 2px}
  .card,.verdict,.big-cta{box-shadow:none !important}
- .card,.verdict,.big-cta,.cmp,.pane,.canvas-box,.vstat,.win-note{break-inside:avoid;page-break-inside:avoid}
+ .verdict,.pane,.big-cta,.canvas-box,.vstat,.win-note{break-inside:avoid;page-break-inside:avoid}
  .verdict{margin:10px 0}
  .canvas-box{height:250px}
 }
@@ -119,7 +121,7 @@ input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 
  <div class="top">
   <div class="brand"><div class="logo"><img src="/agion-logo.png" alt="Agion"></div>
    <div><div class="bn">Agion Consórcios</div><div class="bs">PLANEJAMENTO E CONSULTORIA</div></div></div>
-  <button class="btn" onclick="window.print()">⎙ Imprimir / PDF</button>
+  <button class="btn" id="pdfbtn" onclick="baixarPDF(this)">⬇ Baixar PDF</button>
  </div>
 
  <div class="hero">
@@ -295,4 +297,21 @@ document.querySelectorAll('#segSys button').forEach(b=>b.onclick=()=>{SYS=b.data
 document.querySelectorAll('input').forEach(el=>el.addEventListener('input',calc));
 window.addEventListener('resize',()=>{if(CH1)CH1.resize();if(CH2)CH2.resize();});
 window.addEventListener('load',calc); calc();
+</script>
+<script>
+async function baixarPDF(btn){
+ var old=btn.innerHTML; btn.innerHTML="Gerando…"; btn.style.opacity=".6"; btn.disabled=true;
+ try{
+  if(window.CH1)window.CH1.resize(); if(window.CH2)window.CH2.resize();
+  var el=document.querySelector('.wrap');
+  var canvas=await html2canvas(el,{scale:2,backgroundColor:"#fbf8f1",useCORS:true,logging:false,windowWidth:el.scrollWidth,
+    onclone:function(doc){doc.querySelectorAll(".btn").forEach(function(b){b.style.display="none";});}});
+  var img=canvas.toDataURL("image/jpeg",0.95);
+  var pdfW=595.28, pdfH=pdfW*canvas.height/canvas.width;
+  var pdf=new window.jspdf.jsPDF({unit:"pt",format:[pdfW,pdfH],compress:true});
+  pdf.addImage(img,"JPEG",0,0,pdfW,pdfH,undefined,"FAST");
+  pdf.save("Agion-Financiamento-x-Consorcio.pdf");
+ }catch(e){ alert("Não consegui gerar o PDF: "+e.message); }
+ btn.innerHTML=old; btn.style.opacity=""; btn.disabled=false;
+}
 </script>
