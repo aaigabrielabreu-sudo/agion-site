@@ -2663,7 +2663,7 @@ function mktScanStale(){ let done=[]; try{done=JSON.parse(localStorage.getItem('
 }
 async function renderFerramentas(C){
  setTop('Ferramentas');
- var tools=[["Financiamento × Consórcio","Compare custo real, CET, SAC/Price e invista a diferença que sobra.","/calc-financiamento","#3f8f9d"],["Escada Financeira","Monte a escada de cartas que se paga sozinha.","/escada-financeira","#c8a860"],["Alavancagem Patrimonial","Simule vender a carta contemplada ou virar renda de imóvel.","/calc-alavancagem","#2c6a76"]];
+ var tools=[["Financiamento × Consórcio","Compare custo real, CET, SAC/Price e invista a diferença que sobra.","/calc-financiamento","#3f8f9d"],["Escada Financeira","Monte a escada de cartas que se paga sozinha.","/escada-financeira","#c8a860"],["Alavancagem Patrimonial","Simule vender a carta contemplada ou virar renda de imóvel.","/calc-alavancagem","#2c6a76"],["Gerador de Propostas","Monte a proposta do cliente e gere o PDF profissional.","/propostas","#0b2a26"]];
  var w=document.createElement("div"); w.style.maxWidth="920px"; w.style.margin="0 auto";
  var h=document.createElement("div"); h.style.cssText="margin:2px 0 16px"; h.innerHTML='<div style="font-size:12px;letter-spacing:.14em;color:#a6853f;font-weight:700">FERRAMENTAS DE SIMULAÇÃO</div><div style="color:#6e8078;font-size:14px;margin-top:4px">Abrem em nova aba. Use na frente do cliente.</div>'; w.appendChild(h);
  var g=document.createElement("div"); g.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px";
@@ -2681,7 +2681,7 @@ async function renderFerramentas(C){
 
 async function renderMarketing(C){
   setTop('Marketing','Automação de marketing e relacionamento','<button class="btn btn-gold btn-sm" onclick="tplBuilder()">+ Criar template</button>');
-  const tabs=[['ov','Visão geral'],['auto','Automações'],['score','Leads & Scoring'],['tpl','Templates'],['camp','Campanhas'],['intg','Integrações'],['prop','Propostas']];
+  const tabs=[['ov','Visão geral'],['auto','Automações'],['score','Leads & Scoring'],['tpl','Templates'],['camp','Campanhas'],['intg','Integrações']];
   C.innerHTML='<div id="mktNav" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px">'+tabs.map(function(x){ return '<button data-k="'+x[0]+'" class="btn btn-ghost btn-sm" onclick="mktSub(\''+x[0]+'\')">'+x[1]+'</button>'; }).join('')+'</div><div id="mktBody"></div>';
   mktSub(window.__mktTab||'ov');
 }
