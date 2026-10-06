@@ -2,6 +2,29 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/app", "destination": "/plataforma.html" }
+    {
+      "source": "/app",
+      "destination": "/plataforma.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/:page(plataforma|app|calculadoras|calc-alavancagem|calc-financiamento|escada-financeira|propostas|lp|ig|wpp|gmb|oferta-flyer|oferta-flyer-mobile|plataforma_backup_2026-07-05|plataforma_backup_2026-07-09|plataforma_backup_2026-07-09b)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/:page(plataforma|app|calculadoras|calc-alavancagem|calc-financiamento|escada-financeira|propostas|lp|ig|wpp|gmb|oferta-flyer|oferta-flyer-mobile|plataforma_backup_2026-07-05|plataforma_backup_2026-07-09|plataforma_backup_2026-07-09b).html",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    }
   ]
 }
