@@ -293,3 +293,15 @@ summary{padding-block:22px}
 /* As colunas do rodapé podem encolher sem empurrar a página no celular. */
 footer .cols>div{min-width:0}
 footer .cols p,footer .cols a{overflow-wrap:anywhere}
+
+/* Compact cookie notice: consent display remains controlled by the original script. */
+#ckbar{padding:10px 12px!important}
+#ckbar>div{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;gap:8px!important;align-items:center!important}
+#ckbar span{min-width:0!important;flex:none!important;font-size:10px!important;line-height:1.45!important}
+#ckbar button{min-height:36px!important;padding:7px 14px!important;font-size:11px!important;line-height:1.2!important;white-space:nowrap}
+@media(max-width:560px){
+ #ckbar{padding:10px 12px!important}
+ #ckbar>div{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important}
+ #ckbar span{grid-column:1/-1;font-size:10px!important}
+ #ckbar button{width:100%;min-width:0;font-size:11px!important}
+}
