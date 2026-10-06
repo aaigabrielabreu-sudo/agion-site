@@ -2476,7 +2476,8 @@ function crmGanho(id){if(roGuard())return;const l=(db.crm).find(x=>x.id===id);if
 function crmLose(id){if(roGuard())return;const l=(db.crm).find(x=>x.id===id);l.perdido=true;logEvt('lead_perdido','lead','Marcou o lead "'+l.nome+'" como perdido',{lead:l.nome});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Lead marcado como perdido');}
 function crmRecuperar(id){const l=(db.crm).find(x=>x.id===id);l.perdido=false;save();renderCRM(document.getElementById('content'));flash('Lead reativado');}
 async function crmDel(id){if(!(await ask({title:'Excluir lead?',ok:'Excluir'})))return;db.crm=db.crm.filter(x=>x.id!==id);save();renderCRM(document.getElementById('content'));}
-function crmAssign(id,uid){if(roGuard())return;const l=db.crm.find(x=>x.id===id);l.ownerId=uid||null;l.atividades=l.atividades||[];if(uid){l.atividades.push({texto:'Distribuído para '+user(uid).nome,quando:Date.now(),autorId:session.userId});logEvt('lead_distribuir','lead','Distribuiu o lead "'+l.nome+'" para '+user(uid).nome,{lead:l.nome,para:user(uid).nome});}saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash(uid?'Lead distribuído para '+user(uid).nome.split(' ')[0]:'Distribuição removida');}
+function agNotifyAssign(l,novo,prev){try{if(!novo)return;if(prev&&String(prev)===String(novo))return;var me=(typeof meId==='function')?meId():((window.session&&session.userId)||'');if(me&&String(me)===String(novo))return;apiFetch('/api/notify_assign',{method:'POST',body:JSON.stringify({ownerId:novo,nome:(l&&l.nome)||'',valor:(l&&l.valor)||'',parcela:(l&&l.parcela)||''})}).catch(function(){});}catch(e){}}
+function crmAssign(id,uid){if(roGuard())return;const l=db.crm.find(x=>x.id===id);const _prevOwner=l.ownerId;l.ownerId=uid||null;agNotifyAssign(l,uid,_prevOwner);l.atividades=l.atividades||[];if(uid){l.atividades.push({texto:'Distribuído para '+user(uid).nome,quando:Date.now(),autorId:session.userId});logEvt('lead_distribuir','lead','Distribuiu o lead "'+l.nome+'" para '+user(uid).nome,{lead:l.nome,para:user(uid).nome});}saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash(uid?'Lead distribuído para '+user(uid).nome.split(' ')[0]:'Distribuição removida');}
 function initialsOf(nome){return (nome||'').split(' ').filter(Boolean).map(x=>x[0]).slice(0,2).join('').toUpperCase()||'CL';}
 function createClientAccount(c){
   let email=(c.email||'').trim();
@@ -2520,7 +2521,7 @@ function saveLead(){
   if(!data.nome){flash('Informe o nome');return;}
   let _lead;
   if(id){_lead=(db.crm).find(x=>x.id===id);Object.assign(_lead,data);logEvt('lead_editar','lead','Editou o lead "'+data.nome+'"',{lead:data.nome});}
-  else{_lead={id:uuid(),stage:0,perdido:false,criadoEm:Date.now(),ownerId:meId(),...data};db.crm.push(_lead);logEvt('lead_criar','lead','Criou o lead "'+data.nome+'"',{lead:data.nome,tipo:data.tipo});}
+  else{_lead={id:uuid(),stage:0,perdido:false,criadoEm:Date.now(),ownerId:meId(),...data};db.crm.push(_lead);agNotifyAssign(_lead,_lead.ownerId,null);logEvt('lead_criar','lead','Criou o lead "'+data.nome+'"',{lead:data.nome,tipo:data.tipo});}
   saveLeadCloud(_lead);save();closeLead();renderCRM(document.getElementById('content'));flash('Lead salvo');
 }
 /* ----- TAREFAS ----- */
