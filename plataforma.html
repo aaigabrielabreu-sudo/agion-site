@@ -2936,6 +2936,20 @@ function cartaAddBlock(){
 function cartaRemoveBlock(idx){
   const b=document.querySelector('.cartablk[data-idx="'+idx+'"]'); if(b)b.remove();
 }
+async function agBoasVindasCliente(nome,tel){
+  try{
+    if(typeof roGuard==='function'&&roGuard())return;
+    let fone=String(tel||'').replace(/\D/g,''); if(fone.length<10) return;
+    if(fone.slice(0,2)!=='55') fone='55'+fone;
+    const k='agion_bv_'+fone.slice(-8); if(localStorage.getItem(k)) return;
+    const pn=String(nome||'').trim().split(' ')[0]||'cliente';
+    const ok=await chooseModal('Boas-vindas no WhatsApp','Enviar agora a mensagem de boas-vindas do robô da Agion para '+(String(nome||'').trim()||'o cliente')+'?\n\nEle recebe no WhatsApp cadastrado e, a partir daí, pode pedir boleto e 2ª via por lá.','Sim — enviar boas-vindas','Agora não');
+    if(ok!=='a') return;
+    const r=await apiFetch('/api/send_template',{method:'POST',body:JSON.stringify({phone:fone,template:'boas_vindas',params:[pn],nome:String(nome||'')})});
+    if(r&&r.ok&&r.data&&!r.data.error){ localStorage.setItem(k,String(Date.now())); flash('Boas-vindas enviada a '+pn+' ✓'); try{ logEvt('boas_vindas','clientes','Enviou boas-vindas no WhatsApp para '+String(nome||''),{}); }catch(e){} }
+    else { flash('Não foi possível enviar a boas-vindas: '+((r&&r.data&&r.data.error)||(r&&r.status)||'erro')); }
+  }catch(e){}
+}
 async function cartaSave(id){
   if(roGuard())return;
   const blocks=[...document.querySelectorAll('.cartablk')];
@@ -2954,10 +2968,11 @@ async function cartaSave(id){
   flash&&flash(recs.length>1?('Salvando '+recs.length+' cartas…'):'Salvando carta…');
   try{
     if(id){ await supa.from('cartas').update(Object.assign({},recs[0],{atualizado_em:new Date().toISOString()})).eq('id',id); logEvt&&logEvt('UPDATE','cartas','Editou carta '+recs[0].administradora+' '+recs[0].grupo+'/'+recs[0].cota+' de '+recs[0].titular_nome,{cliente_id:_cartasCid}); }
-    else { await supa.from('cartas').insert(recs); logEvt&&logEvt('INSERT','cartas','Cadastrou '+recs.length+' carta(s) para '+_cartasNome,{cliente_id:_cartasCid,qtd:recs.length}); }
+    else { await supa.from('cartas').insert(recs); logEvt&&logEvt('INSERT','cartas','Cadastrou '+recs.length+' carta(s) para '+_cartasNome,{cliente_id:_cartasCid,qtd:recs.length}); var _bvNovo=recs.find(function(x){return x.whatsapp}); }
   }
   catch(e){ await ask({title:'Não foi possível salvar',msg:String(e.message||e),ok:'Ok'}); }
   openCartas(_cartasCid);
+  try{ if(typeof _bvNovo!=='undefined'&&_bvNovo) await agBoasVindasCliente(_bvNovo.titular_nome||_cartasNome,_bvNovo.whatsapp); }catch(e){}
 }
 async function cartaDel(id){
   if(roGuard())return;
@@ -3205,6 +3220,7 @@ async function newClient(){
     catch(e){ await ask({title:'Não foi possível criar',msg:String(e.message||e),ok:'Ok'}); return; }
     logEvt('INSERT','clientes','Criou cliente só de consórcio: '+nome.trim(),{tel:(tel||'')});
     await loadCloud(); flash('Cliente criado — cadastre a carta'); render();
+    if(tel&&tel.replace(/\D/g,'').length>=10){ try{ await agBoasVindasCliente(nome.trim(),tel); }catch(e){} }
     const c=db.clients.find(x=>x.id===cid)||db.clients.find(x=>x.nome===nome.trim());
     if(c) openCartas(c.id);
     return;
