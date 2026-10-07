@@ -54,7 +54,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v10';
+var VERSAO='v11';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -217,13 +217,14 @@ function compSelect(){
 function mesesRolantes(){ var out=[], d=new Date(); for(var i=0;i<5;i++){ var m=mkDate(d.getFullYear(), d.getMonth()+i, 1); out.push({key:iso(m).slice(0,7), rot:['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][m.getMonth()]+'/'+String(m.getFullYear()).slice(2)}); } return out; }
 function tabelaRolante(vendas, all, comAgion){
   var meses=mesesRolantes(), m0=meses[0].key;
-  var head='<tr><th>Cliente</th><th>Crédito</th><th class="n">Em atraso</th>'+meses.map(function(m){return '<th class="n">'+m.rot+'</th>';}).join('')+'<th class="n">Pendente</th></tr>';
+  var temAtr=vendas.filter(ativa).some(function(v){ var k=calc(v,all); return k.parcelas.some(function(p){return p.funcStatus!=='PAGA'&&p.data.slice(0,7)<m0;}) || (k.ajuste&&!k.ajustePago&&k.ajusteData.slice(0,7)<m0); });
+  var head='<tr><th>Cliente</th><th>Crédito</th>'+(temAtr?'<th class="n">Em atraso</th>':'')+meses.map(function(m){return '<th class="n">'+m.rot+'</th>';}).join('')+'<th class="n">Pendente</th></tr>';
   var tot={}; meses.forEach(function(m){tot[m.key]=0;}); var totAtr=0, totPend=0;
   var rows=vendas.filter(ativa).map(function(v){ var k=calc(v,all); if(k.funcPend<=0.005) return '';
     var atr=0; k.parcelas.forEach(function(p){ if(p.funcStatus!=='PAGA'&&p.data.slice(0,7)<m0) atr+=p.func; }); if(k.ajuste&&!k.ajustePago&&k.ajusteData.slice(0,7)<m0) atr+=k.ajuste; totAtr+=atr; totPend+=k.funcPend;
     var cells=meses.map(function(m){ var s=0, pend=0; k.parcelas.forEach(function(p){ if(p.data.slice(0,7)===m.key){ s+=p.func; if(p.funcStatus!=='PAGA') pend+=p.func; } }); if(k.ajuste && k.ajusteData.slice(0,7)===m.key){ s+=k.ajuste; if(!k.ajustePago) pend+=k.ajuste; } tot[m.key]+=pend; return '<td class="n">'+(s?(pend?BRL2(pend):'<span class="note">pago</span>')+(pend&&pend<s?' <span class="note">(pago '+BRL2(s-pend)+')</span>':''):'—')+'</td>'; }).join('');
-    return '<tr><td>'+esc(v.cliente_nome||'—')+' '+origemChip(v)+'</td><td>'+BRL(k.credito)+'</td><td class="n">'+(atr?'<span style="color:#E0B978">'+BRL2(atr)+'</span>':'—')+'</td>'+cells+'<td class="n"><b>'+BRL2(k.funcPend)+'</b></td></tr>'; }).join('');
-  var foot='<tr><td colspan="2"><b>A pagar</b></td><td class="n"><b>'+(totAtr?BRL2(totAtr):'—')+'</b></td>'+meses.map(function(m){return '<td class="n"><b>'+BRL2(tot[m.key])+'</b></td>';}).join('')+'<td class="n"><b>'+BRL2(totPend)+'</b></td></tr>';
+    return '<tr><td>'+esc(v.cliente_nome||'—')+' '+origemChip(v)+'</td><td>'+BRL(k.credito)+'</td>'+(temAtr?'<td class="n">'+(atr?'<span style="color:#E0B978">'+BRL2(atr)+'</span>':'—')+'</td>':'')+cells+'<td class="n"><b>'+BRL2(k.funcPend)+'</b></td></tr>'; }).join('');
+  var foot='<tr><td colspan="2"><b>A pagar</b></td>'+(temAtr?'<td class="n"><b>'+BRL2(totAtr)+'</b></td>':'')+meses.map(function(m){return '<td class="n"><b>'+BRL2(tot[m.key])+'</b></td>';}).join('')+'<td class="n"><b>'+BRL2(totPend)+'</b></td></tr>';
   return '<div class="tbl-scroll cms-tbl"><table><thead>'+head+'</thead><tbody>'+(rows||'<tr><td colspan="9" class="note">Nenhum pagamento pendente.</td></tr>')+'</tbody><tfoot>'+foot+'</tfoot></table></div>';
 }
 
@@ -267,8 +268,8 @@ function paintMaster(C){
     +(T.an?kpi('Vendas em análise',String(T.an),true,'Registradas por colaboradores — prazo de 2 dias úteis'):'')+(T.rev?kpi('Origens em validação',String(T.rev),false,'Cadastros aguardando sua decisão'):'')
     +'</div>';
   var sel='<div class="cms-bar">'+compSelect()+'<span style="flex:1"></span><button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button></div>';
-  var porFunc='<div class="panel"><h2>Por funcionário</h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">P/ cluster</th><th class="n">Cluster</th><th class="n">Falta p/ próx.</th><th class="n">Gerada</th><th class="n">Paga</th><th class="n">Pendente</th><th class="n">Futura</th><th></th></tr></thead><tbody>'
-    +(ids.map(function(id){ var R=resumoFunc(id,_compSel,all); var u=user(id); return '<tr><td><b>'+esc(u.nome||id)+'</b></td><td class="n">'+R.n+'</td><td class="n">'+BRL(R.prodTot)+'</td><td class="n">'+BRL(R.prodCl)+'</td><td class="n">'+pct(R.cluster.r)+'</td><td class="n">'+(R.prox?BRL(R.falta):'máx.')+'</td><td class="n">'+BRL2(R.gerada)+'</td><td class="n">'+BRL2(R.paga)+'</td><td class="n"><b>'+BRL2(R.pend)+'</b></td><td class="n">'+BRL2(R.futura)+'</td><td><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\''+id+'\')">Ver</button></td></tr>'; }).join('')||'<tr><td colspan="11" class="note">Nenhuma venda registrada.</td></tr>')+'</tbody></table></div></div>';
+  var porFunc='<div class="panel"><h2>Por funcionário</h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th></th><th colspan="4" style="text-align:center;border-bottom:1px solid var(--line);color:var(--muted)">Competência '+esc(comp.rot)+'</th><th colspan="4" style="text-align:center;border-bottom:1px solid var(--line);color:var(--muted)">Acumulado</th><th></th></tr><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">Cluster</th><th class="n">Falta p/ próx.</th><th class="n">Gerada</th><th class="n">Paga</th><th class="n">Pendente</th><th class="n">Futura</th><th></th></tr></thead><tbody>'
+    +(ids.map(function(id){ var R=resumoFunc(id,_compSel,all); var u=user(id); return '<tr><td><b>'+esc(u.nome||id)+'</b></td><td class="n">'+(R.n||'—')+'</td><td class="n">'+(R.prodTot?BRL(R.prodTot)+(R.prodCl!==R.prodTot?' <span class="note">('+BRL(R.prodCl)+' p/ cluster)</span>':''):'—')+'</td><td class="n">'+(R.prodCl?pct(R.cluster.r):'—')+'</td><td class="n">'+(R.prodCl?(R.prox?BRL(R.falta):'máx.'):'—')+'</td><td class="n">'+BRL2(R.gerada)+'</td><td class="n">'+BRL2(R.paga)+'</td><td class="n"><b>'+BRL2(R.pend)+'</b></td><td class="n">'+BRL2(R.futura)+'</td><td><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\''+id+'\')">Ver</button></td></tr>'; }).join('')||'<tr><td colspan="11" class="note">Nenhuma venda registrada.</td></tr>')+'</tbody></table></div></div>';
   var lista=all.slice().sort(function(a,b){ var x=analise(a)==='EM_ANALISE'?0:1, y=analise(b)==='EM_ANALISE'?0:1; return x-y; });
   var lst=lista.filter(function(v){return grupoDe(v,all)===_tab;});
   var tbl='<div class="panel"><h2>Vendas <span class="right note">parcelas com data passada contam como pagas — clique no status para marcar como não paga / não recebida</span></h2>'+tabsHtml(lista,all)+'<p class="note" style="margin-bottom:12px">'+tabDesc()+'</p>'+(lst.length?lst.map(function(v){return vendaCard(v,all,true);}).join(''):'<p class="note">Nada aqui.</p>')+'</div>';
