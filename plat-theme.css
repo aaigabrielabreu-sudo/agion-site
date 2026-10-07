@@ -718,3 +718,21 @@ body.light::after{display:none}
 
 /* Conversas: selo de cliente cadastrado */
 body .wa-item .wa-cli{display:inline-block;margin-left:8px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gold2);border:1px solid var(--line-gold);border-radius:999px;padding:1px 7px;vertical-align:middle}
+
+/* ===================== 21. CELULAR (app e web estreita) ===================== */
+@media (max-width:760px){
+  body .kpis{grid-template-columns:1fr 1fr;gap:10px}
+  body .kpi{padding:14px 14px 12px}
+  body .kpi .lab{font-size:11px;margin-bottom:6px}
+  body .kpi b{font-size:clamp(1rem,4.6vw,1.35rem);white-space:nowrap;letter-spacing:-.01em}
+  body .kpi .note{font-size:11px}
+  body .panel{padding:16px;border-radius:16px}
+  body .panel h2{font-size:16px;flex-wrap:wrap}
+  body .panel h2 .right,body .panel h2 .btn{margin-left:auto}
+  body .topbar h1{font-size:18px}
+  body .tb-right .actions .btn{height:34px;padding:0 12px;font-size:12px}
+  /* CRM: filtros não flutuam sobre os cards */
+  body .panel.crmFiltros{position:static !important;top:auto;box-shadow:none}
+  body .kanban .kcol{min-width:86vw}
+}
+body.isApp .panel.crmFiltros{position:static !important}

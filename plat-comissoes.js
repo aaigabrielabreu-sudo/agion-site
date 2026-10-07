@@ -54,7 +54,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v17';
+var VERSAO='v18';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -334,6 +334,29 @@ body.light .cms-wrap,body.light .cms-md{--csurf-2:var(--surface-2,rgba(14,74,65,
 @media (prefers-reduced-motion:reduce){.cms-kt::before{transition:none}}
 
 .cms-wrap h2,.cms-wrap h3,.cms-wrap .note,.cms-wrap .cms-head .meta,.cms-wrap .cms-kt .t,.cms-wrap .cms-tabs button,.cms-wrap p,.cms-wrap label,.cms-wrap .cms-tag,.cms-wrap th{font-variant-numeric:normal}
+
+/* ===== Celular ===== */
+@media (max-width:1500px){.cms-kts{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:1000px){.cms-kts{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:760px){
+  .cms-kts{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;padding:2px 2px 10px;margin:0 -4px 14px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .cms-kts::-webkit-scrollbar{display:none}
+  .cms-kt{flex:0 0 82vw;max-width:340px;scroll-snap-align:start;min-height:0}
+  .cms-kt .v{font-size:1.5rem}
+  .cms-bar{gap:8px}
+  .cms-bar .cms-tabs,.cms-bar .cms-sel{flex:1 1 100%}
+  .cms-bar .btn{flex:1 1 100%;justify-content:center}
+  .cms-tl{grid-template-columns:1fr 1fr}
+  .cms-sum{grid-template-columns:1fr 1fr}
+  .cms-head{flex-direction:column}
+  .cms-head .amt{text-align:left}
+  .cms-foot{justify-content:flex-start}
+  .cms-fx-top{grid-template-columns:1fr}
+  .cms-fx-stats{grid-template-columns:1fr 1fr}
+  .cms-wrap .panel{padding:16px}
+  .cms-wrap .panel h2{flex-wrap:wrap}
+  .cms-wrap .panel h2 .right{margin-left:0;flex-basis:100%}
+}
 `;
 function ensureCss(){ if(document.getElementById('cmsCss'))return; var st=document.createElement('style'); st.id='cmsCss'; st.textContent=CSS; document.head.appendChild(st); }
 function staffList(){ return (db.accounts||[]).filter(function(a){return a.real===true&&(a.role==='master'||a.role==='lider'||a.role==='especialista')&&a.ativo!==false;}).sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'');}); }
