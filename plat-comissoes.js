@@ -54,7 +54,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v20';
+var VERSAO='v21';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -360,6 +360,46 @@ body.light .cms-wrap,body.light .cms-md{--csurf-2:var(--surface-2,rgba(14,74,65,
   .cms-wrap .panel h2{flex-wrap:wrap}
   .cms-wrap .panel h2 .right{margin-left:0;flex-basis:100%}
 }
+/* --- Próximos recebimentos por mês --- */
+.cms-rc-hero{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;padding:4px 2px 16px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.cms-rc-hero .k{display:block;font-size:var(--cfs-xs);letter-spacing:var(--ctrack);text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:4px}
+.cms-rc-hero b{font-family:var(--serif);font-size:clamp(1.6rem,1.2rem + 1.4vw,2.2rem);font-weight:600;color:var(--head);line-height:1.1;white-space:nowrap}
+.cms-rc-hero .atr{text-align:right}.cms-rc-hero .atr .k{color:var(--warn)}.cms-rc-hero .atr b{font-size:1.25rem;color:var(--warn)}
+.cms-rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;align-items:start}
+.cms-rc{background:var(--csurf-2);border:1px solid var(--line);border-radius:var(--cr-md);overflow:hidden}
+.cms-rc.now{border-color:var(--line-gold);background:linear-gradient(var(--cactive),var(--cactive)),var(--csurf-2)}
+.cms-rc--atr{border-color:var(--warn-line,rgba(224,185,120,.4))}.cms-rc--atr .v{color:var(--warn)}
+.cms-rc.vazio{opacity:.55}
+.cms-rc summary,.cms-rc .sum{list-style:none;display:grid;grid-template-columns:minmax(0,1fr) auto 18px;grid-template-areas:"m v c" "bar bar bar";gap:6px 10px;align-items:center;padding:14px 14px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cms-rc .sum{cursor:default}
+.cms-rc summary::-webkit-details-marker{display:none}
+.cms-rc .m{grid-area:m;min-width:0}
+.cms-rc .m b{display:block;font-size:var(--cfs-md);font-weight:600;color:var(--head);line-height:1.25}
+.cms-rc .m b small{font-weight:400;color:var(--muted);font-size:.8em}
+.cms-rc .m span{display:block;font-size:var(--cfs-xs);color:var(--soft);margin-top:2px;line-height:1.35}
+.cms-rc .v{grid-area:v;font-family:var(--serif);font-size:1.2rem;font-weight:600;color:var(--head);white-space:nowrap;text-align:right}
+.cms-rc.now .v{color:var(--gold2)}
+.cms-rc-chev{grid-area:c;width:8px;height:8px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s;justify-self:center}
+.cms-rc[open] .cms-rc-chev{transform:rotate(225deg)}
+.cms-rc .bar{grid-area:bar;height:4px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden}
+.cms-rc .bar i{display:block;height:100%;border-radius:4px;background:var(--grad-gold,linear-gradient(90deg,#A3833F,#ECD9A6))}
+.cms-rc--atr .bar{display:none}
+.cms-rc-list{list-style:none;margin:0;padding:2px 14px 10px;border-top:1px solid var(--line)}
+.cms-rc-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.cms-rc-list li:last-child{border-bottom:0}
+.cms-rc-list .who{min-width:0}
+.cms-rc-list .who b{display:block;font-size:var(--cfs-sm);font-weight:600;color:var(--head);overflow-wrap:anywhere}
+.cms-rc-list .who span{display:block;font-size:var(--cfs-xs);color:var(--soft);margin-top:1px}
+.cms-rc-list em{font-style:normal;font-weight:600;color:var(--head);white-space:nowrap;font-variant-numeric:tabular-nums}
+.cms-rc-hint{margin:10px 2px 0;font-size:var(--cfs-xs);color:var(--muted)}
+@media(hover:hover){.cms-rc summary:hover{background:var(--chover)}}
+@media(max-width:760px){
+  .cms-rc-grid{grid-template-columns:1fr;gap:8px}
+  .cms-rc-hero{flex-direction:column;align-items:flex-start}.cms-rc-hero .atr{text-align:left}
+  .cms-rc summary,.cms-rc .sum{padding:14px 14px 12px;min-height:56px}
+  .cms-rc .v{font-size:1.15rem}
+}
+
 `;
 function ensureCss(){ if(document.getElementById('cmsCss'))return; var st=document.createElement('style'); st.id='cmsCss'; st.textContent=CSS; document.head.appendChild(st); }
 function staffList(){ return (db.accounts||[]).filter(function(a){return a.real===true&&(a.role==='master'||a.role==='lider'||a.role==='especialista')&&a.ativo!==false;}).sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'');}); }
@@ -403,48 +443,32 @@ function compSelect(){
 }
 function mesesRolantes(){ var out=[], d=new Date(); for(var i=0;i<5;i++){ var m=mkDate(d.getFullYear(), d.getMonth()+i, 1); out.push({key:iso(m).slice(0,7), rot:['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][m.getMonth()]+'/'+String(m.getFullYear()).slice(2)}); } return out; }
 function tabelaRolante(vendas, all, comAgion){
-  var meses=mesesRolantes(), m0=meses[0].key;
-  var temAtr=vendas.filter(ativa).some(function(v){ var k=calc(v,all); return k.parcelas.some(function(p){return p.funcStatus!=='PAGA'&&p.data.slice(0,7)<m0;}) || (k.ajuste&&!k.ajustePago&&k.ajusteData.slice(0,7)<m0); });
-  var head='<tr><th>Cliente</th><th class="n">Crédito</th>'+(temAtr?'<th class="n">Em atraso</th>':'')+meses.map(function(m){return '<th class="n">'+m.rot+'</th>';}).join('')+'<th class="n">Total pendente</th></tr>';
-  var tot={}; meses.forEach(function(m){tot[m.key]=0;}); var totAtr=0, totPend=0;
-  var rows=vendas.filter(ativa).map(function(v){ var k=calc(v,all); if(k.funcPend<=0.005) return '';
-    var atr=0; k.parcelas.forEach(function(p){ if(p.funcStatus!=='PAGA'&&p.data.slice(0,7)<m0) atr+=p.func; }); if(k.ajuste&&!k.ajustePago&&k.ajusteData.slice(0,7)<m0) atr+=k.ajuste; totAtr+=atr; totPend+=k.funcPend;
-    var cells=meses.map(function(m){ var s=0, pend=0; k.parcelas.forEach(function(p){ if(p.data.slice(0,7)===m.key){ s+=p.func; if(p.funcStatus!=='PAGA') pend+=p.func; } }); if(k.ajuste && k.ajusteData.slice(0,7)===m.key){ s+=k.ajuste; if(!k.ajustePago) pend+=k.ajuste; } tot[m.key]+=pend; return '<td class="n">'+(s?(pend?BRL2(pend):'<span class="note">pago</span>')+(pend&&pend<s?' <span class="note">(pago '+BRL2(s-pend)+')</span>':''):'—')+'</td>'; }).join('');
-    return '<tr><td>'+esc(v.cliente_nome||'—')+' '+origemChip(v)+'</td><td class="n">'+BRL(k.credito)+'</td>'+(temAtr?'<td class="n">'+(atr?'<span class="cms-warn">'+BRL2(atr)+'</span>':'—')+'</td>':'')+cells+'<td class="n"><b>'+BRL2(k.funcPend)+'</b></td></tr>'; }).join('');
-  var foot='<tr><td colspan="2"><b>Total</b></td>'+(temAtr?'<td class="n"><b>'+BRL2(totAtr)+'</b></td>':'')+meses.map(function(m){return '<td class="n"><b>'+BRL2(tot[m.key])+'</b></td>';}).join('')+'<td class="n"><b>'+BRL2(totPend)+'</b></td></tr>';
-  return '<div class="tbl-scroll cms-tbl"><table><thead>'+head+'</thead><tbody>'+(rows||emptyRow(meses.length+(temAtr?4:3),'Nenhum pagamento pendente','Tudo o que venceu já foi pago.'))+'</tbody>'+(rows?'<tfoot>'+foot+'</tfoot>':'')+'</table></div>';
+  /* Próximos recebimentos — organizado POR MÊS: total do mês em destaque, clientes ao tocar. */
+  var meses=mesesRolantes(), m0=meses[0].key, MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  var MESL=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  var B={atr:{tot:0,itens:[]}}; meses.forEach(function(m){ B[m.key]={tot:0,itens:[],datas:{}}; });
+  vendas.filter(ativa).forEach(function(v){ var k=calc(v,all);
+    var add=function(data,val,rot){ if(val<=0.005)return; var mk=data.slice(0,7), alvo=mk<m0?B.atr:B[mk]; if(!alvo)return;
+      alvo.tot+=val; alvo.itens.push({nome:v.cliente_nome||'—',v:v,val:val,rot:rot,data:data}); if(alvo.datas) alvo.datas[data]=(alvo.datas[data]||0)+val; };
+    k.parcelas.forEach(function(p,i){ if(p.funcStatus!=='PAGA') add(p.data,p.func,'Parcela '+(i+1)+'/'+k.parcelas.length); });
+    if(k.ajuste&&!k.ajustePago) add(k.ajusteData,k.ajuste,'Ajuste de cluster');
+  });
+  var tot5=0, max=0; meses.forEach(function(m){ tot5+=B[m.key].tot; if(B[m.key].tot>max)max=B[m.key].tot; });
+  if(tot5<=0.005&&B.atr.tot<=0.005) return empty('Nenhum pagamento pendente','Tudo o que venceu já foi pago.');
+  var lista=function(it){ it.sort(function(x,y){return x.data<y.data?-1:x.data>y.data?1:y.val-x.val;});
+    return '<ul class="cms-rc-list">'+it.map(function(x){ return '<li><div class="who"><b>'+esc(x.nome)+'</b><span>'+x.rot+' · '+fmtBR(x.data)+'</span></div><em>'+BRL2(x.val)+'</em></li>'; }).join('')+'</ul>'; };
+  var hero='<div class="cms-rc-hero"><div><span class="k">Total a receber · próximos 5 meses</span><b>'+BRL2(tot5)+'</b></div>'
+    +(B.atr.tot>0.005?'<div class="atr"><span class="k">Em atraso</span><b>'+BRL2(B.atr.tot)+'</b></div>':'')+'</div>';
+  var atr=B.atr.tot>0.005?'<details class="cms-rc cms-rc--atr"><summary><div class="m"><b>Em atraso</b><span>'+B.atr.itens.length+' pagamento'+(B.atr.itens.length>1?'s':'')+' vencido'+(B.atr.itens.length>1?'s':'')+'</span></div><div class="v">'+BRL2(B.atr.tot)+'</div><i class="cms-rc-chev" aria-hidden="true"></i></summary>'+lista(B.atr.itens)+'</details>':'';
+  var cards=meses.map(function(m,ix){ var x=B[m.key], mm=+m.key.slice(5,7)-1, n=x.itens.length;
+    var dts=Object.keys(x.datas).sort().map(function(d){return 'dia '+(+d.slice(8,10));}).join(' e ');
+    var w=max>0?Math.max(3,Math.round(x.tot/max*100)):0;
+    var head='<div class="m"><b>'+MESL[mm]+' <small>'+m.key.slice(0,4)+'</small></b><span>'+(n?(dts?dts+' · ':'')+n+' cliente'+(n>1?'s':''):'nada a receber')+'</span></div><div class="v">'+(n?BRL2(x.tot):'—')+'</div>'+(n?'<i class="cms-rc-chev" aria-hidden="true"></i>':'')
+      +'<div class="bar"><i style="width:'+w+'%"></i></div>';
+    return n?'<details class="cms-rc'+(ix===0?' now':'')+'"><summary>'+head+'</summary>'+lista(x.itens)+'</details>':'<div class="cms-rc vazio"><div class="sum">'+head+'</div></div>';
+  }).join('');
+  return hero+'<div class="cms-rc-grid">'+atr+cards+'</div><p class="cms-rc-hint">Toque em um mês para ver de quais clientes vem o valor.</p>';
 }
-
-/* ===================== UI: FUNCIONÁRIO ===================== */
-function paintFunc(C, uid, titulo){
-  var R=resumoFunc(uid,_compSel,_vendas);
-  var mine=_vendas.filter(function(v){return v.vendedor_id===uid;});
-  var cards='<div class="kpis">'
-    +kpi('Produção da competência',BRL(R.prodTot),true,'Cluster <b>'+pct(R.cluster.r)+'</b>'+(R.prox?' · faltam <b>'+BRL(R.falta)+'</b> para '+pct(R.prox.r):' · cluster máximo')+(R.prodCl!==R.prodTot?' · <b>'+BRL(R.prodCl)+'</b> contam para o cluster':''))
-    +kpi('Comissão pré-contemplação',BRL2(R.gerada),false,'Recebida <b>'+BRL2(R.paga)+'</b> · a receber <b>'+BRL2(R.pend)+'</b>'+(R.proximo?' · próxima em <b>'+fmtBR(R.proximo.data)+'</b>':''))
-    +kpi('Pós-contemplação potencial',BRL2(R.futura),false,'1% do crédito dos seus clientes próprios, pago quando a cota for contemplada')
-    +(R.reemb?kpi('Reembolsos',BRL2(R.reemb),false,''):'')
-    +'</div>';
-  var sel='<div class="cms-bar">'+compSelect()+'</div>';
-  var lst=mine.filter(function(v){return grupoDe(v,_vendas)===_tab;});
-  var tbl='<div class="panel"><h2>Vendas</h2>'+tabsHtml(mine,_vendas)+'<p class="cms-desc">'+tabDesc()+'</p>'+(lst.length?lst.map(function(v){return vendaCard(v,_vendas,false);}).join(''):empty('Nenhuma venda nesta aba','Registre uma venda ou veja outra aba.'))+'</div>';
-  var rol='<div class="panel"><h2>Próximos recebimentos <span class="right note">previsão para os próximos 5 meses</span></h2>'+tabelaRolante(mine,_vendas,false)+'</div>';
-  var sit=mine.filter(function(v){return v.situacao!=='EM_DIA'||analise(v)==='RECUSADA'||analise(v)==='EM_ANALISE';});
-  var sitHtml='<div class="panel"><h2>Situação dos clientes</h2>'+(sit.length?'<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Situação</th><th class="n">Reembolso</th><th>Observação</th></tr></thead><tbody>'+sit.map(function(v){return '<tr><td>'+esc(v.cliente_nome||'—')+'</td><td>'+(analise(v)==='RECUSADA'||analise(v)==='EM_ANALISE'?anChip(v):sitChip(v.situacao))+'</td><td class="n">'+(v.reembolso_valor?BRL2(v.reembolso_valor):'—')+'</td><td class="note">'+esc(v.analise_obs||v.obs||'')+'</td></tr>';}).join('')+'</tbody></table></div>':empty('Todos os clientes estão em dia','Nenhuma venda em análise, recusada ou com pendência.'))+'</div>';
-  ensureCss(); C.innerHTML='<div class="cms-wrap">'+sel+cards+tbl+(_tab==='andamento'?rol+sitHtml:'')+'</div>';
-}
-
-/* ===================== UI: MASTER ===================== */
-var _periodo='comp';
-window.cmsSetPeriodo=function(p){ _periodo=p; render(); };
-function statsFunc(id, all, filt){
-  var S={n:0,prod:0,prodCl:0,gerP:0,gerL:0,hsRec:0,funcPago:0,funcGer:0,posRec:0,posFuncPago:0};
-  all.forEach(function(v){ if(v.vendedor_id!==id||!ativa(v)||(filt&&!filt(v)))return; var k=calc(v,all);
-    S.n++; S.prod+=k.credito; if(elegivelCluster(v))S.prodCl+=k.credito; if(k.proprio)S.gerP+=k.hsPre; else S.gerL+=k.hsPre;
-    S.hsRec+=k.hsRec; S.funcPago+=k.funcPago; S.funcGer+=k.funcPre; if(v.pos_status==='COMISSAO_POS_RECEBIDA'){S.posRec+=k.posHs; if(v.pos_func_pago)S.posFuncPago+=k.posFunc;} });
-  S.ger=S.gerP+S.gerL; S.cluster=clusterDe(S.prodCl); S.prox=proxCluster(S.prodCl); S.falta=S.prox?(S.cluster.ate+1-S.prodCl):0; return S;
-}
-function mesesCols(meses){ return meses.map(function(m){return '<th class="n">'+m.rot+'</th>';}).join(''); }
 function porMes(k,v,meses,tipo){ // tipo: 'func' | 'hs' | 'agion' -> valores pendentes por mês
   return meses.map(function(m){ var s=0; k.parcelas.forEach(function(p){ if(p.data.slice(0,7)!==m.key)return; if(tipo==='func'){ if(p.funcStatus!=='PAGA')s+=p.func; } else if(tipo==='hs'){ if(p.hsStatus!=='RECEBIDA')s+=p.hs; } else { s+=(p.hsStatus!=='RECEBIDA'?p.hs:0)-(p.funcStatus!=='PAGA'?p.func:0); } });
     if(k.ajuste&&k.ajusteData.slice(0,7)===m.key&&!k.ajustePago){ if(tipo==='func')s+=k.ajuste; if(tipo==='agion')s-=k.ajuste; } return s; });
