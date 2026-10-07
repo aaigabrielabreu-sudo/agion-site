@@ -54,7 +54,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v24';
+var VERSAO='v25';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -64,7 +64,7 @@ function vendasVisiveis(){ if(eMaster()) return _vendas; var ids=[eId()].concat(
 function grupoDe(v,all){ var a=analise(v); if(a==='EM_ANALISE'||a==='RECUSADA'||v.situacao==='CANCELADA'||v.situacao==='REEMBOLSO_TOTAL') return 'outros'; if(v.pos_status&&v.pos_status!=='NAO_CONTEMPLADA') return 'pos'; var k=calc(v,all); return k.funcPend>0.005?'andamento':'pagos'; }
 function tabsHtml(vendas,all){ var c={andamento:0,pagos:0,pos:0,outros:0}; vendas.forEach(function(v){c[grupoDe(v,all)]++;}); var L=[['andamento','Em andamento'],['pagos','Pagos'],['pos','Pós-contemplação'],['outros','Outros']]; return '<div class="cms-tabs">'+L.map(function(t){return '<button class="'+(_tab===t[0]?'on':'')+'" onclick="cmsSetTab(\''+t[0]+'\')">'+t[1]+'<span>'+c[t[0]]+'</span></button>';}).join('')+'</div>'; }
 function tabDesc(){ return {andamento:'Vendas com parcelas da comissão pré-contemplação ainda pendentes.',pagos:'Comissão pré-contemplação paga por completo. Aguardando a contemplação da cota.',pos:'Cotas já contempladas e a comissão pós-contemplação.',outros:'Vendas em análise, recusadas, canceladas ou com reembolso total.'}[_tab]; }
-window.cmsSetTab=function(t){ _tab=t; render(); };
+window.cmsSetTab=function(t){ _tab=t; repaint(); };
 function diasUteis(fromISO,n){ var d=parseISO(fromISO), c=0; while(c<n){ d.setDate(d.getDate()+1); if(d.getDay()!==0&&d.getDay()!==6) c++; } return iso(d); }
 function analise(v){ var st=v.analise_status||'APROVADA'; if(st==='EM_ANALISE' && v.analise_prazo && v.analise_prazo<iso(new Date())) return 'APROVADA_AUTO'; return st; }
 function aprovada(v){ var a=analise(v); return a==='APROVADA'||a==='APROVADA_AUTO'; }
@@ -498,7 +498,7 @@ function paintFunc(C, uid, titulo){
 
 /* ===================== UI: MASTER ===================== */
 var _periodo='comp';
-window.cmsSetPeriodo=function(p){ _periodo=p; render(); };
+window.cmsSetPeriodo=function(p){ _periodo=p; repaint(); };
 function statsFunc(id, all, filt){
   var S={n:0,prod:0,prodCl:0,gerP:0,gerL:0,hsRec:0,funcPago:0,funcGer:0,posRec:0,posFuncPago:0};
   all.forEach(function(v){ if(v.vendedor_id!==id||!ativa(v)||(filt&&!filt(v)))return; var k=calc(v,all);
@@ -582,8 +582,8 @@ function fluxo(V, all, meses){
     +'<div class="cms-fx-stats">'+stats+'</div></div>';
 }
 var _mtab='producao', _orgOpen={};
-window.cmsSetMtab=function(t){ _mtab=t; render(); };
-window.cmsOrgToggle=function(id){ _orgOpen[id]=!_orgOpen[id]; render(); };
+window.cmsSetMtab=function(t){ _mtab=t; repaint(true); };
+window.cmsOrgToggle=function(id){ _orgOpen[id]=!_orgOpen[id]; repaint(); };
 function somaArr(a){ return a.reduce(function(x,y){return x+y;},0); }
 function organograma(all, meses, tipo){
   var byF={}; all.forEach(function(v){ if(!ativa(v))return; var k=calc(v,all); var arr=porMes(k,v,meses,tipo); var tot=tipo==='func'?k.funcPend:(tipo==='agion'?(k.hsPend-k.funcPend):k.hsPend); if(!arr.some(function(x){return Math.abs(x)>0.005;})&&Math.abs(tot)<0.005)return; (byF[v.vendedor_id]=byF[v.vendedor_id]||[]).push({v:v,k:k,arr:arr,tot:tot}); });
@@ -771,8 +771,8 @@ window.cmsDesignar=async function(id){
   if(!pick||pick===v.vendedor_id)return;
   await upd(id,{vendedor_id:pick},'Designou a comissão de '+(v.cliente_nome||'')+' para '+(user(pick).nome||''));
 };
-window.cmsSetComp=function(k){ _compSel=k; render(); };
-window.cmsVerFunc=function(id){ _funcSel=id; render(); };
+window.cmsSetComp=function(k){ _compSel=k; repaint(); };
+window.cmsVerFunc=function(id){ _funcSel=id; repaint(false,true); };
 
 /* ===================== REGISTRAR VENDA ===================== */
 window.cmsNovaVenda=async function(pre){
@@ -875,6 +875,24 @@ window.renderComissoes=async function(C){
   cmsLayout(); cmsObserve();
   requestAnimationFrame(cmsLayout);
 };
+/* Troca de aba/período/acordeão SEM recarregar a página: usa os dados já carregados, mantém a rolagem
+   da tela e a posição do carrossel de cartões (antes voltava tudo para o início). */
+function repaint(focoCard, topo){
+  var C=document.querySelector('.main>.content')||document.getElementById('content'); if(!C||!_loaded||!C.querySelector('.cms-wrap')){ render(); return; }
+  var y=C.scrollTop, g=C.querySelector('.cms-kts'), x=g?g.scrollLeft:0;
+  try{ _pinta(C); }catch(e){ render(); return; }
+  cmsLayout();
+  var g2=C.querySelector('.cms-kts'); if(g2){ g2.scrollLeft=x; if(focoCard){ var on=g2.querySelector('.cms-kt.on'); if(on){ var gl=g2.getBoundingClientRect(), r=on.getBoundingClientRect(); if(r.left<gl.left||r.right>gl.right) g2.scrollTo({left:g2.scrollLeft+(r.left-gl.left)-8,behavior:'smooth'}); } } }
+  C.scrollTop=topo?0:y;
+}
+function _pinta(C){
+  var M=eMaster(), L=eLider();
+  if(!M) _vendas=vendasVisiveis();
+  if(M&&!_funcSel) return paintMaster(C);
+  if((M||L)&&_funcSel){ var u=user(_funcSel); if(L&&teamIds().indexOf(_funcSel)<0){ _funcSel=''; return _pinta(C); } C.innerHTML=''; paintFunc(C,_funcSel,u.nome); C.insertAdjacentHTML('afterbegin','<div style="margin-bottom:12px"><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\'\')">← Voltar</button> <b style="margin-left:8px">'+esc(u.nome||'')+'</b></div>'); return; }
+  if(L) return paintLider(C);
+  paintFunc(C,eId());
+}
 async function _rotaComissoes(C){
   if(!_compSel) _compSel=compAtual().key;
   var M=eMaster(), L=eLider();
