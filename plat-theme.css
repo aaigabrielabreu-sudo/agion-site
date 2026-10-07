@@ -731,16 +731,18 @@ body .wa-item .wa-cli{display:inline-block;margin-left:8px;font-size:10px;font-w
   body .panel h2 .right,body .panel h2 .btn{margin-left:auto}
   body .topbar h1{font-size:18px}
   body .tb-right .actions .btn{height:34px;padding:0 12px;font-size:12px}
-  /* CRM: filtros não flutuam sobre os cards */
-  body .panel.crmFiltros{position:static !important;top:auto;box-shadow:none}
   body .kanban .kcol{min-width:86vw}
 }
-body.isApp .panel.crmFiltros{position:static !important}
 
 /* ===================== 22. APP / celular — layout original preservado ===================== */
 @media(max-width:860px){
   #app.show{display:block;grid-template-columns:1fr}
-  body .topbar{min-height:0;height:auto;position:sticky;top:0;z-index:60;background:rgba(11,42,38,.96);backdrop-filter:blur(18px)}
-  body .topbar h1,body .topbar .crumb,body .topbar .bells,body .topbar .userchip{opacity:1}
-  body.isApp .topbar{padding:12px 16px}
+  body:not(.isApp) .topbar{min-height:0;height:auto;position:sticky;top:0;z-index:60;background:rgba(11,42,38,.96);backdrop-filter:blur(18px)}
 }
+/* APP (Capacitor / html.isApp): devolve o layout original — cabeçalho estático abaixo da área segura,
+   faixa da barra de status opaca, .content rolando por dentro. O tema não pode encostar nisso. */
+html.isApp body::before{background:#0B2A26 !important;inset:auto;z-index:200}   /* !important: vence o gradiente do fundo (seção 2) */
+body.isApp .topbar{position:static;min-height:0;height:auto;padding:max(6px,calc(env(safe-area-inset-top,0px) - 12px)) 14px 7px;gap:4px 10px;background:rgba(11,42,38,.95)}
+html.capNative body.isApp .topbar{padding-top:var(--agTop,58px);padding-bottom:6px}
+body.isApp.appScrolled .topbar{padding-bottom:3px}
+body.isApp .panel.crmFiltros{position:sticky;top:0;z-index:25}
