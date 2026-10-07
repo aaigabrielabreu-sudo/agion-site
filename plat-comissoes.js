@@ -196,13 +196,15 @@ function compSelect(){
 }
 function mesesRolantes(){ var out=[], d=new Date(); for(var i=0;i<5;i++){ var m=mkDate(d.getFullYear(), d.getMonth()+i, 1); out.push({key:iso(m).slice(0,7), rot:['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][m.getMonth()]+'/'+String(m.getFullYear()).slice(2)}); } return out; }
 function tabelaRolante(vendas, all, comAgion){
-  var meses=mesesRolantes();
-  var head='<tr><th>Cliente</th><th>Crédito</th>'+meses.map(function(m){return '<th class="n">'+m.rot+'</th>';}).join('')+'<th class="n">Total previsto</th></tr>';
-  var tot={}; meses.forEach(function(m){tot[m.key]=0;});
-  var rows=vendas.filter(ativa).map(function(v){ var k=calc(v,all); var cells=meses.map(function(m){ var s=0, pend=0; k.parcelas.forEach(function(p){ if(p.data.slice(0,7)===m.key){ s+=p.func; if(p.funcStatus!=='PAGA') pend+=p.func; } }); if(k.ajuste && k.ajusteData.slice(0,7)===m.key){ s+=k.ajuste; if(!v.ajuste_pago) pend+=k.ajuste; } tot[m.key]+=pend; return '<td class="n">'+(s?BRL2(s)+(pend<s?' <span class="note">(pago '+BRL2(s-pend)+')</span>':''):'—')+'</td>'; }).join('');
-    return '<tr><td>'+esc(v.cliente_nome||'—')+' '+origemChip(v)+'</td><td>'+BRL(k.credito)+'</td>'+cells+'<td class="n"><b>'+BRL2(k.funcPend)+'</b></td></tr>'; }).join('');
-  var foot='<tr><td colspan="2"><b>A receber no mês</b></td>'+meses.map(function(m){return '<td class="n"><b>'+BRL2(tot[m.key])+'</b></td>';}).join('')+'<td></td></tr>';
-  return '<div class="tbl-scroll cms-tbl"><table><thead>'+head+'</thead><tbody>'+(rows||'<tr><td colspan="8" class="note">Nenhuma venda registrada.</td></tr>')+'</tbody><tfoot>'+foot+'</tfoot></table></div>';
+  var meses=mesesRolantes(), m0=meses[0].key;
+  var head='<tr><th>Cliente</th><th>Crédito</th><th class="n">Em atraso</th>'+meses.map(function(m){return '<th class="n">'+m.rot+'</th>';}).join('')+'<th class="n">Pendente</th></tr>';
+  var tot={}; meses.forEach(function(m){tot[m.key]=0;}); var totAtr=0, totPend=0;
+  var rows=vendas.filter(ativa).map(function(v){ var k=calc(v,all); if(k.funcPend<=0.005) return '';
+    var atr=0; k.parcelas.forEach(function(p){ if(p.funcStatus!=='PAGA'&&p.data.slice(0,7)<m0) atr+=p.func; }); if(k.ajuste&&!v.ajuste_pago&&k.ajusteData.slice(0,7)<m0) atr+=k.ajuste; totAtr+=atr; totPend+=k.funcPend;
+    var cells=meses.map(function(m){ var s=0, pend=0; k.parcelas.forEach(function(p){ if(p.data.slice(0,7)===m.key){ s+=p.func; if(p.funcStatus!=='PAGA') pend+=p.func; } }); if(k.ajuste && k.ajusteData.slice(0,7)===m.key){ s+=k.ajuste; if(!v.ajuste_pago) pend+=k.ajuste; } tot[m.key]+=pend; return '<td class="n">'+(s?(pend?BRL2(pend):'<span class="note">pago</span>')+(pend&&pend<s?' <span class="note">(pago '+BRL2(s-pend)+')</span>':''):'—')+'</td>'; }).join('');
+    return '<tr><td>'+esc(v.cliente_nome||'—')+' '+origemChip(v)+'</td><td>'+BRL(k.credito)+'</td><td class="n">'+(atr?'<span style="color:#E0B978">'+BRL2(atr)+'</span>':'—')+'</td>'+cells+'<td class="n"><b>'+BRL2(k.funcPend)+'</b></td></tr>'; }).join('');
+  var foot='<tr><td colspan="2"><b>A pagar</b></td><td class="n"><b>'+(totAtr?BRL2(totAtr):'—')+'</b></td>'+meses.map(function(m){return '<td class="n"><b>'+BRL2(tot[m.key])+'</b></td>';}).join('')+'<td class="n"><b>'+BRL2(totPend)+'</b></td></tr>';
+  return '<div class="tbl-scroll cms-tbl"><table><thead>'+head+'</thead><tbody>'+(rows||'<tr><td colspan="9" class="note">Nenhum pagamento pendente.</td></tr>')+'</tbody><tfoot>'+foot+'</tfoot></table></div>';
 }
 
 /* ===================== UI: FUNCIONÁRIO ===================== */
