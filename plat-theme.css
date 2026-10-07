@@ -715,3 +715,6 @@ body.light::after{display:none}
   body .kpi.grad::after{display:none}
   body .lead{box-shadow:none!important}
 }
+
+/* Conversas: selo de cliente cadastrado */
+body .wa-item .wa-cli{display:inline-block;margin-left:8px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gold2);border:1px solid var(--line-gold);border-radius:999px;padding:1px 7px;vertical-align:middle}

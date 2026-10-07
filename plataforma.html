@@ -1334,7 +1334,7 @@ html.capNative body.isApp #viewbar,html.capNative body.isApp .topbar,html.capNat
   document.addEventListener('touchcancel',ptrEnd,{passive:true});
 }catch(e){}})();</script>
 <link rel="stylesheet" href="/plat-motion.css?v=1">
-<link rel="stylesheet" href="/plat-theme.css?v=1">
+<link rel="stylesheet" href="/plat-theme.css?v=2">
 <link rel="stylesheet" href="/plat-crm.css?v=1">
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
@@ -2170,31 +2170,45 @@ async function renderConversas(C){
   convState.poll=setInterval(function(){ if(!document.getElementById('waRoot')){clearInterval(convState.poll);convState.poll=null;return;} convLoadList(true); if(convState.phone) convRefreshChat(); },15000);
 }
 async function convLoadList(silent){
+  if(!window._cartasIdx){ window._cartasIdx={}; try{ var _k=await supa.from('cartas').select('titular_nome,whatsapp'); (_k.data||[]).forEach(function(x){ if(x.whatsapp){ var kk=convKey(x.whatsapp); if(!window._cartasIdx[kk]) window._cartasIdx[kk]=x.titular_nome||''; } }); }catch(e){} }
   const r=await apiFetch('/api/conversas'); const el=document.getElementById('waItems'); if(!el)return;
   if(!r.ok){ if(!silent) el.innerHTML='<p class="note" style="padding:14px">Não consegui falar com o robô ('+esc(String(r.data.error||r.status))+').</p>'; return; }
   convState.list=r.data.conversas||[]; convRenderList();
 }
 function convFilter(v){convState.filter=(v||'').toLowerCase();convRenderList();}
+function convKey(p){ var d=String(p||'').replace(/\D/g,''); if((d.length===12||d.length===13)&&d.slice(0,2)==='55') d=d.slice(2); if(d.length<10) return d; return d.slice(0,2)+d.slice(-8); }
+function convClienteNome(key){ try{ var c=(db.clients||[]).find(function(x){return x.tel&&convKey(x.tel)===key;}); if(c&&c.nome) return c.nome; var k=(window._cartasIdx||{})[key]; if(k) return k; }catch(e){} return ''; }
+function convGrouped(list){
+  var g={}, order=[];
+  (list||[]).forEach(function(c){ var k=convKey(c.phone); if(!g[k]){ g[k]={key:k,phones:[],nome:'',ultima:'',ultdir:'',ults:0,unread:false}; order.push(k); } var G=g[k]; G.phones.push(c.phone); if(c.nome&&(!G.nome||/^\d+$/.test(G.nome))) G.nome=c.nome; if((+c.ults||0)>=G.ults){ G.ults=+c.ults||0; G.ultima=c.ultima||''; G.ultdir=c.ultdir||''; G.phone=c.phone; } if(convUnread(c)) G.unread=true; });
+  return order.map(function(k){ var G=g[k]; var cn=convClienteNome(k); if(cn) G.nome=cn; G.phone=G.phone||G.phones[0]; return G; }).sort(function(a,b){return b.ults-a.ults;});
+}
 function convRenderList(){
   const el=document.getElementById('waItems'); if(!el)return;
-  let list=convState.list;
-  if(convState.filter){ list=list.filter(function(c){return ((c.nome||'')+' '+c.phone).toLowerCase().indexOf(convState.filter)>=0;}); }
-  var _lsig=convState.filter+'|'+(convState.phone||'')+'|'+list.map(function(c){return c.phone+':'+c.ults+':'+(c.ultima||'')+':'+(convUnread(c)?1:0);}).join(',');
+  let list=convGrouped(convState.list);
+  if(convState.filter){ list=list.filter(function(c){return ((c.nome||'')+' '+c.phones.join(' ')).toLowerCase().indexOf(convState.filter)>=0;}); }
+  var _lsig=convState.filter+'|'+(convState.phone||'')+'|'+list.map(function(c){return c.key+':'+c.ults+':'+(c.ultima||'')+':'+(c.unread?1:0)+':'+(c.nome||'');}).join(',');
   if(_lsig===convState._lsig)return; convState._lsig=_lsig;
   if(!list.length){ el.innerHTML='<p class="note" style="padding:14px">'+(convState.filter?'Nada encontrado.':'Nenhuma conversa ainda. Toque em ✚ para iniciar uma.')+'</p>'; return; }
+  var curKey=convKey(convState.phone||'');
   el.innerHTML=list.map(function(c){
     const nome=c.nome||convFmtPhone(c.phone);
     const prev=(c.ultdir==='in'?'':'✓ ')+(c.ultima||'');
-    return '<div class="wa-item '+(convState.phone===c.phone?'on':'')+'" onclick="convOpen(\''+c.phone+'\')"><div class="wa-av" style="background:'+convColor(c.phone)+'">'+esc(convInitials(nome))+'</div><div class="wa-it-main"><div class="wa-it-top"><span class="wa-it-nm">'+esc(nome)+'</span><span class="wa-it-tm">'+convDataHora(c.ults)+'</span></div><div class="wa-it-top"><span class="wa-it-pv">'+esc(prev)+'</span>'+(convUnread(c)?'<span class="wa-dot"></span>':'')+'</div></div></div>';
+    const cli=convClienteNome(c.key)?'<span class="wa-cli" title="Cliente cadastrado">Cliente</span>':'';
+    return '<div class="wa-item '+(curKey===c.key?'on':'')+'" onclick="convOpen(\''+c.phone+'\')"><div class="wa-av" style="background:'+convColor(c.key)+'">'+esc(convInitials(nome))+'</div><div class="wa-it-main"><div class="wa-it-top"><span class="wa-it-nm">'+esc(nome)+cli+'</span><span class="wa-it-tm">'+convDataHora(c.ults)+'</span></div><div class="wa-it-top"><span class="wa-it-pv">'+esc(prev)+'</span>'+(c.unread?'<span class="wa-dot"></span>':'')+'</div></div></div>';
   }).join('');
 }
 async function convOpen(phone){
   convState.phone=phone; convRenderList();
   const wr=document.getElementById('waRoot'); if(wr)wr.classList.add('showchat');
   const mn=document.getElementById('waMain'); if(mn)mn.innerHTML='<div class="wa-emp"><p class="note">Carregando…</p></div>';
-  const r=await apiFetch('/api/mensagens?phone='+encodeURIComponent(phone));
-  if(!r.ok){ if(mn)mn.innerHTML='<div class="wa-emp"><p class="note">Erro ao carregar.</p></div>'; return; }
-  convState.msgs=r.data.mensagens||[]; convState.nome=r.data.nome;
+  var _grp=convGrouped(convState.list).find(function(g){return g.key===convKey(phone);}); var _phones=_grp?_grp.phones:[phone];
+  var _rs=await Promise.all(_phones.map(function(p){return apiFetch('/api/mensagens?phone='+encodeURIComponent(p));}));
+  const r=_rs.find(function(x){return x.ok;})||_rs[0];
+  if(!r||!r.ok){ if(mn)mn.innerHTML='<div class="wa-emp"><p class="note">Erro ao carregar.</p></div>'; return; }
+  var _all=[]; _rs.forEach(function(x){ if(x.ok&&x.data&&x.data.mensagens) _all=_all.concat(x.data.mensagens); }); _all.sort(function(a,b){return (+a.ts||0)-(+b.ts||0);});
+  convState.msgs=_all; convState.nome=(_grp&&_grp.nome)||r.data.nome; convState.phones=_phones;
+  if(_grp&&_grp.phone&&_grp.phone!==phone){ convState.phone=_grp.phone; }
   convMarkSeen(phone,convState.msgs.length?convState.msgs[convState.msgs.length-1].ts:Date.now()/1000);
   convRenderChat();
 }
