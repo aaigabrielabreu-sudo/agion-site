@@ -88,7 +88,7 @@ h1,h2,h3,h4{font-variant-numeric:normal;letter-spacing:0}
 /* --------------------------------------------------------------------------
    2. SHELL — sidebar
    -------------------------------------------------------------------------- */
-@media(min-width:1025px){#app.show{grid-template-columns:var(--side-w) 1fr}}
+@media(min-width:861px){#app.show{grid-template-columns:var(--side-w) 1fr}}
 body .side{
   background:var(--side-bg);backdrop-filter:none;
   border-right:1px solid var(--chrome-line);
@@ -738,7 +738,7 @@ body .wa-item .wa-cli{display:inline-block;margin-left:8px;font-size:10px;font-w
 body.isApp .panel.crmFiltros{position:static !important}
 
 /* ===================== 22. APP / celular — layout original preservado ===================== */
-@media(max-width:1024px){
+@media(max-width:860px){
   #app.show{display:block;grid-template-columns:1fr}
   body .topbar{min-height:0;height:auto;position:sticky;top:0;z-index:60;background:rgba(11,42,38,.96);backdrop-filter:blur(18px)}
   body .topbar h1,body .topbar .crumb,body .topbar .bells,body .topbar .userchip{opacity:1}
