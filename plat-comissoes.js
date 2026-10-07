@@ -118,7 +118,7 @@ var CSS=`
 .cms-wrap .kpi b{font-size:1.35rem}
 .cms-wrap .kpi .note strong{font-weight:700}
 .cms-bar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
-.cms-bar select{background:var(--card2);border:1px solid var(--line);color:var(--head);padding:8px 12px;border-radius:10px;font:inherit}
+.cms-bar select{background:var(--card2);border:1px solid var(--line);color:var(--head);padding:8px 12px;border-radius:10px;font:inherit;max-width:260px}
 .cms-tbl table{white-space:nowrap}
 .cms-tbl th{font-size:.68rem;letter-spacing:.06em}
 .cms-tbl td,.cms-tbl th{padding:10px 12px;vertical-align:middle}
@@ -135,15 +135,15 @@ var CSS=`
 .cms-head{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
 .cms-head .who{flex:1;min-width:240px}
 .cms-head .who h3{margin:0 0 4px;font-size:1.02rem;color:var(--head);font-family:var(--serif)}
-.cms-head .who .meta{font-size:.76rem;color:var(--soft);margin-bottom:6px}
+.cms-head .who .meta{font-size:.76rem;color:var(--soft);margin-bottom:8px}
 .cms-head .who .tags{display:flex;gap:6px;flex-wrap:wrap}
 .cms-head .amt{text-align:right;min-width:150px}
 .cms-head .amt b{display:block;font-family:var(--serif);font-size:1.3rem;color:var(--head);line-height:1.1}
 .cms-head .amt span{font-size:.74rem;color:var(--muted)}
 .cms-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:14px 0 12px}
-.cms-sum div{background:rgba(0,0,0,.14);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.cms-sum>div{background:rgba(0,0,0,.14);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
 .cms-sum .l{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-.cms-sum .v{font-size:.95rem;color:var(--head);font-weight:600;white-space:nowrap}
+.cms-sum .v{font-size:.95rem;color:var(--head);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cms-sum .v small{font-size:.72rem;color:var(--soft);font-weight:400}
 .cms-tl{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .cms-tl .st{background:rgba(0,0,0,.14);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
