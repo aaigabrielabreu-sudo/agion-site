@@ -54,7 +54,10 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='';
-function ativa(v){ return v.situacao!=='CANCELADA' && v.situacao!=='REEMBOLSO_TOTAL'; }
+function diasUteis(fromISO,n){ var d=parseISO(fromISO), c=0; while(c<n){ d.setDate(d.getDate()+1); if(d.getDay()!==0&&d.getDay()!==6) c++; } return iso(d); }
+function analise(v){ var st=v.analise_status||'APROVADA'; if(st==='EM_ANALISE' && v.analise_prazo && v.analise_prazo<iso(new Date())) return 'APROVADA_AUTO'; return st; }
+function aprovada(v){ var a=analise(v); return a==='APROVADA'||a==='APROVADA_AUTO'; }
+function ativa(v){ return aprovada(v) && v.situacao!=='CANCELADA' && v.situacao!=='REEMBOLSO_TOTAL'; }
 function elegivelCluster(v){ return v.origem==='LEAD_AGION' && v.origem_status==='VALIDADA' && ativa(v); }
 async function load(){
   try{ var r=await supa.from('comissoes_vendas').select('*').order('data_insercao',{ascending:false}); _vendas=r.data||[]; }
@@ -114,6 +117,7 @@ function kpi(lab,val,grad,sub){ sub=sub?String(sub).replace(/<b>/g,'<strong styl
 function chip(t,cor){ return '<span class="chip" style="'+(cor?'color:'+cor+';border-color:'+cor+'66;':'')+'">'+t+'</span>'; }
 function stChip(s){ if(s==='PAGA'||s==='RECEBIDA') return chip(s==='PAGA'?'Paga':'Recebida','#4CAF7D'); return chip('Prevista'); }
 function sitChip(s){ var c={EM_DIA:'#4CAF7D',INADIMPLENTE:'#E0B978',REEMBOLSO_PARCIAL:'#E08A5A',REEMBOLSO_TOTAL:'#D9534F',CANCELADA:'#D9534F'}[s]||''; return chip(SIT_LBL[s]||s,c); }
+function anChip(v){ var a=analise(v); if(a==='EM_ANALISE') return chip('Em análise até '+fmtBR(v.analise_prazo),'#E0B978'); if(a==='RECUSADA') return chip('Recusada','#D9534F'); if(a==='APROVADA_AUTO') return chip('Aprovada (prazo)','#4CAF7D'); return ''; }
 function origemChip(v){ if(v.origem_status==='EM_REVISAO') return chip('Em validação','#E0B978'); return v.origem==='CLIENTE_PROPRIO'?chip('Cliente próprio','#C5A059'):chip('Lead Agion','#7FD1C1'); }
 function compSelect(){
   var cur=compAtual(), opts='';
@@ -146,11 +150,11 @@ function paintFunc(C, uid, titulo){
     +'</div>';
   var sel='<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap"><span class="note">Competência</span>'+compSelect()+'<span class="note">'+esc(comp.rot)+'</span></div>';
   var rows=mine.map(function(v){ var k=calc(v,_vendas); var pc=k.parcelas.map(function(p){return '<td class="n">'+BRL2(p.func)+'<br><span class="note">'+fmtBR(p.data)+'</span><br>'+stChip(p.funcStatus)+'</td>';}).join('');
-    return '<tr><td><b>'+esc(v.cliente_nome||'—')+'</b><br><span class="note">'+esc(v.administradora||'')+(v.grupo?' · '+esc(v.grupo)+'/'+esc(v.cota||''):'')+' · '+fmtBR(v.data_insercao)+'</span><br>'+origemChip(v)+' '+sitChip(v.situacao)+'</td><td>'+BRL(k.credito)+'</td><td class="n">'+pct(k.rate)+'<br><span class="note">'+esc(k.comp.rot)+'</span></td><td class="n"><b>'+BRL2(k.funcPre)+'</b>'+(k.ajuste?'<br><span class="note">inclui ajuste '+BRL2(k.ajuste)+' em '+fmtBR(k.ajusteData)+'</span>':'')+'</td>'+pc+'<td class="n">'+(k.proprio?BRL2(k.posFunc)+'<br>'+chip(POS_LBL[v.pos_status]||v.pos_status,v.pos_status==='NAO_CONTEMPLADA'?'':'#4CAF7D'):'—')+'</td></tr>'; }).join('');
+    return '<tr><td><b>'+esc(v.cliente_nome||'—')+'</b><br><span class="note">'+esc(v.administradora||'')+(v.grupo?' · '+esc(v.grupo)+'/'+esc(v.cota||''):'')+' · '+fmtBR(v.data_insercao)+'</span><br>'+origemChip(v)+' '+anChip(v)+' '+sitChip(v.situacao)+'</td><td>'+BRL(k.credito)+'</td><td class="n">'+pct(k.rate)+'<br><span class="note">'+esc(k.comp.rot)+'</span></td><td class="n"><b>'+BRL2(k.funcPre)+'</b>'+(k.ajuste?'<br><span class="note">inclui ajuste '+BRL2(k.ajuste)+' em '+fmtBR(k.ajusteData)+'</span>':'')+'</td>'+pc+'<td class="n">'+(k.proprio?BRL2(k.posFunc)+'<br>'+chip(POS_LBL[v.pos_status]||v.pos_status,v.pos_status==='NAO_CONTEMPLADA'?'':'#4CAF7D'):'—')+'</td></tr>'; }).join('');
   var tbl='<div class="panel"><h2>Minhas vendas</h2><div class="tbl-scroll"><table><thead><tr><th>Cliente</th><th>Crédito</th><th class="n">% aplicado</th><th class="n">Comissão pré</th><th class="n">1ª (33%)</th><th class="n">2ª (12%)</th><th class="n">3ª (12%)</th><th class="n">4ª (12%)</th><th class="n">5ª (31%)</th><th class="n">Pós-contemplação</th></tr></thead><tbody>'+(rows||'<tr><td colspan="10" class="note">Nenhuma venda registrada ainda.</td></tr>')+'</tbody></table></div></div>';
   var rol='<div class="panel"><h2>Próximos recebimentos (5 meses)</h2>'+tabelaRolante(mine,_vendas,false)+'</div>';
-  var sit=mine.filter(function(v){return v.situacao!=='EM_DIA';});
-  var sitHtml='<div class="panel"><h2>Situação dos clientes</h2>'+(sit.length?'<div class="tbl-scroll"><table><thead><tr><th>Cliente</th><th>Situação</th><th class="n">Reembolso</th><th>Obs.</th></tr></thead><tbody>'+sit.map(function(v){return '<tr><td>'+esc(v.cliente_nome||'—')+'</td><td>'+sitChip(v.situacao)+'</td><td class="n">'+(v.reembolso_valor?BRL2(v.reembolso_valor):'—')+'</td><td class="note">'+esc(v.obs||'')+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="note">Todos os clientes em dia.</p>')+'</div>';
+  var sit=mine.filter(function(v){return v.situacao!=='EM_DIA'||analise(v)==='RECUSADA'||analise(v)==='EM_ANALISE';});
+  var sitHtml='<div class="panel"><h2>Situação dos clientes</h2>'+(sit.length?'<div class="tbl-scroll"><table><thead><tr><th>Cliente</th><th>Situação</th><th class="n">Reembolso</th><th>Obs.</th></tr></thead><tbody>'+sit.map(function(v){return '<tr><td>'+esc(v.cliente_nome||'—')+'</td><td>'+(analise(v)==='RECUSADA'||analise(v)==='EM_ANALISE'?anChip(v):sitChip(v.situacao))+'</td><td class="n">'+(v.reembolso_valor?BRL2(v.reembolso_valor):'—')+'</td><td class="note">'+esc(v.analise_obs||v.obs||'')+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="note">Todos os clientes em dia.</p>')+'</div>';
   C.innerHTML=sel+cards+tbl+rol+sitHtml;
 }
 
@@ -159,8 +163,8 @@ function paintMaster(C){
   var all=_vendas, comp=compShift(_compSel,0);
   var vend={}; all.forEach(function(v){ vend[v.vendedor_id]=1; });
   var ids=Object.keys(vend);
-  var T={prod:0,prodL:0,prodP:0,hsPre:0,hsRec:0,func:0,funcPago:0,agion:0,posHs:0,posRec:0,posFunc:0,reemb:0,rev:0};
-  all.forEach(function(v){ if(v.origem_status==='EM_REVISAO') T.rev++; if(!ativa(v)){ T.reemb+=(+v.reembolso_valor||0); return; } var k=calc(v,all); var inComp=k.comp.key===_compSel;
+  var T={prod:0,prodL:0,prodP:0,hsPre:0,hsRec:0,func:0,funcPago:0,agion:0,posHs:0,posRec:0,posFunc:0,reemb:0,rev:0,an:0};
+  all.forEach(function(v){ if(analise(v)==='EM_ANALISE') T.an++; if(v.origem_status==='EM_REVISAO') T.rev++; if(!ativa(v)){ T.reemb+=(+v.reembolso_valor||0); return; } var k=calc(v,all); var inComp=k.comp.key===_compSel;
     if(inComp){ T.prod+=k.credito; if(v.origem==='LEAD_AGION')T.prodL+=k.credito; else T.prodP+=k.credito; }
     T.hsPre+=k.hsPre; T.hsRec+=k.hsRec; T.func+=k.funcPre; T.funcPago+=k.funcPago; T.agion+=k.agionPre; T.posHs+=k.posHs; T.reemb+=k.reemb;
     if(v.pos_status==='COMISSAO_POS_RECEBIDA') T.posRec+=k.posHs; if(v.origem==='CLIENTE_PROPRIO'&&!v.pos_func_pago) T.posFunc+=k.posFunc; });
@@ -172,16 +176,16 @@ function paintMaster(C){
     +kpi('Pós-contemplação potencial',BRL2(T.posHs),false,'Recebida <b>'+BRL2(T.posRec)+'</b>')
     +kpi('Futura dos funcionários (pós)',BRL2(T.posFunc),false,'1% dos clientes próprios')
     +kpi('Reembolsos',BRL2(T.reemb),false,'')
-    +(T.rev?kpi('Origens em validação',String(T.rev),false,'Cadastros aguardando sua decisão'):'')
+    +(T.an?kpi('Vendas em análise',String(T.an),true,'Registradas por colaboradores — prazo de 2 dias úteis'):'')+(T.rev?kpi('Origens em validação',String(T.rev),false,'Cadastros aguardando sua decisão'):'')
     +'</div>';
   var sel='<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap"><span class="note">Competência</span>'+compSelect()+'<span class="note">'+esc(comp.rot)+'</span><span style="flex:1"></span><button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button></div>';
   var porFunc='<div class="panel"><h2>Por funcionário — '+esc(comp.rot)+'</h2><div class="tbl-scroll"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">Válida p/ cluster</th><th class="n">Cluster</th><th class="n">Falta p/ próxima</th><th class="n">Comissão gerada</th><th class="n">Paga</th><th class="n">Pendente</th><th class="n">Futura (pós)</th><th></th></tr></thead><tbody>'
     +(ids.map(function(id){ var R=resumoFunc(id,_compSel,all); var u=user(id); return '<tr><td><b>'+esc(u.nome||id)+'</b></td><td class="n">'+R.n+'</td><td class="n">'+BRL(R.prodTot)+'</td><td class="n">'+BRL(R.prodCl)+'</td><td class="n">'+pct(R.cluster.r)+'</td><td class="n">'+(R.prox?BRL(R.falta):'máx.')+'</td><td class="n">'+BRL2(R.gerada)+'</td><td class="n">'+BRL2(R.paga)+'</td><td class="n"><b>'+BRL2(R.pend)+'</b></td><td class="n">'+BRL2(R.futura)+'</td><td><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\''+id+'\')">Ver</button></td></tr>'; }).join('')||'<tr><td colspan="11" class="note">Nenhuma venda registrada.</td></tr>')+'</tbody></table></div></div>';
-  var lista=all.slice();
+  var lista=all.slice().sort(function(a,b){ var x=analise(a)==='EM_ANALISE'?0:1, y=analise(b)==='EM_ANALISE'?0:1; return x-y; });
   var rows=lista.map(function(v){ var k=calc(v,all); var u=user(v.vendedor_id);
     var pc=k.parcelas.map(function(p){ return '<td class="n"><span class="note">'+fmtBR(p.data)+'</span><br>HS '+BRL2(p.hs)+' <a onclick="cmsToggle(\''+v.id+'\','+p.n+',\'hs\')" style="cursor:pointer">'+stChip(p.hsStatus)+'</a><br>Func '+BRL2(p.func)+' <a onclick="cmsToggle(\''+v.id+'\','+p.n+',\'func\')" style="cursor:pointer">'+stChip(p.funcStatus)+'</a></td>'; }).join('');
-    var acts='<div style="display:flex;flex-direction:column;gap:4px">'+(v.origem_status==='EM_REVISAO'?'<button class="btn btn-gold btn-sm" onclick="cmsValidar(\''+v.id+'\')">Validar origem</button>':'')+'<button class="btn btn-ghost btn-sm" onclick="cmsPos(\''+v.id+'\')">Contemplação</button><button class="btn btn-ghost btn-sm" onclick="cmsSituacao(\''+v.id+'\')">Situação</button><button class="btn btn-ghost btn-sm" onclick="cmsEditar(\''+v.id+'\')">Editar</button><button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="cmsExcluir(\''+v.id+'\')">Excluir</button></div>';
-    return '<tr><td><b>'+esc(v.cliente_nome||'—')+'</b><br><span class="note">'+esc((u.nome||'').split(' ')[0])+' · '+esc(v.administradora||'')+(v.grupo?' · '+esc(v.grupo)+'/'+esc(v.cota||''):'')+' · '+fmtBR(v.data_insercao)+' · '+esc(k.comp.rot)+' · '+(k.jan.tipo==='ANTECIPACAO'?'antecipação':'normal')+'</span><br>'+origemChip(v)+' '+sitChip(v.situacao)+(v.reembolso_valor?' '+chip('reemb. '+BRL2(v.reembolso_valor),'#E08A5A'):'')+'</td><td>'+BRL(k.credito)+'<br><span class="note">'+pct(k.rate)+(k.ajuste?' · ajuste '+BRL2(k.ajuste)+' em '+fmtBR(k.ajusteData):'')+'</span></td><td class="n">HS '+BRL2(k.hsPre)+'<br>Func <b>'+BRL2(k.funcPre)+'</b><br>Agion '+BRL2(k.agionPre)+'</td>'+pc+'<td class="n">'+chip(POS_LBL[v.pos_status]||v.pos_status,v.pos_status==='NAO_CONTEMPLADA'?'':'#4CAF7D')+'<br>Func '+BRL2(k.posFunc)+(v.pos_func_pago?' ✓':'')+'<br>Agion '+BRL2(k.posAgion)+'</td><td>'+acts+'</td></tr>'; }).join('');
+    var acts='<div style="display:flex;flex-direction:column;gap:4px">'+(analise(v)==='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsAprovar(\''+v.id+'\')">Aprovar / recusar</button>':'')+(v.origem_status==='EM_REVISAO'&&analise(v)!=='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsValidar(\''+v.id+'\')">Validar origem</button>':'')+'<button class="btn btn-ghost btn-sm" onclick="cmsDesignar(\''+v.id+'\')">Designar</button>'+'<button class="btn btn-ghost btn-sm" onclick="cmsPos(\''+v.id+'\')">Contemplação</button><button class="btn btn-ghost btn-sm" onclick="cmsSituacao(\''+v.id+'\')">Situação</button><button class="btn btn-ghost btn-sm" onclick="cmsEditar(\''+v.id+'\')">Editar</button><button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="cmsExcluir(\''+v.id+'\')">Excluir</button></div>';
+    return '<tr><td><b>'+esc(v.cliente_nome||'—')+'</b><br><span class="note">'+esc((u.nome||'').split(' ')[0])+' · '+esc(v.administradora||'')+(v.grupo?' · '+esc(v.grupo)+'/'+esc(v.cota||''):'')+' · '+fmtBR(v.data_insercao)+' · '+esc(k.comp.rot)+' · '+(k.jan.tipo==='ANTECIPACAO'?'antecipação':'normal')+'</span><br>'+origemChip(v)+' '+anChip(v)+' '+sitChip(v.situacao)+(v.reembolso_valor?' '+chip('reemb. '+BRL2(v.reembolso_valor),'#E08A5A'):'')+'</td><td>'+BRL(k.credito)+'<br><span class="note">'+pct(k.rate)+(k.ajuste?' · ajuste '+BRL2(k.ajuste)+' em '+fmtBR(k.ajusteData):'')+'</span></td><td class="n">HS '+BRL2(k.hsPre)+'<br>Func <b>'+BRL2(k.funcPre)+'</b><br>Agion '+BRL2(k.agionPre)+'</td>'+pc+'<td class="n">'+chip(POS_LBL[v.pos_status]||v.pos_status,v.pos_status==='NAO_CONTEMPLADA'?'':'#4CAF7D')+'<br>Func '+BRL2(k.posFunc)+(v.pos_func_pago?' ✓':'')+'<br>Agion '+BRL2(k.posAgion)+'</td><td>'+acts+'</td></tr>'; }).join('');
   var tbl='<div class="panel"><h2>Todas as vendas <span class="right note">clique no status da parcela para marcar recebida (HS) / paga (funcionário)</span></h2><div class="tbl-scroll" style="max-height:640px"><table><thead><tr><th>Venda</th><th>Crédito</th><th class="n">Pré (2%)</th><th class="n">1ª</th><th class="n">2ª</th><th class="n">3ª</th><th class="n">4ª</th><th class="n">5ª</th><th class="n">Pós (2%)</th><th></th></tr></thead><tbody>'+(rows||'<tr><td colspan="10" class="note">Nenhuma venda registrada. Use "Registrar venda" ou cadastre uma carta HS com valor.</td></tr>')+'</tbody></table></div></div>';
   var rol='<div class="panel"><h2>Pagamentos aos funcionários — próximos 5 meses</h2>'+tabelaRolante(all,all,true)+'</div>';
   var sit=all.filter(function(v){return v.situacao!=='EM_DIA';});
@@ -246,6 +250,24 @@ window.cmsExcluir=async function(id){
   try{ await supa.from('comissoes_vendas').delete().eq('id',id); logEvt('comissao','comissoes','Excluiu venda de '+(v.cliente_nome||''),{id:id}); }catch(e){}
   await load(); render();
 };
+window.cmsAprovar=async function(id){
+  if(!isMaster())return; var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
+  var o=await chooseModal('Pré-análise — '+(v.cliente_nome||''),'Registrada por '+(user(v.vendedor_id).nome||'')+' em '+fmtBR(v.criado_em)+' · crédito '+BRL(v.credito)+' · origem informada: '+(v.origem==='CLIENTE_PROPRIO'?'cliente próprio':'lead da Agion')+'.\n\nPrazo da análise: '+fmtBR(v.analise_prazo)+'.','Aprovar','Recusar');
+  if(!o)return;
+  var patch={analise_por:meId(),analise_em:new Date().toISOString()};
+  if(o==='a'){ var og=await chooseModal('Confirmar origem','Qual a origem válida para a comissão?','Lead da Agion (cluster)','Cliente próprio (1% + 1% pós)'); if(!og)return; patch.analise_status='APROVADA'; patch.origem=og==='a'?'LEAD_AGION':'CLIENTE_PROPRIO'; patch.origem_status='VALIDADA'; }
+  else { var m=await ask({title:'Motivo da recusa',msg:'O colaborador verá este motivo:',input:true,ok:'Recusar'}); if(m===null)return; patch.analise_status='RECUSADA'; patch.analise_obs=m; }
+  await upd(id,patch,'Pré-análise '+patch.analise_status+' — '+(v.cliente_nome||''));
+};
+window.cmsDesignar=async function(id){
+  if(!isMaster())return; var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
+  var vs=(db.accounts||[]).filter(function(a){return a.real!==false&&(a.role==='master'||a.role==='lider'||a.role==='especialista')&&a.ativo!==false;});
+  var pick=await new Promise(function(res){ var bg=document.createElement('div'); bg.style.cssText='position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+    bg.innerHTML='<div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:420px;width:100%;padding:22px"><h2 style="margin:0 0 12px;font-size:1.05rem">Designar comissão</h2><p class="note" style="margin-bottom:10px">Venda de '+esc(v.cliente_nome||'')+' ('+BRL(v.credito)+'). Quem recebe a comissão:</p><select id="cmsDv" style="width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:10px 12px;border-radius:10px;font:inherit">'+vs.map(function(a){return '<option value="'+a.id+'"'+(a.id===v.vendedor_id?' selected':'')+'>'+esc(a.nome||'')+'</option>';}).join('')+'</select><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px"><button class="btn btn-ghost btn-sm" id="cmsDc">Cancelar</button><button class="btn btn-gold btn-sm" id="cmsDo">Designar</button></div></div>';
+    document.body.appendChild(bg); document.getElementById('cmsDc').onclick=function(){bg.remove();res(null);}; document.getElementById('cmsDo').onclick=function(){var x=document.getElementById('cmsDv').value;bg.remove();res(x);}; });
+  if(!pick||pick===v.vendedor_id)return;
+  await upd(id,{vendedor_id:pick},'Designou a comissão de '+(v.cliente_nome||'')+' para '+(user(pick).nome||''));
+};
 window.cmsSetComp=function(k){ _compSel=k; render(); };
 window.cmsVerFunc=function(id){ _funcSel=id; render(); };
 
@@ -289,10 +311,10 @@ window.cmsNovaVenda=async function(pre){
   if(!out)return;
   var cli=clis.find(function(c){return c.id===out.cid;})||{};
   var carta=cartasAll.find(function(x){return x.id===out.carta_id;})||null;
-  var rec={cliente_id:out.cid,cliente_nome:cli.nome||'',vendedor_id:out.vend||meId(),administradora:(carta&&carta.administradora)||'HS Consórcios',grupo:carta?carta.grupo:null,cota:carta?carta.cota:null,carta_id:carta?carta.id:null,credito:out.credito,origem:out.origem,origem_status:(out.origem==='CLIENTE_PROPRIO'&&!isMaster())?'EM_REVISAO':'VALIDADA',data_insercao:out.data,parcelas:[]};
+  var rec={cliente_id:out.cid,cliente_nome:cli.nome||'',vendedor_id:out.vend||meId(),administradora:(carta&&carta.administradora)||'HS Consórcios',grupo:carta?carta.grupo:null,cota:carta?carta.cota:null,carta_id:carta?carta.id:null,credito:out.credito,origem:out.origem,origem_status:(out.origem==='CLIENTE_PROPRIO'&&!isMaster())?'EM_REVISAO':'VALIDADA',data_insercao:out.data,parcelas:[],analise_status:isMaster()?'APROVADA':'EM_ANALISE',analise_prazo:isMaster()?null:diasUteis(iso(new Date()),2)};
   try{ var ins=await supa.from('comissoes_vendas').insert(rec); if(ins.error) throw ins.error; }catch(e){ await ask({title:'Não foi possível registrar',msg:String(e.message||e),ok:'Ok'}); return; }
   try{ logEvt('comissao','comissoes','Registrou venda de '+(cli.nome||'')+' — '+BRL(out.credito)+' ('+out.origem+')',{cliente_id:out.cid}); }catch(e){}
-  flash('Venda registrada'+(rec.origem_status==='EM_REVISAO'?' — origem aguardando validação do Master':''));
+  flash('Venda registrada'+(rec.analise_status==='EM_ANALISE'?' — em pré-análise até '+fmtBR(rec.analise_prazo):''));
   await load(); if(view.page==='comissoes') render();
 };
 // chamado pelo cartaSave após inserir cartas (host passa recs e cliente_id)
