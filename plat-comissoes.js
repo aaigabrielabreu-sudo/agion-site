@@ -110,7 +110,7 @@ function resumoFunc(uid, compKey, all){
 }
 
 /* ===================== UI: helpers ===================== */
-function kpi(lab,val,grad,sub){ return '<div class="kpi'+(grad?' grad':'')+'"><div class="lab">'+lab+'</div><b>'+val+'</b>'+(sub?'<div class="note" style="margin-top:6px">'+sub+'</div>':'')+'</div>'; }
+function kpi(lab,val,grad,sub){ sub=sub?String(sub).replace(/<b>/g,'<strong style="color:var(--head)">').replace(/<\/b>/g,'</strong>'):''; return '<div class="kpi'+(grad?' grad':'')+'"><div class="lab">'+lab+'</div><b>'+val+'</b>'+(sub?'<div class="note" style="margin-top:6px">'+sub+'</div>':'')+'</div>'; }
 function chip(t,cor){ return '<span class="chip" style="'+(cor?'color:'+cor+';border-color:'+cor+'66;':'')+'">'+t+'</span>'; }
 function stChip(s){ if(s==='PAGA'||s==='RECEBIDA') return chip(s==='PAGA'?'Paga':'Recebida','#4CAF7D'); return chip('Prevista'); }
 function sitChip(s){ var c={EM_DIA:'#4CAF7D',INADIMPLENTE:'#E0B978',REEMBOLSO_PARCIAL:'#E08A5A',REEMBOLSO_TOTAL:'#D9534F',CANCELADA:'#D9534F'}[s]||''; return chip(SIT_LBL[s]||s,c); }
