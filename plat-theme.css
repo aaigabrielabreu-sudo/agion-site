@@ -745,4 +745,5 @@ html.isApp body::before{background:#0B2A26 !important;inset:auto;z-index:200}   
 body.isApp .topbar{position:static;min-height:0;height:auto;padding:max(6px,calc(env(safe-area-inset-top,0px) - 12px)) 14px 7px;gap:4px 10px;background:rgba(11,42,38,.95)}
 html.capNative body.isApp .topbar{padding-top:var(--agTop,58px);padding-bottom:6px}
 body.isApp.appScrolled .topbar{padding-bottom:3px}
-body.isApp .panel.crmFiltros{position:sticky;top:0;z-index:25}
+body.isApp .panel.crmFiltros{position:sticky;top:0;z-index:25;background:#0B2A26;border-radius:0;border-bottom:1px solid var(--line-gold);box-shadow:0 8px 18px rgba(0,0,0,.45)}
+body.isApp.light .panel.crmFiltros{background:#F3F7F5;box-shadow:0 8px 18px rgba(14,74,65,.12)}
