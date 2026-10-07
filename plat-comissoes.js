@@ -113,8 +113,77 @@ function resumoFunc(uid, compKey, all){
 }
 
 /* ===================== UI: helpers ===================== */
+var CSS=`
+.cms-wrap .kpis{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.cms-wrap .kpi b{font-size:1.35rem}
+.cms-wrap .kpi .note strong{font-weight:700}
+.cms-bar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.cms-bar select{background:var(--card2);border:1px solid var(--line);color:var(--head);padding:8px 12px;border-radius:10px;font:inherit}
+.cms-tbl table{white-space:nowrap}
+.cms-tbl th{font-size:.68rem;letter-spacing:.06em}
+.cms-tbl td,.cms-tbl th{padding:10px 12px;vertical-align:middle}
+.cms-tbl td.n,.cms-tbl th.n{text-align:right}
+.cms-tbl tfoot td{border-top:1px solid var(--line);font-weight:700}
+.cms-tag{display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:rgba(255,255,255,.03);white-space:nowrap;line-height:1.3}
+.cms-tag.ok{color:#4CAF7D;border-color:#4CAF7D66;background:rgba(76,175,125,.10)}
+.cms-tag.warn{color:#E0B978;border-color:#E0B97866;background:rgba(224,185,120,.10)}
+.cms-tag.bad{color:#E07A6A;border-color:#E07A6A66;background:rgba(224,122,106,.10)}
+.cms-tag.gold{color:var(--gold2);border-color:var(--line-gold);background:rgba(197,160,89,.12)}
+.cms-tag.teal{color:var(--teal);border-color:rgba(143,217,204,.35);background:rgba(143,217,204,.10)}
+.cms-card{background:linear-gradient(165deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:14px}
+.cms-card:hover{border-color:rgba(197,160,89,.35)}
+.cms-head{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.cms-head .who{flex:1;min-width:240px}
+.cms-head .who h3{margin:0 0 4px;font-size:1.02rem;color:var(--head);font-family:var(--serif)}
+.cms-head .who .meta{font-size:.76rem;color:var(--soft);margin-bottom:6px}
+.cms-head .who .tags{display:flex;gap:6px;flex-wrap:wrap}
+.cms-head .amt{text-align:right;min-width:150px}
+.cms-head .amt b{display:block;font-family:var(--serif);font-size:1.3rem;color:var(--head);line-height:1.1}
+.cms-head .amt span{font-size:.74rem;color:var(--muted)}
+.cms-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:14px 0 12px}
+.cms-sum div{background:rgba(0,0,0,.14);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.cms-sum .l{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.cms-sum .v{font-size:.95rem;color:var(--head);font-weight:600;white-space:nowrap}
+.cms-sum .v small{font-size:.72rem;color:var(--soft);font-weight:400}
+.cms-tl{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.cms-tl .st{background:rgba(0,0,0,.14);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.cms-tl .st .n{font-size:.66rem;color:var(--gold2);font-weight:700;letter-spacing:.06em}
+.cms-tl .st .d{font-size:.74rem;color:var(--soft);margin-bottom:6px}
+.cms-tl .st .row{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:.78rem;color:var(--head);margin-top:4px;white-space:nowrap}
+.cms-tl .st .row em{font-style:normal;color:var(--muted);font-size:.68rem;width:34px}
+.cms-pill{border:1px solid var(--line);background:transparent;color:var(--muted);font:inherit;font-size:.6rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;cursor:pointer;line-height:1.3}
+.cms-pill.on{color:#4CAF7D;border-color:#4CAF7D66;background:rgba(76,175,125,.12)}
+.cms-pill.ro{cursor:default}
+.cms-foot{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;justify-content:flex-end}
+.cms-pos{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:.8rem;color:var(--head)}
+.cms-pos .l{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+@media(max-width:900px){.cms-tl{grid-template-columns:repeat(2,1fr)}.cms-head .amt{text-align:left}}
+`;
+function ensureCss(){ if(document.getElementById('cmsCss'))return; var st=document.createElement('style'); st.id='cmsCss'; st.textContent=CSS; document.head.appendChild(st); }
+function tag(t,cls){ return '<span class="cms-tag'+(cls?' '+cls:'')+'">'+t+'</span>'; }
+function pill(on,lbl,onclick){ return '<button class="cms-pill'+(on?' on':'')+(onclick?'':' ro')+'"'+(onclick?' onclick="'+onclick+'"':'')+'>'+lbl+'</button>'; }
+function vendaCard(v,all,master){
+  var k=calc(v,all), u=user(v.vendedor_id), a=analise(v);
+  var tags=origemChip(v)+anChip(v)+sitChip(v.situacao)+(v.reembolso_valor?tag('reemb. '+BRL2(v.reembolso_valor),'warn'):'');
+  var meta=[master?esc((u.nome||'').split(' ').slice(0,2).join(' ')):null, esc(v.administradora||''), v.grupo?('grupo '+esc(v.grupo)+' · cota '+esc(v.cota||'')):null, 'venda '+fmtBR(v.data_insercao), 'competência '+esc(k.comp.rot), k.jan.tipo==='ANTECIPACAO'?'antecipação (dia 23)':'janela normal (dia 10)'].filter(Boolean).join(' · ');
+  var head='<div class="cms-head"><div class="who"><h3>'+esc(v.cliente_nome||'—')+'</h3><div class="meta">'+meta+'</div><div class="tags">'+tags+'</div></div><div class="amt"><b>'+BRL(k.credito)+'</b><span>crédito vendido · '+pct(k.rate)+(k.ajuste?' <br>ajuste de cluster '+BRL2(k.ajuste)+' em '+fmtBR(k.ajusteData):'')+'</span></div></div>';
+  var sum='<div class="cms-sum">'
+    +(master?'<div><div class="l">Pré HS (2%)</div><div class="v">'+BRL2(k.hsPre)+' <small>· receb. '+BRL2(k.hsRec)+'</small></div></div>':'')
+    +'<div><div class="l">'+(master?'Comissão funcionário':'Minha comissão (pré)')+'</div><div class="v">'+BRL2(k.funcPre)+' <small>· paga '+BRL2(k.funcPago)+'</small></div></div>'
+    +(master?'<div><div class="l">Margem Agion (pré)</div><div class="v">'+BRL2(k.agionPre)+'</div></div>':'')
+    +(k.proprio?'<div><div class="l">'+(master?'Pós · funcionário':'Futura na contemplação')+'</div><div class="v">'+BRL2(k.posFunc)+(v.pos_func_pago?' <small>· paga</small>':'')+'</div></div>':'')
+    +(master?'<div><div class="l">Pós · Agion</div><div class="v">'+BRL2(k.posAgion)+'</div></div>':'')
+    +'</div>';
+  var tl='<div class="cms-tl">'+k.parcelas.map(function(p){ var sh=FUNC_SHARE[p.n-1];
+    var hsRow=master?'<div class="row"><em>HS</em><span>'+BRL2(p.hs)+'</span>'+pill(p.hsStatus==='RECEBIDA',p.hsStatus==='RECEBIDA'?'recebida':'prevista',"cmsToggle('"+v.id+"',"+p.n+",'hs')")+'</div>':'';
+    var fRow='<div class="row"><em>'+(master?'Func':'Você')+'</em><span>'+BRL2(p.func)+'</span>'+pill(p.funcStatus==='PAGA',p.funcStatus==='PAGA'?'paga':'prevista',master?"cmsToggle('"+v.id+"',"+p.n+",'func')":null)+'</div>';
+    return '<div class="st"><div class="n">'+p.n+'ª PARCELA · '+Math.round(sh*100)+'%</div><div class="d">'+fmtBR(p.data)+'</div>'+hsRow+fRow+'</div>'; }).join('')+'</div>';
+  var pos='<div class="cms-pos"><span class="l">Pós-contemplação</span>'+tag(POS_LBL[v.pos_status]||v.pos_status, v.pos_status==='NAO_CONTEMPLADA'?'':'ok')+(v.pos_data?'<span class="note">'+fmtBR(v.pos_data)+'</span>':'')+'</div>';
+  var foot=master?'<div class="cms-foot">'+(a==='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsAprovar(\''+v.id+'\')">Aprovar / recusar</button>':'')+(v.origem_status==='EM_REVISAO'&&a!=='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsValidar(\''+v.id+'\')">Validar origem</button>':'')+'<button class="btn btn-ghost btn-sm" onclick="cmsPos(\''+v.id+'\')">Contemplação</button><button class="btn btn-ghost btn-sm" onclick="cmsSituacao(\''+v.id+'\')">Situação</button><button class="btn btn-ghost btn-sm" onclick="cmsDesignar(\''+v.id+'\')">Designar</button><button class="btn btn-ghost btn-sm" onclick="cmsEditar(\''+v.id+'\')">Editar</button><button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="cmsExcluir(\''+v.id+'\')">Excluir</button></div>':'';
+  return '<div class="cms-card">'+head+sum+tl+pos+foot+'</div>';
+}
 function kpi(lab,val,grad,sub){ sub=sub?String(sub).replace(/<b>/g,'<strong style="color:var(--head)">').replace(/<\/b>/g,'</strong>'):''; return '<div class="kpi'+(grad?' grad':'')+'"><div class="lab">'+lab+'</div><b>'+val+'</b>'+(sub?'<div class="note" style="margin-top:6px">'+sub+'</div>':'')+'</div>'; }
-function chip(t,cor){ return '<span class="chip" style="'+(cor?'color:'+cor+';border-color:'+cor+'66;':'')+'">'+t+'</span>'; }
+function chip(t,cor){ var cls=cor==='#4CAF7D'?'ok':cor==='#E0B978'?'warn':(cor==='#D9534F'||cor==='#E08A5A')?'bad':cor==='#C5A059'?'gold':cor==='#7FD1C1'?'teal':''; return tag(t,cls); }
 function stChip(s){ if(s==='PAGA'||s==='RECEBIDA') return chip(s==='PAGA'?'Paga':'Recebida','#4CAF7D'); return chip('Prevista'); }
 function sitChip(s){ var c={EM_DIA:'#4CAF7D',INADIMPLENTE:'#E0B978',REEMBOLSO_PARCIAL:'#E08A5A',REEMBOLSO_TOTAL:'#D9534F',CANCELADA:'#D9534F'}[s]||''; return chip(SIT_LBL[s]||s,c); }
 function anChip(v){ var a=analise(v); if(a==='EM_ANALISE') return chip('Em análise até '+fmtBR(v.analise_prazo),'#E0B978'); if(a==='RECUSADA') return chip('Recusada','#D9534F'); if(a==='APROVADA_AUTO') return chip('Aprovada (prazo)','#4CAF7D'); return ''; }
@@ -122,7 +191,7 @@ function origemChip(v){ if(v.origem_status==='EM_REVISAO') return chip('Em valid
 function compSelect(){
   var cur=compAtual(), opts='';
   for(var i=0;i>-12;i--){ var c=compShift(cur.key,i); opts+='<option value="'+c.key+'"'+(c.key===_compSel?' selected':'')+'>'+c.rot+'</option>'; }
-  return '<select onchange="cmsSetComp(this.value)" style="background:var(--card2);border:1px solid var(--line);color:var(--head);padding:8px 10px;border-radius:10px;font:inherit">'+opts+'</select>';
+  return '<select onchange="cmsSetComp(this.value)">'+opts+'</select>';
 }
 function mesesRolantes(){ var out=[], d=new Date(); for(var i=0;i<5;i++){ var m=mkDate(d.getFullYear(), d.getMonth()+i, 1); out.push({key:iso(m).slice(0,7), rot:['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][m.getMonth()]+'/'+String(m.getFullYear()).slice(2)}); } return out; }
 function tabelaRolante(vendas, all, comAgion){
@@ -132,7 +201,7 @@ function tabelaRolante(vendas, all, comAgion){
   var rows=vendas.filter(ativa).map(function(v){ var k=calc(v,all); var cells=meses.map(function(m){ var s=0, pend=0; k.parcelas.forEach(function(p){ if(p.data.slice(0,7)===m.key){ s+=p.func; if(p.funcStatus!=='PAGA') pend+=p.func; } }); if(k.ajuste && k.ajusteData.slice(0,7)===m.key){ s+=k.ajuste; if(!v.ajuste_pago) pend+=k.ajuste; } tot[m.key]+=pend; return '<td class="n">'+(s?BRL2(s)+(pend<s?' <span class="note">(pago '+BRL2(s-pend)+')</span>':''):'—')+'</td>'; }).join('');
     return '<tr><td>'+esc(v.cliente_nome||'—')+' '+origemChip(v)+'</td><td>'+BRL(k.credito)+'</td>'+cells+'<td class="n"><b>'+BRL2(k.funcPend)+'</b></td></tr>'; }).join('');
   var foot='<tr><td colspan="2"><b>A receber no mês</b></td>'+meses.map(function(m){return '<td class="n"><b>'+BRL2(tot[m.key])+'</b></td>';}).join('')+'<td></td></tr>';
-  return '<div class="tbl-scroll"><table><thead>'+head+'</thead><tbody>'+(rows||'<tr><td colspan="8" class="note">Nenhuma venda registrada.</td></tr>')+'</tbody><tfoot>'+foot+'</tfoot></table></div>';
+  return '<div class="tbl-scroll cms-tbl"><table><thead>'+head+'</thead><tbody>'+(rows||'<tr><td colspan="8" class="note">Nenhuma venda registrada.</td></tr>')+'</tbody><tfoot>'+foot+'</tfoot></table></div>';
 }
 
 /* ===================== UI: FUNCIONÁRIO ===================== */
@@ -148,14 +217,12 @@ function paintFunc(C, uid, titulo){
     +kpi('Futura por contemplação',BRL2(R.futura),false,'Só clientes próprios')
     +(R.reemb?kpi('Reembolsos',BRL2(R.reemb),false,'Descontos de cotas com reembolso'):'')
     +'</div>';
-  var sel='<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap"><span class="note">Competência</span>'+compSelect()+'<span class="note">'+esc(comp.rot)+'</span></div>';
-  var rows=mine.map(function(v){ var k=calc(v,_vendas); var pc=k.parcelas.map(function(p){return '<td class="n">'+BRL2(p.func)+'<br><span class="note">'+fmtBR(p.data)+'</span><br>'+stChip(p.funcStatus)+'</td>';}).join('');
-    return '<tr><td><b>'+esc(v.cliente_nome||'—')+'</b><br><span class="note">'+esc(v.administradora||'')+(v.grupo?' · '+esc(v.grupo)+'/'+esc(v.cota||''):'')+' · '+fmtBR(v.data_insercao)+'</span><br>'+origemChip(v)+' '+anChip(v)+' '+sitChip(v.situacao)+'</td><td>'+BRL(k.credito)+'</td><td class="n">'+pct(k.rate)+'<br><span class="note">'+esc(k.comp.rot)+'</span></td><td class="n"><b>'+BRL2(k.funcPre)+'</b>'+(k.ajuste?'<br><span class="note">inclui ajuste '+BRL2(k.ajuste)+' em '+fmtBR(k.ajusteData)+'</span>':'')+'</td>'+pc+'<td class="n">'+(k.proprio?BRL2(k.posFunc)+'<br>'+chip(POS_LBL[v.pos_status]||v.pos_status,v.pos_status==='NAO_CONTEMPLADA'?'':'#4CAF7D'):'—')+'</td></tr>'; }).join('');
-  var tbl='<div class="panel"><h2>Minhas vendas</h2><div class="tbl-scroll"><table><thead><tr><th>Cliente</th><th>Crédito</th><th class="n">% aplicado</th><th class="n">Comissão pré</th><th class="n">1ª (33%)</th><th class="n">2ª (12%)</th><th class="n">3ª (12%)</th><th class="n">4ª (12%)</th><th class="n">5ª (31%)</th><th class="n">Pós-contemplação</th></tr></thead><tbody>'+(rows||'<tr><td colspan="10" class="note">Nenhuma venda registrada ainda.</td></tr>')+'</tbody></table></div></div>';
+  var sel='<div class="cms-bar"><span class="note">Competência</span>'+compSelect()+'<span class="note">'+esc(comp.rot)+'</span></div>';
+  var tbl='<div class="panel"><h2>Minhas vendas</h2>'+(mine.length?mine.map(function(v){return vendaCard(v,_vendas,false);}).join(''):'<p class="note">Nenhuma venda registrada ainda.</p>')+'</div>';
   var rol='<div class="panel"><h2>Próximos recebimentos (5 meses)</h2>'+tabelaRolante(mine,_vendas,false)+'</div>';
   var sit=mine.filter(function(v){return v.situacao!=='EM_DIA'||analise(v)==='RECUSADA'||analise(v)==='EM_ANALISE';});
-  var sitHtml='<div class="panel"><h2>Situação dos clientes</h2>'+(sit.length?'<div class="tbl-scroll"><table><thead><tr><th>Cliente</th><th>Situação</th><th class="n">Reembolso</th><th>Obs.</th></tr></thead><tbody>'+sit.map(function(v){return '<tr><td>'+esc(v.cliente_nome||'—')+'</td><td>'+(analise(v)==='RECUSADA'||analise(v)==='EM_ANALISE'?anChip(v):sitChip(v.situacao))+'</td><td class="n">'+(v.reembolso_valor?BRL2(v.reembolso_valor):'—')+'</td><td class="note">'+esc(v.analise_obs||v.obs||'')+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="note">Todos os clientes em dia.</p>')+'</div>';
-  C.innerHTML=sel+cards+tbl+rol+sitHtml;
+  var sitHtml='<div class="panel"><h2>Situação dos clientes</h2>'+(sit.length?'<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Situação</th><th class="n">Reembolso</th><th>Obs.</th></tr></thead><tbody>'+sit.map(function(v){return '<tr><td>'+esc(v.cliente_nome||'—')+'</td><td>'+(analise(v)==='RECUSADA'||analise(v)==='EM_ANALISE'?anChip(v):sitChip(v.situacao))+'</td><td class="n">'+(v.reembolso_valor?BRL2(v.reembolso_valor):'—')+'</td><td class="note">'+esc(v.analise_obs||v.obs||'')+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="note">Todos os clientes em dia.</p>')+'</div>';
+  ensureCss(); C.innerHTML='<div class="cms-wrap">'+sel+cards+tbl+rol+sitHtml+'</div>';
 }
 
 /* ===================== UI: MASTER ===================== */
@@ -178,19 +245,15 @@ function paintMaster(C){
     +kpi('Reembolsos',BRL2(T.reemb),false,'')
     +(T.an?kpi('Vendas em análise',String(T.an),true,'Registradas por colaboradores — prazo de 2 dias úteis'):'')+(T.rev?kpi('Origens em validação',String(T.rev),false,'Cadastros aguardando sua decisão'):'')
     +'</div>';
-  var sel='<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap"><span class="note">Competência</span>'+compSelect()+'<span class="note">'+esc(comp.rot)+'</span><span style="flex:1"></span><button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button></div>';
-  var porFunc='<div class="panel"><h2>Por funcionário — '+esc(comp.rot)+'</h2><div class="tbl-scroll"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">Válida p/ cluster</th><th class="n">Cluster</th><th class="n">Falta p/ próxima</th><th class="n">Comissão gerada</th><th class="n">Paga</th><th class="n">Pendente</th><th class="n">Futura (pós)</th><th></th></tr></thead><tbody>'
+  var sel='<div class="cms-bar"><span class="note">Competência</span>'+compSelect()+'<span class="note">'+esc(comp.rot)+'</span><span style="flex:1"></span><button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button></div>';
+  var porFunc='<div class="panel"><h2>Por funcionário — '+esc(comp.rot)+'</h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">P/ cluster</th><th class="n">Cluster</th><th class="n">Falta p/ próx.</th><th class="n">Gerada</th><th class="n">Paga</th><th class="n">Pendente</th><th class="n">Futura</th><th></th></tr></thead><tbody>'
     +(ids.map(function(id){ var R=resumoFunc(id,_compSel,all); var u=user(id); return '<tr><td><b>'+esc(u.nome||id)+'</b></td><td class="n">'+R.n+'</td><td class="n">'+BRL(R.prodTot)+'</td><td class="n">'+BRL(R.prodCl)+'</td><td class="n">'+pct(R.cluster.r)+'</td><td class="n">'+(R.prox?BRL(R.falta):'máx.')+'</td><td class="n">'+BRL2(R.gerada)+'</td><td class="n">'+BRL2(R.paga)+'</td><td class="n"><b>'+BRL2(R.pend)+'</b></td><td class="n">'+BRL2(R.futura)+'</td><td><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\''+id+'\')">Ver</button></td></tr>'; }).join('')||'<tr><td colspan="11" class="note">Nenhuma venda registrada.</td></tr>')+'</tbody></table></div></div>';
   var lista=all.slice().sort(function(a,b){ var x=analise(a)==='EM_ANALISE'?0:1, y=analise(b)==='EM_ANALISE'?0:1; return x-y; });
-  var rows=lista.map(function(v){ var k=calc(v,all); var u=user(v.vendedor_id);
-    var pc=k.parcelas.map(function(p){ return '<td class="n"><span class="note">'+fmtBR(p.data)+'</span><br>HS '+BRL2(p.hs)+' <a onclick="cmsToggle(\''+v.id+'\','+p.n+',\'hs\')" style="cursor:pointer">'+stChip(p.hsStatus)+'</a><br>Func '+BRL2(p.func)+' <a onclick="cmsToggle(\''+v.id+'\','+p.n+',\'func\')" style="cursor:pointer">'+stChip(p.funcStatus)+'</a></td>'; }).join('');
-    var acts='<div style="display:flex;flex-direction:column;gap:4px">'+(analise(v)==='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsAprovar(\''+v.id+'\')">Aprovar / recusar</button>':'')+(v.origem_status==='EM_REVISAO'&&analise(v)!=='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsValidar(\''+v.id+'\')">Validar origem</button>':'')+'<button class="btn btn-ghost btn-sm" onclick="cmsDesignar(\''+v.id+'\')">Designar</button>'+'<button class="btn btn-ghost btn-sm" onclick="cmsPos(\''+v.id+'\')">Contemplação</button><button class="btn btn-ghost btn-sm" onclick="cmsSituacao(\''+v.id+'\')">Situação</button><button class="btn btn-ghost btn-sm" onclick="cmsEditar(\''+v.id+'\')">Editar</button><button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="cmsExcluir(\''+v.id+'\')">Excluir</button></div>';
-    return '<tr><td><b>'+esc(v.cliente_nome||'—')+'</b><br><span class="note">'+esc((u.nome||'').split(' ')[0])+' · '+esc(v.administradora||'')+(v.grupo?' · '+esc(v.grupo)+'/'+esc(v.cota||''):'')+' · '+fmtBR(v.data_insercao)+' · '+esc(k.comp.rot)+' · '+(k.jan.tipo==='ANTECIPACAO'?'antecipação':'normal')+'</span><br>'+origemChip(v)+' '+anChip(v)+' '+sitChip(v.situacao)+(v.reembolso_valor?' '+chip('reemb. '+BRL2(v.reembolso_valor),'#E08A5A'):'')+'</td><td>'+BRL(k.credito)+'<br><span class="note">'+pct(k.rate)+(k.ajuste?' · ajuste '+BRL2(k.ajuste)+' em '+fmtBR(k.ajusteData):'')+'</span></td><td class="n">HS '+BRL2(k.hsPre)+'<br>Func <b>'+BRL2(k.funcPre)+'</b><br>Agion '+BRL2(k.agionPre)+'</td>'+pc+'<td class="n">'+chip(POS_LBL[v.pos_status]||v.pos_status,v.pos_status==='NAO_CONTEMPLADA'?'':'#4CAF7D')+'<br>Func '+BRL2(k.posFunc)+(v.pos_func_pago?' ✓':'')+'<br>Agion '+BRL2(k.posAgion)+'</td><td>'+acts+'</td></tr>'; }).join('');
-  var tbl='<div class="panel"><h2>Todas as vendas <span class="right note">clique no status da parcela para marcar recebida (HS) / paga (funcionário)</span></h2><div class="tbl-scroll" style="max-height:640px"><table><thead><tr><th>Venda</th><th>Crédito</th><th class="n">Pré (2%)</th><th class="n">1ª</th><th class="n">2ª</th><th class="n">3ª</th><th class="n">4ª</th><th class="n">5ª</th><th class="n">Pós (2%)</th><th></th></tr></thead><tbody>'+(rows||'<tr><td colspan="10" class="note">Nenhuma venda registrada. Use "Registrar venda" ou cadastre uma carta HS com valor.</td></tr>')+'</tbody></table></div></div>';
+  var tbl='<div class="panel"><h2>Todas as vendas <span class="right note">clique no status da parcela para marcar recebida (HS) / paga (funcionário)</span></h2>'+(lista.length?lista.map(function(v){return vendaCard(v,all,true);}).join(''):'<p class="note">Nenhuma venda registrada. Use "Registrar venda" ou cadastre uma carta HS com valor.</p>')+'</div>';
   var rol='<div class="panel"><h2>Pagamentos aos funcionários — próximos 5 meses</h2>'+tabelaRolante(all,all,true)+'</div>';
   var sit=all.filter(function(v){return v.situacao!=='EM_DIA';});
-  var sitHtml='<div class="panel"><h2>Clientes com pendência / reembolso</h2>'+(sit.length?'<div class="tbl-scroll"><table><thead><tr><th>Cliente</th><th>Funcionário</th><th>Situação</th><th class="n">Reembolso</th><th>Obs.</th></tr></thead><tbody>'+sit.map(function(v){return '<tr><td>'+esc(v.cliente_nome||'—')+'</td><td>'+esc((user(v.vendedor_id).nome||'').split(' ')[0])+'</td><td>'+sitChip(v.situacao)+'</td><td class="n">'+(v.reembolso_valor?BRL2(v.reembolso_valor):'—')+'</td><td class="note">'+esc(v.obs||'')+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="note">Nenhuma pendência.</p>')+'</div>';
-  C.innerHTML=sel+cards+porFunc+tbl+rol+sitHtml;
+  var sitHtml='<div class="panel"><h2>Clientes com pendência / reembolso</h2>'+(sit.length?'<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Funcionário</th><th>Situação</th><th class="n">Reembolso</th><th>Obs.</th></tr></thead><tbody>'+sit.map(function(v){return '<tr><td>'+esc(v.cliente_nome||'—')+'</td><td>'+esc((user(v.vendedor_id).nome||'').split(' ')[0])+'</td><td>'+sitChip(v.situacao)+'</td><td class="n">'+(v.reembolso_valor?BRL2(v.reembolso_valor):'—')+'</td><td class="note">'+esc(v.obs||'')+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="note">Nenhuma pendência.</p>')+'</div>';
+  ensureCss(); C.innerHTML='<div class="cms-wrap">'+sel+cards+porFunc+tbl+rol+sitHtml+'</div>';
 }
 
 /* ===================== AÇÕES (Master) ===================== */
