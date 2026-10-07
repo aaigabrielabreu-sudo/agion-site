@@ -2488,10 +2488,29 @@ function createClientAccount(c){
 }
 async function crmToClient(id){
   if(roGuard())return;
-  const l=(db.crm).find(x=>x.id===id);
-  if(!(await ask({title:'Converter em cliente?',msg:`Cria a ficha de "${l.nome}", envia o convite de acesso por e-mail e abre o planejamento.`,ok:'Converter'})))return;
-  let email=l.contato&&l.contato.includes('@')?l.contato.trim():'';
-  if(!email){ email=await ask({title:'E-mail do cliente',msg:'Informe o e-mail para enviar o convite de acesso:',input:true,ok:'Criar e convidar'}); if(!email||!email.trim())return; email=email.trim(); }
+  const l=(db.crm).find(x=>x.id===id); if(!l)return;
+  const modo=await chooseModal('Habilitar plataforma?','"'+l.nome+'" vai usar a plataforma de planejamento financeiro (login, projeção, metas, gastos)?\n\n• Sim — criamos o acesso e enviamos um convite por e-mail.\n• Não — cliente só de consórcio: fica na carteira para cadastrar cartas e emitir boleto, sem login.','Sim — habilitar plataforma','Não — só consórcio');
+  if(!modo)return;
+  const _ct=(l.contato||'').trim();
+  if(modo==='b'){
+    const tel=await ask({title:'WhatsApp do cliente',msg:'Número com DDD — usado para cadastrar a carta e emitir/enviar o boleto. Pode deixar em branco e preencher depois na carta.',input:true,value:(_ct.includes('@')?'':_ct.replace(/\D/g,'')),ok:'Criar cliente'});
+    if(tel===null)return;
+    flash('Criando cliente…');
+    const cid=uuid();
+    try{ await supa.from('clientes').insert({id:cid,nome:l.nome.trim(),tel:((tel||'').replace(/\D/g,'')||null),email:(_ct.includes('@')?_ct:null),owner_id:meId()}); }
+    catch(e){ await ask({title:'Não foi possível criar',msg:String(e.message||e),ok:'Ok'}); return; }
+    l.stage=CRM_STAGES.length-1; l.perdido=false; if(!l.ownerId)l.ownerId=meId();
+    l.atividades=l.atividades||[]; l.atividades.push({texto:'Convertido em cliente (só consórcio)',quando:Date.now(),autorId:session.userId});
+    logEvt('INSERT','clientes','Criou cliente só de consórcio a partir do lead: '+l.nome.trim(),{tel:(tel||''),lead:l.nome});
+    saveLeadCloud(l); save();
+    await loadCloud(); flash('Cliente criado — cadastre a carta'); view._from='crm'; render();
+    if(tel&&tel.replace(/\D/g,'').length>=10){ try{ await agBoasVindasCliente(l.nome.trim(),tel); }catch(e){} }
+    const c=db.clients.find(x=>x.id===cid)||db.clients.find(x=>x.nome===l.nome.trim());
+    if(c) openCartas(c.id);
+    return;
+  }
+  let email=_ct.includes('@')?_ct:'';
+  if(!email){ email=await ask({title:'E-mail do cliente',msg:'Será o login de acesso do cliente (vamos enviar um convite):',input:true,ok:'Criar e convidar'}); if(!email||!email.trim())return; email=email.trim(); }
   flash('Criando cliente…');
   try{ await criarConta(l.nome,email,'cliente'); }
   catch(e){ await ask({title:'Não foi possível criar',msg:String(e.message||e),ok:'Ok'}); return; }
