@@ -254,34 +254,44 @@ window.cmsNovaVenda=async function(pre){
   if(typeof roGuard==='function'&&roGuard())return;
   pre=pre||{};
   var clis=(typeof visibleClients==='function'?visibleClients():(db.clients||[])).slice().sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'');});
-  var cid=pre.cliente_id;
-  if(!cid){
-    var opts=clis.map(function(c){return '<option value="'+c.id+'">'+esc(c.nome||'')+'</option>';}).join('');
-    cid=await new Promise(function(res){
-      var bg=document.createElement('div'); bg.id='cmsSel'; bg.style.cssText='position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px';
-      bg.innerHTML='<div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:420px;width:100%;padding:22px"><h2 style="margin:0 0 12px;font-size:1.05rem">Registrar venda</h2><p class="note" style="margin-bottom:10px">Cliente da venda:</p><select id="cmsCli" style="width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:10px 12px;border-radius:10px;font:inherit">'+opts+'</select><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px"><button class="btn btn-ghost btn-sm" id="cmsCancel">Cancelar</button><button class="btn btn-gold btn-sm" id="cmsOk">Próximo</button></div></div>';
-      document.body.appendChild(bg);
-      document.getElementById('cmsCancel').onclick=function(){bg.remove();res(null);};
-      document.getElementById('cmsOk').onclick=function(){var v=document.getElementById('cmsCli').value;bg.remove();res(v);};
-    });
-    if(!cid)return;
-  }
-  var cli=clis.find(function(c){return c.id===cid;})||{nome:pre.cliente_nome||''};
-  var cartas=[]; try{ var r=await supa.from('cartas').select('*').eq('cliente_id',cid); cartas=(r.data||[]).filter(function(x){return /hs/i.test(x.administradora||'');}); }catch(e){}
-  var carta=pre.carta_id?cartas.find(function(x){return x.id===pre.carta_id;}):null;
-  if(!carta && cartas.length){
-    if(cartas.length===1) carta=cartas[0];
-    else { var pick=await ask({title:'Qual carta?',msg:cartas.map(function(x,i){return (i+1)+') grupo '+x.grupo+' / cota '+x.cota+(x.valor?' · '+BRL(x.valor):'');}).join('\n')+'\n\nDigite o número:',input:true,value:'1',ok:'Próximo'}); if(pick===null)return; carta=cartas[(parseInt(pick,10)||1)-1]||cartas[0]; }
-  }
-  var cr=await ask({title:'Crédito vendido',msg:'Valor do crédito efetivamente vendido (R$):',input:true,value:String(pre.credito||(carta&&carta.valor)||''),ok:'Próximo'}); if(cr===null)return;
-  var credito=Number(String(cr).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0; if(!(credito>0)){flash('Informe o valor do crédito.');return;}
-  var dt=await ask({title:'Data da venda (inserção na HS)',msg:'AAAA-MM-DD — define a competência (26→25) e a janela de pagamento:',input:true,value:iso(new Date()),ok:'Próximo'}); if(dt===null)return;
-  var o=await chooseModal('Origem do cliente','"'+esc(cli.nome||'')+'" veio de onde?\n\n• Lead da Agion — comissão pelo cluster da competência.\n• Cliente próprio — 1% pré + 1% na contemplação'+(isMaster()?'':' (passa por validação do Master)')+'.','Lead da Agion','Cliente próprio'); if(!o)return;
-  var origem=o==='a'?'LEAD_AGION':'CLIENTE_PROPRIO';
-  var rec={cliente_id:cid,cliente_nome:cli.nome||'',vendedor_id:(isMaster()&&cli.ownerId)?cli.ownerId:meId(),administradora:(carta&&carta.administradora)||'HS Consórcios',grupo:carta?carta.grupo:null,cota:carta?carta.cota:null,carta_id:carta?carta.id:null,credito:credito,origem:origem,origem_status:(origem==='CLIENTE_PROPRIO'&&!isMaster())?'EM_REVISAO':'VALIDADA',data_insercao:String(dt).slice(0,10),parcelas:[]};
-  if(isMaster()&&cli.ownerId&&cli.ownerId!==meId()){ var w=await chooseModal('Vendedor','A venda é de '+(user(cli.ownerId).nome||'')+' (dono do cliente) ou sua?','De '+(user(cli.ownerId).nome||'').split(' ')[0],'Minha'); if(!w)return; if(w==='b')rec.vendedor_id=meId(); }
+  if(!clis.length){ flash('Nenhum cliente cadastrado ainda.'); return; }
+  // valores pré-definidos: carta HS (valor) e lead do CRM (valor)
+  var cartasAll=[]; try{ var rc=await supa.from('cartas').select('id,cliente_id,administradora,grupo,cota,valor'); cartasAll=(rc.data||[]).filter(function(x){return /hs/i.test(x.administradora||'');}); }catch(e){}
+  function leadDe(c){ var n=String(c.nome||'').trim().toLowerCase(); return (db.crm||[]).filter(function(l){return String(l.nome||'').trim().toLowerCase()===n;}).sort(function(x,y){return (y.stage||0)-(x.stage||0);})[0]||null; }
+  function info(c){ var ks=cartasAll.filter(function(x){return x.cliente_id===c.id;}); var l=leadDe(c); var val=(ks.find(function(x){return x.valor;})||{}).valor||(l&&l.valor)||0; var orig=(l&&/^Origem:/.test(l.obs||''))?'LEAD_AGION':''; return {cartas:ks,lead:l,valor:val,origem:orig,fonte:ks.some(function(x){return x.valor;})?'carta':(l&&l.valor?'CRM':'')}; }
+  var bx='width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:10px 12px;border-radius:10px;font:inherit';
+  var fld=function(lb,inner){ return '<label style="display:block;margin-bottom:12px"><span style="display:block;font-size:.78rem;color:var(--muted);margin-bottom:5px">'+lb+'</span>'+inner+'</label>'; };
+  var opts=clis.map(function(c){ var i=info(c); return '<option value="'+c.id+'" data-valor="'+(i.valor||'')+'" data-origem="'+i.origem+'" data-fonte="'+i.fonte+'"'+(pre.cliente_id===c.id?' selected':'')+'>'+esc(c.nome||'')+(i.valor?' — '+BRL(i.valor)+' ('+i.fonte+')':'')+'</option>'; }).join('');
+  var vendOpts=''; if(isMaster()){ var vs=(db.accounts||[]).filter(function(a){return a.real!==false&&(a.role==='master'||a.role==='lider'||a.role==='especialista')&&a.ativo!==false;}); vendOpts=vs.map(function(a){return '<option value="'+a.id+'">'+esc(a.nome||'')+'</option>';}).join(''); }
+  var out=await new Promise(function(res){
+    var bg=document.createElement('div'); bg.id='cmsSel'; bg.style.cssText='position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+    bg.innerHTML='<div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:460px;width:100%;max-height:90vh;overflow:auto;padding:22px"><h2 style="margin:0 0 14px;font-size:1.05rem">Registrar venda</h2>'
+      +fld('Cliente','<select id="cmsCli" style="'+bx+'">'+opts+'</select>')
+      +fld('Carta (HS)','<select id="cmsCarta" style="'+bx+'"></select>')
+      +fld('Crédito vendido (R$) <span id="cmsHint" class="note"></span>','<div style="display:flex;gap:8px"><input id="cmsCred" inputmode="decimal" placeholder="Ex.: 800000" style="'+bx+'"><button class="btn btn-ghost btn-sm" id="cmsUsar" type="button" title="Usar o valor pré-definido">Usar pré-definido</button></div>')
+      +fld('Data da venda (inserção na HS)','<input id="cmsData" type="date" value="'+(pre.data||iso(new Date()))+'" style="'+bx+'">')
+      +fld('Origem do cliente','<select id="cmsOrig" style="'+bx+'"><option value="LEAD_AGION">Lead da Agion — comissão pelo cluster</option><option value="CLIENTE_PROPRIO">Cliente próprio — 1% pré + 1% na contemplação'+(isMaster()?'':' (valida o Master)')+'</option></select>')
+      +(isMaster()?fld('Vendedor','<select id="cmsVend" style="'+bx+'">'+vendOpts+'</select>'):'')
+      +'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px"><button class="btn btn-ghost btn-sm" id="cmsCancel">Cancelar</button><button class="btn btn-gold btn-sm" id="cmsOk">Registrar</button></div></div>';
+    document.body.appendChild(bg);
+    var $=function(i){return document.getElementById(i);};
+    function fill(){ var o=$('cmsCli').selectedOptions[0]; var cid=o.value; var ks=cartasAll.filter(function(x){return x.cliente_id===cid;});
+      $('cmsCarta').innerHTML=(ks.map(function(x){return '<option value="'+x.id+'" data-valor="'+(x.valor||'')+'"'+(pre.carta_id===x.id?' selected':'')+'>Grupo '+esc(x.grupo)+' / cota '+esc(x.cota)+(x.valor?' — '+BRL(x.valor):'')+'</option>';}).join(''))+'<option value="">Sem carta vinculada</option>';
+      var pv=pre.credito||o.getAttribute('data-valor')||''; $('cmsCred').value=pv?String(Math.round(+pv)):''; $('cmsHint').textContent=pv?'· pré-definido '+BRL(+pv)+' ('+(o.getAttribute('data-fonte')||'')+')':'· sem valor pré-definido';
+      if(o.getAttribute('data-origem')) $('cmsOrig').value=o.getAttribute('data-origem');
+      if($('cmsVend')){ var c=clis.find(function(x){return x.id===cid;}); if(c&&c.ownerId&&[].some.call($('cmsVend').options,function(op){return op.value===c.ownerId;})) $('cmsVend').value=c.ownerId; else $('cmsVend').value=meId(); } }
+    fill(); $('cmsCli').onchange=fill;
+    $('cmsCarta').onchange=function(){ var v=this.selectedOptions[0]&&this.selectedOptions[0].getAttribute('data-valor'); if(v) $('cmsCred').value=String(Math.round(+v)); };
+    $('cmsUsar').onclick=function(){ var o=$('cmsCli').selectedOptions[0]; var v=o.getAttribute('data-valor'); if(v) $('cmsCred').value=String(Math.round(+v)); else flash('Este cliente não tem valor pré-definido.'); };
+    $('cmsCancel').onclick=function(){bg.remove();res(null);};
+    $('cmsOk').onclick=function(){ var r={cid:$('cmsCli').value,carta_id:$('cmsCarta').value||null,credito:Number(String($('cmsCred').value).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0,data:$('cmsData').value,origem:$('cmsOrig').value,vend:$('cmsVend')?$('cmsVend').value:null}; if(!(r.credito>0)){flash('Informe o valor do crédito.');return;} if(!r.data){flash('Informe a data.');return;} bg.remove(); res(r); };
+  });
+  if(!out)return;
+  var cli=clis.find(function(c){return c.id===out.cid;})||{};
+  var carta=cartasAll.find(function(x){return x.id===out.carta_id;})||null;
+  var rec={cliente_id:out.cid,cliente_nome:cli.nome||'',vendedor_id:out.vend||meId(),administradora:(carta&&carta.administradora)||'HS Consórcios',grupo:carta?carta.grupo:null,cota:carta?carta.cota:null,carta_id:carta?carta.id:null,credito:out.credito,origem:out.origem,origem_status:(out.origem==='CLIENTE_PROPRIO'&&!isMaster())?'EM_REVISAO':'VALIDADA',data_insercao:out.data,parcelas:[]};
   try{ var ins=await supa.from('comissoes_vendas').insert(rec); if(ins.error) throw ins.error; }catch(e){ await ask({title:'Não foi possível registrar',msg:String(e.message||e),ok:'Ok'}); return; }
-  try{ logEvt('comissao','comissoes','Registrou venda de '+(cli.nome||'')+' — '+BRL(credito)+' ('+origem+')',{cliente_id:cid}); }catch(e){}
+  try{ logEvt('comissao','comissoes','Registrou venda de '+(cli.nome||'')+' — '+BRL(out.credito)+' ('+out.origem+')',{cliente_id:out.cid}); }catch(e){}
   flash('Venda registrada'+(rec.origem_status==='EM_REVISAO'?' — origem aguardando validação do Master':''));
   await load(); if(view.page==='comissoes') render();
 };
