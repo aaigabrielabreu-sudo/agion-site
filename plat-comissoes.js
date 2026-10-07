@@ -54,6 +54,13 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
+var VERSAO='v10';
+function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
+function eId(){ return (typeof effId==='function')?effId():meId(); }
+function eMaster(){ return eRole()==='master'; }
+function eLider(){ return eRole()==='lider'; }
+function teamIds(){ try{ return eLider()&&typeof especIdsOf==='function'?especIdsOf(eId()):[]; }catch(e){ return []; } }
+function vendasVisiveis(){ if(eMaster()) return _vendas; var ids=[eId()].concat(teamIds()); return _vendas.filter(function(v){return ids.indexOf(v.vendedor_id)>=0;}); }
 function grupoDe(v,all){ var a=analise(v); if(a==='EM_ANALISE'||a==='RECUSADA'||v.situacao==='CANCELADA'||v.situacao==='REEMBOLSO_TOTAL') return 'outros'; if(v.pos_status&&v.pos_status!=='NAO_CONTEMPLADA') return 'pos'; var k=calc(v,all); return k.funcPend>0.005?'andamento':'pagos'; }
 function tabsHtml(vendas,all){ var c={andamento:0,pagos:0,pos:0,outros:0}; vendas.forEach(function(v){c[grupoDe(v,all)]++;}); var L=[['andamento','Em andamento'],['pagos','Pagos'],['pos','Pós-contemplação'],['outros','Outros']]; return '<div class="cms-tabs">'+L.map(function(t){return '<button class="'+(_tab===t[0]?'on':'')+'" onclick="cmsSetTab(\''+t[0]+'\')">'+t[1]+'<span>'+c[t[0]]+'</span></button>';}).join('')+'</div>'; }
 function tabDesc(){ return {andamento:'Vendas com parcelas ainda a pagar.',pagos:'Comissão pré concluída — aguardando contemplação.',pos:'Cotas contempladas e comissão pós-contemplação.',outros:'Em análise, recusadas, canceladas ou com reembolso total.'}[_tab]; }
@@ -176,6 +183,7 @@ function staffList(){ return (db.accounts||[]).filter(function(a){return a.real=
 function tag(t,cls){ return '<span class="cms-tag'+(cls?' '+cls:'')+'">'+t+'</span>'; }
 function pill(on,lbl,onclick,bad){ return '<button class="cms-pill'+(on?' on':'')+(bad?' bad':'')+(onclick?'':' ro')+'"'+(onclick?' onclick="'+onclick+'"':'')+'>'+lbl+'</button>'; }
 function vendaCard(v,all,master){
+  master=master&&eMaster();
   var k=calc(v,all), u=user(v.vendedor_id), a=analise(v);
   var tags=origemChip(v)+anChip(v)+sitChip(v.situacao)+(v.reembolso_valor?tag('reemb. '+BRL2(v.reembolso_valor),'warn'):'');
   var meta=[master?esc((u.nome||'').split(' ').slice(0,2).join(' ')):null, esc(v.administradora||''), v.grupo?('grupo '+esc(v.grupo)+' · cota '+esc(v.cota||'')):null, 'venda '+fmtBR(v.data_insercao), 'competência '+esc(k.comp.rot), k.jan.tipo==='ANTECIPACAO'?'antecipação (dia 23)':'janela normal (dia 10)'].filter(Boolean).join(' · ');
@@ -221,18 +229,15 @@ function tabelaRolante(vendas, all, comAgion){
 
 /* ===================== UI: FUNCIONÁRIO ===================== */
 function paintFunc(C, uid, titulo){
-  var R=resumoFunc(uid,_compSel,_vendas), comp=compShift(_compSel,0);
+  var R=resumoFunc(uid,_compSel,_vendas);
   var mine=_vendas.filter(function(v){return v.vendedor_id===uid;});
   var cards='<div class="kpis">'
-    +kpi('Produção da competência',BRL(R.prodTot),true,'Válida p/ cluster: <b>'+BRL(R.prodCl)+'</b>')
-    +kpi('Cluster atual',pct(R.cluster.r),false,R.prox?('Falta <b>'+BRL(R.falta)+'</b> p/ '+pct(R.prox.r)):'Faixa máxima')
-    +kpi('Comissão gerada',BRL2(R.gerada),false,'Pré-contemplação (todas as vendas)')
-    +kpi('Já recebida',BRL2(R.paga),false,'')
-    +kpi('A receber',BRL2(R.pend),true,R.proximo?('Próximo: <b>'+fmtBR(R.proximo.data)+'</b> · '+BRL2(R.proximo.valor)):'')
-    +kpi('Futura por contemplação',BRL2(R.futura),false,'Só clientes próprios')
-    +(R.reemb?kpi('Reembolsos',BRL2(R.reemb),false,'Descontos de cotas com reembolso'):'')
+    +kpi('Produção da competência',BRL(R.prodTot),true,'Cluster <b>'+pct(R.cluster.r)+'</b>'+(R.prox?' · falta <b>'+BRL(R.falta)+'</b> p/ '+pct(R.prox.r):' · faixa máxima')+(R.prodCl!==R.prodTot?' · válida p/ cluster <b>'+BRL(R.prodCl)+'</b>':''))
+    +kpi('Comissão',BRL2(R.gerada),false,'Recebida <b>'+BRL2(R.paga)+'</b> · a receber <b>'+BRL2(R.pend)+'</b>'+(R.proximo?' · próximo <b>'+fmtBR(R.proximo.data)+'</b>':''))
+    +kpi('Pós-contemplação potencial',BRL2(R.futura),false,'1% dos seus clientes próprios, ao contemplar')
+    +(R.reemb?kpi('Reembolsos',BRL2(R.reemb),false,''):'')
     +'</div>';
-  var sel='<div class="cms-bar"><span class="note">Competência</span>'+compSelect()+'<span class="note">'+esc(comp.rot)+'</span></div>';
+  var sel='<div class="cms-bar">'+compSelect()+'</div>';
   var lst=mine.filter(function(v){return grupoDe(v,_vendas)===_tab;});
   var tbl='<div class="panel"><h2>Minhas vendas</h2>'+tabsHtml(mine,_vendas)+'<p class="note" style="margin-bottom:12px">'+tabDesc()+'</p>'+(lst.length?lst.map(function(v){return vendaCard(v,_vendas,false);}).join(''):'<p class="note">Nada aqui.</p>')+'</div>';
   var rol='<div class="panel"><h2>Próximos recebimentos (5 meses)</h2>'+tabelaRolante(mine,_vendas,false)+'</div>';
@@ -261,8 +266,8 @@ function paintMaster(C){
     +kpi('Reembolsos',BRL2(T.reemb),false,'')
     +(T.an?kpi('Vendas em análise',String(T.an),true,'Registradas por colaboradores — prazo de 2 dias úteis'):'')+(T.rev?kpi('Origens em validação',String(T.rev),false,'Cadastros aguardando sua decisão'):'')
     +'</div>';
-  var sel='<div class="cms-bar"><span class="note">Competência</span>'+compSelect()+'<span class="note">'+esc(comp.rot)+'</span><span style="flex:1"></span><button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button></div>';
-  var porFunc='<div class="panel"><h2>Por funcionário — '+esc(comp.rot)+'</h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">P/ cluster</th><th class="n">Cluster</th><th class="n">Falta p/ próx.</th><th class="n">Gerada</th><th class="n">Paga</th><th class="n">Pendente</th><th class="n">Futura</th><th></th></tr></thead><tbody>'
+  var sel='<div class="cms-bar">'+compSelect()+'<span style="flex:1"></span><button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button></div>';
+  var porFunc='<div class="panel"><h2>Por funcionário</h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">P/ cluster</th><th class="n">Cluster</th><th class="n">Falta p/ próx.</th><th class="n">Gerada</th><th class="n">Paga</th><th class="n">Pendente</th><th class="n">Futura</th><th></th></tr></thead><tbody>'
     +(ids.map(function(id){ var R=resumoFunc(id,_compSel,all); var u=user(id); return '<tr><td><b>'+esc(u.nome||id)+'</b></td><td class="n">'+R.n+'</td><td class="n">'+BRL(R.prodTot)+'</td><td class="n">'+BRL(R.prodCl)+'</td><td class="n">'+pct(R.cluster.r)+'</td><td class="n">'+(R.prox?BRL(R.falta):'máx.')+'</td><td class="n">'+BRL2(R.gerada)+'</td><td class="n">'+BRL2(R.paga)+'</td><td class="n"><b>'+BRL2(R.pend)+'</b></td><td class="n">'+BRL2(R.futura)+'</td><td><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\''+id+'\')">Ver</button></td></tr>'; }).join('')||'<tr><td colspan="11" class="note">Nenhuma venda registrada.</td></tr>')+'</tbody></table></div></div>';
   var lista=all.slice().sort(function(a,b){ var x=analise(a)==='EM_ANALISE'?0:1, y=analise(b)==='EM_ANALISE'?0:1; return x-y; });
   var lst=lista.filter(function(v){return grupoDe(v,all)===_tab;});
@@ -271,6 +276,15 @@ function paintMaster(C){
   var sit=all.filter(function(v){return v.situacao!=='EM_DIA';});
   var sitHtml='<div class="panel"><h2>Clientes com pendência / reembolso</h2>'+(sit.length?'<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Funcionário</th><th>Situação</th><th class="n">Reembolso</th><th>Obs.</th></tr></thead><tbody>'+sit.map(function(v){return '<tr><td>'+esc(v.cliente_nome||'—')+'</td><td>'+esc((user(v.vendedor_id).nome||'').split(' ')[0])+'</td><td>'+sitChip(v.situacao)+'</td><td class="n">'+(v.reembolso_valor?BRL2(v.reembolso_valor):'—')+'</td><td class="note">'+esc(v.obs||'')+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="note">Nenhuma pendência.</p>')+'</div>';
   ensureCss(); C.innerHTML='<div class="cms-wrap">'+sel+cards+porFunc+tbl+(_tab==='andamento'?rol+sitHtml:'')+'</div>';
+}
+
+function paintLider(C){
+  var uid=eId(), ids=teamIds();
+  paintFunc(C,uid);
+  if(!ids.length) return;
+  var porFunc='<div class="panel"><h2>Minha equipe</h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Especialista</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">Cluster</th><th class="n">Comissão gerada</th><th class="n">Recebida</th><th class="n">A receber</th><th class="n">Pós potencial</th><th></th></tr></thead><tbody>'
+    +ids.map(function(id){ var R=resumoFunc(id,_compSel,_vendas); var u=user(id); return '<tr><td><b>'+esc(u.nome||'')+'</b></td><td class="n">'+R.n+'</td><td class="n">'+BRL(R.prodTot)+'</td><td class="n">'+pct(R.cluster.r)+'</td><td class="n">'+BRL2(R.gerada)+'</td><td class="n">'+BRL2(R.paga)+'</td><td class="n"><b>'+BRL2(R.pend)+'</b></td><td class="n">'+BRL2(R.futura)+'</td><td><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\''+id+'\')">Ver</button></td></tr>'; }).join('')+'</tbody></table></div></div>';
+  var w=C.querySelector('.cms-wrap'); if(w) w.insertAdjacentHTML('beforeend',porFunc);
 }
 
 /* ===================== AÇÕES (Master) ===================== */
@@ -282,7 +296,7 @@ async function upd(id, patch, desc){
   await load(); render(); return true;
 }
 window.cmsToggle=async function(id,n,tipo){
-  if(!isMaster()){flash('Apenas o Master marca recebimentos/pagamentos.');return;}
+  if(!eMaster()){flash('Apenas o Master marca recebimentos/pagamentos.');return;}
   var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
   var k=calc(v,_vendas), cur=k.parcelas[n-1];
   var ps=(v.parcelas||[]).slice(); var p=ps.find(function(x){return +x.n===n;}); if(!p){p={n:n};ps.push(p);}
@@ -318,7 +332,7 @@ window.cmsSituacao=async function(id){
   await upd(id,patch,'Situação '+desc+' — '+(v.cliente_nome||''));
 };
 window.cmsEditar=async function(id){
-  if(!isMaster())return; var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
+  if(!eMaster())return; var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
   var bx='width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:10px 12px;border-radius:10px;font:inherit';
   var fld=function(lb,inner){ return '<label style="display:block;margin-bottom:12px"><span style="display:block;font-size:.78rem;color:var(--muted);margin-bottom:5px">'+lb+'</span>'+inner+'</label>'; };
   var cli=(db.clients||[]).find(function(c){return c.id===v.cliente_id;})||{};
@@ -342,13 +356,13 @@ window.cmsEditar=async function(id){
   await upd(id,patch,desc);
 };
 window.cmsExcluir=async function(id){
-  if(!isMaster())return; var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
+  if(!eMaster())return; var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
   if(!(await ask({title:'Excluir venda?',msg:'Remove a venda de '+(v.cliente_nome||'')+' da aba Comissões (a carta continua).',ok:'Excluir'})))return;
   try{ await supa.from('comissoes_vendas').delete().eq('id',id); logEvt('comissao','comissoes','Excluiu venda de '+(v.cliente_nome||''),{id:id}); }catch(e){}
   await load(); render();
 };
 window.cmsAprovar=async function(id){
-  if(!isMaster())return; var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
+  if(!eMaster())return; var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
   var o=await chooseModal('Pré-análise — '+(v.cliente_nome||''),'Registrada por '+(user(v.vendedor_id).nome||'')+' em '+fmtBR(v.criado_em)+' · crédito '+BRL(v.credito)+' · origem informada: '+(v.origem==='CLIENTE_PROPRIO'?'cliente próprio':'lead da Agion')+'.\n\nPrazo da análise: '+fmtBR(v.analise_prazo)+'.','Aprovar','Recusar');
   if(!o)return;
   var patch={analise_por:meId(),analise_em:new Date().toISOString()};
@@ -357,7 +371,7 @@ window.cmsAprovar=async function(id){
   await upd(id,patch,'Pré-análise '+patch.analise_status+' — '+(v.cliente_nome||''));
 };
 window.cmsDesignar=async function(id){
-  if(!isMaster())return; var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
+  if(!eMaster())return; var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
   var vs=staffList();
   var cliD=(db.clients||[]).find(function(c){return c.id===v.cliente_id;})||{};
   var pick=await new Promise(function(res){ var bg=document.createElement('div'); bg.style.cssText='position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px';
@@ -381,17 +395,22 @@ window.cmsNovaVenda=async function(pre){
   function info(c){ var ks=cartasAll.filter(function(x){return x.cliente_id===c.id;}); var l=leadDe(c); var val=(ks.find(function(x){return x.valor;})||{}).valor||(l&&l.valor)||0; var orig=(l&&/^Origem:/.test(l.obs||''))?'LEAD_AGION':''; return {cartas:ks,lead:l,valor:val,origem:orig,fonte:ks.some(function(x){return x.valor;})?'carta':(l&&l.valor?'CRM':'')}; }
   var bx='width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:10px 12px;border-radius:10px;font:inherit';
   var fld=function(lb,inner){ return '<label style="display:block;margin-bottom:12px"><span style="display:block;font-size:.78rem;color:var(--muted);margin-bottom:5px">'+lb+'</span>'+inner+'</label>'; };
+  // sugestões: últimos ganhos no CRM da própria pessoa (ou de todos, p/ master) ainda não registrados
+  var meu=eId(); var ja={}; _vendas.forEach(function(v){ ja[String(v.cliente_nome||'').trim().toLowerCase()]=1; if(v.cliente_id) ja[v.cliente_id]=1; });
+  var ganhos=(db.crm||[]).filter(function(l){ return !l.perdido && l.stage===CRM_STAGES.length-1 && (eMaster()||l.ownerId===meu) && !ja[String(l.nome||'').trim().toLowerCase()]; }).sort(function(a,b){ return (b.criadoEm||0)-(a.criadoEm||0); }).slice(0,6);
+  var sug=ganhos.map(function(l){ var c=clis.find(function(x){return String(x.nome||'').trim().toLowerCase()===String(l.nome||'').trim().toLowerCase();}); return c?'<button type="button" class="cms-pill" style="font-size:.7rem;text-transform:none;letter-spacing:0;padding:5px 10px" data-cid="'+c.id+'" data-valor="'+(l.valor||'')+'">'+esc(l.nome)+(l.valor?' · '+BRL(l.valor):'')+'</button>':''; }).join('');
   var opts=clis.map(function(c){ var i=info(c); return '<option value="'+c.id+'" data-valor="'+(i.valor||'')+'" data-origem="'+i.origem+'" data-fonte="'+i.fonte+'"'+(pre.cliente_id===c.id?' selected':'')+'>'+esc(c.nome||'')+(i.valor?' — '+BRL(i.valor)+' ('+i.fonte+')':'')+'</option>'; }).join('');
-  var vendOpts=''; if(isMaster()){ var vs=staffList(); vendOpts=vs.map(function(a){return '<option value="'+a.id+'">'+esc(a.nome||'')+'</option>';}).join(''); }
+  var vendOpts=''; if(eMaster()){ var vs=staffList(); vendOpts=vs.map(function(a){return '<option value="'+a.id+'">'+esc(a.nome||'')+'</option>';}).join(''); }
   var out=await new Promise(function(res){
     var bg=document.createElement('div'); bg.id='cmsSel'; bg.style.cssText='position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px';
     bg.innerHTML='<div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:460px;width:100%;max-height:90vh;overflow:auto;padding:22px"><h2 style="margin:0 0 14px;font-size:1.05rem">Registrar venda</h2>'
-      +fld('Cliente','<select id="cmsCli" style="'+bx+'">'+opts+'</select>')
+      +(sug?'<div style="margin-bottom:12px"><span style="display:block;font-size:.78rem;color:var(--muted);margin-bottom:6px">Últimos ganhos no CRM</span><div id="cmsSug" style="display:flex;gap:6px;flex-wrap:wrap">'+sug+'</div></div>':'')
+      +fld('Cliente','<div style="display:flex;gap:8px"><input id="cmsBusca" placeholder="🔍 Buscar cliente…" style="'+bx+';flex:1"><select id="cmsCli" style="'+bx+';flex:2">'+opts+'</select></div>')
       +fld('Carta (HS)','<select id="cmsCarta" style="'+bx+'"></select>')
       +fld('Crédito vendido (R$) <span id="cmsHint" class="note"></span>','<div style="display:flex;gap:8px"><input id="cmsCred" inputmode="decimal" placeholder="Ex.: 800000" style="'+bx+'"><button class="btn btn-ghost btn-sm" id="cmsUsar" type="button" title="Usar o valor pré-definido">Usar pré-definido</button></div>')
       +fld('Data da venda (inserção na HS)','<input id="cmsData" type="date" value="'+(pre.data||iso(new Date()))+'" style="'+bx+'">')
-      +fld('Origem do cliente','<select id="cmsOrig" style="'+bx+'"><option value="LEAD_AGION">Lead da Agion — comissão pelo cluster</option><option value="CLIENTE_PROPRIO">Cliente próprio — 1% pré + 1% na contemplação'+(isMaster()?'':' (valida o Master)')+'</option></select>')
-      +(isMaster()?fld('Vendedor','<select id="cmsVend" style="'+bx+'">'+vendOpts+'</select>'):'')
+      +fld('Origem do cliente','<select id="cmsOrig" style="'+bx+'"><option value="LEAD_AGION">Lead da Agion — comissão pelo cluster</option><option value="CLIENTE_PROPRIO">Cliente próprio — 1% pré + 1% na contemplação'+(eMaster()?'':' (valida o Master)')+'</option></select>')
+      +(eMaster()?fld('Vendedor','<select id="cmsVend" style="'+bx+'">'+vendOpts+'</select>'):'')
       +'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px"><button class="btn btn-ghost btn-sm" id="cmsCancel">Cancelar</button><button class="btn btn-gold btn-sm" id="cmsOk">Registrar</button></div></div>';
     document.body.appendChild(bg);
     var $=function(i){return document.getElementById(i);};
@@ -401,6 +420,8 @@ window.cmsNovaVenda=async function(pre){
       if(o.getAttribute('data-origem')) $('cmsOrig').value=o.getAttribute('data-origem');
       if($('cmsVend')){ var c=clis.find(function(x){return x.id===cid;}); if(c&&c.ownerId&&[].some.call($('cmsVend').options,function(op){return op.value===c.ownerId;})) $('cmsVend').value=c.ownerId; else $('cmsVend').value=meId(); } }
     fill(); $('cmsCli').onchange=fill;
+    $('cmsBusca').oninput=function(){ var q=this.value.trim().toLowerCase(); var first=null; [].forEach.call($('cmsCli').options,function(o){ var hit=!q||o.textContent.toLowerCase().indexOf(q)>=0; o.hidden=!hit; if(hit&&!first)first=o; }); if(first){ $('cmsCli').value=first.value; fill(); } };
+    if($('cmsSug')) [].forEach.call($('cmsSug').querySelectorAll('button'),function(b){ b.onclick=function(){ $('cmsCli').value=b.getAttribute('data-cid'); fill(); var v=b.getAttribute('data-valor'); if(v&&!$('cmsCred').value) $('cmsCred').value=String(Math.round(+v)); [].forEach.call($('cmsSug').querySelectorAll('button'),function(x){x.classList.remove('on');}); b.classList.add('on'); }; });
     $('cmsCarta').onchange=function(){ var v=this.selectedOptions[0]&&this.selectedOptions[0].getAttribute('data-valor'); if(v) $('cmsCred').value=String(Math.round(+v)); };
     $('cmsUsar').onclick=function(){ var o=$('cmsCli').selectedOptions[0]; var v=o.getAttribute('data-valor'); if(v) $('cmsCred').value=String(Math.round(+v)); else flash('Este cliente não tem valor pré-definido.'); };
     $('cmsCancel').onclick=function(){bg.remove();res(null);};
@@ -409,7 +430,7 @@ window.cmsNovaVenda=async function(pre){
   if(!out)return;
   var cli=clis.find(function(c){return c.id===out.cid;})||{};
   var carta=cartasAll.find(function(x){return x.id===out.carta_id;})||null;
-  var rec={cliente_id:out.cid,cliente_nome:cli.nome||'',vendedor_id:out.vend||meId(),administradora:(carta&&carta.administradora)||'HS Consórcios',grupo:carta?carta.grupo:null,cota:carta?carta.cota:null,carta_id:carta?carta.id:null,credito:out.credito,origem:out.origem,origem_status:(out.origem==='CLIENTE_PROPRIO'&&!isMaster())?'EM_REVISAO':'VALIDADA',data_insercao:out.data,parcelas:[],analise_status:isMaster()?'APROVADA':'EM_ANALISE',analise_prazo:isMaster()?null:diasUteis(iso(new Date()),2)};
+  var rec={cliente_id:out.cid,cliente_nome:cli.nome||'',vendedor_id:out.vend||meId(),administradora:(carta&&carta.administradora)||'HS Consórcios',grupo:carta?carta.grupo:null,cota:carta?carta.cota:null,carta_id:carta?carta.id:null,credito:out.credito,origem:out.origem,origem_status:(out.origem==='CLIENTE_PROPRIO'&&!eMaster())?'EM_REVISAO':'VALIDADA',data_insercao:out.data,parcelas:[],analise_status:eMaster()?'APROVADA':'EM_ANALISE',analise_prazo:eMaster()?null:diasUteis(iso(new Date()),2)};
   try{ var ins=await supa.from('comissoes_vendas').insert(rec); if(ins.error) throw ins.error; }catch(e){ await ask({title:'Não foi possível registrar',msg:String(e.message||e),ok:'Ok'}); return; }
   try{ logEvt('comissao','comissoes','Registrou venda de '+(cli.nome||'')+' — '+BRL(out.credito)+' ('+out.origem+')',{cliente_id:out.cid}); }catch(e){}
   flash('Venda registrada'+(rec.analise_status==='EM_ANALISE'?' — em pré-análise até '+fmtBR(rec.analise_prazo):''));
@@ -427,13 +448,14 @@ window.cmsAfterCarta=async function(recs,cid){
 /* ===================== ROTA ===================== */
 window.renderComissoes=async function(C){
   if(!_compSel) _compSel=compAtual().key;
-  var R=effRole();
-  setTop('Comissões', isMaster()?'Gestão de comissões HS — pré, pós, funcionários e margem':'Minhas comissões HS', isMaster()?'':'<button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button>');
+  var M=eMaster(), L=eLider();
+  setTop('Comissões', M?'Gestão de comissões HS':(L?'Minhas comissões e da minha equipe':'Minhas comissões HS'), (M?'':'<button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button>')+'<span class="note" style="margin-left:10px;opacity:.6">'+VERSAO+'</span>');
   C.innerHTML='<p class="note" style="padding:20px">Carregando comissões…</p>';
   await load();
-  if(isMaster()&&!_funcSel) return paintMaster(C);
-  if(isMaster()&&_funcSel){ var u=user(_funcSel); C.innerHTML=''; paintFunc(C,_funcSel,u.nome); C.insertAdjacentHTML('afterbegin','<div style="margin-bottom:12px"><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\'\')">← Visão geral</button> <b style="margin-left:8px">'+esc(u.nome||'')+'</b></div>'); return; }
-  var uid=(typeof effId==='function')?effId():meId();
-  paintFunc(C,uid);
+  if(!M) _vendas=vendasVisiveis();
+  if(M&&!_funcSel) return paintMaster(C);
+  if((M||L)&&_funcSel){ var u=user(_funcSel); if(L&&teamIds().indexOf(_funcSel)<0){ _funcSel=''; return window.renderComissoes(C); } C.innerHTML=''; paintFunc(C,_funcSel,u.nome); C.insertAdjacentHTML('afterbegin','<div style="margin-bottom:12px"><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\'\')">← Voltar</button> <b style="margin-left:8px">'+esc(u.nome||'')+'</b></div>'); return; }
+  if(L) return paintLider(C);
+  paintFunc(C,eId());
 };
 })();
