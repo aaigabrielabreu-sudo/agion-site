@@ -741,12 +741,17 @@ body .wa-item .wa-cli{display:inline-block;margin-left:8px;font-size:10px;font-w
 }
 /* APP (Capacitor / html.isApp): devolve o layout original — cabeçalho estático abaixo da área segura,
    faixa da barra de status opaca, .content rolando por dentro. O tema não pode encostar nisso. */
-html.isApp body::before{background:#0B2A26 !important;inset:auto;z-index:200}   /* !important: vence o gradiente do fundo (seção 2) */
+html.isApp body::before{background:#0B2A26 !important;bottom:auto;z-index:200;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}   /* !important: vence o gradiente do fundo (seção 2) */
 body.isApp .topbar{position:static;min-height:0;height:auto;padding:max(6px,calc(env(safe-area-inset-top,0px) - 12px)) 14px 7px;gap:4px 10px;background:#0B2A26!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-bottom:1px solid rgba(197,160,89,.22)}
 body.isApp.light .topbar{background:#F3F7F5!important}
 body.isApp .topbar h1,body.isApp .topbar .crumb,body.isApp .topbar .bells,body.isApp .topbar .actions{opacity:1!important;filter:none!important}
+/* nitidez: nada no cabeçalho do app pode virar camada rasterizada (blur/filtro/transform/will-change deixam o texto "desfocado" no iOS) */
+body.isApp .main>.topbar,body.isApp .main>.topbar *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;will-change:auto!important;text-shadow:none!important;mix-blend-mode:normal!important}
+body.isApp .main>.topbar,body.isApp .main>.topbar h1,body.isApp .main>.topbar .crumb,body.isApp .main>.topbar .kicker,body.isApp .main>.topbar .tb-left,body.isApp .main>.topbar .tb-right{transform:none!important;animation:none!important;transition:none!important;opacity:1!important}
+body.isApp .main>.topbar{isolation:isolate;-webkit-font-smoothing:antialiased;contain:none!important}
+html.capNative body.isApp::before{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important}
 html.capNative body.isApp .topbar{padding-top:var(--agTop,58px);padding-bottom:6px}
-/* pedido do dono (07/out): recuo do cabeçalho no app = 116px (dobro). Vence o !important do CSS injetado em runtime pela especificidade maior. */
+/* pedido do dono (07/out): recuo do cabeçalho no app = 60px. Vence o !important do CSS injetado em runtime pela especificidade maior. */
 html.capNative body.isApp .main>.topbar{padding-top:60px!important}
 html.capNative body.isApp .main:has(#viewbar)>.topbar{padding-top:34px!important}
 html.isApp:not(.capNative) body.isApp .main>.topbar{padding-top:calc(env(safe-area-inset-top,0px) + 12px)!important}

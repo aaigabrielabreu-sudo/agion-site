@@ -54,7 +54,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v18';
+var VERSAO='v19';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -161,19 +161,23 @@ body.light .cms-wrap,body.light .cms-md{--csurf-2:var(--surface-2,rgba(14,74,65,
 .cms-pill--txt{height:28px;padding:0 var(--cs-3);font-size:var(--cfs-xs);font-weight:500;letter-spacing:0;text-transform:none}
 .cms-pill--txt.on{--chip-fg:var(--gold2);--chip-bg:var(--cactive);--chip-line:var(--line-gold)}
 /* --- Cartões-aba do Master (.cms-kt) e KPIs do funcionário (.kpi): mesma anatomia, mesma altura --- */
-.cms-kts{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;margin-bottom:18px}
-.cms-kt{position:relative;display:flex;flex-direction:column;min-height:148px;background:var(--csurf-1);border:1px solid var(--line);border-radius:var(--cr-lg);padding:var(--cs-5);cursor:pointer;overflow:hidden;user-select:none}
+.cms-kts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:18px}
+.cms-kt{position:relative;display:flex;flex-direction:column;min-height:148px;background:var(--csurf-1);border:1px solid var(--line);border-radius:var(--cr-lg);padding:var(--cs-5);cursor:pointer;overflow:hidden;user-select:none;container-type:inline-size;min-width:0}
+.cms-wrap .kpi{container-type:inline-size;min-width:0}
 .cms-kt::before{content:"";position:absolute;left:var(--cs-5);right:var(--cs-5);top:0;height:2px;border-radius:0 0 2px 2px;background:var(--grad-gold);transform:scaleX(0);transform-origin:left center;transition:transform var(--dur-2,.2s) var(--ease-out,ease)}
 .cms-kt.on{border-color:var(--gold);background:linear-gradient(var(--cactive),var(--cactive)),var(--csurf-1)}
 .cms-kt.on::before{transform:scaleX(1)}
 .cms-kt .t,.cms-wrap .kpi .lab{font-size:var(--cfs-xs);font-weight:600;letter-spacing:var(--ctrack);text-transform:uppercase;color:var(--muted);margin-bottom:var(--cs-2);line-height:1.3}
 .cms-kt.on .t{color:var(--gold2)}
-.cms-kt .v,.cms-wrap .kpi b{display:block;font-family:var(--serif);font-size:var(--cfs-val);font-weight:600;line-height:1.15;color:var(--head);white-space:nowrap;margin-bottom:var(--cs-3)}
+.cms-kt .v,.cms-wrap .kpi b{display:block;font-family:var(--serif);font-size:var(--cfs-val);font-weight:600;line-height:1.15;color:var(--head);white-space:nowrap;margin-bottom:var(--cs-3);max-width:100%}
+/* o número acompanha a largura do cartão (unidade de contêiner); cmsFit() é a rede de segurança */
+.cms-kt .v,.cms-wrap .kpi b{font-size:clamp(1rem,10.5cqi,var(--cfs-2xl))}
 .cms-kt.grad .v,.cms-wrap .kpi.grad b{background:var(--grad-hero);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .cms-kt ul{list-style:none;margin:auto 0 0;padding:var(--cs-3) 0 0;border-top:1px solid var(--line)}
-.cms-kt li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--cs-2);align-items:baseline;font-size:var(--cfs-xs);color:var(--soft);padding:2px 0;white-space:nowrap}
-.cms-kt li span{overflow:hidden;text-overflow:ellipsis}
-.cms-kt li b{color:var(--head);font-weight:600;text-align:right}
+.cms-kt li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--cs-1) var(--cs-2);align-items:baseline;font-size:var(--cfs-xs);color:var(--soft);padding:2px 0}
+.cms-kt li span{min-width:0;line-height:1.3}            /* o rótulo quebra em 2 linhas em vez de virar "Clientes…" */
+.cms-kt li b{color:var(--head);font-weight:600;text-align:right;white-space:nowrap}
+@container (max-width:215px){ .cms-kt li{grid-template-columns:1fr;gap:0} .cms-kt li b{text-align:left} }
 .cms-wrap .kpis{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--cs-4);margin-bottom:var(--cs-5)}
 .cms-wrap .kpi{display:flex;flex-direction:column;min-height:148px;padding:var(--cs-5);border-radius:var(--cr-lg)}
 .cms-wrap .kpi .note{margin:auto 0 0;padding-top:var(--cs-3);border-top:1px solid var(--line);font-size:var(--cfs-xs);color:var(--soft);line-height:1.5;white-space:normal}
@@ -336,13 +340,12 @@ body.light .cms-wrap,body.light .cms-md{--csurf-2:var(--surface-2,rgba(14,74,65,
 .cms-wrap h2,.cms-wrap h3,.cms-wrap .note,.cms-wrap .cms-head .meta,.cms-wrap .cms-kt .t,.cms-wrap .cms-tabs button,.cms-wrap p,.cms-wrap label,.cms-wrap .cms-tag,.cms-wrap th{font-variant-numeric:normal}
 
 /* ===== Celular ===== */
-@media (max-width:1500px){.cms-kts{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media (max-width:1000px){.cms-kts{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* colunas: cmsLayout() escolhe o nº de colunas pela largura real (linhas equilibradas, cartão ≥ 200px) */
 @media (max-width:760px){
-  .cms-kts{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;padding:2px 2px 10px;margin:0 -4px 14px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .cms-kts{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;padding:2px 2px 10px;margin:0 -4px 14px;-webkit-overflow-scrolling:touch;scrollbar-width:none;grid-template-columns:none!important}
   .cms-kts::-webkit-scrollbar{display:none}
   .cms-kt{flex:0 0 82vw;max-width:340px;scroll-snap-align:start;min-height:0}
-  .cms-kt .v{font-size:1.5rem}
+  .cms-kt .v{font-size:min(1.5rem,10.5cqi)}
   .cms-bar{gap:8px}
   .cms-bar .cms-tabs,.cms-bar .cms-sel{flex:1 1 100%}
   .cms-bar .btn{flex:1 1 100%;justify-content:center}
@@ -771,8 +774,46 @@ window.cmsAfterCarta=async function(recs,cid){
   }catch(e){}
 };
 
+/* ===================== LAYOUT RESPONSIVO DOS CARTÕES =====================
+   Nº de colunas pela largura REAL do contêiner (linhas equilibradas, cartão ≥ 200px)
+   + rede de segurança: número que ainda não couber encolhe a fonte até caber. */
+var KT_MIN=200, KT_GAP=12;
+function cmsLayout(){
+  var grids=document.querySelectorAll('.cms-wrap .cms-kts');
+  for(var i=0;i<grids.length;i++){ var g=grids[i];
+    if(window.innerWidth<=760){ g.style.gridTemplateColumns=''; continue; }
+    var n=g.children.length, W=g.clientWidth||g.getBoundingClientRect().width; if(!n||!W) continue;
+    var cols=1; for(var r=1;r<=n;r++){ var c=Math.ceil(n/r); if((W-(c-1)*KT_GAP)/c>=KT_MIN){ cols=c; break; } }
+    g.style.gridTemplateColumns='repeat('+cols+',minmax(0,1fr))';
+  }
+  cmsFit();
+}
+function cmsFit(){
+  var els=document.querySelectorAll('.cms-wrap .cms-kt .v,.cms-wrap .kpi b,.cms-wrap .cms-head .amt b,.cms-wrap .cms-fx-tot .big');
+  for(var i=0;i<els.length;i++){ var el=els[i]; el.style.fontSize='';
+    var avail=el.clientWidth; if(!avail) continue; var w=el.scrollWidth; if(w<=avail) continue;
+    var fs=parseFloat(getComputedStyle(el).fontSize)||16;
+    el.style.fontSize=Math.max(12,Math.floor(fs*avail/w*0.97))+'px';
+  }
+}
+var _cmsRO=null,_cmsRT=null;
+function cmsRelayout(){ clearTimeout(_cmsRT); _cmsRT=setTimeout(cmsLayout,40); }
+function cmsObserve(){
+  if(!_cmsRO){
+    window.addEventListener('resize',cmsRelayout);
+    if(document.fonts&&document.fonts.ready) document.fonts.ready.then(cmsRelayout);
+    _cmsRO=(typeof ResizeObserver!=='undefined')?new ResizeObserver(cmsRelayout):true;
+  }
+  if(_cmsRO!==true){ _cmsRO.disconnect(); var w=document.querySelector('.cms-wrap'); if(w) _cmsRO.observe(w); }
+}
+
 /* ===================== ROTA ===================== */
 window.renderComissoes=async function(C){
+  await _rotaComissoes(C);
+  cmsLayout(); cmsObserve();
+  requestAnimationFrame(cmsLayout);
+};
+async function _rotaComissoes(C){
   if(!_compSel) _compSel=compAtual().key;
   var M=eMaster(), L=eLider();
   setTop('Comissões', M?'Gestão das comissões HS':(L?'Suas comissões e as da sua equipe':'Suas comissões HS'), (M?'':'<button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button>')+'<span class="note" style="margin-left:10px;opacity:.6">'+VERSAO+'</span>');
