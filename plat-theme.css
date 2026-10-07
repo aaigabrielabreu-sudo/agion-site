@@ -77,7 +77,7 @@ body::after{opacity:.022;filter:none;background-size:clamp(260px,22vw,360px);tra
 body.light::before{opacity:1;background:linear-gradient(180deg,var(--bg2),var(--bg) 40%)}
 
 h1,h2,h3,h4{font-variant-numeric:normal;letter-spacing:0}
-.panel h2,.ccard h3,.modal h3,.topbar h1,.kpi b,.netrow b,.j-goal h3,.ostep b,.ometa b,.month-nav b{font-family:var(--font-serif);font-weight:600}
+.panel h2,.ccard h3,.modal h3,body:not(.isApp) .topbar h1,.kpi b,.netrow b,.j-goal h3,.ostep b,.ometa b,.month-nav b{font-family:var(--font-serif);font-weight:600}
 
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -124,39 +124,39 @@ body .side .foot .btn:hover{color:var(--head)}
 /* --------------------------------------------------------------------------
    3. SHELL — topbar
    -------------------------------------------------------------------------- */
-body .topbar{
+body:not(.isApp) .topbar{
   padding:var(--sp-4) clamp(var(--sp-5),3vw,var(--sp-10));
   gap:var(--sp-4);min-height:72px;
   background:rgba(11,42,38,.92);border-bottom:1px solid var(--chrome-line)}
-body.light .topbar{background:var(--side-bg)}
-body .topbar .crumb{
+body.light:not(.isApp) .topbar{background:var(--side-bg)}
+body:not(.isApp) .topbar .crumb{
   font-size:var(--fs-2xs);font-weight:500;letter-spacing:var(--track-caps);
   color:var(--gold);opacity:.9;margin-bottom:3px}
-body .topbar h1{font-size:var(--fs-xl);line-height:var(--lh-tight);font-weight:600;color:var(--head)}
-body .tb-right{gap:var(--sp-3)}
-body .topbar .actions{display:flex;align-items:center;gap:var(--sp-2)}
-body .topbar .actions .btn{height:36px;padding:0 var(--sp-4);font-size:var(--fs-xs)}
+body:not(.isApp) .topbar h1{font-size:var(--fs-xl);line-height:var(--lh-tight);font-weight:600;color:var(--head)}
+body:not(.isApp) .tb-right{gap:var(--sp-3)}
+body:not(.isApp) .topbar .actions{display:flex;align-items:center;gap:var(--sp-2)}
+body:not(.isApp) .topbar .actions .btn{height:36px;padding:0 var(--sp-4);font-size:var(--fs-xs)}
 
 /* tema + sinos: anéis iguais, 36px, hairline, letra fina */
-body .bell{width:36px;height:36px;border:1px solid var(--chrome-line);background:transparent;color:var(--muted)}
-body .bell:hover{border-color:var(--hair-gold-strong);color:var(--gold2)}
-body .bells{gap:var(--sp-2)}
-body .bell3{
+body:not(.isApp) .bell{width:36px;height:36px;border:1px solid var(--chrome-line);background:transparent;color:var(--muted)}
+body:not(.isApp) .bell:hover{border-color:var(--hair-gold-strong);color:var(--gold2)}
+body:not(.isApp) .bells{gap:var(--sp-2)}
+body:not(.isApp) .bell3{
   width:34px;height:34px;border:1px solid var(--chrome-line);
   background:transparent;color:var(--bc);font-weight:600;font-size:var(--fs-xs)}
-body .bell3:hover{background:color-mix(in srgb,var(--bc) 14%,transparent);border-color:color-mix(in srgb,var(--bc) 55%,transparent)}
-body .bell .badge,body .bell3 .badge{
+body:not(.isApp) .bell3:hover{background:color-mix(in srgb,var(--bc) 14%,transparent);border-color:color-mix(in srgb,var(--bc) 55%,transparent)}
+body:not(.isApp) .bell .badge,body:not(.isApp) .bell3 .badge{
   top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;
   border-radius:var(--r-pill);font-size:var(--fs-2xs);font-weight:600;
   color:#fff;box-shadow:0 0 0 2px var(--side-bg)}
 
 /* usuário */
-body .userchip{padding:4px var(--sp-1) 4px 4px;gap:var(--sp-2);border:1px solid var(--chrome-line);background:transparent}
-body .userchip .meta{gap:1px;padding-right:var(--sp-1)}
-body .userchip .meta .nm{font-size:var(--fs-xs);font-weight:600}
-body .userchip .meta .rl{font-size:var(--fs-2xs);letter-spacing:0;color:var(--soft)}
-body .userchip .out{font-size:var(--fs-2xs);font-weight:600;padding:7px var(--sp-3);background:var(--neutral-bg);color:var(--muted)}
-body .userchip .out:hover{color:var(--bad);background:var(--bad-bg)}
+body:not(.isApp) .userchip{padding:4px var(--sp-1) 4px 4px;gap:var(--sp-2);border:1px solid var(--chrome-line);background:transparent}
+body:not(.isApp) .userchip .meta{gap:1px;padding-right:var(--sp-1)}
+body:not(.isApp) .userchip .meta .nm{font-size:var(--fs-xs);font-weight:600}
+body:not(.isApp) .userchip .meta .rl{font-size:var(--fs-2xs);letter-spacing:0;color:var(--soft)}
+body:not(.isApp) .userchip .out{font-size:var(--fs-2xs);font-weight:600;padding:7px var(--sp-3);background:var(--neutral-bg);color:var(--muted)}
+body:not(.isApp) .userchip .out:hover{color:var(--bad);background:var(--bad-bg)}
 body .av{font-weight:600;color:var(--teal-ink)}
 
 /* painel de notificações */
@@ -194,14 +194,13 @@ body .viewbar b{color:var(--head)}
   body .mobnav a{border-radius:var(--r-sm);font-size:var(--fs-2xs);font-weight:500;color:var(--soft);gap:var(--sp-1)}
   body .mobnav a.on{color:var(--gold2);font-weight:600}
   body .mobnav a.on .icon{filter:none}
-  body .topbar{min-height:0;padding:var(--sp-3) var(--sp-4)}
+  body:not(.isApp) .topbar{min-height:0;padding:var(--sp-3) var(--sp-4)}
   body .content{padding:var(--sp-4) var(--sp-4) 100px}
 }
 @media(max-width:1024px){
   body.isApp .mobnav{background:var(--side-bg);border-top:1px solid var(--chrome-line);box-shadow:none}
   body.isApp .mobnav a{border-radius:var(--r-sm);font-weight:500}
   body.isApp .mobnav a.on{background:var(--wash-gold);font-weight:600}
-  body.isApp .topbar{background:var(--side-bg)}
   body.isApp .panel{border-radius:var(--r-xl);padding:var(--sp-5) var(--sp-4)}
   body.isApp .kpi{border-radius:var(--r-lg);padding:var(--sp-4)}
   body.isApp .kpi b{font-size:1.25rem}
@@ -211,7 +210,6 @@ body .viewbar b{color:var(--head)}
   body.isApp .lead{border-radius:var(--r-md)}
   body.isApp .kcol{border-radius:var(--r-lg)}
   body.isApp .modal{border-radius:var(--r-xl) var(--r-xl) 0 0}
-  body.isApp .crmFiltros{background:var(--bg);border-bottom:1px solid var(--chrome-line);box-shadow:none}
 }
 body .navdot{border-color:var(--side-bg);font-weight:600;font-size:var(--fs-2xs)}
 
@@ -687,7 +685,7 @@ body.light .disclaimer{background:var(--surface-2);border:1px solid var(--line)}
 body.light .btn-teal{color:var(--info);background:var(--info-bg);border:1px solid var(--info-line)}
 body.light .btn-ghost{border:1px solid var(--line);color:var(--ink)}
 body.light .chip,body.light .tag,body.light .ttype,body.light .optag{border-width:1px}
-body.light .bell{background:transparent;border:1px solid var(--chrome-line);color:var(--ink)}
+body.light:not(.isApp) .bell{background:transparent;border:1px solid var(--chrome-line);color:var(--ink)}
 body.light input,body.light select,body.light textarea{background:var(--surface-2);border:1.5px solid var(--line)}
 body.light .wa-srch,body.light .wa-inp textarea,body.light .wa-md input,body.light .wa-md select{background:var(--bg);border:1px solid var(--line)}
 body.light .wa-item{border:none;border-bottom:1px solid var(--line)}
@@ -729,8 +727,8 @@ body .wa-item .wa-cli{display:inline-block;margin-left:8px;font-size:10px;font-w
   body .panel{padding:16px;border-radius:16px}
   body .panel h2{font-size:16px;flex-wrap:wrap}
   body .panel h2 .right,body .panel h2 .btn{margin-left:auto}
-  body .topbar h1{font-size:18px}
-  body .tb-right .actions .btn{height:34px;padding:0 12px;font-size:12px}
+  body:not(.isApp) .topbar h1{font-size:18px}
+  body:not(.isApp) .tb-right .actions .btn{height:34px;padding:0 12px;font-size:12px}
   body .kanban .kcol{min-width:86vw}
 }
 
@@ -739,23 +737,6 @@ body .wa-item .wa-cli{display:inline-block;margin-left:8px;font-size:10px;font-w
   #app.show{display:block;grid-template-columns:1fr}
   body:not(.isApp) .topbar{min-height:0;height:auto;position:sticky;top:0;z-index:60;background:rgba(11,42,38,.96);backdrop-filter:blur(18px)}
 }
-/* APP (Capacitor / html.isApp): devolve o layout original — cabeçalho estático abaixo da área segura,
-   faixa da barra de status opaca, .content rolando por dentro. O tema não pode encostar nisso. */
-html.isApp body::before{background:#0B2A26 !important;bottom:auto;z-index:200;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}   /* !important: vence o gradiente do fundo (seção 2) */
-body.isApp .topbar{position:static;min-height:0;height:auto;padding:max(6px,calc(env(safe-area-inset-top,0px) - 12px)) 14px 7px;gap:4px 10px;background:#0B2A26!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-bottom:1px solid rgba(197,160,89,.22)}
-body.isApp.light .topbar{background:#F3F7F5!important}
-body.isApp .topbar h1,body.isApp .topbar .crumb,body.isApp .topbar .bells,body.isApp .topbar .actions{opacity:1!important;filter:none!important}
-/* nitidez: nada no cabeçalho do app pode virar camada rasterizada (blur/filtro/transform/will-change deixam o texto "desfocado" no iOS) */
-body.isApp .main>.topbar,body.isApp .main>.topbar *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;will-change:auto!important;text-shadow:none!important;mix-blend-mode:normal!important}
-body.isApp .main>.topbar,body.isApp .main>.topbar h1,body.isApp .main>.topbar .crumb,body.isApp .main>.topbar .kicker,body.isApp .main>.topbar .tb-left,body.isApp .main>.topbar .tb-right{transform:none!important;animation:none!important;transition:none!important;opacity:1!important}
-body.isApp .main>.topbar{isolation:isolate;-webkit-font-smoothing:antialiased;contain:none!important}
-html.capNative body.isApp::before{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important}
-html.capNative body.isApp .topbar{padding-top:var(--agTop,58px);padding-bottom:6px}
-/* pedido do dono (07/out): recuo do cabeçalho no app = 60px. Vence o !important do CSS injetado em runtime pela especificidade maior. */
-html.capNative body.isApp .main>.topbar{padding-top:60px!important}
-html.capNative body.isApp .main:has(#viewbar)>.topbar{padding-top:34px!important}
-html.isApp:not(.capNative) body.isApp .main>.topbar{padding-top:calc(env(safe-area-inset-top,0px) + 12px)!important}
-body.isApp.appScrolled .topbar{padding-bottom:3px}
-body.isApp .panel.crmFiltros{position:sticky;top:0;z-index:25;background:#0B2A26;border-radius:0;border-bottom:1px solid var(--line-gold);box-shadow:0 8px 18px rgba(0,0,0,.45)}
-body.isApp.light .panel.crmFiltros{background:#F3F7F5;box-shadow:0 8px 18px rgba(14,74,65,.12)}
-body.isApp .main>.topbar .actions .note{display:none}   /* selo de versão só no desktop */
+/* APP: cabeçalho, sinos e faixa da barra de status voltam a ser 100% do bloco agionAppMode (como antes do tema). */
+body.isApp .main>.topbar .actions .note{display:none}
+body.isApp #bellWrap .badge,body.isApp #bellWrap .bell3{animation:none!important}
