@@ -469,6 +469,37 @@ function tabelaRolante(vendas, all, comAgion){
   }).join('');
   return hero+'<div class="cms-rc-grid">'+atr+cards+'</div><p class="cms-rc-hint">Toque em um mês para ver de quais clientes vem o valor.</p>';
 }
+
+/* ===================== UI: FUNCIONÁRIO ===================== */
+function paintFunc(C, uid, titulo){
+  var R=resumoFunc(uid,_compSel,_vendas);
+  var mine=_vendas.filter(function(v){return v.vendedor_id===uid;});
+  var cards='<div class="kpis">'
+    +kpi('Produção da competência',BRL(R.prodTot),true,'Cluster <b>'+pct(R.cluster.r)+'</b>'+(R.prox?' · faltam <b>'+BRL(R.falta)+'</b> para '+pct(R.prox.r):' · cluster máximo')+(R.prodCl!==R.prodTot?' · <b>'+BRL(R.prodCl)+'</b> contam para o cluster':''))
+    +kpi('Comissão pré-contemplação',BRL2(R.gerada),false,'Recebida <b>'+BRL2(R.paga)+'</b> · a receber <b>'+BRL2(R.pend)+'</b>'+(R.proximo?' · próxima em <b>'+fmtBR(R.proximo.data)+'</b>':''))
+    +kpi('Pós-contemplação potencial',BRL2(R.futura),false,'1% do crédito dos seus clientes próprios, pago quando a cota for contemplada')
+    +(R.reemb?kpi('Reembolsos',BRL2(R.reemb),false,''):'')
+    +'</div>';
+  var sel='<div class="cms-bar">'+compSelect()+'</div>';
+  var lst=mine.filter(function(v){return grupoDe(v,_vendas)===_tab;});
+  var tbl='<div class="panel"><h2>Vendas</h2>'+tabsHtml(mine,_vendas)+'<p class="cms-desc">'+tabDesc()+'</p>'+(lst.length?lst.map(function(v){return vendaCard(v,_vendas,false);}).join(''):empty('Nenhuma venda nesta aba','Registre uma venda ou veja outra aba.'))+'</div>';
+  var rol='<div class="panel"><h2>Próximos recebimentos <span class="right note">previsão para os próximos 5 meses</span></h2>'+tabelaRolante(mine,_vendas,false)+'</div>';
+  var sit=mine.filter(function(v){return v.situacao!=='EM_DIA'||analise(v)==='RECUSADA'||analise(v)==='EM_ANALISE';});
+  var sitHtml='<div class="panel"><h2>Situação dos clientes</h2>'+(sit.length?'<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Situação</th><th class="n">Reembolso</th><th>Observação</th></tr></thead><tbody>'+sit.map(function(v){return '<tr><td>'+esc(v.cliente_nome||'—')+'</td><td>'+(analise(v)==='RECUSADA'||analise(v)==='EM_ANALISE'?anChip(v):sitChip(v.situacao))+'</td><td class="n">'+(v.reembolso_valor?BRL2(v.reembolso_valor):'—')+'</td><td class="note">'+esc(v.analise_obs||v.obs||'')+'</td></tr>';}).join('')+'</tbody></table></div>':empty('Todos os clientes estão em dia','Nenhuma venda em análise, recusada ou com pendência.'))+'</div>';
+  ensureCss(); C.innerHTML='<div class="cms-wrap">'+sel+cards+tbl+(_tab==='andamento'?rol+sitHtml:'')+'</div>';
+}
+
+/* ===================== UI: MASTER ===================== */
+var _periodo='comp';
+window.cmsSetPeriodo=function(p){ _periodo=p; render(); };
+function statsFunc(id, all, filt){
+  var S={n:0,prod:0,prodCl:0,gerP:0,gerL:0,hsRec:0,funcPago:0,funcGer:0,posRec:0,posFuncPago:0};
+  all.forEach(function(v){ if(v.vendedor_id!==id||!ativa(v)||(filt&&!filt(v)))return; var k=calc(v,all);
+    S.n++; S.prod+=k.credito; if(elegivelCluster(v))S.prodCl+=k.credito; if(k.proprio)S.gerP+=k.hsPre; else S.gerL+=k.hsPre;
+    S.hsRec+=k.hsRec; S.funcPago+=k.funcPago; S.funcGer+=k.funcPre; if(v.pos_status==='COMISSAO_POS_RECEBIDA'){S.posRec+=k.posHs; if(v.pos_func_pago)S.posFuncPago+=k.posFunc;} });
+  S.ger=S.gerP+S.gerL; S.cluster=clusterDe(S.prodCl); S.prox=proxCluster(S.prodCl); S.falta=S.prox?(S.cluster.ate+1-S.prodCl):0; return S;
+}
+function mesesCols(meses){ return meses.map(function(m){return '<th class="n">'+m.rot+'</th>';}).join(''); }
 function porMes(k,v,meses,tipo){ // tipo: 'func' | 'hs' | 'agion' -> valores pendentes por mês
   return meses.map(function(m){ var s=0; k.parcelas.forEach(function(p){ if(p.data.slice(0,7)!==m.key)return; if(tipo==='func'){ if(p.funcStatus!=='PAGA')s+=p.func; } else if(tipo==='hs'){ if(p.hsStatus!=='RECEBIDA')s+=p.hs; } else { s+=(p.hsStatus!=='RECEBIDA'?p.hs:0)-(p.funcStatus!=='PAGA'?p.func:0); } });
     if(k.ajuste&&k.ajusteData.slice(0,7)===m.key&&!k.ajustePago){ if(tipo==='func')s+=k.ajuste; if(tipo==='agion')s-=k.ajuste; } return s; });
