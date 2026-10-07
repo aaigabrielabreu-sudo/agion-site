@@ -1,0 +1,717 @@
+/* ==========================================================================
+   Agion Wealth — plat-theme.css
+   Camada visual (shell + componentes). Carregar DEPOIS do <style> do app e de
+   plat-motion.css. Não declara animações nem transitions (plat-motion.css cuida);
+   só aparência: cor, tipografia, superfície, raio, espaço.
+
+   Conceito: "livro-razão de private bank". Fundo petróleo quase liso, superfícies
+   separadas por hairlines (não por sombra), dourado usado como fio e como tinta de
+   valor — nunca como preenchimento de área. Lora para títulos e dinheiro, DM Sans
+   para toda a interface. Uma hierarquia por tela: KPI → painel → linha.
+
+   Especificidade: o CSS do app usa 1 classe quase sempre; aqui usamos `body .x`
+   (0,1,1) quando precisamos vencer uma regra tardia. O CSS de Conversas (convCSS)
+   e o de Comissões são injetados em runtime DEPOIS deste arquivo — por isso todo
+   seletor .wa-* / .cms-* leva `body` na frente.
+   `!important` só aparece onde o app grava `style=""` inline (cartão de lead,
+   caixas de modal geradas em JS) e está comentado caso a caso.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. TOKENS (DESIGN.md §2.1–§2.6). Os tokens de motion/estado/semântica já vêm
+   de plat-motion.css; aqui entram os de tipo, espaço, raio e superfície.
+   -------------------------------------------------------------------------- */
+:root{
+  --font-display:var(--display);
+  --font-serif:var(--serif);
+  --font-sans:var(--sans);
+
+  --fs-2xs:.625rem;  --fs-xs:.75rem;   --fs-sm:.875rem;  --fs-md:1rem;
+  --fs-lg:1.125rem;  --fs-xl:1.375rem; --fs-2xl:1.75rem; --fs-3xl:2.25rem;
+  --lh-tight:1.15; --lh-snug:1.3; --lh-normal:1.5; --lh-relaxed:1.6;
+  --track-caps:.08em; --track-brand:.2em;
+
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px;
+  --sp-6:24px; --sp-8:32px; --sp-10:40px; --sp-12:48px;
+
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:20px; --r-pill:999px;
+
+  --surface-0:var(--bg);
+  --surface-1:linear-gradient(165deg,var(--card2),var(--card));
+  --surface-2:rgba(10,28,34,.45);
+  --surface-3:linear-gradient(165deg,var(--card3),var(--card2));
+  --neutral-bg:rgba(255,255,255,.04);
+
+  /* shell */
+  --side-w:260px;
+  --side-bg:rgba(7,24,23,.97);        /* --bg escurecido; sólido o bastante para não vazar a marca d'água */
+  --chrome-line:rgba(143,217,204,.12);
+  --hair-gold:rgba(197,160,89,.22);    /* fio dourado discreto (cabeçalhos, totais) */
+  --hair-gold-strong:rgba(197,160,89,.42);
+  --wash-gold:rgba(197,160,89,.08);
+}
+body.light{
+  --surface-1:linear-gradient(180deg,#EDF5F0,#E3EFE8);
+  --surface-2:#F3F8F5;
+  --surface-3:linear-gradient(180deg,#E3EFE8,#D7E7DF);
+  --neutral-bg:rgba(14,74,65,.05);
+  --side-bg:#0B2A26;                   /* chrome continua petróleo no claro (decisão existente do app) */
+  --chrome-line:rgba(143,217,204,.14);
+  --hair-gold:rgba(143,111,44,.30);
+  --hair-gold-strong:rgba(143,111,44,.5);
+  --wash-gold:rgba(143,111,44,.08);
+}
+
+/* --------------------------------------------------------------------------
+   1. BASE: fundo, tipografia global, rolagem
+   -------------------------------------------------------------------------- */
+body{font-size:var(--fs-md);line-height:var(--lh-normal)}
+
+/* fundo: a marca d'água repetida (l.111) vira um sussurro; o brilho vira um só
+   gradiente vertical + um halo no canto, como papel de carta e não como pôster */
+body::before{
+  background:
+    linear-gradient(180deg,rgba(22,102,91,.22),transparent 38%),
+    radial-gradient(60% 40% at 100% 0%,rgba(197,160,89,.07),transparent 70%)}
+body::after{opacity:.022;filter:none;background-size:clamp(260px,22vw,360px);transform:rotate(-8deg)}
+body.light::before{opacity:1;background:linear-gradient(180deg,var(--bg2),var(--bg) 40%)}
+
+h1,h2,h3,h4{font-variant-numeric:normal;letter-spacing:0}
+.panel h2,.ccard h3,.modal h3,.topbar h1,.kpi b,.netrow b,.j-goal h3,.ostep b,.ometa b,.month-nav b{font-family:var(--font-serif);font-weight:600}
+
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:var(--r-pill);border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--hair-gold-strong);background-clip:padding-box}
+*{scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+
+/* --------------------------------------------------------------------------
+   2. SHELL — sidebar
+   -------------------------------------------------------------------------- */
+#app.show{grid-template-columns:var(--side-w) 1fr}
+body .side{
+  background:var(--side-bg);backdrop-filter:none;
+  border-right:1px solid var(--chrome-line);
+  padding:var(--sp-5) var(--sp-4) var(--sp-4)}
+body .side .brand{
+  padding:var(--sp-1) var(--sp-2) var(--sp-5);margin-bottom:var(--sp-4);
+  border-bottom:1px solid var(--chrome-line)}
+body .side .brand b{font-size:1.25rem;letter-spacing:.06em;line-height:1}
+body .side .brand span{font-size:var(--fs-2xs);letter-spacing:var(--track-brand);font-weight:600;color:var(--gold);margin-top:3px}
+body .side .logo-img{height:30px}
+
+body .navi{gap:2px}
+body .navi a{
+  padding:10px var(--sp-3);border-radius:var(--r-sm);
+  font-size:var(--fs-sm);font-weight:500;color:var(--muted);
+  border:1px solid transparent;gap:var(--sp-3)}
+body .navi a svg{width:17px;height:17px;opacity:.8}
+body .navi a:hover{color:var(--head)}
+body .navi a:hover svg{opacity:1}
+body .navi a.on{color:var(--gold2);font-weight:600;background:var(--wash-gold);border-color:transparent}
+body .navi a.on svg{opacity:1;color:var(--gold)}
+/* indicador lateral (criado em plat-motion.css §10): fio dourado curto e fino */
+body .navi a::before{left:0;top:30%;bottom:30%;width:2px;border-radius:1px}
+
+body .side .foot{
+  border-top:1px solid var(--chrome-line);padding-top:var(--sp-4);
+  font-size:var(--fs-xs);color:var(--soft)}
+body .side .foot .u{font-size:var(--fs-sm);font-weight:600;color:var(--ink);margin-bottom:var(--sp-2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body .side .foot .btn{margin-top:0;height:34px;font-size:var(--fs-xs);color:var(--muted);border-color:var(--chrome-line)}
+body .side .foot .btn:hover{color:var(--head)}
+
+/* --------------------------------------------------------------------------
+   3. SHELL — topbar
+   -------------------------------------------------------------------------- */
+body .topbar{
+  padding:var(--sp-4) clamp(var(--sp-5),3vw,var(--sp-10));
+  gap:var(--sp-4);min-height:72px;
+  background:rgba(11,42,38,.92);border-bottom:1px solid var(--chrome-line)}
+body.light .topbar{background:var(--side-bg)}
+body .topbar .crumb{
+  font-size:var(--fs-2xs);font-weight:500;letter-spacing:var(--track-caps);
+  color:var(--gold);opacity:.9;margin-bottom:3px}
+body .topbar h1{font-size:var(--fs-xl);line-height:var(--lh-tight);font-weight:600;color:var(--head)}
+body .tb-right{gap:var(--sp-3)}
+body .topbar .actions{display:flex;align-items:center;gap:var(--sp-2)}
+body .topbar .actions .btn{height:36px;padding:0 var(--sp-4);font-size:var(--fs-xs)}
+
+/* tema + sinos: anéis iguais, 36px, hairline, letra fina */
+body .bell{width:36px;height:36px;border:1px solid var(--chrome-line);background:transparent;color:var(--muted)}
+body .bell:hover{border-color:var(--hair-gold-strong);color:var(--gold2)}
+body .bells{gap:var(--sp-2)}
+body .bell3{
+  width:34px;height:34px;border:1px solid var(--chrome-line);
+  background:transparent;color:var(--bc);font-weight:600;font-size:var(--fs-xs)}
+body .bell3:hover{background:color-mix(in srgb,var(--bc) 14%,transparent);border-color:color-mix(in srgb,var(--bc) 55%,transparent)}
+body .bell .badge,body .bell3 .badge{
+  top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;
+  border-radius:var(--r-pill);font-size:var(--fs-2xs);font-weight:600;
+  color:#fff;box-shadow:0 0 0 2px var(--side-bg)}
+
+/* usuário */
+body .userchip{padding:4px var(--sp-1) 4px 4px;gap:var(--sp-2);border:1px solid var(--chrome-line);background:transparent}
+body .userchip .meta{gap:1px;padding-right:var(--sp-1)}
+body .userchip .meta .nm{font-size:var(--fs-xs);font-weight:600}
+body .userchip .meta .rl{font-size:var(--fs-2xs);letter-spacing:0;color:var(--soft)}
+body .userchip .out{font-size:var(--fs-2xs);font-weight:600;padding:7px var(--sp-3);background:var(--neutral-bg);color:var(--muted)}
+body .userchip .out:hover{color:var(--bad);background:var(--bad-bg)}
+body .av{font-weight:600;color:var(--teal-ink)}
+
+/* painel de notificações */
+body .notif{top:50px;width:340px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface-1)}
+body .notif h4{padding:var(--sp-3) var(--sp-4);font-size:var(--fs-xs);font-weight:600;letter-spacing:var(--track-caps);color:var(--muted)}
+body .notif h4 .nlet{width:18px;height:18px;border-radius:5px;font-size:var(--fs-2xs);font-weight:600;color:var(--teal-ink)}
+body .notif h4 .nread{font-size:var(--fs-2xs);font-weight:500}
+body .notif .ni{padding:var(--sp-3) var(--sp-4);gap:var(--sp-3)}
+body .notif .ni:hover{background:var(--state-hover)}
+body .notif .ni .dot{width:28px;height:28px;border-radius:var(--r-sm);font-size:var(--fs-sm)}
+body .notif .ni .tx{font-size:var(--fs-sm);line-height:var(--lh-snug)}
+body .notif .ni .tm{font-size:var(--fs-2xs)}
+body .notif .nmais{padding:var(--sp-3) var(--sp-4);font-size:var(--fs-xs);font-weight:600;background:transparent;border-top:1px solid var(--hair-gold)}
+body .notif .nmais:hover{background:var(--wash-gold)}
+
+/* --------------------------------------------------------------------------
+   4. SHELL — área de conteúdo, grades, barra "vendo como", mobile
+   -------------------------------------------------------------------------- */
+body .content{padding:clamp(var(--sp-5),2.6vw,var(--sp-8)) clamp(var(--sp-5),3vw,var(--sp-12)) 96px}
+body .kpis{gap:var(--sp-4);margin-bottom:var(--sp-6)}
+body .grid2{gap:var(--sp-5)}
+body .grid3{gap:0 var(--sp-5)}
+body .cards{gap:var(--sp-4)}
+body .toolbar{gap:var(--sp-2);margin-bottom:var(--sp-5)}
+
+body .viewbar{
+  background:var(--card);color:var(--gold2);
+  border-bottom:1px solid var(--hair-gold-strong);
+  padding:var(--sp-2) var(--sp-5);font-size:var(--fs-sm);font-weight:500}
+body .viewbar b{color:var(--head)}
+
+/* barra inferior (celular/app) */
+@media(max-width:860px){
+  body .mobnav{background:var(--side-bg);border-top:1px solid var(--chrome-line);gap:0;padding:6px var(--sp-1) calc(6px + env(safe-area-inset-bottom,0px))}
+  body .mobnav a{border-radius:var(--r-sm);font-size:var(--fs-2xs);font-weight:500;color:var(--soft);gap:var(--sp-1)}
+  body .mobnav a.on{color:var(--gold2);font-weight:600}
+  body .mobnav a.on .icon{filter:none}
+  body .topbar{min-height:0;padding:var(--sp-3) var(--sp-4)}
+  body .content{padding:var(--sp-4) var(--sp-4) 100px}
+}
+@media(max-width:1024px){
+  body.isApp .mobnav{background:var(--side-bg);border-top:1px solid var(--chrome-line);box-shadow:none}
+  body.isApp .mobnav a{border-radius:var(--r-sm);font-weight:500}
+  body.isApp .mobnav a.on{background:var(--wash-gold);font-weight:600}
+  body.isApp .topbar{background:var(--side-bg)}
+  body.isApp .panel{border-radius:var(--r-xl);padding:var(--sp-5) var(--sp-4)}
+  body.isApp .kpi{border-radius:var(--r-lg);padding:var(--sp-4)}
+  body.isApp .kpi b{font-size:1.25rem}
+  body.isApp .btn{border-radius:var(--r-md)}
+  body.isApp .btn-sm{border-radius:var(--r-sm)}
+  body.isApp input,body.isApp select,body.isApp textarea{border-radius:var(--r-sm);background:var(--surface-2)}
+  body.isApp .lead{border-radius:var(--r-md)}
+  body.isApp .kcol{border-radius:var(--r-lg)}
+  body.isApp .modal{border-radius:var(--r-xl) var(--r-xl) 0 0}
+  body.isApp .crmFiltros{background:var(--bg);border-bottom:1px solid var(--chrome-line);box-shadow:none}
+}
+body .navdot{border-color:var(--side-bg);font-weight:600;font-size:var(--fs-2xs)}
+
+/* --------------------------------------------------------------------------
+   5. KPI
+   Não é clicável: superfície plana, sem hover (reverte o lift de plat-motion §2).
+   Rótulo pequeno em cima, valor serif tabular, fio dourado só no .grad.
+   -------------------------------------------------------------------------- */
+body .kpi{
+  background:var(--surface-1);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:var(--sp-5) var(--sp-5) var(--sp-4);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+body .kpi:hover,body .kpi:active{transform:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.035);border-color:var(--line)}
+body .kpi .lab{font-size:var(--fs-xs);font-weight:500;color:var(--muted);margin-bottom:var(--sp-3);gap:var(--sp-2);letter-spacing:0}
+body .kpi .lab svg{width:14px;height:14px;color:var(--gold);opacity:.9}
+body .kpi b{font-size:var(--fs-2xl);line-height:1;color:var(--head);font-variant-numeric:tabular-nums lining-nums;letter-spacing:-.01em}
+body .kpi.grad{position:relative}
+body .kpi.grad b{background:var(--grad-hero);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+body .kpi.grad::after{content:"";position:absolute;left:var(--sp-5);right:var(--sp-5);bottom:0;height:1px;background:linear-gradient(90deg,var(--hair-gold-strong),transparent)}
+@media(max-width:560px){
+  body .kpis{gap:var(--sp-3)}
+  body .kpi{padding:var(--sp-4)}
+  body .kpi b{font-size:1.375rem}
+}
+
+/* --------------------------------------------------------------------------
+   6. PANEL
+   Cabeçalho com fio: título serif branco, ícone dourado, ações à direita.
+   -------------------------------------------------------------------------- */
+body .panel{
+  background:var(--surface-1);border:1px solid var(--line);border-radius:var(--r-xl);
+  padding:var(--sp-6) clamp(var(--sp-5),2.2vw,var(--sp-8));
+  margin-bottom:var(--sp-5);box-shadow:none}
+body .panel:hover{border-color:var(--line);box-shadow:none}
+body .panel h2{
+  font-size:var(--fs-lg);color:var(--head);gap:var(--sp-3);
+  padding-bottom:var(--sp-3);margin-bottom:var(--sp-5);
+  border-bottom:1px solid var(--line);line-height:var(--lh-snug)}
+body .panel h2 svg,body .panel h2 .icon{width:18px;height:18px;color:var(--gold);flex:none}
+body .panel h2 .right{margin-left:auto;display:inline-flex;gap:var(--sp-2);align-items:center}
+body .panel h2 .note{font-weight:400}
+body .panel.crmFiltros{padding:var(--sp-3) var(--sp-4);border-radius:var(--r-md);background:var(--surface-2)}
+body .panel.waPanel{overflow:hidden}
+body .diffbox h3,body .gloss dt{color:var(--gold2)}  /* dourado em título só nos "premium" */
+body .diffbox{background:var(--surface-3);border-color:var(--hair-gold);border-radius:var(--r-lg)}
+
+/* premium: opcard, metas */
+body .opcard,body .j-goal,body .ostep{background:var(--surface-3);border-color:var(--hair-gold);border-radius:var(--r-lg)}
+body .opic,body .diffbox .diffic{border-radius:var(--r-md);background:var(--wash-gold)}
+body .opbody h3{font-size:var(--fs-md)}
+
+/* --------------------------------------------------------------------------
+   7. BOTÕES
+   Altura fixa (40 / sm 32), raio md/sm, peso 600; primário é o único com 700.
+   -------------------------------------------------------------------------- */
+body .btn{
+  height:40px;padding:0 var(--sp-5);border-radius:var(--r-md);
+  font-size:var(--fs-sm);font-weight:600;line-height:1;gap:var(--sp-2);
+  letter-spacing:0}
+body .btn-sm{height:32px;padding:0 var(--sp-3);border-radius:var(--r-sm);font-size:var(--fs-xs)}
+body .btn svg,body .btn .icon{width:16px;height:16px}
+body .btn-gold{font-weight:700;color:var(--teal-ink);background:var(--grad-gold);border:1px solid transparent}
+body .btn-teal{background:var(--info-bg);border:1px solid var(--info-line);color:var(--info)}
+body .btn-ghost{border:1px solid var(--line);color:var(--ink);background:transparent}
+body .btn-ghost:hover{border-color:var(--hair-gold-strong);color:var(--head)}
+body .btn-ico{width:32px;height:32px;padding:0;border-radius:var(--r-sm);border:1px solid var(--line);color:var(--muted)}
+body .btn-ico:hover{border-color:var(--hair-gold-strong);color:var(--gold2)}
+/* perigo: o app marca com style="color:var(--bad)" */
+body .btn-danger,body .btn[style*="color:var(--bad)"]{color:var(--bad);border-color:var(--bad-line);background:var(--bad-bg)}
+body .btn-danger:hover,body .btn[style*="color:var(--bad)"]:hover{border-color:var(--bad);color:var(--bad)}
+/* botões de topo e dentro de cabeçalhos de painel: compactos */
+body .panel h2 .btn{height:32px;padding:0 var(--sp-3);font-size:var(--fs-xs)}
+body .toolbar .btn:not(.btn-sm){height:36px}
+body .crmFiltros .btn{height:32px;padding:0 var(--sp-3);font-size:var(--fs-xs)}
+body .fab{box-shadow:var(--shadow-3);font-weight:600}
+
+/* --------------------------------------------------------------------------
+   8. CHIPS / TAGS — um só visual (DESIGN §2.10)
+   -------------------------------------------------------------------------- */
+body .chip,body .tag,body .ttype,body .optag,body .cms-tag{
+  display:inline-flex;align-items:center;gap:var(--sp-1);
+  height:22px;padding:0 var(--sp-2);border-radius:var(--r-pill);
+  font-family:var(--font-sans);font-size:var(--fs-2xs);font-weight:600;line-height:1;
+  letter-spacing:var(--track-caps);text-transform:uppercase;white-space:nowrap;
+  color:var(--gold2);background:var(--wash-gold);border:1px solid var(--hair-gold);margin-bottom:0}
+body .chip-teal,body .tag-copy,body .tt-Planejamento{color:var(--info);background:var(--info-bg);border-color:var(--info-line)}
+body .tag-main,body .tt-Consórcio{color:var(--gold2);background:var(--wash-gold);border-color:var(--hair-gold)}
+body .tt-Consultoria{color:var(--gold2);background:var(--wash-gold);border-color:var(--hair-gold)}
+body .lead-src{display:inline-flex;align-items:center;height:22px;padding:0 var(--sp-2);border-radius:var(--r-pill);font-size:var(--fs-2xs);font-weight:600;letter-spacing:var(--track-caps);text-transform:uppercase}
+body .optag{margin-bottom:var(--sp-2)}
+body .ttype{margin-bottom:0}
+body .ldChips .ttype{height:20px;font-size:var(--fs-2xs);padding:0 7px}
+body .prob{height:30px;padding:0 var(--sp-4);font-size:var(--fs-sm);font-weight:600;letter-spacing:0;border-radius:var(--r-pill)}
+body .chip.right{margin-left:auto}
+
+/* --------------------------------------------------------------------------
+   9. FORMULÁRIOS
+   -------------------------------------------------------------------------- */
+body label{font-size:var(--fs-xs);font-weight:600;color:var(--head);margin-bottom:var(--sp-1)}
+body input,body select,body textarea{
+  min-height:40px;padding:0 var(--sp-3);border-radius:var(--r-sm);
+  border:1.5px solid var(--line);background:var(--surface-2);
+  color:var(--head);font-size:var(--fs-sm)}
+body textarea{padding:var(--sp-2) var(--sp-3);min-height:80px;line-height:var(--lh-normal)}
+body input::placeholder,body textarea::placeholder{color:var(--soft)}
+body input:focus,body select:focus,body textarea:focus{border-color:var(--gold)}
+body select:not([multiple]){
+  -webkit-appearance:none;appearance:none;padding-right:34px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--gold) 50%),linear-gradient(135deg,var(--gold) 50%,transparent 50%);
+  background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+body input[type=checkbox],body input[type=radio]{min-height:0;width:18px;height:18px;accent-color:var(--gold)}
+body input[type=range]{min-height:0;height:4px;padding:0;border:none;background:var(--line-strong);border-radius:var(--r-pill)}
+body input[type=range]::-webkit-slider-thumb{width:18px;height:18px;box-shadow:var(--shadow-1)}
+body input[type=range]::-moz-range-thumb{width:18px;height:18px;background:var(--gold)}
+body .field{margin-bottom:var(--sp-4)}
+body .note{font-size:var(--fs-xs);color:var(--soft);line-height:var(--lh-normal)}
+body .lever label{font-size:var(--fs-sm);font-weight:500}
+body .lever label b{color:var(--gold2);font-variant-numeric:tabular-nums}
+body .crmFiltros input,body .crmFiltros select{min-height:32px;font-size:var(--fs-xs);border-radius:var(--r-sm);border-width:1px}
+body .crmFiltros select{padding-right:28px!important}  /* o app fixa padding com !important (l.212); abre espaço para a seta */
+body .tabs{background:var(--surface-2);border-radius:var(--r-md);padding:var(--sp-1);gap:var(--sp-1);border:1px solid var(--line)}
+body .tabs button{padding:10px;border-radius:var(--r-sm);font-size:var(--fs-sm);font-weight:600}
+body .subnav{gap:var(--sp-1);margin:0 0 var(--sp-5);padding-bottom:var(--sp-2);border-bottom:1px solid var(--line)}
+body .subnav button{padding:8px var(--sp-3);font-size:var(--fs-sm);font-weight:500;border-radius:var(--r-sm)}
+body .subnav button.on{font-weight:600;background:var(--wash-gold);border-color:var(--hair-gold)}
+body .cfgSw{background:var(--surface-2);border-color:var(--line)}
+body .cfgSw.on{background:var(--wash-gold);border-color:var(--hair-gold-strong)}
+body .iaOpt{border-radius:var(--r-sm);background:var(--surface-2);font-weight:500;font-size:var(--fs-xs)}
+body .iaOpt.on{font-weight:600;background:var(--wash-gold);border-color:var(--hair-gold)}
+
+/* --------------------------------------------------------------------------
+   10. TABELAS
+   th cinza (dourado volta a significar destaque), zebra leve, números tabulares,
+   totais com fio dourado.
+   -------------------------------------------------------------------------- */
+body table{font-size:var(--fs-sm);font-variant-numeric:tabular-nums lining-nums}
+body th,body td{padding:10px var(--sp-3);border-bottom:1px solid var(--line);vertical-align:middle;line-height:var(--lh-snug)}
+body th{font-size:var(--fs-xs);font-weight:600;letter-spacing:var(--track-caps);text-transform:uppercase;color:var(--muted)}
+body thead th{background:var(--card);position:sticky;top:0;z-index:1;box-shadow:inset 0 -1px 0 var(--line-strong)}
+body td.r,body th.r,body td.n,body th.n{text-align:right}
+body td.r,body td.n{font-variant-numeric:tabular-nums}
+body tbody tr:nth-child(even) td{background-color:rgba(143,217,204,.025)}
+body.light tbody tr:nth-child(even) td{background-color:rgba(14,74,65,.035)}
+body tbody tr:hover td{background-color:var(--state-hover)}
+body tbody tr:last-child td{border-bottom-color:transparent}
+body tfoot td,body tr.tot td,body tr.total td{border-top:1px solid var(--hair-gold-strong);border-bottom:none;font-weight:600;color:var(--head);font-family:var(--font-serif)}
+body .tbl-scroll{border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface-2)}
+body .tbl-scroll table{font-size:var(--fs-sm)}
+body .tbl-scroll thead th{background:var(--card)}
+body .tbl-scroll tbody tr:last-child td{border-bottom-color:transparent}
+body .tbl-dense th,body .tbl-dense td{padding:6px 10px}
+/* linhas-resumo (.netrow) seguem a mesma cadência das tabelas */
+body .netrow{padding:var(--sp-3) 2px;font-size:var(--fs-sm);color:var(--muted)}
+body .netrow b{font-size:var(--fs-md);font-variant-numeric:tabular-nums}
+body .netrow.tot{margin-top:var(--sp-2);padding-top:var(--sp-4);border-top:1px solid var(--hair-gold-strong)}
+body .netrow.tot b{font-size:var(--fs-xl)}
+body .gsum{border-radius:var(--r-lg)}
+body .gsum div{background:var(--surface-1);padding:var(--sp-4)}
+body .gsum .lab{font-size:var(--fs-xs);color:var(--muted)}
+body .gsum b{font-size:var(--fs-lg);font-variant-numeric:tabular-nums}
+
+/* --------------------------------------------------------------------------
+   11. CARD DE CLIENTE (.ccard) e listas em cards
+   -------------------------------------------------------------------------- */
+body .ccard{background:var(--surface-1);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--sp-5)}
+body .ccard h3{font-size:var(--fs-md);line-height:var(--lh-snug);color:var(--head)}
+body .ccard .meta{font-size:var(--fs-xs);color:var(--soft);margin:var(--sp-1) 0 var(--sp-3)}
+body .ccard .row{gap:var(--sp-2)}
+body .ccard .row .btn-sm{height:30px}
+body .ccard>.row:last-child{margin-top:var(--sp-3);padding-top:var(--sp-3);border-top:1px solid var(--line)}
+body .ccard b{font-variant-numeric:tabular-nums}
+
+body .intg{background:var(--surface-1);border-radius:var(--r-lg);padding:var(--sp-4);gap:var(--sp-4);margin-bottom:var(--sp-3)}
+body .intg .src{width:42px;height:42px;border-radius:var(--r-md);font-weight:600}
+body .dot-on{box-shadow:none;background:var(--ok)}
+
+body .actgrid{gap:var(--sp-4);margin-top:var(--sp-4)}
+body .actcard{background:var(--surface-1);border-radius:var(--r-lg);padding:var(--sp-5)}
+body .actcard .achead{gap:var(--sp-3)}
+body .actcard .acres{margin-top:var(--sp-3)}
+body .actcard .acbtn{margin-top:var(--sp-4)}
+body .actbadge{top:-9px;right:-9px;min-width:26px;height:26px;border-radius:var(--r-pill);font-size:var(--fs-xs);font-weight:600;box-shadow:0 0 0 3px var(--card)}
+
+/* --------------------------------------------------------------------------
+   12. CRM — KANBAN
+   Coluna: rebaixo neutro, cabeçalho com nome + contador em pílula + soma serif.
+   Cartão de lead: o app injeta `style` inline com gradiente da categoria, borda
+   esquerda 4px e sombra colorida (leadCard(), l.2454). Aqui o cartão volta a ser
+   neutro e a cor da categoria sobrevive como um fio de 3px à esquerda — por isso
+   os três `!important` abaixo (única forma de vencer style="" inline).
+   -------------------------------------------------------------------------- */
+body .kanban{gap:var(--sp-4);padding:var(--sp-1) 2px var(--sp-3)}
+body .kcol{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--sp-3)}
+body .kcol h4{
+  font-size:var(--fs-xs);font-weight:600;letter-spacing:var(--track-caps);color:var(--muted);
+  margin-bottom:2px;gap:var(--sp-2)}
+body .kcol h4 span{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:22px;height:20px;padding:0 7px;border-radius:var(--r-pill);
+  font-size:var(--fs-2xs);font-weight:600;letter-spacing:0;color:var(--ink);
+  background:var(--neutral-bg);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+body .kcol .ksum{
+  font-family:var(--font-serif);font-size:var(--fs-sm);color:var(--gold2);
+  font-variant-numeric:tabular-nums;margin-bottom:var(--sp-3);padding-bottom:var(--sp-2);
+  border-bottom:1px solid var(--line)}
+body .kcol .kbody{gap:var(--sp-2)}
+body .kbody>.note{padding:var(--sp-4);text-align:center;border:1px dashed var(--line-strong);border-radius:var(--r-md);color:var(--soft)}
+body .kbody.dragover{outline:1px dashed var(--gold);outline-offset:4px;border-radius:var(--r-md);background:var(--wash-gold)}
+
+body .lead{
+  background:var(--surface-1)!important;          /* vence o gradiente inline da categoria */
+  box-shadow:var(--shadow-1)!important;            /* vence a sombra colorida inline */
+  border:1px solid var(--line);
+  border-left-width:3px!important;                 /* mantém a COR inline, reduz a espessura */
+  border-radius:var(--r-md);padding:var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-3)}
+body .lead:hover{border-color:var(--line-strong);box-shadow:var(--shadow-2)!important}
+body .lead .nm{font-size:var(--fs-sm);font-weight:600;color:var(--head)}
+body .lead .ct{font-size:var(--fs-xs);color:var(--muted);margin:1px 0 var(--sp-2)}
+body .lead .vl{font-family:var(--font-serif);font-size:var(--fs-lg);font-weight:600;color:var(--head);font-variant-numeric:tabular-nums;margin-top:var(--sp-1)}
+body .lead .ldTop{margin-bottom:var(--sp-2);gap:var(--sp-2)}
+body .lead .ldChips{gap:var(--sp-1)}
+body .lead .ldData{font-size:var(--fs-2xs);color:var(--soft)}
+body .lead .ldEdit{width:22px;height:22px;border-radius:6px;border-color:var(--line);color:var(--soft);font-size:var(--fs-2xs)}
+body .lead .ldScore span,body .lead .ldScore b{font-size:var(--fs-2xs)}
+body .lead .ldScoreBar{height:3px;background:var(--line)}
+body .lead .ldSep{background:var(--line);margin:var(--sp-2) 0}
+body .lead .ldRow{gap:var(--sp-2);margin-top:var(--sp-2)}
+body .lead .ldIco{width:26px;height:26px;border-radius:6px;background:var(--neutral-bg);border-color:var(--line);font-size:var(--fs-sm)}
+body .lead .ldOri{font-size:var(--fs-xs);font-weight:600}
+body .lead .leadObs{font-size:var(--fs-xs);line-height:var(--lh-normal)}
+body .lead .leadObs::after{font-size:var(--fs-2xs);color:var(--gold2);background:linear-gradient(90deg,transparent,var(--card) 45%)}
+body .lead select{min-height:30px;font-size:var(--fs-xs);padding:0 28px 0 var(--sp-2);margin-top:var(--sp-2);border-width:1px;background-position:calc(100% - 14px) 50%,calc(100% - 10px) 50%}
+body .lead .note{font-size:var(--fs-2xs)}
+
+/* ações do cartão: uma régua de botões baixos; cor só em texto/fio */
+body .lead .acts{gap:var(--sp-1);margin-top:var(--sp-3);padding-top:var(--sp-2);border-top:1px solid var(--line);flex-wrap:wrap;overflow:visible}
+body .lead .acts button{
+  height:26px;padding:0 var(--sp-2);border-radius:6px;
+  font-size:var(--fs-2xs);font-weight:600;letter-spacing:0;
+  border:1px solid var(--line);color:var(--muted);background:transparent}
+body .lead .acts button:hover{border-color:var(--hair-gold-strong);color:var(--head)}
+body .lead .acts .aMove{width:26px;padding:0;color:var(--soft);font-size:.55rem}
+body .lead .acts .aGanho{color:var(--ok);border-color:var(--ok-line);background:transparent}
+body .lead .acts .aGanho:hover{background:var(--ok-bg);color:var(--ok)}
+body .lead .acts .aCliente{color:var(--gold2);border-color:var(--hair-gold);background:transparent}
+body .lead .acts .aCliente:hover{background:var(--wash-gold);color:var(--gold2)}
+body .lead .acts .aPerdeu{color:var(--bad);border-color:transparent;background:transparent;margin-left:auto}
+body .lead .acts .aPerdeu:hover{border-color:var(--bad-line);background:var(--bad-bg);color:var(--bad)}
+body .lead.dragging{box-shadow:none!important}  /* idem: vence a sombra inline enquanto arrasta */
+body .banner{
+  background:var(--wash-gold);border:1px solid var(--hair-gold);border-radius:var(--r-md);
+  padding:var(--sp-3) var(--sp-4);font-size:var(--fs-sm);color:var(--ink);margin-bottom:var(--sp-5)}
+body .banner b{color:var(--gold2)}
+
+/* --------------------------------------------------------------------------
+   13. TAREFAS
+   -------------------------------------------------------------------------- */
+body .task{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:var(--sp-3) var(--sp-4);gap:var(--sp-3);margin-bottom:var(--sp-2)}
+body .task .tk-cb{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line-strong);color:var(--gold2);font-weight:600;font-size:var(--fs-xs)}
+body .task:hover .tk-cb{border-color:var(--gold)}
+body .task .tk-t{font-size:var(--fs-sm);color:var(--head)}
+body .task .tk-d{font-size:var(--fs-xs);color:var(--soft);font-variant-numeric:tabular-nums}
+body .task.done{opacity:.5}
+body .task.done .tk-cb{background:var(--wash-gold);border-color:var(--hair-gold)}
+body .task .btn-ico{width:28px;height:28px;border-color:transparent}
+body .task .btn-ico:hover{border-color:var(--bad-line);color:var(--bad)}
+
+/* --------------------------------------------------------------------------
+   14. FEED, CHAT INTERNO, COMENTÁRIOS
+   -------------------------------------------------------------------------- */
+body .post{padding:var(--sp-4) 0;gap:var(--sp-3)}
+body .post .pname{font-size:var(--fs-sm);font-weight:600}
+body .post .ptime{font-size:var(--fs-2xs)}
+body .post .ptext{font-size:var(--fs-sm);line-height:var(--lh-relaxed);margin:var(--sp-1) 0 var(--sp-2)}
+body .post .pacts{font-size:var(--fs-xs);gap:var(--sp-4)}
+body .post .pacts button.liked{color:var(--bad)}
+body .post .pacts button.liked svg{fill:var(--bad);stroke:var(--bad)}
+body .coment{gap:var(--sp-2);margin-top:var(--sp-2)}
+body .coment .cb{background:var(--surface-2);border-radius:var(--r-md);padding:var(--sp-2) var(--sp-3)}
+body .coment .cn{font-size:var(--fs-xs)}
+body .coment .cx{font-size:var(--fs-sm)}
+body .feed-comp{gap:var(--sp-3);margin-bottom:var(--sp-5)}
+
+body .chat-wrap{border-radius:var(--r-lg);background:var(--surface-2)}
+body .chat-side{background:transparent;padding:var(--sp-3)}
+body .chat-side .ch{padding:9px var(--sp-3);border-radius:var(--r-sm);font-size:var(--fs-sm);font-weight:500}
+body .chat-side .ch:hover{background:var(--state-hover)}
+body .chat-side .ch.on{background:var(--wash-gold);color:var(--gold2);font-weight:600}
+body .chat-msgs{padding:var(--sp-5);gap:var(--sp-3)}
+body .msg .mbubble{background:var(--surface-1);border:1px solid var(--line);border-radius:var(--r-sm) var(--r-lg) var(--r-lg) var(--r-lg);padding:var(--sp-2) var(--sp-3)}
+body .msg.me .mbubble{background:var(--wash-gold);border-color:var(--hair-gold);border-radius:var(--r-lg) var(--r-sm) var(--r-lg) var(--r-lg)}
+body .msg .mn{font-size:var(--fs-2xs);font-weight:600;color:var(--gold2)}
+body .msg .mt{font-size:var(--fs-sm);line-height:var(--lh-normal)}
+body .msg .mtime{font-size:var(--fs-2xs);font-variant-numeric:tabular-nums}
+body .chat-input{padding:var(--sp-3);background:transparent;gap:var(--sp-2)}
+
+/* --------------------------------------------------------------------------
+   15. CONVERSAS (WhatsApp) — convCSS é injetado depois deste arquivo: `body` dá o peso.
+   -------------------------------------------------------------------------- */
+body .wa{border:1px solid var(--line);border-radius:var(--r-xl);background:var(--surface-2)}
+body .panel.waPanel .wa{border:none;border-radius:0}
+body .wa-list{border-right:1px solid var(--line)}
+body .wa-lhd{padding:var(--sp-3);gap:var(--sp-2);border-bottom:1px solid var(--line)}
+body .wa-srch{
+  min-height:36px;padding:0 var(--sp-4);border-radius:var(--r-pill);
+  background:var(--neutral-bg);border:1px solid var(--line);color:var(--head);font-size:var(--fs-sm)}
+body .wa-srch:focus{border-color:var(--gold)}
+body .wa-item{padding:var(--sp-3) var(--sp-3);gap:var(--sp-3);border-bottom:1px solid var(--line)}
+body .wa-item:hover{background:var(--state-hover)}
+body .wa-item.on{background:var(--wash-gold);box-shadow:inset 2px 0 0 var(--gold)}
+body .wa-av{width:42px;height:42px;font-weight:600;font-size:var(--fs-sm);color:var(--teal-ink)}
+body .wa-it-nm{font-size:var(--fs-sm);font-weight:600;color:var(--head)}
+body .wa-it-tm{font-size:var(--fs-2xs);opacity:1;color:var(--soft);font-variant-numeric:tabular-nums}
+body .wa-it-pv{font-size:var(--fs-xs);opacity:1;color:var(--muted)}
+body .wa-dot{width:8px;height:8px;background:var(--ok)}
+body .wa-chd{padding:var(--sp-3) var(--sp-4);gap:var(--sp-3);border-bottom:1px solid var(--line);background:var(--surface-1)}
+body .wa-chd-nm{font-family:var(--font-serif);font-size:var(--fs-md);font-weight:600;color:var(--head)}
+body .wa-chd-ph{font-size:var(--fs-xs);opacity:1;color:var(--soft);font-variant-numeric:tabular-nums}
+body .wa-msgs{padding:var(--sp-4) var(--sp-5);gap:var(--sp-1)}
+body .wa-b{
+  max-width:72%;padding:var(--sp-2) var(--sp-3);border-radius:var(--r-lg);
+  font-size:var(--fs-sm);line-height:var(--lh-normal);box-shadow:none;border:1px solid var(--line)}
+body .wa-in{background:var(--surface-1);border-top-left-radius:var(--r-sm)}
+body .wa-out{background:var(--wash-gold);border-color:var(--hair-gold);border-top-right-radius:var(--r-sm)}
+body .wa-sys{background:var(--neutral-bg);border-color:var(--line);color:var(--muted);font-size:var(--fs-xs);border-radius:var(--r-md)}
+body .wa-mt{font-size:var(--fs-2xs);opacity:1;color:var(--soft);font-variant-numeric:tabular-nums}
+body .wa-au{font-size:var(--fs-2xs);opacity:1;color:var(--gold2);font-weight:600}
+body .wa-day{background:var(--neutral-bg);border:1px solid var(--line);color:var(--soft);font-size:var(--fs-2xs);letter-spacing:var(--track-caps);text-transform:uppercase;opacity:1;padding:3px var(--sp-3);margin:var(--sp-3) 0}
+body .wa-inp{padding:var(--sp-3) var(--sp-4);gap:var(--sp-2);border-top:1px solid var(--line);background:var(--surface-1)}
+body .wa-inp textarea{
+  min-height:40px;padding:10px var(--sp-4);border-radius:var(--r-xl);
+  background:var(--neutral-bg);border:1px solid var(--line);color:var(--head);font-size:var(--fs-sm)}
+body .wa-inp textarea:focus{border-color:var(--gold)}
+body .wa-cico{color:var(--muted);opacity:1;font-size:var(--fs-lg);border-radius:var(--r-sm)}
+body .wa-cico:hover{background:var(--state-hover);color:var(--head)}
+body .wa-send{width:40px;height:40px;background:var(--grad-gold);color:var(--teal-ink);font-size:var(--fs-md)}
+body .wa-emp{opacity:1;color:var(--soft);font-size:var(--fs-sm)}
+body .wa-pop{background:var(--surface-1);border:1px solid var(--line);border-radius:var(--r-md);padding:var(--sp-1);box-shadow:var(--shadow-3)}
+body .wa-pop button{padding:9px var(--sp-3);border-radius:var(--r-sm);font-size:var(--fs-sm);color:var(--ink)}
+body .wa-pop button:hover{background:var(--state-hover);color:var(--head)}
+body .wa-ov{background:var(--surface-overlay);backdrop-filter:blur(4px)}
+body .wa-md{background:var(--surface-1);border:1px solid var(--line);border-radius:var(--r-xl);padding:var(--sp-6);box-shadow:var(--shadow-4)}
+body .wa-md h3{font-family:var(--font-serif);font-size:var(--fs-xl);font-weight:600;color:var(--head);margin-bottom:var(--sp-2)}
+body .wa-md label{font-size:var(--fs-xs);font-weight:600;color:var(--head);opacity:1;margin:var(--sp-3) 0 var(--sp-1)}
+body .wa-md input,body .wa-md select{min-height:40px;padding:0 var(--sp-3);border-radius:var(--r-sm);background:var(--surface-2);border:1.5px solid var(--line);color:var(--head);font-size:var(--fs-sm)}
+
+/* --------------------------------------------------------------------------
+   16. CONTAS / EQUIPE / AJUSTES / ATIVIDADES
+   -------------------------------------------------------------------------- */
+body .acctRow{padding:var(--sp-4) 2px}
+body .acctRow .note{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body .acctRow .btn-sm{height:30px}
+body .cfgRow{padding:var(--sp-3) 0;gap:var(--sp-3)}
+body .cfgDot{width:32px;height:32px;border-radius:var(--r-sm);font-weight:600;font-size:var(--fs-xs)}
+body .cfgTxt b{font-size:var(--fs-sm);font-weight:600}
+body .cfgTxt span{font-size:var(--fs-xs)}
+/* lista "Perdidos" e caixa de entrada: linhas com a mesma cadência das tabelas */
+body .panel>.row[style*="border-bottom"]{padding:var(--sp-3) 0}
+body .panel>.row[style*="border-bottom"]:last-of-type{border-bottom-color:transparent!important}  /* fecha a lista sem fio duplo (inline) */
+
+/* linha do tempo de metas */
+body .j-node::before{background:linear-gradient(var(--hair-gold-strong),var(--line))}
+body .j-dot{width:32px;height:32px;font-size:var(--fs-sm);box-shadow:0 0 0 3px var(--wash-gold)}
+body .j-goal{padding:var(--sp-4) var(--sp-5)}
+body .j-goal h3{font-size:var(--fs-md)}
+body .j-goal .when{font-size:var(--fs-xs);font-weight:600}
+body .j-goal .gval{font-size:var(--fs-xs);font-variant-numeric:tabular-nums}
+body .j-step{background:var(--surface-2);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-3)}
+body .j-step .n{font-weight:600;font-size:var(--fs-2xs)}
+body .j-step .tx{font-size:var(--fs-sm)}
+body .ostep span,body .ometa span{font-size:var(--fs-xs)}
+body .olabel{font-size:var(--fs-2xs);font-weight:600;letter-spacing:var(--track-caps)}
+body .ometa{border-radius:var(--r-md);background:var(--info-bg);border-color:var(--info-line)}
+
+/* gastos */
+body .catrow{padding:var(--sp-3) 0;gap:var(--sp-3)}
+body .catrow .ci,body .lanc .li{border-radius:var(--r-sm)}
+body .catrow .cn,body .lanc .ld{font-size:var(--fs-sm);font-weight:600}
+body .catrow .cval b,body .lanc .lv{font-size:var(--fs-sm);font-variant-numeric:tabular-nums}
+body .catrow .cval span,body .lanc .ls{font-size:var(--fs-2xs)}
+body .catrow .cbar,body .bar{background:var(--neutral-bg);border-radius:var(--r-pill)}
+body .bar{height:6px}
+body .month-nav b{font-size:var(--fs-lg)}
+body .month-nav button{width:32px;height:32px}
+body .lineleg{font-size:var(--fs-xs);gap:var(--sp-4);margin-bottom:var(--sp-4)}
+body .disclaimer{background:var(--neutral-bg);border-radius:var(--r-md);padding:var(--sp-3) var(--sp-4);font-size:var(--fs-xs)}
+body .gloss dt{font-size:var(--fs-sm)}
+body .gloss dd{font-size:var(--fs-sm)}
+
+/* --------------------------------------------------------------------------
+   17. MODAIS, TOAST, VAZIOS, SKELETON
+   #modalBg/.modal é o único com classe. #cartasModal, #chooseMd, #tplModal e #cmsSel
+   têm o cartão com style="" inline (background/border/radius/padding) — por isso
+   os `!important` nesses quatro, para herdarem a mesma anatomia do .modal.
+   -------------------------------------------------------------------------- */
+body .modal-bg{background:var(--surface-overlay);padding:var(--sp-5)}
+body .modal{
+  background:var(--surface-1);border:1px solid var(--hair-gold);border-radius:var(--r-xl);
+  padding:var(--sp-8);max-width:480px;box-shadow:var(--shadow-4)}
+body .modal h3{font-size:var(--fs-xl);font-weight:600;color:var(--head);margin-bottom:var(--sp-2);line-height:var(--lh-tight)}
+body .modal p{font-size:var(--fs-sm);color:var(--muted);margin-bottom:var(--sp-3)}
+body .modal .field{margin-bottom:var(--sp-4)}
+body .modal .grid2{gap:var(--sp-3)}
+body .modal-actions{margin-top:var(--sp-6);gap:var(--sp-2);padding-top:var(--sp-4);border-top:1px solid var(--line)}
+body .modal-actions .btn-sm{height:36px;padding:0 var(--sp-4)}
+@media(max-width:860px){body .modal{padding:var(--sp-6) var(--sp-5)}}
+
+#cartasModal>div,#chooseMd>div,#tplModal>div,#cmsSel>div{
+  background:var(--surface-1)!important;
+  border:1px solid var(--hair-gold)!important;
+  border-radius:var(--r-xl)!important;
+  padding:var(--sp-8)!important;
+  box-shadow:var(--shadow-4)}
+#cartasModal>div h2,#chooseMd>div h2,#tplModal>div h2,#cmsSel>div h2{
+  font-family:var(--font-serif);font-size:var(--fs-xl)!important;font-weight:600;color:var(--head)}
+#cartasModal,#chooseMd,#tplModal{background:var(--surface-overlay)!important;backdrop-filter:blur(4px)}
+@media(max-width:860px){#cartasModal>div,#chooseMd>div,#tplModal>div,#cmsSel>div{padding:var(--sp-6) var(--sp-5)!important}}
+
+/* toast: deixa de ser dourado sólido (competia com o botão primário) */
+body .flash{
+  background:var(--surface-1);color:var(--head);border:1px solid var(--hair-gold-strong);
+  font-size:var(--fs-sm);font-weight:600;padding:var(--sp-3) var(--sp-6);border-radius:var(--r-pill);
+  box-shadow:var(--shadow-3)}
+body .flash.ok{border-color:var(--ok-line);color:var(--ok)}
+body .flash.bad{border-color:var(--bad-line);color:var(--bad)}
+
+/* estados vazios: um convite, não um aviso */
+body .panel>h2+p.note:last-child,body .cards>p.note:only-child,body .notif .empty{
+  padding:var(--sp-6) var(--sp-4);text-align:center;color:var(--soft);
+  border:1px dashed var(--line-strong);border-radius:var(--r-md);font-size:var(--fs-sm);margin:0}
+body .cards>p.note:only-child{grid-column:1/-1}
+body .notif .empty{border:none}
+
+body .skel .sk,body .sk{border-radius:var(--r-md);background:var(--neutral-bg)}
+
+/* --------------------------------------------------------------------------
+   18. LOGIN
+   -------------------------------------------------------------------------- */
+body .login{background:var(--surface-1);border:1px solid var(--hair-gold);border-radius:var(--r-xl);padding:var(--sp-10) var(--sp-10) var(--sp-8);box-shadow:var(--shadow-4)}
+body .login .lg{font-size:1.75rem;letter-spacing:.08em}
+body .login .tg{font-size:var(--fs-2xs);letter-spacing:var(--track-brand);font-weight:600;margin:var(--sp-1) 0 var(--sp-6)}
+body .login .field{margin-bottom:var(--sp-4)}
+@media(max-width:560px){body .login{padding:var(--sp-8) var(--sp-5)}}
+
+/* --------------------------------------------------------------------------
+   19. MODO CLARO — troca de tokens, não fork visual
+   Remove as faixas 4px (l.96–99), as sombras por componente e os hex soltos.
+   -------------------------------------------------------------------------- */
+body.light .panel,body.light .ccard,body.light .actcard,body.light .kpi:not(.grad),body.light .intg{
+  background:var(--surface-1);border:1px solid var(--line);box-shadow:none}
+body.light .kpi{box-shadow:none}
+body.light .kpi:hover{box-shadow:none}
+body.light .panel{border-left:1px solid var(--line)}
+body.light .kpi:not(.grad),body.light .ccard{border-top:1px solid var(--line)}
+body.light .lead{border-left-width:3px!important}  /* mesma regra do escuro: cor da categoria, fio fino */
+body.light .panel h2,body.light .ccard h2,body.light .ccard h3,body.light h2{color:var(--head)}
+body.light .kpi .lab{color:var(--muted)}
+body.light .kpi:not(.grad) b{color:var(--head)}
+body.light .kcol h4{color:var(--muted)}
+body.light .kcol,body.light .chat-side,body.light .wa{background:var(--surface-2);border:1px solid var(--line)}
+body.light .lead,body.light .task{background:var(--surface-1);border:1px solid var(--line)}
+body.light .task{background:var(--surface-2)}
+body.light .coment .cb,body.light .j-step,body.light .chat-input{background:var(--surface-2);border:1px solid var(--line)}
+body.light .chat-input{background:transparent;border:none;border-top:1px solid var(--line)}
+body.light .msg .mbubble,body.light .wa-in{background:var(--surface-1);border:1px solid var(--line)}
+body.light .msg.me .mbubble,body.light .wa-out{background:var(--wash-gold);border:1px solid var(--hair-gold)}
+body.light .tbl-scroll thead th,body.light thead th{background:var(--card);color:var(--muted)}
+body.light .gsum{background:var(--line)}
+body.light .banner{color:var(--ink);border:1px solid var(--hair-gold);background:var(--wash-gold)}
+body.light .disclaimer{background:var(--surface-2);border:1px solid var(--line)}
+body.light .btn-teal{color:var(--info);background:var(--info-bg);border:1px solid var(--info-line)}
+body.light .btn-ghost{border:1px solid var(--line);color:var(--ink)}
+body.light .chip,body.light .tag,body.light .ttype,body.light .optag{border-width:1px}
+body.light .bell{background:transparent;border:1px solid var(--chrome-line);color:var(--ink)}
+body.light input,body.light select,body.light textarea{background:var(--surface-2);border:1.5px solid var(--line)}
+body.light .wa-srch,body.light .wa-inp textarea,body.light .wa-md input,body.light .wa-md select{background:var(--bg);border:1px solid var(--line)}
+body.light .wa-item{border:none;border-bottom:1px solid var(--line)}
+body.light .wa-item.on{background:var(--wash-gold);border-color:var(--line)}
+body.light .wa-sys,body.light .wa-day{background:var(--neutral-bg);border:1px solid var(--line)}
+body.light .wa-pop,body.light .wa-md{background:var(--surface-1);border:1px solid var(--line)}
+body.light .modal,body.light .notif{border:1px solid var(--hair-gold)}
+body.light .notif{border-color:var(--line)}
+body.light .opcard,body.light .diffbox,body.light .j-goal,body.light .ostep{border:1px solid var(--hair-gold)}
+body.light .ometa{border:1px solid var(--info-line)}
+body.light .chat-side .ch.on{background:var(--wash-gold)}
+body.light .tt-Consultoria{color:var(--gold2);background:var(--wash-gold);border:1px solid var(--hair-gold)}
+body.light .flash{background:var(--bg)}
+body.light #agionPtr{background:#fff}
+/* chrome no claro: a sidebar/topbar continuam petróleo — o sino/usuário leem os tokens do chrome */
+body.light .side .foot .btn{color:var(--muted)}
+body.light .crmFiltros.panel{background:var(--surface-2)}
+body.light::after{display:none}
+
+/* --------------------------------------------------------------------------
+   20. IMPRESSÃO — garante que o fio dourado não vire preto chapado
+   -------------------------------------------------------------------------- */
+@media print{
+  body .panel h2{border-bottom-color:var(--line-gold)}
+  body .kpi.grad::after{display:none}
+  body .lead{box-shadow:none!important}
+}
