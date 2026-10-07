@@ -3933,7 +3933,7 @@ function masterReportPDF(){
 </script>
 <script>
 /* 07/out — APP: faixa REAL (elemento, nao pseudo) cobrindo a barra do relogio: o WebKit do iOS 26 usa a cor dela
-   em vez de aplicar o desfoque de borda. + DIAGNOSTICO temporario (some sozinho em 15s) para descobrir o modo do app. */
+   em vez de aplicar o desfoque de borda. Validado no iPhone do Gabriel em 07/out: cabecalho nitido. NAO REMOVER. */
 (function(){try{
   var H=document.documentElement; if(!H.classList.contains('isApp'))return;
   function band(){ if(document.getElementById('agStatusBand'))return;
@@ -3945,18 +3945,7 @@ function masterReportPDF(){
     st.textContent='html.isApp:not(.capNative) body.isApp .main>.topbar{padding-top:calc(max(12px,env(safe-area-inset-top,0px)) + 4px)!important;position:sticky!important;top:0;background:#0B2A26!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}'
       +'body.isApp.light .main>.topbar{background:#F3F7F5!important}';
     document.head.appendChild(st); }
-  function diag(){
-    var pr=document.createElement('div'); pr.style.cssText='position:fixed;top:0;height:env(safe-area-inset-top,0px);width:1px;opacity:0;pointer-events:none';
-    document.body.appendChild(pr); var sat=Math.round(pr.getBoundingClientRect().height); pr.remove();
-    var tb=document.querySelector('.main>.topbar'); var r=tb?tb.getBoundingClientRect():{top:-1,height:-1};
-    var meta=document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-    var d=document.createElement('div'); d.id='agDiag';
-    d.style.cssText='position:fixed;left:8px;right:8px;bottom:84px;z-index:960;background:#000;color:#9f9;font:11px/1.35 monospace;padding:8px 10px;border-radius:10px;border:1px solid #9f9';
-    d.textContent='DIAG v2 | cap='+(!!(window.Capacitor))+' standalone='+(navigator.standalone===true)+' native='+H.classList.contains('capNative')
-      +' | sat='+sat+' ih='+innerHeight+' sh='+screen.height+' | meta='+(meta?meta.content:'nenhuma')+' | topbar y='+Math.round(r.top)+' h='+Math.round(r.height)
-      +' | theme='+([].slice.call(document.styleSheets).map(function(s){return (s.href||'').split('/').pop()}).filter(function(x){return /theme/.test(x)})[0]||'?');
-    document.body.appendChild(d); setTimeout(function(){d.remove()},15000); }
-  function go(){ band(); setTimeout(diag,2500); }
+  function go(){ band(); }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go); else go();
 }catch(e){}})();
 </script>
