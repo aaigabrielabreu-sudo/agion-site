@@ -1,0 +1,331 @@
+/* ==========================================================================
+   Agion Wealth — plat-motion.css
+   Camada de motion + correções de cascata. Carregar DEPOIS do <style> do app
+   (e depois do CSS injetado por plat-comissoes.js). Referência: DESIGN.md §2.7, §2.8, §3.
+   Regras: só anima transform/opacity/color/background-color/border-color/box-shadow/filter;
+   toda transition declara propriedades; nenhum loop infinito fora de indicador de carga.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   0. TOKENS
+   -------------------------------------------------------------------------- */
+:root{
+  /* motion */
+  --dur-1:120ms;   /* micro: hover de botão, pressed, troca de cor */
+  --dur-2:200ms;   /* padrão: hover de card, chip, foco, acordeão curto */
+  --dur-3:320ms;   /* entrada: página, modal, popover, item de lista */
+  --dur-4:500ms;   /* herói: KPI, barra de progresso, skeleton → conteúdo */
+  --stagger:40ms;
+
+  --ease-out:cubic-bezier(.22,.9,.3,1);
+  --ease-in-out:cubic-bezier(.65,0,.35,1);
+  --ease-in:cubic-bezier(.5,0,.75,0);
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
+
+  /* estados (DESIGN §2.7) */
+  --focus-ring:0 0 0 2px var(--bg),0 0 0 4px var(--gold);
+  --state-hover:rgba(143,217,204,.06);
+  --state-active:rgba(197,160,89,.12);
+  --state-pressed:.97;
+  --disabled-opacity:.45;
+
+  /* bordas e elevação (DESIGN §2.4, §2.6) */
+  --line-strong:rgba(143,217,204,.28);
+  --line-gold-strong:rgba(197,160,89,.45);
+  --shadow-1:0 1px 2px rgba(0,0,0,.18);
+  --shadow-2:0 6px 18px rgba(0,0,0,.20);
+  --shadow-3:0 14px 34px rgba(0,0,0,.32);
+  --shadow-4:0 30px 80px rgba(0,0,0,.55);
+  --glow-gold:0 0 0 1px rgba(197,160,89,.25),0 8px 24px rgba(197,160,89,.28);
+  --surface-overlay:rgba(4,12,14,.72);
+
+  /* semânticas derivadas da paleta (DESIGN §2.8) — substituem os valores Tailwind */
+  --ok:#5CC9A0;        --ok-bg:rgba(92,201,160,.12);     --ok-line:rgba(92,201,160,.40);
+  --warn:#E0B978;      --warn-bg:rgba(224,185,120,.12);  --warn-line:rgba(224,185,120,.40);
+  --bad:#E07A6A;       --bad-bg:rgba(224,122,106,.12);   --bad-line:rgba(224,122,106,.40);
+  --info:var(--teal);  --info-bg:rgba(143,217,204,.10);  --info-line:rgba(143,217,204,.35);
+}
+body.light{
+  --line-strong:rgba(14,74,65,.45);
+  --line-gold-strong:rgba(143,111,44,.6);
+  --state-hover:rgba(14,74,65,.06);
+  --state-active:rgba(143,111,44,.12);
+  --shadow-1:0 1px 2px rgba(11,42,38,.06);
+  --shadow-2:0 6px 18px rgba(11,42,38,.10);
+  --shadow-3:0 14px 34px rgba(11,42,38,.16);
+  --shadow-4:0 30px 80px rgba(11,42,38,.24);
+  --surface-overlay:rgba(11,42,38,.45);
+  --ok:#1E7F5C;   --ok-bg:rgba(30,127,92,.10);   --ok-line:rgba(30,127,92,.35);
+  --warn:#8F6F2C; --warn-bg:rgba(143,111,44,.10);--warn-line:rgba(143,111,44,.35);
+  --bad:#B4532F;  --bad-bg:rgba(180,83,47,.10);  --bad-line:rgba(180,83,47,.35);
+  --info:#0E4A41; --info-bg:rgba(14,74,65,.08);  --info-line:rgba(14,74,65,.30);
+}
+
+/* --------------------------------------------------------------------------
+   1. KEYFRAMES (redefine shimmer e navPulse do app; os demais são novos)
+   -------------------------------------------------------------------------- */
+@keyframes page-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes overlay-in{from{opacity:0}to{opacity:1}}
+@keyframes overlay-out{to{opacity:0}}
+@keyframes modal-in{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes modal-out{to{opacity:0;transform:translateY(8px) scale(.98)}}
+@keyframes pop-in{from{opacity:0;transform:scale(.96) translateY(-4px)}to{opacity:1;transform:none}}
+@keyframes row-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@keyframes shimmer{to{transform:translateX(100%)}}
+@keyframes bell-ring{0%,100%{transform:rotate(0)}20%{transform:rotate(14deg)}40%{transform:rotate(-12deg)}60%{transform:rotate(8deg)}80%{transform:rotate(-4deg)}}
+@keyframes badge-in{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes nav-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@keyframes navPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}} /* o app referencia este nome */
+@keyframes nav-ind{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+
+/* --------------------------------------------------------------------------
+   2. CORREÇÕES DE CASCATA (DESIGN §1.2 A, H, I)
+   -------------------------------------------------------------------------- */
+
+/* .panel — l.205/206/397: transições duplicadas. Panel não é clicável: sem lift, sem sombra. */
+.panel,
+.panel:hover{box-shadow:none;transform:none}
+.panel{transition:border-color var(--dur-2) var(--ease-out)}
+.panel:hover{border-color:var(--line-strong)}
+
+/* .kpi — declarado 3× (l.176/207/395). Uma transição completa; hover único (-2px + shadow-2). */
+.kpi{transition:transform var(--dur-2) var(--ease-out),border-color var(--dur-2) var(--ease-out),box-shadow var(--dur-2) var(--ease-out)}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-2);border-color:var(--line-strong)}
+.kpi:active{transform:scale(var(--state-pressed));transition-duration:var(--dur-1)}
+
+/* .btn — l.119 `transition:.22s` vs l.214 (transform/filter) anulavam cor/fundo. */
+.btn,.btn-sm,.btn-ico{
+  transition:transform var(--dur-1) var(--ease-out),box-shadow var(--dur-2) var(--ease-out),
+    background-color var(--dur-1) linear,border-color var(--dur-1) linear,color var(--dur-1) linear,filter var(--dur-1) linear}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:var(--glow-gold)}
+.btn-teal:hover{background-color:rgba(143,217,204,.18);border-color:var(--gold)}
+.btn-ghost:hover{background-color:var(--state-hover);border-color:var(--gold)}
+.btn:active,.btn-gold:active,body.isApp .btn:active{transform:scale(var(--state-pressed));transition-duration:var(--dur-1);filter:none}
+.fab{transition:transform var(--dur-2) var(--ease-out),box-shadow var(--dur-2) var(--ease-out)}
+.fab:hover{transform:scale(1.06);box-shadow:var(--glow-gold)}
+.fab:active,body.isApp .fab:active{transform:scale(var(--state-pressed))}
+
+/* .flash — animava `bottom`. Agora só transform/opacity (seção 7). */
+/* navPulse infinito — limitado a 3 ciclos (seção 9). */
+/* anel de foco duplo em inputs — seção 4. */
+
+/* --------------------------------------------------------------------------
+   3. ENTRADA DE PÁGINA + CASCATA
+   O hook (plat-motion-hook.js) coloca `.is-entering` em #content após render()
+   e `--i` (0..7) nos filhos dos contêineres em cascata.
+   -------------------------------------------------------------------------- */
+.content,
+body.isApp .content{animation:none}            /* remove pageIn (l.398) e agIn (l.1177) */
+
+.content.is-entering>*{
+  animation:page-in var(--dur-3) var(--ease-out) both;
+  animation-delay:calc(var(--i,0)*var(--stagger))}
+
+/* contêineres de grade não animam: seus filhos é que entram em cascata */
+.content.is-entering>.kpis,
+.content.is-entering>.cms-kts,
+.content.is-entering>.cards,
+.content.is-entering>.cms-ag,
+.content.is-entering>.kanban,
+.content.is-entering>.cms-wrap{animation:none}
+
+.content.is-entering .kpis>.kpi,
+.content.is-entering .cms-kts>.cms-kt,
+.content.is-entering .cards>.ccard,
+.content.is-entering .cms-ag>.cms-ag-day,
+.content.is-entering .cms-card,
+.content.is-entering .kbody>.lead,
+.content.is-entering .cms-wrap>.panel{
+  animation:page-in var(--dur-3) var(--ease-out) both;
+  animation-delay:calc(var(--i,0)*var(--stagger))}
+
+/* fallback sem JS para os KPIs (os demais dependem do --i inline) */
+.content.is-entering .kpis>.kpi:nth-child(2){--i:1}
+.content.is-entering .kpis>.kpi:nth-child(3){--i:2}
+.content.is-entering .kpis>.kpi:nth-child(4){--i:3}
+.content.is-entering .kpis>.kpi:nth-child(5){--i:4}
+.content.is-entering .kpis>.kpi:nth-child(6){--i:5}
+.content.is-entering .kpis>.kpi:nth-child(7){--i:6}
+.content.is-entering .kpis>.kpi:nth-child(n+8){--i:7}
+
+/* seções do editor usam a mesma linguagem (substitui fadeIn da l.256) */
+.plansec.on{animation:none}
+.plansec.on>*{animation:page-in var(--dur-3) var(--ease-out) both}
+
+/* --------------------------------------------------------------------------
+   4. HOVER / PRESSED / FOCUS / DISABLED
+   -------------------------------------------------------------------------- */
+.ccard,.lead,.cms-kt,.cms-card,.opcard,.ostep,.ometa,.intg,.cms-ag-day{
+  transition:transform var(--dur-2) var(--ease-out),border-color var(--dur-2) var(--ease-out),box-shadow var(--dur-2) var(--ease-out)}
+.ccard:hover,.cms-kt:hover,.cms-card:hover,.opcard:hover,.ostep:hover,.ometa:hover{
+  transform:translateY(-2px);box-shadow:var(--shadow-2);border-color:var(--line-strong)}
+.lead:hover{transform:translateY(-2px);box-shadow:var(--shadow-2);border-color:var(--line-gold)}
+.opcard:hover,.ostep:hover{border-color:var(--line-gold-strong)}
+.cms-kt.on:hover{border-color:var(--gold)}
+.ccard:active,.lead:active,.cms-kt:active,
+body.isApp .lead:active,body.isApp .ccard:active,body.isApp .kpi:active{
+  transform:scale(var(--state-pressed));filter:none;transition-duration:var(--dur-1)}
+.lead.dragging{transform:none;box-shadow:none}
+
+/* controles pequenos: transições explícitas (substitui `transition:.2s`) */
+.subnav button,.tabs button,.chat-side .ch,.lead .acts button,.ldEdit,.month-nav button,
+.bell,.bell3,.notif .ni,.userchip .out,.cms-pill,.cms-tabs button,.iaOpt,.cfgSw,.cfgSw i,.post .pacts button{
+  transition:background-color var(--dur-1) linear,color var(--dur-1) linear,border-color var(--dur-1) linear,transform var(--dur-1) var(--ease-out)}
+input,select,textarea{transition:border-color var(--dur-1) linear,box-shadow var(--dur-2) var(--ease-out),background-color var(--dur-1) linear}
+.cfgSw i{transition:transform var(--dur-2) var(--ease-in-out),background-color var(--dur-1) linear,left var(--dur-2) var(--ease-in-out)}
+
+/* foco: anel único, por teclado, para TUDO que é interativo */
+input:focus,select:focus,textarea:focus{box-shadow:none}            /* mata o anel duplo (l.133 + l.404) */
+.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,
+:is(button,[role=button],a[href],summary,[tabindex]:not([tabindex="-1"]),.navi a,.mobnav a,.lead,.cms-kt,.cms-ag-f,.cms-org tr.cms-grp):focus-visible{
+  outline:none;box-shadow:var(--focus-ring)}
+input:focus-visible,select:focus-visible,textarea:focus-visible{border-color:var(--gold)}
+
+/* disabled global */
+:is(button,input,select,textarea,.btn):disabled,[aria-disabled="true"]{
+  opacity:var(--disabled-opacity);cursor:not-allowed;pointer-events:none;filter:saturate(.6);transform:none;box-shadow:none}
+
+/* --------------------------------------------------------------------------
+   5. MODAIS E POPOVERS
+   #modalBg usa .modal-bg/.modal. #cartasModal, #chooseMd, #tplModal, #cmsSel e .wa-ov
+   são divs com `style="position:fixed;inset:0"` e um único filho-cartão.
+   -------------------------------------------------------------------------- */
+.modal-bg,
+#cartasModal,#chooseMd,#tplModal,#cmsSel,.wa-ov,
+div[style*="position:fixed;inset:0"]{
+  animation:overlay-in var(--dur-2) linear both}
+.modal-bg{background:var(--surface-overlay)}
+.modal,
+#cartasModal>div,#chooseMd>div,#tplModal>div,#cmsSel>div,.wa-ov>div,
+div[style*="position:fixed;inset:0"]>div:first-child{
+  animation:modal-in var(--dur-3) var(--ease-out) both;transform-origin:50% 60%}
+.modal{box-shadow:var(--shadow-4)}
+/* fechamento opcional: JS adiciona .is-closing, espera animationend, remove/hidden */
+.modal-bg.is-closing,
+#cartasModal.is-closing,#chooseMd.is-closing,#tplModal.is-closing,#cmsSel.is-closing{animation:overlay-out var(--dur-1) var(--ease-in) both}
+.modal-bg.is-closing .modal,
+.is-closing>div:first-child{animation:modal-out var(--dur-2) var(--ease-in) both}
+/* bottom-sheet do app: mantém appSheet, só troca curva e duração */
+@media(max-width:1024px){
+  body.isApp .modal{animation-name:appSheet;animation-duration:var(--dur-3);animation-timing-function:var(--ease-out);animation-fill-mode:both}
+}
+/* popovers */
+.notif,.wa-pop{transform-origin:top right;animation:pop-in var(--dur-2) var(--ease-out) both;box-shadow:var(--shadow-3)}
+
+/* --------------------------------------------------------------------------
+   6. ACORDEÃO
+   `.acc` é o utilitário por grid-template-rows (envolver conteúdo em <div class="acc"><div>…</div></div>).
+   Os sub-níveis de Comissões (.cms-ag-sub, tr.cms-sub) são renderizados só quando abertos
+   (innerHTML), então não há estado "fechado" para transicionar: recebem animação de ENTRADA
+   por opacity/transform. Quando o markup passar a envolvê-los em .acc, a transição por
+   grid-rows abaixo assume (e a entrada some via .acc .cms-ag-sub{animation:none}).
+   -------------------------------------------------------------------------- */
+.acc{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--dur-3) var(--ease-in-out)}
+.acc>*{overflow:hidden;min-height:0}
+.acc.open{grid-template-rows:1fr}
+.acc-caret{display:inline-block;transition:transform var(--dur-2) var(--ease-in-out)}
+.acc.open .acc-caret{transform:rotate(90deg)}
+
+.cms-ag-sub{animation:row-in var(--dur-3) var(--ease-out) both;transform-origin:top}
+.cms-org tr.cms-sub>td{animation:row-in var(--dur-2) var(--ease-out) both}
+.acc .cms-ag-sub,.acc .cms-sub>td{animation:none}
+.cms-ag-f{transition:background-color var(--dur-1) linear}
+.cms-ag-f .c,.cms-org .cms-caret{display:inline-block;transition:transform var(--dur-2) var(--ease-in-out)}
+.lead .leadObs{transition:opacity var(--dur-2) linear}
+
+/* --------------------------------------------------------------------------
+   7. TOAST / FLASH — sem animar `bottom`
+   -------------------------------------------------------------------------- */
+.flash{
+  bottom:34px;left:50%;
+  transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  box-shadow:var(--shadow-3);
+  transition:transform var(--dur-3) var(--ease-out),opacity var(--dur-2) linear}
+.flash.show{bottom:34px;transform:translate(-50%,0);opacity:1;pointer-events:auto}
+.flash.hide{transform:translate(-50%,8px);opacity:0;transition-duration:var(--dur-2);transition-timing-function:var(--ease-in)}
+.flash.ok{border:1px solid var(--ok-line)}
+.flash.bad{border:1px solid var(--bad-line)}
+
+/* --------------------------------------------------------------------------
+   8. SKELETON — shimmer por transform (compositado), não por background-position
+   -------------------------------------------------------------------------- */
+.sk,.skel .sk{
+  position:relative;overflow:hidden;animation:none;
+  background:rgba(143,217,204,.06);background-size:auto}
+.sk::after,.skel .sk::after{
+  content:"";position:absolute;inset:0;transform:translateX(-100%);
+  background:linear-gradient(90deg,transparent,rgba(143,217,204,.10) 50%,transparent);
+  animation:shimmer 1.4s var(--ease-in-out) infinite}
+.skel.is-leaving{animation:overlay-out var(--dur-2) var(--ease-in) both}
+
+/* --------------------------------------------------------------------------
+   9. SININHO E BADGES
+   O hook adiciona `.bell-ring` ao #bellWrap quando a contagem sobe e remove no animationend.
+   -------------------------------------------------------------------------- */
+#bellWrap.bell-ring .bell3:has(.badge),
+.bell.has-new,.bell3.has-new{transform-origin:50% 0;animation:bell-ring 600ms var(--ease-in-out) 1}
+.bell .badge,.bell3 .badge,.actbadge{animation:badge-in var(--dur-3) var(--ease-spring) both}
+.navdot{animation:badge-in var(--dur-3) var(--ease-spring) both,nav-pulse 2.2s var(--ease-in-out) 3 var(--dur-3)} /* 3 ciclos e para */
+.bell .badge,.bell3 .badge,.navdot,.actbadge{background:var(--bad)}
+
+/* --------------------------------------------------------------------------
+   10. NAV LATERAL — indicador que desliza na borda + fade do estado .on
+   -------------------------------------------------------------------------- */
+.navi a{position:relative;transition:background-color var(--dur-1) linear,color var(--dur-1) linear,border-color var(--dur-1) linear}
+.navi a:hover{transform:none;background:var(--state-hover)}
+.navi a.on{background:var(--state-active)}
+.navi a::before{content:"";position:absolute;left:-1px;top:22%;bottom:22%;width:3px;border-radius:2px;background:var(--gold);transform:scaleY(0);transform-origin:center}
+.navi a.on::before{transform:scaleY(1);animation:nav-ind var(--dur-3) var(--ease-out) both}
+.navi a.on svg{transition:transform var(--dur-2) var(--ease-spring)}
+@media(max-width:1024px){
+  body.isApp .mobnav a{transition:background-color var(--dur-1) linear,color var(--dur-1) linear,transform var(--dur-1) var(--ease-out)}
+  body.isApp .mobnav a.on .icon{animation-duration:var(--dur-3);animation-timing-function:var(--ease-spring)}
+}
+
+/* --------------------------------------------------------------------------
+   11. TABELAS — hover suave de linha
+   -------------------------------------------------------------------------- */
+td{transition:background-color var(--dur-1) linear}
+tbody tr:hover td{background-color:var(--state-hover)}
+.tbl-scroll thead th{background:var(--card)}
+.cms-org tr.cms-grp td{transition:background-color var(--dur-1) linear}
+
+/* --------------------------------------------------------------------------
+   12. TOQUE (app): sem hover fantasma — mantém a intenção do bloco l.782
+   -------------------------------------------------------------------------- */
+@media (hover:none){
+  .kpi:hover,.ccard:hover,.lead:hover,.cms-kt:hover,.cms-card:hover,.opcard:hover,.ostep:hover,.ometa:hover,.btn-gold:hover,.fab:hover{
+    transform:none;box-shadow:none}
+  .panel:hover{border-color:var(--line)}
+  tbody tr:hover td{background-color:transparent}
+}
+
+/* --------------------------------------------------------------------------
+   13. PREFERS-REDUCED-MOTION (obrigatório)
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:1ms!important;
+    animation-iteration-count:1!important;
+    animation-delay:0ms!important;
+    transition-duration:1ms!important;
+    transition-delay:0ms!important;
+    scroll-behavior:auto!important}
+  /* informa estado sem deslocar: opacidade permitida, movimento não */
+  .content.is-entering>*,.content.is-entering .kpis>.kpi,.content.is-entering .cms-kts>.cms-kt,
+  .content.is-entering .cards>.ccard,.content.is-entering .cms-ag>.cms-ag-day,.content.is-entering .cms-card,
+  .content.is-entering .kbody>.lead,.plansec.on>*,
+  .modal,.modal-bg,#cartasModal>div,#chooseMd>div,#tplModal>div,#cmsSel>div,.wa-ov>div,
+  div[style*="position:fixed;inset:0"]>div:first-child,
+  .notif,.wa-pop,.flash,.flash.show,.cms-ag-sub,.cms-org tr.cms-sub>td,.navi a.on::before{animation:none!important;transform:none!important;opacity:1}
+  .flash{transform:translate(-50%,0)!important}
+  .flash:not(.show){opacity:0}
+  .sk::after,.skel .sk::after{animation:none!important;transform:none!important;background:rgba(143,217,204,.08)}
+  .navdot,.bell.has-new,.bell3.has-new,#bellWrap.bell-ring .bell3,.bell .badge,.bell3 .badge,.actbadge{animation:none!important;transform:none!important}
+  .kpi:hover,.ccard:hover,.lead:hover,.cms-kt:hover,.cms-card:hover,.opcard:hover,.ostep:hover,.ometa:hover,
+  .btn-gold:hover,.fab:hover,.btn:active,.kpi:active,.ccard:active,.lead:active,.cms-kt:active{transform:none!important}
+  .acc{transition:none!important}
+  body.isApp .modal{animation:none!important;transform:none!important}
+  body.isApp .mobnav a.on .icon{animation:none!important}
+  #agionPtr.girando i{animation-duration:.7s!important;animation-iteration-count:infinite!important} /* spinner de carga continua legível */
+}

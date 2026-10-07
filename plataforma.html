@@ -1333,6 +1333,7 @@ html.capNative body.isApp #viewbar,html.capNative body.isApp .topbar,html.capNat
   document.addEventListener('touchend',ptrEnd,{passive:true});
   document.addEventListener('touchcancel',ptrEnd,{passive:true});
 }catch(e){}})();</script>
+<link rel="stylesheet" href="/plat-motion.css?v=1">
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
 <div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" type="email" inputmode="email" placeholder="seu@email.com" value="" autocomplete="username" aria-label="E-mail"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="" autocomplete="current-password" aria-label="Senha" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> </div>
@@ -3735,7 +3736,8 @@ function masterReportPDF(){
 })();
 </script>
 <script src="/plat-consultoria.js?v=4"></script>
-<script src="/plat-comissoes.js?v=14"></script>
+<script src="/plat-comissoes.js?v=15"></script>
+<script src="/plat-motion-hook.js?v=1"></script>
 
 <!-- ===== Propostas (anexos por lead) — identidade Agion ===== -->
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
