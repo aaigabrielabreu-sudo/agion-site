@@ -1863,9 +1863,9 @@ function navItems(){
   const R=effRole();
   const ICN_KPI='<svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-5"/><path d="M13 17V8"/><path d="M18 17v-9"/></svg>';
   const ICN_CFG='<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
-  if(R==='master') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['consultoria','Consultoria',ICN.wallet],['users','Clientes',ICN.users],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check],['disparos','Disparos',ICN.bolt],['config','Ajustes',ICN_CFG]];
-  if(R==='lider') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['contas','Equipe',ICN.users],['config','Ajustes',ICN_CFG]];
-  if(R==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['config','Ajustes',ICN_CFG]];
+  if(R==='master') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['consultoria','Consultoria',ICN.wallet],['users','Clientes',ICN.users],['comissoes','Comissões',ICN.money],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check],['disparos','Disparos',ICN.bolt],['config','Ajustes',ICN_CFG]];
+  if(R==='lider') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['comissoes','Comissões',ICN.money],['contas','Equipe',ICN.users],['config','Ajustes',ICN_CFG]];
+  if(R==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['comissoes','Comissões',ICN.money],['config','Ajustes',ICN_CFG]];
   return [['dash','Início',ICN.dash],['plan','Planejamento',ICN.plan],['jornada','Jornada',ICN.target],['gastos','Gastos',ICN.money],['cota','Cota',ICN.cota],['config','Ajustes',ICN_CFG]];
 }
 function renderNav(){
@@ -2308,6 +2308,7 @@ function render(){
     if(view.page==='tarefas') return renderTarefas(C);
     if(view.page==='consultoria') return (typeof renderConsultoria==='function')?renderConsultoria(C):(C.innerHTML='<p class="note" style="padding:24px;text-align:center">Modulo de consultoria indisponivel. Recarregue a pagina.</p>');
       if(view.page==='users') return renderClients(C);
+    if(view.page==='comissoes') return (typeof renderComissoes==='function')?renderComissoes(C):(C.innerHTML='<p class="note" style="padding:24px;text-align:center">Módulo de comissões indisponível. Recarregue a página.</p>');
     if(view.page==='contas'&&(isMaster()||isLider())) return renderContas(C);
     if(view.page==='atividades'&&isMaster()) return renderAtividades(C);
     if(view.page==='conversas') return renderConversas(C);
@@ -2472,7 +2473,7 @@ function kbOver(e){e.preventDefault();e.currentTarget.classList.add('dragover');
 function kbLeave(e){e.currentTarget.classList.remove('dragover');}
 function kbDrop(e,stage){e.preventDefault();e.currentTarget.classList.remove('dragover');if(roGuard()){_dragId=null;return;}const l=db.crm.find(x=>x.id===_dragId);_dragId=null;if(l&&l.stage!==stage){l.stage=stage;l.perdido=false;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[stage]+'"',quando:Date.now(),autorId:session.userId});logEvt('lead_mover','lead','Moveu o lead "'+l.nome+'" para "'+CRM_STAGES[stage]+'"',{lead:l.nome,etapa:CRM_STAGES[stage]});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Movido para '+CRM_STAGES[stage]);}}
 async function crmNote(id){if(roGuard())return;const t=await ask({title:'Nova atividade',msg:'Registre um contato, observação ou próximo passo:',input:true,ok:'Salvar'});if(!t||!t.trim())return;const l=db.crm.find(x=>x.id===id);l.atividades=l.atividades||[];l.atividades.push({texto:t.trim(),quando:Date.now(),autorId:session.userId});logEvt('lead_nota','lead','Registrou atividade no lead "'+l.nome+'"',{lead:l.nome,nota:t.trim()});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Atividade registrada');}
-function crmGanho(id){if(roGuard())return;const l=(db.crm).find(x=>x.id===id);if(!l)return;const ns=CRM_STAGES.length-1;if(l.stage!==ns){l.stage=ns;l.perdido=false;l.atividades=l.atividades||[];l.atividades.push({texto:'Marcado como GANHO',quando:Date.now(),autorId:session.userId});logEvt('lead_ganho','lead','Marcou o lead "'+l.nome+'" como ganho',{lead:l.nome});saveLeadCloud(l);save();}renderCRM(document.getElementById('content'));flash('Lead movido para Fechado (ganho) 🎉');}
+function crmGanho(id){if(roGuard())return;const l=(db.crm).find(x=>x.id===id);if(!l)return;if(typeof crmToClient==='function'){return crmToClient(id);}const ns=CRM_STAGES.length-1;if(l.stage!==ns){l.stage=ns;l.perdido=false;l.atividades=l.atividades||[];l.atividades.push({texto:'Marcado como GANHO',quando:Date.now(),autorId:session.userId});logEvt('lead_ganho','lead','Marcou o lead "'+l.nome+'" como ganho',{lead:l.nome});saveLeadCloud(l);save();}renderCRM(document.getElementById('content'));flash('Lead movido para Fechado (ganho) 🎉');}
 function crmLose(id){if(roGuard())return;const l=(db.crm).find(x=>x.id===id);l.perdido=true;logEvt('lead_perdido','lead','Marcou o lead "'+l.nome+'" como perdido',{lead:l.nome});saveLeadCloud(l);save();renderCRM(document.getElementById('content'));flash('Lead marcado como perdido');}
 function crmRecuperar(id){const l=(db.crm).find(x=>x.id===id);l.perdido=false;save();renderCRM(document.getElementById('content'));flash('Lead reativado');}
 async function crmDel(id){if(!(await ask({title:'Excluir lead?',ok:'Excluir'})))return;db.crm=db.crm.filter(x=>x.id!==id);save();renderCRM(document.getElementById('content'));}
@@ -2992,6 +2993,7 @@ async function cartaSave(id){
   catch(e){ await ask({title:'Não foi possível salvar',msg:String(e.message||e),ok:'Ok'}); }
   openCartas(_cartasCid);
   try{ if(typeof _bvNovo!=='undefined'&&_bvNovo) await agBoasVindasCliente(_bvNovo.titular_nome||_cartasNome,_bvNovo.whatsapp); }catch(e){}
+  try{ if(!id&&typeof cmsAfterCarta==='function') await cmsAfterCarta(recs,_cartasCid); }catch(e){}
 }
 async function cartaDel(id){
   if(roGuard())return;
@@ -3733,6 +3735,7 @@ function masterReportPDF(){
 })();
 </script>
 <script src="/plat-consultoria.js?v=4"></script>
+<script src="/plat-comissoes.js?v=1"></script>
 
 <!-- ===== Propostas (anexos por lead) — identidade Agion ===== -->
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
