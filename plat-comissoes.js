@@ -54,7 +54,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v16';
+var VERSAO='v17';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -161,7 +161,7 @@ body.light .cms-wrap,body.light .cms-md{--csurf-2:var(--surface-2,rgba(14,74,65,
 .cms-pill--txt{height:28px;padding:0 var(--cs-3);font-size:var(--cfs-xs);font-weight:500;letter-spacing:0;text-transform:none}
 .cms-pill--txt.on{--chip-fg:var(--gold2);--chip-bg:var(--cactive);--chip-line:var(--line-gold)}
 /* --- Cartões-aba do Master (.cms-kt) e KPIs do funcionário (.kpi): mesma anatomia, mesma altura --- */
-.cms-kts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--cs-4);margin-bottom:var(--cs-5)}
+.cms-kts{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;margin-bottom:18px}
 .cms-kt{position:relative;display:flex;flex-direction:column;min-height:148px;background:var(--csurf-1);border:1px solid var(--line);border-radius:var(--cr-lg);padding:var(--cs-5);cursor:pointer;overflow:hidden;user-select:none}
 .cms-kt::before{content:"";position:absolute;left:var(--cs-5);right:var(--cs-5);top:0;height:2px;border-radius:0 0 2px 2px;background:var(--grad-gold);transform:scaleX(0);transform-origin:left center;transition:transform var(--dur-2,.2s) var(--ease-out,ease)}
 .cms-kt.on{border-color:var(--gold);background:linear-gradient(var(--cactive),var(--cactive)),var(--csurf-1)}

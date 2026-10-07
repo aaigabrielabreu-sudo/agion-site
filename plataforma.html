@@ -1335,6 +1335,7 @@ html.capNative body.isApp #viewbar,html.capNative body.isApp .topbar,html.capNat
 }catch(e){}})();</script>
 <link rel="stylesheet" href="/plat-motion.css?v=1">
 <link rel="stylesheet" href="/plat-theme.css?v=1">
+<link rel="stylesheet" href="/plat-crm.css?v=1">
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
 <div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" type="email" inputmode="email" placeholder="seu@email.com" value="" autocomplete="username" aria-label="E-mail"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="" autocomplete="current-password" aria-label="Senha" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> </div>
@@ -2351,7 +2352,7 @@ function renderCRM(C){
   const board=CRM_STAGES.map((st,i)=>{
     const leads=crmSortLeads(VL.filter(l=>!l.perdido && l.stage===i));
     const soma=leads.reduce((a,l)=>a+(+l.valor||0),0);
-    return `<div class="kcol"><h4>${esc(st)} <span style="color:var(--soft)">${leads.length}</span></h4> <div class="ksum">${BRL(soma)}</div> <div class="kbody" ondragover="kbOver(event)" ondragleave="kbLeave(event)" ondrop="kbDrop(event,${i})">${leads.map(l=>leadCard(l,i)).join('')||'<div class="note" style="padding:8px 0">— arraste aqui —</div>'}</div></div>`;
+    return `<div class="kcol${i===CRM_STAGES.length-1?' kcol-won':''}" data-stage="${i}"><div class="khead"><h4><span class="kname">${esc(st)}</span><span class="kcount">${leads.length}</span></h4><div class="ksum">${BRL(soma)}</div></div><div class="kbody" ondragover="kbOver(event)" ondragleave="kbLeave(event)" ondrop="kbDrop(event,${i})">${leads.map(l=>leadCard(l,i)).join('')||'<div class="kempty"><b>Nenhum lead nesta etapa</b><span>Arraste um cartão para cá</span></div>'}</div></div>`;
   }).join('');
   const perdidos=VL.filter(l=>l.perdido);
   const naoDistrib=isMaster()?(db.crm||[]).filter(l=>!l.ownerId&&!l.perdido):[];
@@ -2435,37 +2436,60 @@ function leadPrefContato(l){ const s=(l.obs||'').toLowerCase(); const out=[];
 
 function leadCard(l,i){
   const last=CRM_STAGES.length-1;
+  const cat=leadCategoria(l), ori=leadOrigem(l);
   const _sc=(typeof mktScore==='function')?mktScore(l):0;
-  const _scCor=_sc>=70?'#4CAF7D':_sc>=45?'#C5A059':'#8FA6A0';
-  const _scBar=`<div class="ldScore" title="Score do lead (etapa + atividades + valor + recência)"><span>⚡</span><div class="ldScoreBar"><div style="width:${_sc}%;background:${_scCor}"></div></div><b style="color:${_scCor}">${_sc}</b></div>`;
+  const _scLv=_sc>=70?'hi':_sc>=45?'mid':'lo';
   const _pm=(l.obs||'').match(/Parcela desejada:\s*R\$?\s*([\d.,]+)/i);
   const _parc=_pm?(+String(_pm[1]).replace(/\./g,'').replace(',','.'))||0:0;
   const _oriM=String(l.obs||'').match(/^\s*ORIGEM:\s*([^\n]+)/i); const _oriRaw=_oriM?_oriM[1].trim():'';
-      const _oriS=_oriRaw.toLowerCase();
-      const _oriX = !_oriRaw ? ['?','Origem nao identificada','#9DB5B1']
-        : /google\s*meu\s*neg/.test(_oriS) ? ['\u{1F4CD}','Google Meu Neg\u00F3cio','#7FB3E8']
-        : /instagram/.test(_oriS) ? ['\u{1F4F8}','Instagram','#E6A9CF']
-        : /tr[a\u00E1]fego|meta\s*ads|google\s*ads|campanha|lead\s*ads/.test(_oriS) ? ['\u{1F3AF}','Tr\u00E1fego pago','#7EBEA0']
-        : /site|website|formul/.test(_oriS) ? ['\u{1F310}','Site','#C5A059']
-        : ['\u{1F517}',_oriRaw,'#C5A059'];
-      const _obsShow=(l.obs||'').replace(/^Parcela desejada:[^\n]*\n?/i,'');
+  const _oriS=_oriRaw.toLowerCase();
+  const _oriX = !_oriRaw ? null
+    : /google\s*meu\s*neg/.test(_oriS) ? ['\u{1F4CD}','Google Meu Negócio']
+    : /instagram/.test(_oriS) ? ['\u{1F4F8}','Instagram']
+    : /tr[aá]fego|meta\s*ads|google\s*ads|campanha|lead\s*ads/.test(_oriS) ? ['\u{1F3AF}','Tráfego pago']
+    : /site|website|formul/.test(_oriS) ? ['\u{1F310}','Site']
+    : ['\u{1F517}',_oriRaw];
+  const _obsShow=(l.obs||'').replace(/^Parcela desejada:[^\n]*\n?/i,'').replace(/^\s*ORIGEM:[^\n]*\n?/i,'').trim();
   const _wad=(l.contato||'').replace(/\D/g,''); const _wan=(_wad.length>=10&&_wad.length<=11)?('55'+_wad):_wad;
-  const _waBtn=_wan.length>=12?`<a href="https://wa.me/${_wan}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Falar no WhatsApp" style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#25D36622;border:1px solid #25D36666;flex:none"><svg viewBox="0 0 24 24" width="15" height="15" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.297-.497.1-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></a>`:'';
   const _reu=/AGENDADO REUNIAO/i.test(l.obs||'');
-  const _cor0=_reu?'#1F6B7A':leadCategoria(l).cor;
-  const _cardSty=`background:linear-gradient(160deg, ${_cor0}2E, ${_cor0}0A);border-left:4px solid ${_cor0};box-shadow:0 2px 14px ${_cor0}1F;`;
-  return `<div class="lead" style="${_cardSty}" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)"><div class="ldTop"><div class="ldChips"><span class="ttype" style="background:${leadCategoria(l).cor}26;border:1px solid ${leadCategoria(l).cor}66;color:${leadCategoria(l).cor}">${leadCategoria(l).ic} ${leadCategoria(l).lb}</span><span class="ttype" style="background:${leadOrigem(l).cor}26;border:1px solid ${leadOrigem(l).cor}66;color:${leadOrigem(l).cor}">${leadOrigem(l).ic} ${leadOrigem(l).lb}</span></div><div class="ldTopR"><div class="ldDataRow"><span class="ldData">${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</span><button class="ldEdit" title="Editar lead" onclick="openLead('${l.id}');event.stopPropagation()">✎</button></div>${_scBar}</div></div> <div class="ldHead"><div class="ldWho"><div class="nm">${esc(l.nome)}</div><div class="ct">${esc(l.contato||'')}</div></div>${_waBtn}</div> ${leadPrefContato(l)?`<div class="note" style="margin-top:3px;color:var(--gold,#C5A059)">${leadPrefContato(l)}</div>`:''} ${l.valor?`<div class="vl">${BRL(l.valor)}</div>`:''} ${_parc?`<div style="font-size:.78rem;color:var(--gold,#C5A059);font-weight:600;margin-top:2px">💳 Parcela desejada: ${BRL(_parc)}/mês</div>`:''}
-    ${`<div class="ldSep"></div><div class="ldRow"><div class="ldIco">${_oriX[0]}</div><div class="ldOri" style="color:${_oriX[2]}">${esc(_oriX[1])}</div></div>`}
-    ${_obsShow?`<div class="note leadObs" style="margin-top:6px" onclick="this.classList.toggle('aberta');event.stopPropagation()">${esc(String(_obsShow).replace(/^\s*ORIGEM:[^\n]*\n?/i,''))}</div>`:''}
-    ${(l.atividades&&l.atividades.length)?`<div class="note" style="margin-top:6px;color:var(--soft)"> ${esc(l.atividades[l.atividades.length-1].texto)} · ${timeAgo(l.atividades[l.atividades.length-1].quando)}</div>`:''}
-    <div class="note" style="margin-top:6px;color:var(--soft)">${l.ownerId?''+esc(user(l.ownerId).nome.split(' ')[0]):'⚠️ não distribuído'}</div> ${(isMaster()||isLider())?`<select onchange="crmAssign('${l.id}',this.value)" style="margin-top:6px;font-size:.74rem;padding:6px 8px"><option value="">— distribuir para —</option>${(db.accounts||[]).filter(a=>a.real&&a.ativo!==false&&((a.role==='especialista'&&(isMaster()||a.leaderId===meId()))||(a.role==='master'&&isMaster())||(a.role==='lider'&&(isMaster()||a.id===meId())))).map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('')}</select>`:''}
-    <div class="acts"> ${i>0?`<button class="aMove" onclick="crmMove('${l.id}',-1)" title="Voltar etapa">◀</button>`:''}
-      ${i<last?`<button class="aMove" onclick="crmMove('${l.id}',1)" title="Avançar etapa">▶</button>`:''}
-      <button class="aNota" onclick="crmNote('${l.id}')">Nota</button>
-      <button class="aNota" onclick="abrirProposta('${l.id}','lead');event.stopPropagation()" title="Montar/ver propostas deste lead">📄 Proposta</button>
-      ${i<last?`<button class="aGanho" onclick="crmGanho('${l.id}')" title="Marcar como ganho">✓ Ganho</button>`
-              :`<button class="aCliente" onclick="crmToClient('${l.id}')" title="Transformar em cliente">→ Cliente</button>`}
-      <button class="aPerdeu" onclick="crmLose('${l.id}')">Perdeu</button> </div></div>`;
+  const _cor0=_reu?'#3F8F9D':cat.cor;
+  const I={
+    edit:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+    prev:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+    next:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
+    note:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/><path d="M13.5 6.5l3 3"/></svg>',
+    doc:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>',
+    wa:'<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.297-.497.1-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>',
+    check:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+  };
+  /* sinais: origem (classificador), canal informado em ORIGEM:, preferências de contato, reunião, score */
+  const chips=[`<span class="lv2-chip" title="Origem do lead">${ori.ic} ${esc(ori.lb)}</span>`];
+  if(_oriX) chips.push(`<span class="lv2-chip" title="Canal informado">${_oriX[0]} ${esc(_oriX[1])}</span>`);
+  const _pref=leadPrefContato(l); if(_pref) _pref.split(' · ').forEach(p=>chips.push(`<span class="lv2-chip">${p}</span>`));
+  if(_reu) chips.push(`<span class="lv2-chip lv2-chip-pet">\u{1F4C5} Reunião agendada</span>`);
+  chips.push(`<span class="lv2-score lv2-score-${_scLv}" title="Score do lead (etapa + atividades + valor + recência): ${_sc}"><i><b style="width:${_sc}%"></b></i>${_sc}</span>`);
+  const lastAct=(l.atividades&&l.atividades.length)?l.atividades[l.atividades.length-1]:null;
+  /* responsável: select de distribuição (master/líder) ou avatar + primeiro nome */
+  let owner='';
+  if(isMaster()||isLider()){
+    const opts=(db.accounts||[]).filter(a=>a.real&&a.ativo!==false&&((a.role==='especialista'&&(isMaster()||a.leaderId===meId()))||(a.role==='master'&&isMaster())||(a.role==='lider'&&(isMaster()||a.id===meId())))).map(a=>`<option value="${a.id}" ${l.ownerId===a.id?'selected':''}>${esc(a.nome)}</option>`).join('');
+    owner=`<label class="lv2-owner lv2-owner-sel${l.ownerId?'':' lv2-owner-warn'}" onclick="event.stopPropagation()" title="Distribuir lead">${l.ownerId?avatar(l.ownerId,22):'<span class="lv2-av-empty">?</span>'}<select onchange="crmAssign('${l.id}',this.value)"><option value="">${l.ownerId?'— redistribuir —':'Distribuir para…'}</option>${opts}</select></label>`;
+  } else {
+    owner=l.ownerId
+      ?`<div class="lv2-owner">${avatar(l.ownerId,22)}<span>${esc(user(l.ownerId).nome.split(' ')[0])}</span></div>`
+      :`<div class="lv2-owner lv2-owner-warn"><span class="lv2-av-empty">?</span><span>Não distribuído</span></div>`;
+  }
+  const _waBtn=_wan.length>=12?`<a class="lv2-ib lv2-wa" href="https://wa.me/${_wan}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Falar no WhatsApp">${I.wa}</a>`:'';
+  return `<div class="lead lead-v2" style="--lv2-cat:${_cor0}" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)" onclick="if(!event.target.closest('button,a,select,label,.leadObs'))openLead('${l.id}')">
+    <div class="lv2-band"><span class="lv2-cat" title="Categoria"><i></i>${cat.ic} ${esc(cat.lb)}</span><span class="lv2-when" title="Criado em ${fmtDataLead(l.criadoEm)}">${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</span><button class="lv2-edit" title="Editar lead" onclick="openLead('${l.id}');event.stopPropagation()">${I.edit}</button></div>
+    <div class="lv2-who"><div class="lv2-nm">${esc(l.nome)}</div>${l.contato?`<div class="lv2-ct">${esc(l.contato)}</div>`:''}</div>
+    ${(l.valor||_parc)?`<div class="lv2-val">${l.valor?`<b>${BRL(l.valor)}</b>`:''}${_parc?`<span title="Parcela desejada">${BRL(_parc)}<em>/mês</em></span>`:''}</div>`:''}
+    <div class="lv2-chips">${chips.join('')}</div>
+    ${_obsShow?`<div class="note leadObs lv2-obs" onclick="this.classList.toggle('aberta');event.stopPropagation()">${esc(_obsShow)}</div>`:''}
+    ${lastAct?`<div class="lv2-act" title="Última atividade">${esc(lastAct.texto)}<span>· ${timeAgo(lastAct.quando)}</span></div>`:''}
+    <div class="lv2-foot">${owner}<div class="lv2-acts">${i>0?`<button class="lv2-ib aMove" onclick="crmMove('${l.id}',-1)" title="Voltar etapa">${I.prev}</button>`:''}${i<last?`<button class="lv2-ib aMove" onclick="crmMove('${l.id}',1)" title="Avançar etapa">${I.next}</button>`:''}<button class="lv2-ib aNota" onclick="crmNote('${l.id}')" title="Registrar nota">${I.note}</button><button class="lv2-ib aNota" onclick="abrirProposta('${l.id}','lead');event.stopPropagation()" title="Montar/ver propostas deste lead">${I.doc}</button>${_waBtn}</div></div>
+    <div class="lv2-main">${i<last?`<button class="lv2-ganho aGanho" onclick="crmGanho('${l.id}')" title="Marcar como ganho">${I.check} Ganho</button>`:`<button class="lv2-cliente aCliente" onclick="crmToClient('${l.id}')" title="Transformar em cliente">Transformar em cliente</button>`}<button class="lv2-perdeu aPerdeu" onclick="crmLose('${l.id}')" title="Marcar como perdido">Perdeu</button></div>
+  </div>`;
 }
 function crmMove(id,d){const l=(db.crm).find(x=>x.id===id);const ns=Math.max(0,Math.min(CRM_STAGES.length-1,l.stage+d));if(ns!==l.stage){l.stage=ns;l.atividades=l.atividades||[];l.atividades.push({texto:'Movido para "'+CRM_STAGES[ns]+'"',quando:Date.now(),autorId:session.userId});logEvt('lead_mover','lead','Moveu o lead "'+l.nome+'" para "'+CRM_STAGES[ns]+'"',{lead:l.nome,etapa:CRM_STAGES[ns]});}saveLeadCloud(l);save();renderCRM(document.getElementById('content'));}
 let _dragId=null;
@@ -3738,7 +3762,7 @@ function masterReportPDF(){
 </script>
 <script src="/plat-charts.js?v=1"></script>
 <script src="/plat-consultoria.js?v=4"></script>
-<script src="/plat-comissoes.js?v=16"></script>
+<script src="/plat-comissoes.js?v=17"></script>
 <script src="/plat-motion-hook.js?v=1"></script>
 
 <!-- ===== Propostas (anexos por lead) — identidade Agion ===== -->

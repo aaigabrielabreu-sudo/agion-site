@@ -1,0 +1,385 @@
+/* ==========================================================================
+   Agion Wealth — plat-crm.css
+   Card de lead v2 (.lead.lead-v2) + colunas do kanban do CRM.
+   Carregar DEPOIS do <style> do app e de plat-motion.css.
+
+   Conceito: ficha de cliente de um private bank. Superfície petróleo quase
+   lisa, separada por hairlines, não por sombra. Uma linha fina na cor da
+   categoria no topo (é a única cor "de fora" do card). Lora para nome e
+   dinheiro, DM Sans para o resto. Dourado só como tinta do valor (GOLD L
+   sobre petróleo, GOLD D sobre papel) — nunca como área. Petróleo-água para
+   dado (score). Verde para ganho, terracota para perda, ambos em tom tonal.
+
+   Especificidade: o CSS do app declara `.lead` (0,1,0) e `.lead .x` (0,2,0)
+   em vários pontos, e plat-theme.css usa `body .lead` com !important para
+   anular o card antigo. Aqui usamos `body .lead.lead-v2` (0,2,1) e nomes de
+   classe novos (lv2-*), então nada do card antigo cai sobre este. Os poucos
+   !important estão comentados caso a caso.
+   ========================================================================== */
+
+:root{
+  /* Manual da Marca v2.1 — paleta refinada */
+  --ag-ink:#0A2721;      /* petróleo base */
+  --ag-ink2:#0F3A31;     /* petróleo claro (blocos) */
+  --ag-gold:#C8A860;     /* assinatura */
+  --ag-goldD:#A3833F;    /* dourado sobre claro */
+  --ag-goldL:#ECD9A6;    /* dourado sobre petróleo */
+  --ag-pet:#3F8F9D;      /* petróleo-água: dados */
+  --ag-terra:#B45647;    /* custo / negativo */
+  --ag-green:#3F8F6A;    /* positivo */
+  --ag-paper:#FBF8F1;
+  --ag-paper2:#F4EEE1;
+  --ag-line:#E9E0CC;
+  --ag-mute:#7C8A82;
+  /* variantes claras p/ legibilidade sobre petróleo (mesmo matiz, +luz) */
+  --ag-green-l:#86CBA6;
+  --ag-terra-l:#DE9686;
+  --ag-pet-l:#7FC3CF;
+}
+
+/* --------------------------------------------------------------------------
+   1. CARD — contêiner
+   -------------------------------------------------------------------------- */
+body .lead.lead-v2{
+  position:relative;
+  display:flex;flex-direction:column;gap:10px;
+  min-width:0;
+  padding:14px 14px 12px;
+  background:linear-gradient(172deg,var(--card2),var(--card));
+  border:1px solid var(--line);
+  border-left-width:1px!important;   /* plat-theme força 3px à esquerda no card antigo */
+  border-radius:14px;
+  box-shadow:0 1px 2px rgba(0,0,0,.14);
+  cursor:grab;
+  color:var(--ink);
+  font-family:var(--sans);
+  overflow:hidden;
+}
+body .lead.lead-v2:hover{border-color:var(--line-strong,rgba(143,217,204,.28))}
+body .lead.lead-v2.dragging{opacity:.45;cursor:grabbing}
+/* fio de categoria: 2px, encostado no topo, recuado como uma lombada */
+body .lead.lead-v2::before{
+  content:'';position:absolute;left:14px;right:14px;top:0;height:2px;
+  border-radius:0 0 2px 2px;background:var(--lv2-cat,var(--ag-pet));opacity:.9;
+}
+body .lead.lead-v2:focus-visible{outline:none;box-shadow:var(--focus-ring,0 0 0 2px var(--bg),0 0 0 4px var(--gold))}
+
+/* --------------------------------------------------------------------------
+   2. FAIXA SUPERIOR — categoria · data · editar
+   -------------------------------------------------------------------------- */
+body .lead-v2 .lv2-band{display:flex;align-items:center;gap:8px;min-width:0;margin-top:2px}
+body .lead-v2 .lv2-cat{
+  display:inline-flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto;
+  font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+body .lead-v2 .lv2-cat i{flex:none;width:7px;height:7px;border-radius:50%;background:var(--lv2-cat,var(--ag-pet))}
+body .lead-v2 .lv2-when{
+  flex:0 1 auto;min-width:0;font-size:11px;color:var(--soft);
+  font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+body .lead-v2 .lv2-edit{
+  flex:none;width:24px;height:24px;margin:-4px -4px -4px 0;
+  display:grid;place-items:center;border-radius:7px;
+  border:1px solid transparent;background:transparent;color:var(--soft);
+  cursor:pointer;transition:color var(--dur-1,120ms),border-color var(--dur-1,120ms),background var(--dur-1,120ms);
+}
+body .lead-v2 .lv2-edit:hover{color:var(--head);border-color:var(--line);background:var(--state-hover,rgba(143,217,204,.06))}
+
+/* --------------------------------------------------------------------------
+   3. IDENTIDADE — nome (Lora) · contato · valor
+   -------------------------------------------------------------------------- */
+body .lead-v2 .lv2-who{min-width:0}
+body .lead-v2 .lv2-nm{
+  font-family:var(--serif);font-size:15.5px;font-weight:600;line-height:1.25;
+  color:var(--head);letter-spacing:-.005em;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;
+}
+body .lead-v2 .lv2-ct{margin-top:3px;font-size:12px;line-height:1.3;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body .lead-v2 .lv2-val{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;min-width:0;margin-top:-2px}
+body .lead-v2 .lv2-val b{
+  font-family:var(--serif);font-size:17px;font-weight:600;line-height:1.2;
+  color:var(--ag-goldL);font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+body .lead-v2 .lv2-val span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+body .lead-v2 .lv2-val span em{font-style:normal;color:var(--soft)}
+
+/* --------------------------------------------------------------------------
+   4. SINAIS — chips neutros + score (petróleo-água)
+   -------------------------------------------------------------------------- */
+body .lead-v2 .lv2-chips{display:flex;flex-wrap:wrap;gap:5px;min-width:0}
+body .lead-v2 .lv2-chip,
+body .lead-v2 .lv2-score{
+  display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;
+  border-radius:999px;font-size:11px;font-weight:500;line-height:1;
+  color:var(--muted);background:rgba(255,255,255,.045);border:1px solid var(--line);
+  max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+body .lead-v2 .lv2-chip-pet{color:var(--ag-pet-l);border-color:rgba(63,143,157,.4);background:rgba(63,143,157,.12)}
+body .lead-v2 .lv2-score{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;padding-left:7px}
+body .lead-v2 .lv2-score i{display:block;width:28px;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+body .lead-v2 .lv2-score b{display:block;height:100%;border-radius:2px;background:var(--ag-pet)}
+body .lead-v2 .lv2-score-hi b{background:var(--ag-green-l)}
+body .lead-v2 .lv2-score-lo{color:var(--muted)}
+body .lead-v2 .lv2-score-lo b{background:var(--soft)}
+
+/* --------------------------------------------------------------------------
+   5. OBSERVAÇÃO colapsada + última atividade
+   -------------------------------------------------------------------------- */
+body .lead-v2 .leadObs{
+  position:relative;margin:0;padding:0;
+  font-size:12px;line-height:1.45;color:var(--muted);
+  max-height:3.9em;overflow:hidden;cursor:pointer;
+  white-space:pre-line;word-break:break-word;
+  -webkit-mask-image:none;mask-image:none;   /* o app mascara o .leadObs antigo; aqui o "ver mais" cobre a última linha */
+}
+body .lead-v2 .leadObs::after{
+  content:'ver mais';position:absolute;right:0;bottom:0;left:auto;
+  display:inline;padding:0 0 0 28px;line-height:1.45;
+  font-size:11px;font-weight:600;color:var(--gold2);
+  background:linear-gradient(90deg,rgba(16,58,50,0),var(--card) 40%);
+}
+body .lead-v2 .leadObs.aberta{max-height:none}
+body .lead-v2 .leadObs.aberta::after{content:'ver menos';display:inline;position:static;padding-left:6px;background:none}
+body .lead-v2 .lv2-act{
+  font-size:11px;line-height:1.35;color:var(--soft);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+body .lead-v2 .lv2-act span{margin-left:4px;font-variant-numeric:tabular-nums}
+
+/* --------------------------------------------------------------------------
+   6. RODAPÉ — responsável à esquerda, ações iconográficas à direita
+   -------------------------------------------------------------------------- */
+body .lead-v2 .lv2-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin-top:2px;padding-top:10px;border-top:1px solid var(--line);
+}
+body .lead-v2 .lv2-owner{
+  display:flex;align-items:center;gap:7px;flex:1 1 auto;min-width:0;margin:0;
+  font-size:12px;font-weight:500;color:var(--muted);   /* anula o label{} global do app */
+}
+body .lead-v2 .lv2-owner>span:not(.lv2-av-empty){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body .lead-v2 .lv2-owner .av{width:22px;height:22px;font-size:9px;font-weight:700}
+body .lead-v2 .lv2-av-empty{
+  flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+  font-size:11px;font-weight:600;color:var(--soft);
+  border:1px dashed var(--line-strong,rgba(143,217,204,.28));
+}
+body .lead-v2 .lv2-owner-warn{color:var(--warn,#E0B978)}
+body .lead-v2 .lv2-owner-warn .lv2-av-empty{color:var(--warn,#E0B978);border-color:var(--warn-line,rgba(224,185,120,.4))}
+/* select de distribuição como texto com seta — sem caixa */
+body .lead-v2 .lv2-owner-sel{position:relative;cursor:pointer}
+body .lead-v2 .lv2-owner-sel::after{
+  content:'';position:absolute;right:3px;top:50%;width:6px;height:6px;margin-top:-5px;
+  border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);
+  opacity:.7;pointer-events:none;
+}
+body .lead-v2 .lv2-owner-sel select{
+  -webkit-appearance:none;appearance:none;
+  flex:1 1 auto;min-width:0;width:auto;max-width:100%;
+  margin:0;padding:0 16px 0 0;min-height:22px;height:22px;
+  border:0;border-radius:0;background:transparent none;box-shadow:none;
+  font-family:var(--sans);font-size:12px;font-weight:500;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;
+}
+body .lead-v2 .lv2-owner-warn select{color:var(--warn,#E0B978)}
+body .lead-v2 .lv2-owner-sel select:focus-visible{outline:none;box-shadow:var(--focus-ring,0 0 0 2px var(--bg),0 0 0 4px var(--gold));border-radius:4px}
+body .lead-v2 .lv2-owner-sel select option{color:var(--head);background:var(--card)}
+
+body .lead-v2 .lv2-acts{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+body .lead-v2 .lv2-ib{
+  width:28px;height:28px;padding:0;flex:none;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);
+  cursor:pointer;text-decoration:none;
+  transition:color var(--dur-1,120ms),border-color var(--dur-1,120ms),background var(--dur-1,120ms);
+}
+body .lead-v2 .lv2-ib:hover{color:var(--head);border-color:var(--hair-gold-strong,rgba(197,160,89,.42));background:var(--state-hover,rgba(143,217,204,.06))}
+body .lead-v2 .lv2-ib:focus-visible{outline:none;box-shadow:var(--focus-ring,0 0 0 2px var(--bg),0 0 0 4px var(--gold))}
+body .lead-v2 .lv2-wa{color:#25D366}             /* verde WhatsApp: cor de marca de terceiro, mantida */
+body .lead-v2 .lv2-wa:hover{color:#25D366;border-color:rgba(37,211,102,.5);background:rgba(37,211,102,.1)}
+
+/* --------------------------------------------------------------------------
+   7. AÇÕES PRINCIPAIS — Ganho (verde tonal) · Perdeu (terracota discreto)
+   -------------------------------------------------------------------------- */
+body .lead-v2 .lv2-main{display:flex;align-items:center;gap:8px;margin-top:-2px}
+body .lead-v2 .lv2-ganho,
+body .lead-v2 .lv2-cliente,
+body .lead-v2 .lv2-perdeu{
+  height:32px;padding:0 12px;border-radius:9px;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-family:var(--sans);font-size:12px;font-weight:600;line-height:1;letter-spacing:.01em;
+  cursor:pointer;white-space:nowrap;
+  transition:color var(--dur-1,120ms),border-color var(--dur-1,120ms),background var(--dur-1,120ms);
+}
+body .lead-v2 .lv2-ganho{
+  flex:1 1 auto;min-width:0;
+  color:var(--ag-green-l);background:rgba(63,143,106,.14);border:1px solid rgba(63,143,106,.38);
+}
+body .lead-v2 .lv2-ganho:hover{background:rgba(63,143,106,.24);border-color:rgba(63,143,106,.6)}
+body .lead-v2 .lv2-cliente{
+  flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;
+  color:var(--gold2);background:var(--wash-gold,rgba(197,160,89,.08));border:1px solid var(--hair-gold-strong,rgba(197,160,89,.42));
+}
+body .lead-v2 .lv2-cliente:hover{background:rgba(197,160,89,.16);border-color:var(--gold)}
+body .lead-v2 .lv2-perdeu{
+  flex:0 0 auto;color:var(--ag-terra-l);background:transparent;border:1px solid transparent;
+}
+body .lead-v2 .lv2-perdeu:hover{color:var(--ag-terra-l);border-color:rgba(180,86,71,.45);background:rgba(180,86,71,.12)}
+body .lead-v2 .lv2-ganho:focus-visible,
+body .lead-v2 .lv2-cliente:focus-visible,
+body .lead-v2 .lv2-perdeu:focus-visible{outline:none;box-shadow:var(--focus-ring,0 0 0 2px var(--bg),0 0 0 4px var(--gold))}
+
+/* --------------------------------------------------------------------------
+   8. KANBAN — colunas
+   -------------------------------------------------------------------------- */
+body .kanban{display:flex;gap:14px;align-items:flex-start;overflow-x:auto;padding:4px 2px 12px;scrollbar-width:thin}
+body .kanban .kcol{
+  display:flex;flex-direction:column;min-width:0;
+  background:rgba(10,28,34,.42);border:1px solid var(--line);border-radius:16px;padding:12px;
+}
+body .kanban .khead{display:flex;flex-direction:column;gap:6px;padding:2px 2px 10px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+body .kanban .kcol h4{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0;
+  font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);
+}
+body .kanban .kname{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body .kanban .kcount{
+  flex:none;display:inline-flex;align-items:center;justify-content:center;
+  min-width:22px;height:20px;padding:0 7px;border-radius:999px;
+  font-size:11px;font-weight:600;letter-spacing:0;color:var(--ink);
+  background:rgba(255,255,255,.05);border:1px solid var(--line);font-variant-numeric:tabular-nums;
+}
+body .kanban .kcol .ksum{
+  margin:0;padding:0;border:0;
+  font-family:var(--serif);font-size:15px;font-weight:600;line-height:1.2;
+  color:var(--ag-goldL);font-variant-numeric:tabular-nums;
+}
+body .kanban .kbody{
+  display:flex;flex-direction:column;gap:10px;min-height:120px;min-width:0;
+  padding:2px;margin:-2px;                /* espaço para a sombra/outline sem cortar */
+  border-radius:12px;
+}
+/* desktop: cada coluna rola por dentro, a página fica estável */
+body:not(.isApp) .kanban .kbody{
+  overflow-y:auto;max-height:max(360px,calc(100vh - 330px));
+  scroll-behavior:smooth;overscroll-behavior:contain;
+  scrollbar-width:thin;scrollbar-color:var(--line) transparent;
+  padding-right:4px;margin-right:-4px;
+}
+body:not(.isApp) .kanban .kbody::-webkit-scrollbar{width:6px}
+body:not(.isApp) .kanban .kbody::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+body .kanban .kbody.dragover{outline:1px dashed var(--gold);outline-offset:3px;background:var(--wash-gold,rgba(197,160,89,.08))}
+
+/* estado vazio: convite, não aviso */
+body .kanban .kempty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  min-height:110px;padding:16px;text-align:center;
+  border:1px dashed var(--line-strong,rgba(143,217,204,.28));border-radius:12px;
+}
+body .kanban .kempty b{font-size:12px;font-weight:600;color:var(--muted)}
+body .kanban .kempty span{font-size:11px;color:var(--soft)}
+
+/* coluna "Fechado (ganho)": toque verde sutil, só no fio e nos números */
+body .kanban .kcol-won{border-color:rgba(63,143,106,.32);background:linear-gradient(180deg,rgba(63,143,106,.10),rgba(10,28,34,.42) 120px)}
+body .kanban .kcol-won .khead{border-bottom-color:rgba(63,143,106,.28)}
+body .kanban .kcol-won .ksum{color:var(--ag-green-l)}
+body .kanban .kcol-won .kcount{color:var(--ag-green-l);border-color:rgba(63,143,106,.4);background:rgba(63,143,106,.12)}
+body .kanban .kcol-won .lead-v2::before{background:var(--ag-green-l)}
+
+/* --------------------------------------------------------------------------
+   9. APP (body.isApp) — alvos de toque maiores, colunas em snap horizontal
+   -------------------------------------------------------------------------- */
+body.isApp .lead.lead-v2{padding:14px;border-radius:16px;gap:10px}
+body.isApp .lead.lead-v2:hover{transform:none;box-shadow:0 1px 2px rgba(0,0,0,.14)}
+body.isApp .lead-v2 .lv2-edit{width:30px;height:30px}
+body.isApp .lead-v2 .lv2-ib{width:34px;height:34px;border-radius:10px}
+body.isApp .lead-v2 .lv2-acts{gap:6px}
+body.isApp .lead-v2 .lv2-ganho,
+body.isApp .lead-v2 .lv2-cliente,
+body.isApp .lead-v2 .lv2-perdeu{height:38px;border-radius:11px;font-size:13px}
+body.isApp .lead-v2 .lv2-perdeu{padding:0 14px}
+body.isApp .lead-v2 .lv2-owner-sel select{height:26px;min-height:26px}
+body.isApp .lead-v2 .leadObs::after{content:'toque para ler'}
+body.isApp .lead-v2 .leadObs.aberta::after{content:'ver menos'}
+body.isApp .kanban .kcol{border-radius:18px;padding:12px}
+body.isApp .kanban .kbody{max-height:none;overflow:visible}
+
+/* --------------------------------------------------------------------------
+   10. MODO CLARO (body.light) — papel, fio LINE, tinta INK
+   -------------------------------------------------------------------------- */
+body.light .lead.lead-v2{
+  background:var(--ag-paper);border:1px solid var(--ag-line);
+  border-left-width:1px!important;   /* o app pinta uma borda esquerda petróleo de 4px em body.light .lead */
+  box-shadow:0 1px 2px rgba(10,39,33,.05);color:var(--ag-ink2);
+}
+body.light .lead.lead-v2:hover{border-color:var(--ag-goldD);box-shadow:0 6px 18px rgba(10,39,33,.08)}
+body.light .lead-v2 .lv2-nm{color:var(--ag-ink)}
+body.light .lead-v2 .lv2-ct,
+body.light .lead-v2 .lv2-cat,
+body.light .lead-v2 .lv2-owner{color:var(--ag-mute)}
+body.light .lead-v2 .lv2-when,
+body.light .lead-v2 .lv2-edit,
+body.light .lead-v2 .lv2-act,
+body.light .lead-v2 .lv2-val span em{color:var(--ag-mute)}
+body.light .lead-v2 .lv2-val b{color:var(--ag-goldD)}
+body.light .lead-v2 .lv2-val span{color:var(--ag-ink2)}
+body.light .lead-v2 .lv2-chip,
+body.light .lead-v2 .lv2-score{background:var(--ag-paper2);border-color:var(--ag-line);color:var(--ag-ink2)}
+body.light .lead-v2 .lv2-chip-pet{color:var(--ag-pet);border-color:rgba(63,143,157,.35);background:rgba(63,143,157,.08)}
+body.light .lead-v2 .lv2-score i{background:var(--ag-line)}
+body.light .lead-v2 .lv2-score b{background:var(--ag-pet)}
+body.light .lead-v2 .lv2-score-hi b{background:var(--ag-green)}
+body.light .lead-v2 .lv2-score-lo{color:var(--ag-mute)}
+body.light .lead-v2 .lv2-score-lo b{background:var(--ag-mute)}
+body.light .lead-v2 .leadObs{color:var(--ag-ink2)}
+body.light .lead-v2 .leadObs::after{color:var(--ag-goldD);background:linear-gradient(90deg,transparent,var(--ag-paper) 40%)}
+body.light .lead-v2 .lv2-foot{border-top-color:var(--ag-line)}
+body.light .lead-v2 .lv2-av-empty{color:var(--ag-mute);border-color:var(--ag-line)}
+body.light .lead-v2 .lv2-owner-sel select{color:var(--ag-ink)}
+body.light .lead-v2 .lv2-owner-sel select option{color:var(--ag-ink);background:var(--ag-paper)}
+body.light .lead-v2 .lv2-owner-warn,
+body.light .lead-v2 .lv2-owner-warn select,
+body.light .lead-v2 .lv2-owner-warn .lv2-av-empty{color:var(--ag-goldD);border-color:rgba(163,131,63,.5)}
+body.light .lead-v2 .lv2-ib,
+body.light .lead-v2 .lv2-edit:hover{border-color:var(--ag-line);color:var(--ag-mute);background:transparent}
+body.light .lead-v2 .lv2-ib:hover{color:var(--ag-ink);border-color:var(--ag-goldD);background:var(--ag-paper2)}
+body.light .lead-v2 .lv2-wa,body.light .lead-v2 .lv2-wa:hover{color:#1DA851}
+body.light .lead-v2 .lv2-ganho{color:var(--ag-green);background:rgba(63,143,106,.10);border-color:rgba(63,143,106,.35)}
+body.light .lead-v2 .lv2-ganho:hover{background:rgba(63,143,106,.18);border-color:var(--ag-green)}
+body.light .lead-v2 .lv2-cliente{color:var(--ag-goldD);background:rgba(163,131,63,.08);border-color:rgba(163,131,63,.4)}
+body.light .lead-v2 .lv2-cliente:hover{background:rgba(163,131,63,.16);border-color:var(--ag-goldD)}
+body.light .lead-v2 .lv2-perdeu{color:var(--ag-terra)}
+body.light .lead-v2 .lv2-perdeu:hover{border-color:rgba(180,86,71,.4);background:rgba(180,86,71,.08)}
+
+body.light .kanban .kcol{background:var(--ag-paper2);border:1px solid var(--ag-line)}
+body.light .kanban .khead{border-bottom-color:var(--ag-line)}
+body.light .kanban .kcol h4{color:var(--ag-mute)}
+body.light .kanban .kcount{color:var(--ag-ink2);background:var(--ag-paper);border-color:var(--ag-line)}
+body.light .kanban .kcol .ksum{color:var(--ag-goldD)}
+body.light .kanban .kbody.dragover{outline-color:var(--ag-goldD);background:rgba(163,131,63,.06)}
+body.light .kanban .kempty{border-color:var(--ag-line)}
+body.light .kanban .kempty b{color:var(--ag-mute)}
+body.light .kanban .kempty span{color:var(--ag-mute)}
+body.light .kanban .kcol-won{border-color:rgba(63,143,106,.35);background:linear-gradient(180deg,rgba(63,143,106,.09),var(--ag-paper2) 120px)}
+body.light .kanban .kcol-won .ksum,
+body.light .kanban .kcol-won .kcount{color:var(--ag-green)}
+body.light .kanban .kcol-won .kcount{border-color:rgba(63,143,106,.35);background:rgba(63,143,106,.08)}
+body.light .kanban .kcol-won .lead-v2::before{background:var(--ag-green)}
+
+/* --------------------------------------------------------------------------
+   11. Acessibilidade / movimento
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion:reduce){
+  body .lead-v2,body .lead-v2 *{transition:none!important}   /* vence transitions de plat-motion no card */
+  body:not(.isApp) .kanban .kbody{scroll-behavior:auto}
+}
+
+/* ===== Cards com tamanho padrão (pedido do dono) ===== */
+.kanban .lead.lead-v2{min-height:272px;display:flex;flex-direction:column}
+.kanban .lead.lead-v2 .leadObs{max-height:3.9em;min-height:3.9em;overflow:hidden}
+.kanban .lead.lead-v2 .leadObs.aberta{max-height:3.9em}
+.kanban .lead.lead-v2 > :last-child{margin-top:auto}
+.kanban .lead.lead-v2 .lv2-nm{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;min-height:1.4em}
+.kanban .lead.lead-v2 .lv2-chips{min-height:24px;max-height:24px;overflow:hidden;flex-wrap:nowrap}
