@@ -2170,7 +2170,7 @@ async function renderConversas(C){
   convState.poll=setInterval(function(){ if(!document.getElementById('waRoot')){clearInterval(convState.poll);convState.poll=null;return;} convLoadList(true); if(convState.phone) convRefreshChat(); },15000);
 }
 async function convLoadList(silent){
-  if(!window._cartasIdx){ window._cartasIdx={}; try{ var _k=await supa.from('cartas').select('titular_nome,whatsapp'); (_k.data||[]).forEach(function(x){ if(x.whatsapp){ var kk=convKey(x.whatsapp); if(!window._cartasIdx[kk]) window._cartasIdx[kk]=x.titular_nome||''; } }); }catch(e){} }
+  if(!window._cartasIdx){ window._cartasIdx={}; window._cartasCli={}; try{ var _k=await supa.from('cartas').select('titular_nome,whatsapp,cliente_id'); (_k.data||[]).forEach(function(x){ if(x.whatsapp){ var kk=convKey(x.whatsapp); if(!window._cartasIdx[kk]) window._cartasIdx[kk]=x.titular_nome||''; if(x.cliente_id){ (window._cartasCli[kk]=window._cartasCli[kk]||[]).push(x.cliente_id); } } }); }catch(e){} }
   const r=await apiFetch('/api/conversas'); const el=document.getElementById('waItems'); if(!el)return;
   if(!r.ok){ if(!silent) el.innerHTML='<p class="note" style="padding:14px">Não consegui falar com o robô ('+esc(String(r.data.error||r.status))+').</p>'; return; }
   convState.list=r.data.conversas||[]; convRenderList();
@@ -2178,6 +2178,14 @@ async function convLoadList(silent){
 function convFilter(v){convState.filter=(v||'').toLowerCase();convRenderList();}
 function convKey(p){ var d=String(p||'').replace(/\D/g,''); if((d.length===12||d.length===13)&&d.slice(0,2)==='55') d=d.slice(2); if(d.length<10) return d; return d.slice(0,2)+d.slice(-8); }
 function convClienteNome(key){ try{ var c=(db.clients||[]).find(function(x){return x.tel&&convKey(x.tel)===key;}); if(c&&c.nome) return c.nome; var k=(window._cartasIdx||{})[key]; if(k) return k; }catch(e){} return ''; }
+/* Conversas por hierarquia: master vê todas; líder vê as dos clientes dele e da equipe abaixo;
+   especialista vê só as dos clientes dele (cliente = cadastro com WhatsApp ou carta com WhatsApp). */
+function convPermitida(key){
+  if(effRole()==='master') return true;
+  var vis=visibleClients(), ids={}; vis.forEach(function(c){ ids[c.id]=1; });
+  if(vis.some(function(c){ return c.tel&&convKey(c.tel)===key; })) return true;
+  var cl=(window._cartasCli||{})[key]; return !!(cl&&cl.some(function(id){ return ids[id]; }));
+}
 function convGrouped(list){
   var g={}, order=[];
   (list||[]).forEach(function(c){ var k=convKey(c.phone); if(!g[k]){ g[k]={key:k,phones:[],nome:'',ultima:'',ultdir:'',ults:0,unread:false}; order.push(k); } var G=g[k]; G.phones.push(c.phone); if(c.nome&&(!G.nome||/^\d+$/.test(G.nome))) G.nome=c.nome; if((+c.ults||0)>=G.ults){ G.ults=+c.ults||0; G.ultima=c.ultima||''; G.ultdir=c.ultdir||''; G.phone=c.phone; } if(convUnread(c)) G.unread=true; });
@@ -2185,11 +2193,11 @@ function convGrouped(list){
 }
 function convRenderList(){
   const el=document.getElementById('waItems'); if(!el)return;
-  let list=convGrouped(convState.list);
+  let list=convGrouped(convState.list).filter(function(c){ return convPermitida(c.key); });
   if(convState.filter){ list=list.filter(function(c){return ((c.nome||'')+' '+c.phones.join(' ')).toLowerCase().indexOf(convState.filter)>=0;}); }
   var _lsig=convState.filter+'|'+(convState.phone||'')+'|'+list.map(function(c){return c.key+':'+c.ults+':'+(c.ultima||'')+':'+(c.unread?1:0)+':'+(c.nome||'');}).join(',');
   if(_lsig===convState._lsig)return; convState._lsig=_lsig;
-  if(!list.length){ el.innerHTML='<p class="note" style="padding:14px">'+(convState.filter?'Nada encontrado.':'Nenhuma conversa ainda. Toque em ✚ para iniciar uma.')+'</p>'; return; }
+  if(!list.length){ el.innerHTML='<p class="note" style="padding:14px">'+(convState.filter?'Nada encontrado.':(effRole()==='master'?'Nenhuma conversa ainda. Toque em ✚ para iniciar uma.':'Nenhuma conversa dos seus clientes ainda.'))+'</p>'; return; }
   var curKey=convKey(convState.phone||'');
   el.innerHTML=list.map(function(c){
     const nome=c.nome||convFmtPhone(c.phone);
@@ -2199,6 +2207,7 @@ function convRenderList(){
   }).join('');
 }
 async function convOpen(phone){
+  if(!convPermitida(convKey(phone))){ flash('Esta conversa não é de um cliente seu.'); return; }
   convState.phone=phone; convRenderList();
   const wr=document.getElementById('waRoot'); if(wr)wr.classList.add('showchat');
   const mn=document.getElementById('waMain'); if(mn)mn.innerHTML='<div class="wa-emp"><p class="note">Carregando…</p></div>';
