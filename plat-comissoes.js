@@ -160,6 +160,7 @@ var CSS=`
 @media(max-width:900px){.cms-tl{grid-template-columns:repeat(2,1fr)}.cms-head .amt{text-align:left}}
 `;
 function ensureCss(){ if(document.getElementById('cmsCss'))return; var st=document.createElement('style'); st.id='cmsCss'; st.textContent=CSS; document.head.appendChild(st); }
+function staffList(){ return (db.accounts||[]).filter(function(a){return a.real===true&&(a.role==='master'||a.role==='lider'||a.role==='especialista')&&a.ativo!==false;}).sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'');}); }
 function tag(t,cls){ return '<span class="cms-tag'+(cls?' '+cls:'')+'">'+t+'</span>'; }
 function pill(on,lbl,onclick){ return '<button class="cms-pill'+(on?' on':'')+(onclick?'':' ro')+'"'+(onclick?' onclick="'+onclick+'"':'')+'>'+lbl+'</button>'; }
 function vendaCard(v,all,master){
@@ -179,7 +180,7 @@ function vendaCard(v,all,master){
     var fRow='<div class="row"><em>'+(master?'Func':'Você')+'</em><span>'+BRL2(p.func)+'</span>'+pill(p.funcStatus==='PAGA',p.funcStatus==='PAGA'?'paga':'prevista',master?"cmsToggle('"+v.id+"',"+p.n+",'func')":null)+'</div>';
     return '<div class="st"><div class="n">'+p.n+'ª PARCELA · '+Math.round(sh*100)+'%</div><div class="d">'+fmtBR(p.data)+'</div>'+hsRow+fRow+'</div>'; }).join('')+'</div>';
   var pos='<div class="cms-pos"><span class="l">Pós-contemplação</span>'+tag(POS_LBL[v.pos_status]||v.pos_status, v.pos_status==='NAO_CONTEMPLADA'?'':'ok')+(v.pos_data?'<span class="note">'+fmtBR(v.pos_data)+'</span>':'')+'</div>';
-  var foot=master?'<div class="cms-foot">'+(a==='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsAprovar(\''+v.id+'\')">Aprovar / recusar</button>':'')+(v.origem_status==='EM_REVISAO'&&a!=='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsValidar(\''+v.id+'\')">Validar origem</button>':'')+'<button class="btn btn-ghost btn-sm" onclick="cmsPos(\''+v.id+'\')">Contemplação</button><button class="btn btn-ghost btn-sm" onclick="cmsSituacao(\''+v.id+'\')">Situação</button><button class="btn btn-ghost btn-sm" onclick="cmsDesignar(\''+v.id+'\')">Designar</button><button class="btn btn-ghost btn-sm" onclick="cmsEditar(\''+v.id+'\')">Editar</button><button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="cmsExcluir(\''+v.id+'\')">Excluir</button></div>':'';
+  var foot=master?'<div class="cms-foot">'+(a==='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsAprovar(\''+v.id+'\')">Aprovar / recusar</button>':'')+(v.origem_status==='EM_REVISAO'&&a!=='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsValidar(\''+v.id+'\')">Validar origem</button>':'')+'<button class="btn btn-ghost btn-sm" onclick="cmsPos(\''+v.id+'\')">Contemplação</button><button class="btn btn-ghost btn-sm" onclick="cmsSituacao(\''+v.id+'\')">Situação</button><button class="btn btn-ghost btn-sm" onclick="cmsDesignar(\''+v.id+'\')">Designar colaborador</button><button class="btn btn-ghost btn-sm" onclick="cmsEditar(\''+v.id+'\')">Editar</button><button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="cmsExcluir(\''+v.id+'\')">Excluir</button></div>':'';
   return '<div class="cms-card">'+head+sum+tl+pos+foot+'</div>';
 }
 function kpi(lab,val,grad,sub){ sub=sub?String(sub).replace(/<b>/g,'<strong style="color:var(--head)">').replace(/<\/b>/g,'</strong>'):''; return '<div class="kpi'+(grad?' grad':'')+'"><div class="lab">'+lab+'</div><b>'+val+'</b>'+(sub?'<div class="note" style="margin-top:6px">'+sub+'</div>':'')+'</div>'; }
@@ -300,12 +301,28 @@ window.cmsSituacao=async function(id){
   await upd(id,patch,'Situação '+desc+' — '+(v.cliente_nome||''));
 };
 window.cmsEditar=async function(id){
-  var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
-  var cr=await ask({title:'Crédito vendido',msg:'Valor do crédito efetivamente vendido (R$):',input:true,value:String(v.credito||''),ok:'Próximo'}); if(cr===null)return;
-  var dt=await ask({title:'Data de inserção',msg:'AAAA-MM-DD (define competência e janela):',input:true,value:v.data_insercao,ok:'Próximo'}); if(dt===null)return;
-  var o=await chooseModal('Origem','Origem válida para comissão:','Lead da Agion','Cliente próprio'); if(!o)return;
-  var credito=Number(String(cr).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||v.credito;
-  await upd(id,{credito:credito,data_insercao:String(dt).slice(0,10),origem:o==='a'?'LEAD_AGION':'CLIENTE_PROPRIO',origem_status:'VALIDADA'},'Editou venda de '+(v.cliente_nome||''));
+  if(!isMaster())return; var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
+  var bx='width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:10px 12px;border-radius:10px;font:inherit';
+  var fld=function(lb,inner){ return '<label style="display:block;margin-bottom:12px"><span style="display:block;font-size:.78rem;color:var(--muted);margin-bottom:5px">'+lb+'</span>'+inner+'</label>'; };
+  var cli=(db.clients||[]).find(function(c){return c.id===v.cliente_id;})||{};
+  var vs=staffList(); var dono=cli.ownerId&&vs.find(function(a){return a.id===cli.ownerId;});
+  var vendOpts=vs.map(function(a){return '<option value="'+a.id+'"'+(a.id===v.vendedor_id?' selected':'')+'>'+esc(a.nome||'')+(dono&&a.id===dono.id?' — dono do cliente':'')+'</option>';}).join('');
+  var out=await new Promise(function(res){
+    var bg=document.createElement('div'); bg.style.cssText='position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+    bg.innerHTML='<div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:460px;width:100%;max-height:90vh;overflow:auto;padding:22px"><h2 style="margin:0 0 4px;font-size:1.05rem">Editar venda</h2><p class="note" style="margin-bottom:14px">'+esc(v.cliente_nome||'')+(v.grupo?' · grupo '+esc(v.grupo)+' / cota '+esc(v.cota||''):'')+'</p>'
+      +fld('Colaborador que recebe a comissão','<select id="edVend" style="'+bx+'">'+vendOpts+'</select>')
+      +fld('Crédito vendido (R$)','<input id="edCred" inputmode="decimal" value="'+String(Math.round(+v.credito||0))+'" style="'+bx+'">')
+      +fld('Data da venda (inserção na HS)','<input id="edData" type="date" value="'+String(v.data_insercao||'').slice(0,10)+'" style="'+bx+'">')
+      +fld('Origem do cliente','<select id="edOrig" style="'+bx+'"><option value="LEAD_AGION"'+(v.origem==='LEAD_AGION'?' selected':'')+'>Lead da Agion — comissão pelo cluster</option><option value="CLIENTE_PROPRIO"'+(v.origem==='CLIENTE_PROPRIO'?' selected':'')+'>Cliente próprio — 1% pré + 1% na contemplação</option></select>')
+      +'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px"><button class="btn btn-ghost btn-sm" id="edC">Cancelar</button><button class="btn btn-gold btn-sm" id="edOk">Salvar</button></div></div>';
+    document.body.appendChild(bg);
+    document.getElementById('edC').onclick=function(){bg.remove();res(null);};
+    document.getElementById('edOk').onclick=function(){ var r={vend:document.getElementById('edVend').value,credito:Number(String(document.getElementById('edCred').value).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0,data:document.getElementById('edData').value,origem:document.getElementById('edOrig').value}; if(!(r.credito>0)){flash('Informe o valor do crédito.');return;} if(!r.data){flash('Informe a data.');return;} bg.remove(); res(r); };
+  });
+  if(!out)return;
+  var patch={vendedor_id:out.vend,credito:out.credito,data_insercao:out.data,origem:out.origem,origem_status:'VALIDADA'};
+  var desc='Editou venda de '+(v.cliente_nome||'')+(out.vend!==v.vendedor_id?' — designou para '+(user(out.vend).nome||''):'');
+  await upd(id,patch,desc);
 };
 window.cmsExcluir=async function(id){
   if(!isMaster())return; var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
@@ -324,9 +341,10 @@ window.cmsAprovar=async function(id){
 };
 window.cmsDesignar=async function(id){
   if(!isMaster())return; var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
-  var vs=(db.accounts||[]).filter(function(a){return a.real!==false&&(a.role==='master'||a.role==='lider'||a.role==='especialista')&&a.ativo!==false;});
+  var vs=staffList();
+  var cliD=(db.clients||[]).find(function(c){return c.id===v.cliente_id;})||{};
   var pick=await new Promise(function(res){ var bg=document.createElement('div'); bg.style.cssText='position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px';
-    bg.innerHTML='<div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:420px;width:100%;padding:22px"><h2 style="margin:0 0 12px;font-size:1.05rem">Designar comissão</h2><p class="note" style="margin-bottom:10px">Venda de '+esc(v.cliente_nome||'')+' ('+BRL(v.credito)+'). Quem recebe a comissão:</p><select id="cmsDv" style="width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:10px 12px;border-radius:10px;font:inherit">'+vs.map(function(a){return '<option value="'+a.id+'"'+(a.id===v.vendedor_id?' selected':'')+'>'+esc(a.nome||'')+'</option>';}).join('')+'</select><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px"><button class="btn btn-ghost btn-sm" id="cmsDc">Cancelar</button><button class="btn btn-gold btn-sm" id="cmsDo">Designar</button></div></div>';
+    bg.innerHTML='<div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:420px;width:100%;padding:22px"><h2 style="margin:0 0 12px;font-size:1.05rem">Designar comissão</h2><p class="note" style="margin-bottom:10px">Venda de '+esc(v.cliente_nome||'')+' ('+BRL(v.credito)+'). Quem recebe a comissão:</p><select id="cmsDv" style="width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:10px 12px;border-radius:10px;font:inherit">'+vs.map(function(a){return '<option value="'+a.id+'"'+(a.id===v.vendedor_id?' selected':'')+'>'+esc(a.nome||'')+(cliD.ownerId===a.id?' — dono do cliente':'')+'</option>';}).join('')+'</select><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px"><button class="btn btn-ghost btn-sm" id="cmsDc">Cancelar</button><button class="btn btn-gold btn-sm" id="cmsDo">Designar</button></div></div>';
     document.body.appendChild(bg); document.getElementById('cmsDc').onclick=function(){bg.remove();res(null);}; document.getElementById('cmsDo').onclick=function(){var x=document.getElementById('cmsDv').value;bg.remove();res(x);}; });
   if(!pick||pick===v.vendedor_id)return;
   await upd(id,{vendedor_id:pick},'Designou a comissão de '+(v.cliente_nome||'')+' para '+(user(pick).nome||''));
@@ -347,7 +365,7 @@ window.cmsNovaVenda=async function(pre){
   var bx='width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:10px 12px;border-radius:10px;font:inherit';
   var fld=function(lb,inner){ return '<label style="display:block;margin-bottom:12px"><span style="display:block;font-size:.78rem;color:var(--muted);margin-bottom:5px">'+lb+'</span>'+inner+'</label>'; };
   var opts=clis.map(function(c){ var i=info(c); return '<option value="'+c.id+'" data-valor="'+(i.valor||'')+'" data-origem="'+i.origem+'" data-fonte="'+i.fonte+'"'+(pre.cliente_id===c.id?' selected':'')+'>'+esc(c.nome||'')+(i.valor?' — '+BRL(i.valor)+' ('+i.fonte+')':'')+'</option>'; }).join('');
-  var vendOpts=''; if(isMaster()){ var vs=(db.accounts||[]).filter(function(a){return a.real!==false&&(a.role==='master'||a.role==='lider'||a.role==='especialista')&&a.ativo!==false;}); vendOpts=vs.map(function(a){return '<option value="'+a.id+'">'+esc(a.nome||'')+'</option>';}).join(''); }
+  var vendOpts=''; if(isMaster()){ var vs=staffList(); vendOpts=vs.map(function(a){return '<option value="'+a.id+'">'+esc(a.nome||'')+'</option>';}).join(''); }
   var out=await new Promise(function(res){
     var bg=document.createElement('div'); bg.id='cmsSel'; bg.style.cssText='position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px';
     bg.innerHTML='<div style="background:var(--card);border:1px solid var(--line);border-radius:16px;max-width:460px;width:100%;max-height:90vh;overflow:auto;padding:22px"><h2 style="margin:0 0 14px;font-size:1.05rem">Registrar venda</h2>'
