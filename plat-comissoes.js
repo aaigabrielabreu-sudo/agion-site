@@ -54,7 +54,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v11';
+var VERSAO='v12';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -176,6 +176,20 @@ var CSS=`
 .cms-foot{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;justify-content:flex-end}
 .cms-pos{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:.8rem;color:var(--head)}
 .cms-pos .l{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.cms-org tr.cms-grp td{background:rgba(197,160,89,.06);border-top:1px solid var(--line)}
+.cms-org tr.cms-sub td{color:var(--soft);font-size:.8rem;padding-top:6px;padding-bottom:6px}
+.cms-org .cms-br{color:var(--gold2);margin:0 8px 0 6px}
+.cms-fxw{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.cms-fx{background:rgba(0,0,0,.14);border:1px solid var(--line);border-radius:12px;padding:12px}
+.cms-fx.tot{border-color:var(--line-gold)}
+.cms-fx .m{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold2);font-weight:700;margin-bottom:8px}
+.cms-fx .bar{height:70px;display:flex;align-items:flex-end;gap:4px;margin-bottom:10px}
+.cms-fx .bar span{flex:1;border-radius:4px 4px 0 0;min-height:2px}
+.cms-fx .bar .f{background:rgba(224,185,120,.55)}
+.cms-fx .bar .a{background:rgba(143,217,204,.6)}
+.cms-fx .v div{display:flex;justify-content:space-between;font-size:.8rem;color:var(--head);margin-top:3px;white-space:nowrap}
+.cms-fx .v em{font-style:normal;color:var(--muted);font-size:.7rem}
+.cms-fx .v small{color:var(--muted);font-size:.68rem;margin-left:4px}
 @media(max-width:900px){.cms-tl{grid-template-columns:repeat(2,1fr)}.cms-head .amt{text-align:left}}
 `;
 function ensureCss(){ if(document.getElementById('cmsCss'))return; var st=document.createElement('style'); st.id='cmsCss'; st.textContent=CSS; document.head.appendChild(st); }
@@ -248,35 +262,85 @@ function paintFunc(C, uid, titulo){
 }
 
 /* ===================== UI: MASTER ===================== */
+var _periodo='comp';
+window.cmsSetPeriodo=function(p){ _periodo=p; render(); };
+function statsFunc(id, all, filt){
+  var S={n:0,prod:0,prodCl:0,gerP:0,gerL:0,hsRec:0,funcPago:0,funcGer:0,posRec:0,posFuncPago:0};
+  all.forEach(function(v){ if(v.vendedor_id!==id||!ativa(v)||(filt&&!filt(v)))return; var k=calc(v,all);
+    S.n++; S.prod+=k.credito; if(elegivelCluster(v))S.prodCl+=k.credito; if(k.proprio)S.gerP+=k.hsPre; else S.gerL+=k.hsPre;
+    S.hsRec+=k.hsRec; S.funcPago+=k.funcPago; S.funcGer+=k.funcPre; if(v.pos_status==='COMISSAO_POS_RECEBIDA'){S.posRec+=k.posHs; if(v.pos_func_pago)S.posFuncPago+=k.posFunc;} });
+  S.ger=S.gerP+S.gerL; S.cluster=clusterDe(S.prodCl); S.prox=proxCluster(S.prodCl); S.falta=S.prox?(S.cluster.ate+1-S.prodCl):0; return S;
+}
+function mesesCols(meses){ return meses.map(function(m){return '<th class="n">'+m.rot+'</th>';}).join(''); }
+function porMes(k,v,meses,tipo){ // tipo: 'func' | 'hs' | 'agion' -> valores pendentes por mês
+  return meses.map(function(m){ var s=0; k.parcelas.forEach(function(p){ if(p.data.slice(0,7)!==m.key)return; if(tipo==='func'){ if(p.funcStatus!=='PAGA')s+=p.func; } else if(tipo==='hs'){ if(p.hsStatus!=='RECEBIDA')s+=p.hs; } else { s+=(p.hsStatus!=='RECEBIDA'?p.hs:0)-(p.funcStatus!=='PAGA'?p.func:0); } });
+    if(k.ajuste&&k.ajusteData.slice(0,7)===m.key&&!k.ajustePago){ if(tipo==='func')s+=k.ajuste; if(tipo==='agion')s-=k.ajuste; } return s; });
+}
+function organograma(all, meses, tipo, titulo, nota){
+  // agrupa por funcionário -> clientes; tipo func|agion
+  var byF={}; all.forEach(function(v){ if(!ativa(v))return; var k=calc(v,all); var arr=porMes(k,v,meses,tipo); if(!arr.some(function(x){return Math.abs(x)>0.005;}))return; (byF[v.vendedor_id]=byF[v.vendedor_id]||[]).push({v:v,k:k,arr:arr}); });
+  var ids=Object.keys(byF); var tot=meses.map(function(){return 0;});
+  var body=ids.map(function(id){ var rows=byF[id]; var sub=meses.map(function(_,i){return rows.reduce(function(s,r){return s+r.arr[i];},0);}); sub.forEach(function(x,i){tot[i]+=x;}); var u=user(id);
+    var head='<tr class="cms-grp"><td><b>'+esc(u.nome||'')+'</b> <span class="note">'+rows.length+' cliente'+(rows.length>1?'s':'')+'</span></td>'+sub.map(function(x){return '<td class="n"><b>'+(x?BRL2(x):'—')+'</b></td>';}).join('')+'<td class="n"><b>'+BRL2(sub.reduce(function(a,b){return a+b;},0))+'</b></td></tr>';
+    var kids=rows.map(function(r){ return '<tr class="cms-sub"><td><span class="cms-br">└</span>'+esc(r.v.cliente_nome||'—')+' <span class="note">'+(r.v.grupo?r.v.grupo+'/'+(r.v.cota||''):'')+'</span> '+origemChip(r.v)+'</td>'+r.arr.map(function(x){return '<td class="n">'+(x?BRL2(x):'—')+'</td>';}).join('')+'<td class="n">'+BRL2(r.arr.reduce(function(a,b){return a+b;},0))+'</td></tr>'; }).join('');
+    return head+kids; }).join('');
+  var foot='<tr><td><b>Total</b></td>'+tot.map(function(x){return '<td class="n"><b>'+BRL2(x)+'</b></td>';}).join('')+'<td class="n"><b>'+BRL2(tot.reduce(function(a,b){return a+b;},0))+'</b></td></tr>';
+  return '<div class="panel"><h2>'+titulo+(nota?' <span class="right note">'+nota+'</span>':'')+'</h2><div class="tbl-scroll cms-tbl cms-org"><table><thead><tr><th>Funcionário / cliente</th>'+mesesCols(meses)+'<th class="n">Total</th></tr></thead><tbody>'+(body||'<tr><td colspan="'+(meses.length+2)+'" class="note">Nada previsto.</td></tr>')+'</tbody>'+(body?'<tfoot>'+foot+'</tfoot>':'')+'</table></div></div>';
+}
+function tabelaClientesHS(all, meses){
+  var rows=[], tot=meses.map(function(){return 0;});
+  all.forEach(function(v){ if(!ativa(v))return; var k=calc(v,all); var arr=porMes(k,v,meses,'hs'); if(!arr.some(function(x){return x>0.005;}))return; arr.forEach(function(x,i){tot[i]+=x;});
+    rows.push('<tr><td>'+esc(v.cliente_nome||'—')+' <span class="note">'+(v.grupo?v.grupo+'/'+(v.cota||''):'')+' · '+esc((user(v.vendedor_id).nome||'').split(' ')[0])+'</span> '+origemChip(v)+'</td><td>'+BRL(k.credito)+'</td>'+arr.map(function(x){return '<td class="n">'+(x?BRL2(x):'—')+'</td>';}).join('')+'<td class="n"><b>'+BRL2(arr.reduce(function(a,b){return a+b;},0))+'</b></td></tr>'); });
+  var foot='<tr><td colspan="2"><b>HS paga à Agion</b></td>'+tot.map(function(x){return '<td class="n"><b>'+BRL2(x)+'</b></td>';}).join('')+'<td class="n"><b>'+BRL2(tot.reduce(function(a,b){return a+b;},0))+'</b></td></tr>';
+  return '<div class="panel"><h2>Pagamentos dos clientes — próximos 5 meses <span class="right note">comissão bruta que a HS paga por cota (2% em 5 parcelas)</span></h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Crédito</th>'+mesesCols(meses)+'<th class="n">Total</th></tr></thead><tbody>'+(rows.join('')||'<tr><td colspan="'+(meses.length+3)+'" class="note">Nada previsto.</td></tr>')+'</tbody>'+(rows.length?'<tfoot>'+foot+'</tfoot>':'')+'</table></div></div>';
+}
+function fluxo(all, meses){
+  var hs=meses.map(function(){return 0;}), fu=hs.slice(), ag=hs.slice();
+  all.forEach(function(v){ if(!ativa(v))return; var k=calc(v,all); porMes(k,v,meses,'hs').forEach(function(x,i){hs[i]+=x;}); porMes(k,v,meses,'func').forEach(function(x,i){fu[i]+=x;}); });
+  ag=hs.map(function(x,i){return x-fu[i];}); var max=Math.max.apply(null,hs.concat([1]));
+  var cols=meses.map(function(m,i){ var pf=hs[i]?Math.round(fu[i]/hs[i]*100):0; return '<div class="cms-fx"><div class="m">'+m.rot+'</div><div class="bar"><span class="f" style="height:'+Math.round(fu[i]/max*100)+'%"></span><span class="a" style="height:'+Math.round(ag[i]/max*100)+'%"></span></div><div class="v"><div><em>HS</em>'+BRL(hs[i])+'</div><div><em>Func.</em>'+BRL(fu[i])+' <small>'+pf+'%</small></div><div><em>Agion</em><b>'+BRL(ag[i])+'</b></div></div></div>'; }).join('');
+  var T=function(a){return a.reduce(function(x,y){return x+y;},0);};
+  return '<div class="panel"><h2>Fluxo — HS → funcionários → Agion <span class="right note">previsto nos próximos 5 meses</span></h2><div class="cms-fxw">'+cols+'<div class="cms-fx tot"><div class="m">Total</div><div class="v"><div><em>HS</em>'+BRL(T(hs))+'</div><div><em>Func.</em>'+BRL(T(fu))+'</div><div><em>Agion</em><b>'+BRL(T(ag))+'</b></div></div></div></div></div>';
+}
 function paintMaster(C){
-  var all=_vendas, comp=compShift(_compSel,0);
-  var vend={}; all.forEach(function(v){ vend[v.vendedor_id]=1; });
-  var ids=Object.keys(vend);
+  var all=_vendas, comp=compShift(_compSel,0), meses=mesesRolantes();
+  var vend={}; all.forEach(function(v){ vend[v.vendedor_id]=1; }); var ids=Object.keys(vend);
+  var inComp=function(v){return competencia(v.data_insercao).key===_compSel;};
   var T={prod:0,prodL:0,prodP:0,hsPre:0,hsRec:0,func:0,funcPago:0,agion:0,posHs:0,posRec:0,posFunc:0,reemb:0,rev:0,an:0};
-  all.forEach(function(v){ if(analise(v)==='EM_ANALISE') T.an++; if(v.origem_status==='EM_REVISAO') T.rev++; if(!ativa(v)){ T.reemb+=(+v.reembolso_valor||0); return; } var k=calc(v,all); var inComp=k.comp.key===_compSel;
-    if(inComp){ T.prod+=k.credito; if(v.origem==='LEAD_AGION')T.prodL+=k.credito; else T.prodP+=k.credito; }
+  all.forEach(function(v){ if(analise(v)==='EM_ANALISE') T.an++; if(v.origem_status==='EM_REVISAO') T.rev++; if(!ativa(v)){ T.reemb+=(+v.reembolso_valor||0); return; } var k=calc(v,all);
+    if(inComp(v)){ T.prod+=k.credito; if(v.origem==='LEAD_AGION')T.prodL+=k.credito; else T.prodP+=k.credito; }
     T.hsPre+=k.hsPre; T.hsRec+=k.hsRec; T.func+=k.funcPre; T.funcPago+=k.funcPago; T.agion+=k.agionPre; T.posHs+=k.posHs; T.reemb+=k.reemb;
     if(v.pos_status==='COMISSAO_POS_RECEBIDA') T.posRec+=k.posHs; if(v.origem==='CLIENTE_PROPRIO'&&!v.pos_func_pago) T.posFunc+=k.posFunc; });
   var cards='<div class="kpis">'
     +kpi('Produção da competência',BRL(T.prod),true,'Leads Agion <b>'+BRL(T.prodL)+'</b> · Próprios <b>'+BRL(T.prodP)+'</b>')
-    +kpi('Comissão pré (HS)',BRL2(T.hsPre),false,'Recebida <b>'+BRL2(T.hsRec)+'</b> · A receber <b>'+BRL2(T.hsPre-T.hsRec)+'</b>')
-    +kpi('Comissão dos funcionários',BRL2(T.func),false,'Paga <b>'+BRL2(T.funcPago)+'</b> · Pendente <b>'+BRL2(T.func-T.funcPago)+'</b>')
+    +kpi('Comissão pré (HS)',BRL2(T.hsPre),false,'Recebida <b>'+BRL2(T.hsRec)+'</b> · a receber <b>'+BRL2(T.hsPre-T.hsRec)+'</b>')
+    +kpi('Comissão dos funcionários',BRL2(T.func),false,'Paga <b>'+BRL2(T.funcPago)+'</b> · pendente <b>'+BRL2(T.func-T.funcPago)+'</b>')
     +kpi('Margem Agion (pré)',BRL2(T.agion),true,'')
-    +kpi('Pós-contemplação potencial',BRL2(T.posHs),false,'Recebida <b>'+BRL2(T.posRec)+'</b>')
-    +kpi('Futura dos funcionários (pós)',BRL2(T.posFunc),false,'1% dos clientes próprios')
-    +kpi('Reembolsos',BRL2(T.reemb),false,'')
-    +(T.an?kpi('Vendas em análise',String(T.an),true,'Registradas por colaboradores — prazo de 2 dias úteis'):'')+(T.rev?kpi('Origens em validação',String(T.rev),false,'Cadastros aguardando sua decisão'):'')
+    +kpi('Pós-contemplação potencial',BRL2(T.posHs),false,'Recebida <b>'+BRL2(T.posRec)+'</b> · funcionários <b>'+BRL2(T.posFunc)+'</b>')
+    +(T.reemb?kpi('Reembolsos',BRL2(T.reemb),false,''):'')
+    +(T.an?kpi('Vendas em análise',String(T.an),true,'Prazo de 2 dias úteis'):'')
+    +(T.rev?kpi('Origens em validação',String(T.rev),false,''):'')
     +'</div>';
-  var sel='<div class="cms-bar">'+compSelect()+'<span style="flex:1"></span><button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button></div>';
-  var porFunc='<div class="panel"><h2>Por funcionário</h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th></th><th colspan="4" style="text-align:center;border-bottom:1px solid var(--line);color:var(--muted)">Competência '+esc(comp.rot)+'</th><th colspan="4" style="text-align:center;border-bottom:1px solid var(--line);color:var(--muted)">Acumulado</th><th></th></tr><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">Cluster</th><th class="n">Falta p/ próx.</th><th class="n">Gerada</th><th class="n">Paga</th><th class="n">Pendente</th><th class="n">Futura</th><th></th></tr></thead><tbody>'
-    +(ids.map(function(id){ var R=resumoFunc(id,_compSel,all); var u=user(id); return '<tr><td><b>'+esc(u.nome||id)+'</b></td><td class="n">'+(R.n||'—')+'</td><td class="n">'+(R.prodTot?BRL(R.prodTot)+(R.prodCl!==R.prodTot?' <span class="note">('+BRL(R.prodCl)+' p/ cluster)</span>':''):'—')+'</td><td class="n">'+(R.prodCl?pct(R.cluster.r):'—')+'</td><td class="n">'+(R.prodCl?(R.prox?BRL(R.falta):'máx.'):'—')+'</td><td class="n">'+BRL2(R.gerada)+'</td><td class="n">'+BRL2(R.paga)+'</td><td class="n"><b>'+BRL2(R.pend)+'</b></td><td class="n">'+BRL2(R.futura)+'</td><td><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\''+id+'\')">Ver</button></td></tr>'; }).join('')||'<tr><td colspan="11" class="note">Nenhuma venda registrada.</td></tr>')+'</tbody></table></div></div>';
+  var per='<div class="cms-tabs" style="margin:0"><button class="'+(_periodo==='comp'?'on':'')+'" onclick="cmsSetPeriodo(\'comp\')">Competência</button><button class="'+(_periodo==='tudo'?'on':'')+'" onclick="cmsSetPeriodo(\'tudo\')">Todo o período</button></div>';
+  var sel='<div class="cms-bar">'+(_periodo==='comp'?compSelect():'')+per+'<span style="flex:1"></span><button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button></div>';
+  var porFunc;
+  if(_periodo==='comp'){
+    porFunc='<div class="panel"><h2>Por funcionário — '+esc(comp.rot)+' <span class="right note">valores gerados = comissão total da empresa (2% HS)</span></h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">Cluster</th><th class="n">Falta p/ próx.</th><th class="n">Gerada · próprio</th><th class="n">Gerada · lead</th><th class="n">Gerada · total</th><th></th></tr></thead><tbody>'
+      +(ids.map(function(id){ var S=statsFunc(id,all,inComp); if(!S.n)return ''; var u=user(id); return '<tr><td><b>'+esc(u.nome||id)+'</b></td><td class="n">'+S.n+'</td><td class="n">'+BRL(S.prod)+(S.prodCl!==S.prod?' <span class="note">('+BRL(S.prodCl)+' p/ cluster)</span>':'')+'</td><td class="n">'+pct(S.cluster.r)+'</td><td class="n">'+(S.prox?BRL(S.falta):'máx.')+'</td><td class="n">'+(S.gerP?BRL2(S.gerP):'—')+'</td><td class="n">'+(S.gerL?BRL2(S.gerL):'—')+'</td><td class="n"><b>'+BRL2(S.ger)+'</b></td><td><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\''+id+'\')">Ver</button></td></tr>'; }).join('')||'<tr><td colspan="9" class="note">Nenhuma venda nesta competência.</td></tr>')+'</tbody></table></div></div>';
+  } else {
+    porFunc='<div class="panel"><h2>Por funcionário — todo o período <span class="right note">histórico completo</span></h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">Gerada · próprio</th><th class="n">Gerada · lead</th><th class="n">Gerada · total</th><th class="n">Recebido da HS</th><th class="n">Pago ao funcionário</th><th class="n">Margem Agion</th><th class="n">Pós recebida</th><th></th></tr></thead><tbody>'
+      +(ids.map(function(id){ var S=statsFunc(id,all,null); var u=user(id); return '<tr><td><b>'+esc(u.nome||id)+'</b></td><td class="n">'+S.n+'</td><td class="n">'+BRL(S.prod)+'</td><td class="n">'+(S.gerP?BRL2(S.gerP):'—')+'</td><td class="n">'+(S.gerL?BRL2(S.gerL):'—')+'</td><td class="n"><b>'+BRL2(S.ger)+'</b></td><td class="n">'+BRL2(S.hsRec)+'</td><td class="n">'+BRL2(S.funcPago)+'</td><td class="n"><b>'+BRL2(S.hsRec-S.funcPago)+'</b></td><td class="n">'+BRL2(S.posRec)+'</td><td><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\''+id+'\')">Ver</button></td></tr>'; }).join('')||'<tr><td colspan="11" class="note">Nenhuma venda.</td></tr>')+'</tbody></table></div></div>';
+  }
   var lista=all.slice().sort(function(a,b){ var x=analise(a)==='EM_ANALISE'?0:1, y=analise(b)==='EM_ANALISE'?0:1; return x-y; });
   var lst=lista.filter(function(v){return grupoDe(v,all)===_tab;});
   var tbl='<div class="panel"><h2>Vendas <span class="right note">parcelas com data passada contam como pagas — clique no status para marcar como não paga / não recebida</span></h2>'+tabsHtml(lista,all)+'<p class="note" style="margin-bottom:12px">'+tabDesc()+'</p>'+(lst.length?lst.map(function(v){return vendaCard(v,all,true);}).join(''):'<p class="note">Nada aqui.</p>')+'</div>';
-  var rol='<div class="panel"><h2>Pagamentos aos funcionários — próximos 5 meses</h2>'+tabelaRolante(all,all,true)+'</div>';
+  var orgF=organograma(all,meses,'func','Pagamentos aos funcionários — próximos 5 meses','por funcionário → clientes');
+  var cliHS=tabelaClientesHS(all,meses);
+  var orgA=organograma(all,meses,'agion','Pagamento à empresa — próximos 5 meses','líquido Agion = HS − funcionário');
+  var fx=fluxo(all,meses);
   var sit=all.filter(function(v){return v.situacao!=='EM_DIA';});
   var sitHtml='<div class="panel"><h2>Clientes com pendência / reembolso</h2>'+(sit.length?'<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Funcionário</th><th>Situação</th><th class="n">Reembolso</th><th>Obs.</th></tr></thead><tbody>'+sit.map(function(v){return '<tr><td>'+esc(v.cliente_nome||'—')+'</td><td>'+esc((user(v.vendedor_id).nome||'').split(' ')[0])+'</td><td>'+sitChip(v.situacao)+'</td><td class="n">'+(v.reembolso_valor?BRL2(v.reembolso_valor):'—')+'</td><td class="note">'+esc(v.obs||'')+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="note">Nenhuma pendência.</p>')+'</div>';
-  ensureCss(); C.innerHTML='<div class="cms-wrap">'+sel+cards+porFunc+tbl+(_tab==='andamento'?rol+sitHtml:'')+'</div>';
+  ensureCss(); C.innerHTML='<div class="cms-wrap">'+sel+cards+porFunc+fx+orgF+cliHS+orgA+tbl+sitHtml+'</div>';
 }
 
 function paintLider(C){
