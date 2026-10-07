@@ -54,7 +54,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v19';
+var VERSAO='v20';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -777,7 +777,7 @@ window.cmsAfterCarta=async function(recs,cid){
 /* ===================== LAYOUT RESPONSIVO DOS CARTÕES =====================
    Nº de colunas pela largura REAL do contêiner (linhas equilibradas, cartão ≥ 200px)
    + rede de segurança: número que ainda não couber encolhe a fonte até caber. */
-var KT_MIN=200, KT_GAP=12;
+var KT_MIN=216, KT_GAP=12;
 function cmsLayout(){
   var grids=document.querySelectorAll('.cms-wrap .cms-kts');
   for(var i=0;i<grids.length;i++){ var g=grids[i];

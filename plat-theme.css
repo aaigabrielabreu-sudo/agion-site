@@ -758,3 +758,4 @@ html.isApp:not(.capNative) body.isApp .main>.topbar{padding-top:calc(env(safe-ar
 body.isApp.appScrolled .topbar{padding-bottom:3px}
 body.isApp .panel.crmFiltros{position:sticky;top:0;z-index:25;background:#0B2A26;border-radius:0;border-bottom:1px solid var(--line-gold);box-shadow:0 8px 18px rgba(0,0,0,.45)}
 body.isApp.light .panel.crmFiltros{background:#F3F7F5;box-shadow:0 8px 18px rgba(14,74,65,.12)}
+body.isApp .main>.topbar .actions .note{display:none}   /* selo de versão só no desktop */
