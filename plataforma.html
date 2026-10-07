@@ -3938,7 +3938,7 @@ function masterReportPDF(){
   var H=document.documentElement; if(!H.classList.contains('isApp'))return;
   function band(){ if(document.getElementById('agStatusBand'))return;
     var b=document.createElement('div'); b.id='agStatusBand';
-    b.style.cssText='position:fixed;top:0;left:0;right:0;height:max(12px,env(safe-area-inset-top,0px));background:#0B2A26;z-index:950;pointer-events:none';
+    b.style.cssText='position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:#0B2A26;z-index:950;pointer-events:none';
     document.body.appendChild(b); }
   function diag(){
     var pr=document.createElement('div'); pr.style.cssText='position:fixed;top:0;height:env(safe-area-inset-top,0px);width:1px;opacity:0;pointer-events:none';
