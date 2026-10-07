@@ -1335,7 +1335,7 @@ html.capNative body.isApp #viewbar,html.capNative body.isApp .topbar,html.capNat
 }catch(e){}})();</script>
 <link rel="stylesheet" href="/plat-motion.css?v=1">
 <link rel="stylesheet" href="/plat-theme.css?v=2">
-<link rel="stylesheet" href="/plat-crm.css?v=1">
+<link rel="stylesheet" href="/plat-crm.css?v=2">
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
 <div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" type="email" inputmode="email" placeholder="seu@email.com" value="" autocomplete="username" aria-label="E-mail"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="" autocomplete="current-password" aria-label="Senha" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> </div>
@@ -2493,15 +2493,15 @@ function leadCard(l,i){
       ?`<div class="lv2-owner">${avatar(l.ownerId,22)}<span>${esc(user(l.ownerId).nome.split(' ')[0])}</span></div>`
       :`<div class="lv2-owner lv2-owner-warn"><span class="lv2-av-empty">?</span><span>Não distribuído</span></div>`;
   }
-  const _waBtn=_wan.length>=12?`<a class="lv2-ib lv2-wa" href="https://wa.me/${_wan}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Falar no WhatsApp">${I.wa}</a>`:'';
+  const _waBtn=_wan.length>=12?`<a class="lv2-ib lv2-wa lv2-wa-top" href="https://wa.me/${_wan}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Falar no WhatsApp">${I.wa}</a>`:'';
   return `<div class="lead lead-v2" style="--lv2-cat:${_cor0}" draggable="true" ondragstart="dragStart(event,'${l.id}')" ondragend="dragEnd(event)" onclick="if(!event.target.closest('button,a,select,label,.leadObs'))openLead('${l.id}')">
-    <div class="lv2-band"><span class="lv2-cat" title="Categoria"><i></i>${cat.ic} ${esc(cat.lb)}</span><span class="lv2-when" title="Criado em ${fmtDataLead(l.criadoEm)}">${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</span><button class="lv2-edit" title="Editar lead" onclick="openLead('${l.id}');event.stopPropagation()">${I.edit}</button></div>
+    <div class="lv2-band"><span class="lv2-cat" title="Categoria"><i></i>${cat.ic} ${esc(cat.lb)}</span><span class="lv2-tools">${_waBtn}<button class="lv2-edit" title="Editar lead" onclick="openLead('${l.id}');event.stopPropagation()">${I.edit}</button></span><span class="lv2-when" title="Criado em ${fmtDataLead(l.criadoEm)}">${fmtDataLead(l.criadoEm)} · ${diasLead(l.criadoEm)}</span></div>
     <div class="lv2-who"><div class="lv2-nm">${esc(l.nome)}</div>${l.contato?`<div class="lv2-ct">${esc(l.contato)}</div>`:''}</div>
     ${(l.valor||_parc)?`<div class="lv2-val">${l.valor?`<b>${BRL(l.valor)}</b>`:''}${_parc?`<span title="Parcela desejada">${BRL(_parc)}<em>/mês</em></span>`:''}</div>`:''}
     <div class="lv2-chips">${chips.join('')}</div>
     ${_obsShow?`<div class="note leadObs lv2-obs" onclick="this.classList.toggle('aberta');event.stopPropagation()">${esc(_obsShow)}</div>`:''}
     ${lastAct?`<div class="lv2-act" title="Última atividade">${esc(lastAct.texto)}<span>· ${timeAgo(lastAct.quando)}</span></div>`:''}
-    <div class="lv2-foot">${owner}<div class="lv2-acts">${i>0?`<button class="lv2-ib aMove" onclick="crmMove('${l.id}',-1)" title="Voltar etapa">${I.prev}</button>`:''}${i<last?`<button class="lv2-ib aMove" onclick="crmMove('${l.id}',1)" title="Avançar etapa">${I.next}</button>`:''}<button class="lv2-ib aNota" onclick="crmNote('${l.id}')" title="Registrar nota">${I.note}</button><button class="lv2-ib aNota" onclick="abrirProposta('${l.id}','lead');event.stopPropagation()" title="Montar/ver propostas deste lead">${I.doc}</button>${_waBtn}</div></div>
+    <div class="lv2-foot">${owner}<div class="lv2-acts">${i>0?`<button class="lv2-ib aMove" onclick="crmMove('${l.id}',-1)" title="Voltar etapa">${I.prev}</button>`:''}${i<last?`<button class="lv2-ib aMove" onclick="crmMove('${l.id}',1)" title="Avançar etapa">${I.next}</button>`:''}<button class="lv2-ib aNota" onclick="crmNote('${l.id}')" title="Registrar nota">${I.note}</button><button class="lv2-ib aNota" onclick="abrirProposta('${l.id}','lead');event.stopPropagation()" title="Montar/ver propostas deste lead">${I.doc}</button></div></div>
     <div class="lv2-main">${i<last?`<button class="lv2-ganho aGanho" onclick="crmGanho('${l.id}')" title="Marcar como ganho">${I.check} Ganho</button>`:`<button class="lv2-cliente aCliente" onclick="crmToClient('${l.id}')" title="Transformar em cliente">Transformar em cliente</button>`}<button class="lv2-perdeu aPerdeu" onclick="crmLose('${l.id}')" title="Marcar como perdido">Perdeu</button></div>
   </div>`;
 }
