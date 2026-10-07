@@ -409,3 +409,6 @@ body.isApp .lead-v2 .leadObs.aberta{max-height:none}
 body.isApp .lead-v2 .lv2-ib{width:38px;height:38px}
 body.isApp .lead-v2 .lv2-wa-top,body.isApp .lead-v2 .lv2-edit{width:36px;height:36px}
 body.light .lead-v2 .leadObs::after{background:var(--ag-paper)}
+/* coluna flex não pode encolher o card; altura padrão que acomoda todo o conteúdo */
+.kanban .kbody > .lead.lead-v2{flex:0 0 auto;min-height:500px;height:auto;overflow:visible}
+body.isApp .kanban .kbody > .lead.lead-v2{min-height:0}
