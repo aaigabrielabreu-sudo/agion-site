@@ -53,7 +53,11 @@ function proxCluster(prod){ for(var i=0;i<CLUSTERS.length;i++) if(prod<=CLUSTERS
 function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%'; }
 
 /* ===================== DADOS ===================== */
-var _vendas=[], _loaded=false, _compSel=null, _funcSel='';
+var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
+function grupoDe(v,all){ var a=analise(v); if(a==='EM_ANALISE'||a==='RECUSADA'||v.situacao==='CANCELADA'||v.situacao==='REEMBOLSO_TOTAL') return 'outros'; if(v.pos_status&&v.pos_status!=='NAO_CONTEMPLADA') return 'pos'; var k=calc(v,all); return k.funcPend>0.005?'andamento':'pagos'; }
+function tabsHtml(vendas,all){ var c={andamento:0,pagos:0,pos:0,outros:0}; vendas.forEach(function(v){c[grupoDe(v,all)]++;}); var L=[['andamento','Em andamento'],['pagos','Pagos'],['pos','Pós-contemplação'],['outros','Outros']]; return '<div class="cms-tabs">'+L.map(function(t){return '<button class="'+(_tab===t[0]?'on':'')+'" onclick="cmsSetTab(\''+t[0]+'\')">'+t[1]+'<span>'+c[t[0]]+'</span></button>';}).join('')+'</div>'; }
+function tabDesc(){ return {andamento:'Vendas com parcelas ainda a pagar.',pagos:'Comissão pré concluída — aguardando contemplação.',pos:'Cotas contempladas e comissão pós-contemplação.',outros:'Em análise, recusadas, canceladas ou com reembolso total.'}[_tab]; }
+window.cmsSetTab=function(t){ _tab=t; render(); };
 function diasUteis(fromISO,n){ var d=parseISO(fromISO), c=0; while(c<n){ d.setDate(d.getDate()+1); if(d.getDay()!==0&&d.getDay()!==6) c++; } return iso(d); }
 function analise(v){ var st=v.analise_status||'APROVADA'; if(st==='EM_ANALISE' && v.analise_prazo && v.analise_prazo<iso(new Date())) return 'APROVADA_AUTO'; return st; }
 function aprovada(v){ var a=analise(v); return a==='APROVADA'||a==='APROVADA_AUTO'; }
@@ -81,19 +85,22 @@ function calc(v, all){
   var parcelas=[];
   for(var i=0;i<5;i++){
     var r_i = (i===0 && jan.tipo==='ANTECIPACAO') ? rate20 : rate;
-    var st=parc(v,i+1);
-    parcelas.push({n:i+1, data:jan.datas[i], hs:credito*HS_PARC[i], func:credito*r_i*FUNC_SHARE[i], hsStatus:st.hs||'PREVISTA', funcStatus:st.func||'PREVISTA', dataEfetiva:st.data_efetiva||null});
+    var st=parc(v,i+1), passado=jan.datas[i]<iso(new Date());
+    var hsS=st.hs==='RECEBIDA'?'RECEBIDA':st.hs==='NAO_RECEBIDA'?'NAO_RECEBIDA':(passado?'RECEBIDA':'PREVISTA');
+    var fS=st.func==='PAGA'?'PAGA':st.func==='NAO_PAGA'?'NAO_PAGA':(passado?'PAGA':'PREVISTA');
+    parcelas.push({n:i+1, data:jan.datas[i], hs:credito*HS_PARC[i], func:credito*r_i*FUNC_SHARE[i], hsStatus:hsS, funcStatus:fS, auto:!st.hs&&!st.func&&passado, dataEfetiva:st.data_efetiva||null});
     parcelas[i].agion=parcelas[i].hs-parcelas[i].func;
   }
   var ajuste = (jan.tipo==='ANTECIPACAO' && rate>rate20) ? credito*(rate-rate20)*FUNC_SHARE[0] : 0;
   var posFunc = proprio ? credito*PROPRIO_POS : 0, posHs=credito*HS_POS;
   var funcTot = parcelas.reduce(function(s,p){return s+p.func;},0)+ajuste;
-  var funcPago = parcelas.filter(function(p){return p.funcStatus==='PAGA';}).reduce(function(s,p){return s+p.func;},0) + (v.ajuste_pago?ajuste:0);
+  var ajustePago = v.ajuste_pago===true || (v.ajuste_pago!==false && jan.ajusteData<iso(new Date()));
+  var funcPago = parcelas.filter(function(p){return p.funcStatus==='PAGA';}).reduce(function(s,p){return s+p.func;},0) + (ajustePago?ajuste:0);
   var hsRec = parcelas.filter(function(p){return p.hsStatus==='RECEBIDA';}).reduce(function(s,p){return s+p.hs;},0);
   var reemb = +v.reembolso_valor||0;
   return {comp:c, jan:jan, prod:prod, prod20:prod20, rate:rate, rate20:rate20, cluster:clusterDe(prod), credito:credito, proprio:proprio,
     hsPre:hsPre, funcPre:funcTot, agionPre:hsPre-funcTot, parcelas:parcelas, ajuste:ajuste, ajusteData:jan.ajusteData,
-    posHs:posHs, posFunc:posFunc, posAgion:posHs-posFunc, funcPago:funcPago, funcPend:funcTot-funcPago, hsRec:hsRec, hsPend:hsPre-hsRec, reemb:reemb,
+    posHs:posHs, posFunc:posFunc, posAgion:posHs-posFunc, ajustePago:ajustePago, funcPago:funcPago, funcPend:funcTot-funcPago, hsRec:hsRec, hsPend:hsPre-hsRec, reemb:reemb,
     proximo: parcelas.filter(function(p){return p.funcStatus!=='PAGA';}).map(function(p){return p;})[0]||null };
 }
 function resumoFunc(uid, compKey, all){
@@ -153,6 +160,11 @@ var CSS=`
 .cms-tl .st .row em{font-style:normal;color:var(--muted);font-size:.68rem;width:34px}
 .cms-pill{border:1px solid var(--line);background:transparent;color:var(--muted);font:inherit;font-size:.6rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;cursor:pointer;line-height:1.3}
 .cms-pill.on{color:#4CAF7D;border-color:#4CAF7D66;background:rgba(76,175,125,.12)}
+.cms-pill.bad{color:#E07A6A;border-color:#E07A6A66;background:rgba(224,122,106,.12)}
+.cms-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 16px}
+.cms-tabs button{background:rgba(255,255,255,.03);border:1px solid var(--line);color:var(--muted);font:inherit;font-size:.8rem;font-weight:600;padding:8px 14px;border-radius:999px;cursor:pointer}
+.cms-tabs button.on{color:var(--teal-ink,#0B3A33);background:var(--grad-gold);border-color:transparent}
+.cms-tabs button span{opacity:.75;font-weight:500;margin-left:4px}
 .cms-pill.ro{cursor:default}
 .cms-foot{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;justify-content:flex-end}
 .cms-pos{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:.8rem;color:var(--head)}
@@ -162,7 +174,7 @@ var CSS=`
 function ensureCss(){ if(document.getElementById('cmsCss'))return; var st=document.createElement('style'); st.id='cmsCss'; st.textContent=CSS; document.head.appendChild(st); }
 function staffList(){ return (db.accounts||[]).filter(function(a){return a.real===true&&(a.role==='master'||a.role==='lider'||a.role==='especialista')&&a.ativo!==false;}).sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'');}); }
 function tag(t,cls){ return '<span class="cms-tag'+(cls?' '+cls:'')+'">'+t+'</span>'; }
-function pill(on,lbl,onclick){ return '<button class="cms-pill'+(on?' on':'')+(onclick?'':' ro')+'"'+(onclick?' onclick="'+onclick+'"':'')+'>'+lbl+'</button>'; }
+function pill(on,lbl,onclick,bad){ return '<button class="cms-pill'+(on?' on':'')+(bad?' bad':'')+(onclick?'':' ro')+'"'+(onclick?' onclick="'+onclick+'"':'')+'>'+lbl+'</button>'; }
 function vendaCard(v,all,master){
   var k=calc(v,all), u=user(v.vendedor_id), a=analise(v);
   var tags=origemChip(v)+anChip(v)+sitChip(v.situacao)+(v.reembolso_valor?tag('reemb. '+BRL2(v.reembolso_valor),'warn'):'');
@@ -176,8 +188,8 @@ function vendaCard(v,all,master){
     +(master?'<div><div class="l">Pós · Agion</div><div class="v">'+BRL2(k.posAgion)+'</div></div>':'')
     +'</div>';
   var tl='<div class="cms-tl">'+k.parcelas.map(function(p){ var sh=FUNC_SHARE[p.n-1];
-    var hsRow=master?'<div class="row"><em>HS</em><span>'+BRL2(p.hs)+'</span>'+pill(p.hsStatus==='RECEBIDA',p.hsStatus==='RECEBIDA'?'recebida':'prevista',"cmsToggle('"+v.id+"',"+p.n+",'hs')")+'</div>':'';
-    var fRow='<div class="row"><em>'+(master?'Func':'Você')+'</em><span>'+BRL2(p.func)+'</span>'+pill(p.funcStatus==='PAGA',p.funcStatus==='PAGA'?'paga':'prevista',master?"cmsToggle('"+v.id+"',"+p.n+",'func')":null)+'</div>';
+    var hsRow=master?'<div class="row"><em>HS</em><span>'+BRL2(p.hs)+'</span>'+pill(p.hsStatus==='RECEBIDA',p.hsStatus==='RECEBIDA'?'recebida':p.hsStatus==='NAO_RECEBIDA'?'não recebida':'prevista',"cmsToggle('"+v.id+"',"+p.n+",'hs')",p.hsStatus==='NAO_RECEBIDA')+'</div>':'';
+    var fRow='<div class="row"><em>'+(master?'Func':'Você')+'</em><span>'+BRL2(p.func)+'</span>'+pill(p.funcStatus==='PAGA',p.funcStatus==='PAGA'?'paga':p.funcStatus==='NAO_PAGA'?'não paga':'prevista',master?"cmsToggle('"+v.id+"',"+p.n+",'func')":null,p.funcStatus==='NAO_PAGA')+'</div>';
     return '<div class="st"><div class="n">'+p.n+'ª PARCELA · '+Math.round(sh*100)+'%</div><div class="d">'+fmtBR(p.data)+'</div>'+hsRow+fRow+'</div>'; }).join('')+'</div>';
   var pos='<div class="cms-pos"><span class="l">Pós-contemplação</span>'+tag(POS_LBL[v.pos_status]||v.pos_status, v.pos_status==='NAO_CONTEMPLADA'?'':'ok')+(v.pos_data?'<span class="note">'+fmtBR(v.pos_data)+'</span>':'')+'</div>';
   var foot=master?'<div class="cms-foot">'+(a==='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsAprovar(\''+v.id+'\')">Aprovar / recusar</button>':'')+(v.origem_status==='EM_REVISAO'&&a!=='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsValidar(\''+v.id+'\')">Validar origem</button>':'')+'<button class="btn btn-ghost btn-sm" onclick="cmsPos(\''+v.id+'\')">Contemplação</button><button class="btn btn-ghost btn-sm" onclick="cmsSituacao(\''+v.id+'\')">Situação</button><button class="btn btn-ghost btn-sm" onclick="cmsDesignar(\''+v.id+'\')">Designar colaborador</button><button class="btn btn-ghost btn-sm" onclick="cmsEditar(\''+v.id+'\')">Editar</button><button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="cmsExcluir(\''+v.id+'\')">Excluir</button></div>':'';
@@ -200,8 +212,8 @@ function tabelaRolante(vendas, all, comAgion){
   var head='<tr><th>Cliente</th><th>Crédito</th><th class="n">Em atraso</th>'+meses.map(function(m){return '<th class="n">'+m.rot+'</th>';}).join('')+'<th class="n">Pendente</th></tr>';
   var tot={}; meses.forEach(function(m){tot[m.key]=0;}); var totAtr=0, totPend=0;
   var rows=vendas.filter(ativa).map(function(v){ var k=calc(v,all); if(k.funcPend<=0.005) return '';
-    var atr=0; k.parcelas.forEach(function(p){ if(p.funcStatus!=='PAGA'&&p.data.slice(0,7)<m0) atr+=p.func; }); if(k.ajuste&&!v.ajuste_pago&&k.ajusteData.slice(0,7)<m0) atr+=k.ajuste; totAtr+=atr; totPend+=k.funcPend;
-    var cells=meses.map(function(m){ var s=0, pend=0; k.parcelas.forEach(function(p){ if(p.data.slice(0,7)===m.key){ s+=p.func; if(p.funcStatus!=='PAGA') pend+=p.func; } }); if(k.ajuste && k.ajusteData.slice(0,7)===m.key){ s+=k.ajuste; if(!v.ajuste_pago) pend+=k.ajuste; } tot[m.key]+=pend; return '<td class="n">'+(s?(pend?BRL2(pend):'<span class="note">pago</span>')+(pend&&pend<s?' <span class="note">(pago '+BRL2(s-pend)+')</span>':''):'—')+'</td>'; }).join('');
+    var atr=0; k.parcelas.forEach(function(p){ if(p.funcStatus!=='PAGA'&&p.data.slice(0,7)<m0) atr+=p.func; }); if(k.ajuste&&!k.ajustePago&&k.ajusteData.slice(0,7)<m0) atr+=k.ajuste; totAtr+=atr; totPend+=k.funcPend;
+    var cells=meses.map(function(m){ var s=0, pend=0; k.parcelas.forEach(function(p){ if(p.data.slice(0,7)===m.key){ s+=p.func; if(p.funcStatus!=='PAGA') pend+=p.func; } }); if(k.ajuste && k.ajusteData.slice(0,7)===m.key){ s+=k.ajuste; if(!k.ajustePago) pend+=k.ajuste; } tot[m.key]+=pend; return '<td class="n">'+(s?(pend?BRL2(pend):'<span class="note">pago</span>')+(pend&&pend<s?' <span class="note">(pago '+BRL2(s-pend)+')</span>':''):'—')+'</td>'; }).join('');
     return '<tr><td>'+esc(v.cliente_nome||'—')+' '+origemChip(v)+'</td><td>'+BRL(k.credito)+'</td><td class="n">'+(atr?'<span style="color:#E0B978">'+BRL2(atr)+'</span>':'—')+'</td>'+cells+'<td class="n"><b>'+BRL2(k.funcPend)+'</b></td></tr>'; }).join('');
   var foot='<tr><td colspan="2"><b>A pagar</b></td><td class="n"><b>'+(totAtr?BRL2(totAtr):'—')+'</b></td>'+meses.map(function(m){return '<td class="n"><b>'+BRL2(tot[m.key])+'</b></td>';}).join('')+'<td class="n"><b>'+BRL2(totPend)+'</b></td></tr>';
   return '<div class="tbl-scroll cms-tbl"><table><thead>'+head+'</thead><tbody>'+(rows||'<tr><td colspan="9" class="note">Nenhum pagamento pendente.</td></tr>')+'</tbody><tfoot>'+foot+'</tfoot></table></div>';
@@ -221,11 +233,12 @@ function paintFunc(C, uid, titulo){
     +(R.reemb?kpi('Reembolsos',BRL2(R.reemb),false,'Descontos de cotas com reembolso'):'')
     +'</div>';
   var sel='<div class="cms-bar"><span class="note">Competência</span>'+compSelect()+'<span class="note">'+esc(comp.rot)+'</span></div>';
-  var tbl='<div class="panel"><h2>Minhas vendas</h2>'+(mine.length?mine.map(function(v){return vendaCard(v,_vendas,false);}).join(''):'<p class="note">Nenhuma venda registrada ainda.</p>')+'</div>';
+  var lst=mine.filter(function(v){return grupoDe(v,_vendas)===_tab;});
+  var tbl='<div class="panel"><h2>Minhas vendas</h2>'+tabsHtml(mine,_vendas)+'<p class="note" style="margin-bottom:12px">'+tabDesc()+'</p>'+(lst.length?lst.map(function(v){return vendaCard(v,_vendas,false);}).join(''):'<p class="note">Nada aqui.</p>')+'</div>';
   var rol='<div class="panel"><h2>Próximos recebimentos (5 meses)</h2>'+tabelaRolante(mine,_vendas,false)+'</div>';
   var sit=mine.filter(function(v){return v.situacao!=='EM_DIA'||analise(v)==='RECUSADA'||analise(v)==='EM_ANALISE';});
   var sitHtml='<div class="panel"><h2>Situação dos clientes</h2>'+(sit.length?'<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Situação</th><th class="n">Reembolso</th><th>Obs.</th></tr></thead><tbody>'+sit.map(function(v){return '<tr><td>'+esc(v.cliente_nome||'—')+'</td><td>'+(analise(v)==='RECUSADA'||analise(v)==='EM_ANALISE'?anChip(v):sitChip(v.situacao))+'</td><td class="n">'+(v.reembolso_valor?BRL2(v.reembolso_valor):'—')+'</td><td class="note">'+esc(v.analise_obs||v.obs||'')+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="note">Todos os clientes em dia.</p>')+'</div>';
-  ensureCss(); C.innerHTML='<div class="cms-wrap">'+sel+cards+tbl+rol+sitHtml+'</div>';
+  ensureCss(); C.innerHTML='<div class="cms-wrap">'+sel+cards+tbl+(_tab==='andamento'?rol+sitHtml:'')+'</div>';
 }
 
 /* ===================== UI: MASTER ===================== */
@@ -252,11 +265,12 @@ function paintMaster(C){
   var porFunc='<div class="panel"><h2>Por funcionário — '+esc(comp.rot)+'</h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">P/ cluster</th><th class="n">Cluster</th><th class="n">Falta p/ próx.</th><th class="n">Gerada</th><th class="n">Paga</th><th class="n">Pendente</th><th class="n">Futura</th><th></th></tr></thead><tbody>'
     +(ids.map(function(id){ var R=resumoFunc(id,_compSel,all); var u=user(id); return '<tr><td><b>'+esc(u.nome||id)+'</b></td><td class="n">'+R.n+'</td><td class="n">'+BRL(R.prodTot)+'</td><td class="n">'+BRL(R.prodCl)+'</td><td class="n">'+pct(R.cluster.r)+'</td><td class="n">'+(R.prox?BRL(R.falta):'máx.')+'</td><td class="n">'+BRL2(R.gerada)+'</td><td class="n">'+BRL2(R.paga)+'</td><td class="n"><b>'+BRL2(R.pend)+'</b></td><td class="n">'+BRL2(R.futura)+'</td><td><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\''+id+'\')">Ver</button></td></tr>'; }).join('')||'<tr><td colspan="11" class="note">Nenhuma venda registrada.</td></tr>')+'</tbody></table></div></div>';
   var lista=all.slice().sort(function(a,b){ var x=analise(a)==='EM_ANALISE'?0:1, y=analise(b)==='EM_ANALISE'?0:1; return x-y; });
-  var tbl='<div class="panel"><h2>Todas as vendas <span class="right note">clique no status da parcela para marcar recebida (HS) / paga (funcionário)</span></h2>'+(lista.length?lista.map(function(v){return vendaCard(v,all,true);}).join(''):'<p class="note">Nenhuma venda registrada. Use "Registrar venda" ou cadastre uma carta HS com valor.</p>')+'</div>';
+  var lst=lista.filter(function(v){return grupoDe(v,all)===_tab;});
+  var tbl='<div class="panel"><h2>Vendas <span class="right note">parcelas com data passada contam como pagas — clique no status para marcar como não paga / não recebida</span></h2>'+tabsHtml(lista,all)+'<p class="note" style="margin-bottom:12px">'+tabDesc()+'</p>'+(lst.length?lst.map(function(v){return vendaCard(v,all,true);}).join(''):'<p class="note">Nada aqui.</p>')+'</div>';
   var rol='<div class="panel"><h2>Pagamentos aos funcionários — próximos 5 meses</h2>'+tabelaRolante(all,all,true)+'</div>';
   var sit=all.filter(function(v){return v.situacao!=='EM_DIA';});
   var sitHtml='<div class="panel"><h2>Clientes com pendência / reembolso</h2>'+(sit.length?'<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Funcionário</th><th>Situação</th><th class="n">Reembolso</th><th>Obs.</th></tr></thead><tbody>'+sit.map(function(v){return '<tr><td>'+esc(v.cliente_nome||'—')+'</td><td>'+esc((user(v.vendedor_id).nome||'').split(' ')[0])+'</td><td>'+sitChip(v.situacao)+'</td><td class="n">'+(v.reembolso_valor?BRL2(v.reembolso_valor):'—')+'</td><td class="note">'+esc(v.obs||'')+'</td></tr>';}).join('')+'</tbody></table></div>':'<p class="note">Nenhuma pendência.</p>')+'</div>';
-  ensureCss(); C.innerHTML='<div class="cms-wrap">'+sel+cards+porFunc+tbl+rol+sitHtml+'</div>';
+  ensureCss(); C.innerHTML='<div class="cms-wrap">'+sel+cards+porFunc+tbl+(_tab==='andamento'?rol+sitHtml:'')+'</div>';
 }
 
 /* ===================== AÇÕES (Master) ===================== */
@@ -270,8 +284,9 @@ async function upd(id, patch, desc){
 window.cmsToggle=async function(id,n,tipo){
   if(!isMaster()){flash('Apenas o Master marca recebimentos/pagamentos.');return;}
   var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
-  var ps=(v.parcelas||[]).slice(); var p=ps.find(function(x){return +x.n===n;}); if(!p){p={n:n,hs:'PREVISTA',func:'PREVISTA'};ps.push(p);}
-  if(tipo==='hs'){ p.hs=(p.hs==='RECEBIDA')?'PREVISTA':'RECEBIDA'; } else { p.func=(p.func==='PAGA')?'PREVISTA':'PAGA'; }
+  var k=calc(v,_vendas), cur=k.parcelas[n-1];
+  var ps=(v.parcelas||[]).slice(); var p=ps.find(function(x){return +x.n===n;}); if(!p){p={n:n};ps.push(p);}
+  if(tipo==='hs'){ p.hs=(cur.hsStatus==='RECEBIDA')?'NAO_RECEBIDA':'RECEBIDA'; } else { p.func=(cur.funcStatus==='PAGA')?'NAO_PAGA':'PAGA'; }
   p.data_efetiva=new Date().toISOString().slice(0,10);
   await upd(id,{parcelas:ps},'Parcela '+n+' '+(tipo==='hs'?'HS '+p.hs:'funcionário '+p.func)+' — '+(v.cliente_nome||''));
 };
