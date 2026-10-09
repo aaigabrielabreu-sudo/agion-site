@@ -22,6 +22,15 @@ var CLUSTERS = [
   {ate:Infinity, r:0.0080, rot:'acima de R$ 4.600.000'}
 ];
 var PROPRIO_PRE = 0.01, PROPRIO_POS = 0.01;
+/* SERVIÇOS (Âncora) — 09/10/2026: administradora paga 4% do crédito à Agion em 4 parcelas (1% cada);
+   colaborador: cliente próprio 0,5% por mês × 4 = 2%; cliente da Agion 0,25% × 4 = 1%. Sem pós-contemplação.
+   Venda de serviços de cliente da Agion soma no volume do cluster; cliente próprio não (regra geral). */
+var SERV_N = 4, SERV_ADM_PARC = 0.01, SERV_FUNC_PROPRIO = 0.005, SERV_FUNC_LEAD = 0.0025;
+var CATS = {AUTOMOVEL:{lb:'Automóvel',ic:'\u{1F697}'}, IMOVEL:{lb:'Imóvel',ic:'\u{1F3E0}'}, INVESTIMENTO:{lb:'Investimento',ic:'\u{1F4C8}'}, SERVICOS:{lb:'Serviços',ic:'\u2728'}};
+function servico(v){ return v&&v.categoria==='SERVICOS'; }
+function admCurta(v){ var a=String((v&&v.administradora)||''); return /[âa]ncora/i.test(a)?'Âncora':/hs/i.test(a)?'HS':(a||'HS'); }
+function catChip(v){ var c=CATS[v&&v.categoria]; return c?'<span class="cms-tag">'+c.ic+' '+c.lb+'</span>':''; }
+function catOpts(sel){ return Object.keys(CATS).map(function(k){ return '<option value="'+k+'"'+(sel===k?' selected':'')+'>'+CATS[k].ic+' '+CATS[k].lb+'</option>'; }).join(''); }
 var CUTOFF_ANTEC = 20;   // vendas até o dia 20 entram no cluster da antecipação (dia 23)
 var SIT_LBL = {EM_DIA:'Em dia', INADIMPLENTE:'Não pagou', REEMBOLSO_PARCIAL:'Reembolso parcial', REEMBOLSO_TOTAL:'Reembolso total', CANCELADA:'Cancelada'};
 var POS_LBL = {NAO_CONTEMPLADA:'Aguardando contemplação', CONTEMPLADA:'Contemplada', COMISSAO_POS_RECEBIDA:'Comissão pós recebida'};
@@ -54,7 +63,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v25';
+var VERSAO='v26';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -85,31 +94,33 @@ function calc(v, all){
   var prod=mesmas.reduce(function(s,x){return s+(+x.credito||0);},0);
   var fim=parseISO(c.fim), cut=iso(mkDate(fim.getFullYear(), fim.getMonth(), CUTOFF_ANTEC));
   var prod20=mesmas.filter(function(x){return x.data_insercao<=cut;}).reduce(function(s,x){return s+(+x.credito||0);},0);
-  var credito=+v.credito||0, proprio=v.origem==='CLIENTE_PROPRIO';
-  var rate = proprio ? PROPRIO_PRE : clusterDe(prod).r;
-  var rate20 = proprio ? PROPRIO_PRE : clusterDe(prod20).r;
-  var funcPre = credito*rate, hsPre=credito*HS_PRE, agionPre=hsPre-funcPre;
+  var credito=+v.credito||0, proprio=v.origem==='CLIENTE_PROPRIO', serv=servico(v);
+  var rate = serv ? (proprio?SERV_FUNC_PROPRIO:SERV_FUNC_LEAD)*SERV_N : proprio ? PROPRIO_PRE : clusterDe(prod).r;
+  var rate20 = serv ? rate : proprio ? PROPRIO_PRE : clusterDe(prod20).r;
+  var hsPre = serv ? credito*SERV_ADM_PARC*SERV_N : credito*HS_PRE;
+  var nP = serv ? SERV_N : 5;
   var parcelas=[];
-  for(var i=0;i<5;i++){
+  for(var i=0;i<nP;i++){
     var r_i = (i===0 && jan.tipo==='ANTECIPACAO') ? rate20 : rate;
     var st=parc(v,i+1), passado=jan.datas[i]<iso(new Date());
     var hsS=st.hs==='RECEBIDA'?'RECEBIDA':st.hs==='NAO_RECEBIDA'?'NAO_RECEBIDA':(passado?'RECEBIDA':'PREVISTA');
     var fS=st.func==='PAGA'?'PAGA':st.func==='NAO_PAGA'?'NAO_PAGA':(passado?'PAGA':'PREVISTA');
-    parcelas.push({n:i+1, data:jan.datas[i], hs:credito*HS_PARC[i], func:credito*r_i*FUNC_SHARE[i], hsStatus:hsS, funcStatus:fS, auto:!st.hs&&!st.func&&passado, dataEfetiva:st.data_efetiva||null});
+    parcelas.push({n:i+1, data:jan.datas[i], hs:serv?credito*SERV_ADM_PARC:credito*HS_PARC[i], func:serv?credito*rate/SERV_N:credito*r_i*FUNC_SHARE[i], share:serv?1/SERV_N:FUNC_SHARE[i], hsStatus:hsS, funcStatus:fS, auto:!st.hs&&!st.func&&passado, dataEfetiva:st.data_efetiva||null});
     parcelas[i].agion=parcelas[i].hs-parcelas[i].func;
   }
-  var ajuste = (jan.tipo==='ANTECIPACAO' && rate>rate20) ? credito*(rate-rate20)*FUNC_SHARE[0] : 0;
-  var posFunc = proprio ? credito*PROPRIO_POS : 0, posHs=credito*HS_POS;
+  var ajuste = (!serv && jan.tipo==='ANTECIPACAO' && rate>rate20) ? credito*(rate-rate20)*FUNC_SHARE[0] : 0;
+  var posFunc = (proprio&&!serv) ? credito*PROPRIO_POS : 0, posHs=serv?0:credito*HS_POS;
   var funcTot = parcelas.reduce(function(s,p){return s+p.func;},0)+ajuste;
   var ajustePago = v.ajuste_pago===true || (v.ajuste_pago!==false && jan.ajusteData<iso(new Date()));
   var funcPago = parcelas.filter(function(p){return p.funcStatus==='PAGA';}).reduce(function(s,p){return s+p.func;},0) + (ajustePago?ajuste:0);
   var hsRec = parcelas.filter(function(p){return p.hsStatus==='RECEBIDA';}).reduce(function(s,p){return s+p.hs;},0);
   var reemb = +v.reembolso_valor||0;
-  return {comp:c, jan:jan, prod:prod, prod20:prod20, rate:rate, rate20:rate20, cluster:clusterDe(prod), credito:credito, proprio:proprio,
+  return {serv:serv, comp:c, jan:jan, prod:prod, prod20:prod20, rate:rate, rate20:rate20, cluster:clusterDe(prod), credito:credito, proprio:proprio,
     hsPre:hsPre, funcPre:funcTot, agionPre:hsPre-funcTot, parcelas:parcelas, ajuste:ajuste, ajusteData:jan.ajusteData,
     posHs:posHs, posFunc:posFunc, posAgion:posHs-posFunc, ajustePago:ajustePago, funcPago:funcPago, funcPend:funcTot-funcPago, hsRec:hsRec, hsPend:hsPre-hsRec, reemb:reemb,
     proximo: parcelas.filter(function(p){return p.funcStatus!=='PAGA';}).map(function(p){return p;})[0]||null };
 }
+window.cmsCalc=function(v,all){ return calc(v,all||[v]); };
 function resumoFunc(uid, compKey, all){
   var mine=all.filter(function(v){return v.vendedor_id===uid;});
   var comp=mine.filter(function(v){return competencia(v.data_insercao).key===compKey;});
@@ -360,6 +371,20 @@ body.light .cms-wrap,body.light .cms-md{--csurf-2:var(--surface-2,rgba(14,74,65,
   .cms-wrap .panel h2{flex-wrap:wrap}
   .cms-wrap .panel h2 .right{margin-left:0;flex-basis:100%}
 }
+/* --- Categoria da carta --- */
+@media(min-width:901px){.cms-tl.cms-tl4{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.cms-cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.cms-cat{background:var(--csurf-2);border:1px solid var(--line);border-radius:var(--cr-md);padding:14px 14px 12px;min-width:0}
+.cms-cat.vazio{opacity:.55}
+.cms-cat .h{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cms-cat .h span{font-size:1.15rem;line-height:1}
+.cms-cat .h b{font-size:var(--cfs-sm);font-weight:600;color:var(--head);flex:1;min-width:0}
+.cms-cat .h em{font-style:normal;font-size:var(--cfs-xs);font-weight:600;color:var(--gold2)}
+.cms-cat .v{font-family:var(--serif);font-size:1.25rem;font-weight:600;color:var(--head);white-space:nowrap}
+.cms-cat .s{font-size:var(--cfs-xs);color:var(--soft);margin:2px 0 10px}
+.cms-cat .bar{height:4px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden}
+.cms-cat .bar i{display:block;height:100%;background:var(--grad-gold,linear-gradient(90deg,#A3833F,#ECD9A6))}
+@media(max-width:760px){.cms-cats{grid-template-columns:1fr 1fr}}
 /* --- Próximos recebimentos por mês --- */
 .cms-rc-hero{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;padding:4px 2px 16px;margin-bottom:14px;border-bottom:1px solid var(--line)}
 .cms-rc-hero .k{display:block;font-size:var(--cfs-xs);letter-spacing:var(--ctrack);text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:4px}
@@ -419,21 +444,21 @@ function emptyRow(cols,txt,sub){ return '<tr class="cms-emptyrow"><td colspan="'
 function vendaCard(v,all,master){
   master=master&&eMaster();
   var k=calc(v,all), u=user(v.vendedor_id), a=analise(v);
-  var tags=origemChip(v)+anChip(v)+sitChip(v.situacao)+(v.reembolso_valor?tag('reemb. '+BRL2(v.reembolso_valor),'warn'):'');
-  var meta=[master?'<span class="nm">'+esc((u.nome||'').split(' ').slice(0,2).join(' '))+'</span>':null, v.administradora?'<span>'+esc(v.administradora)+'</span>':null, v.grupo?'<span>grupo '+esc(v.grupo)+' / cota '+esc(v.cota||'')+'</span>':null, '<span>venda em '+fmtBR(v.data_insercao)+'</span>', '<span>competência '+esc(k.comp.rot)+'</span>', '<span>'+(k.jan.tipo==='ANTECIPACAO'?'antecipação · 1ª parcela dia 23':'janela normal · 1ª parcela dia 10')+'</span>'].filter(Boolean).join('');
+  var tags=catChip(v)+origemChip(v)+anChip(v)+sitChip(v.situacao)+(v.reembolso_valor?tag('reemb. '+BRL2(v.reembolso_valor),'warn'):'');
+  var meta=[master?'<span class="nm">'+esc((u.nome||'').split(' ').slice(0,2).join(' '))+'</span>':null, v.administradora?'<span>'+esc(v.administradora)+'</span>':null, v.grupo?'<span>grupo '+esc(v.grupo)+' / cota '+esc(v.cota||'')+'</span>':null, '<span>venda em '+fmtBR(v.data_insercao)+'</span>', '<span>competência '+esc(k.comp.rot)+'</span>', '<span>'+(k.jan.tipo==='ANTECIPACAO'?'antecipação · 1ª parcela dia 23':'janela normal · 1ª parcela dia 10')+(k.serv?' · 4 parcelas':'')+'</span>'].filter(Boolean).join('');
   var head='<div class="cms-head"><div class="who"><h3>'+esc(v.cliente_nome||'—')+'</h3><div class="meta">'+meta+'</div><div class="tags">'+tags+'</div></div><div class="amt"><b>'+BRL(k.credito)+'</b><span>comissão de <em>'+pct(k.rate)+'</em> sobre o crédito'+(k.ajuste?'<br>ajuste de cluster de '+BRL2(k.ajuste)+' em '+fmtBR(k.ajusteData):'')+'</span></div></div>';
   var sum='<div class="cms-sum">'
-    +(master?'<div><div class="l">Pré · HS (2%)</div><div class="v">'+BRL2(k.hsPre)+'<small>recebido '+BRL2(k.hsRec)+'</small></div></div>':'')
+    +(master?'<div><div class="l">Pré · '+admCurta(v)+' ('+pct(k.hsPre/(k.credito||1))+')</div><div class="v">'+BRL2(k.hsPre)+'<small>recebido '+BRL2(k.hsRec)+'</small></div></div>':'')
     +'<div><div class="l">'+(master?'Pré · funcionário':'Sua comissão · pré')+'</div><div class="v">'+BRL2(k.funcPre)+'<small>paga '+BRL2(k.funcPago)+'</small></div></div>'
     +(master?'<div><div class="l">Pré · margem Agion</div><div class="v">'+BRL2(k.agionPre)+'</div></div>':'')
-    +(k.proprio?'<div><div class="l">'+(master?'Pós · funcionário (1%)':'Sua comissão · pós (1%)')+'</div><div class="v">'+BRL2(k.posFunc)+'<small>'+(v.pos_func_pago?'paga':'na contemplação')+'</small></div></div>':'')
-    +(master?'<div><div class="l">Pós · Agion</div><div class="v">'+BRL2(k.posAgion)+'</div></div>':'')
+    +(k.posFunc>0?'<div><div class="l">'+(master?'Pós · funcionário (1%)':'Sua comissão · pós (1%)')+'</div><div class="v">'+BRL2(k.posFunc)+'<small>'+(v.pos_func_pago?'paga':'na contemplação')+'</small></div></div>':'')
+    +(master&&!k.serv?'<div><div class="l">Pós · Agion</div><div class="v">'+BRL2(k.posAgion)+'</div></div>':'')
     +'</div>';
-  var tl='<div class="cms-tl">'+k.parcelas.map(function(p){ var sh=FUNC_SHARE[p.n-1];
-    var hsRow=master?'<div class="row"><em>HS</em><span>'+BRL2(p.hs)+'</span>'+pill(p.hsStatus==='RECEBIDA',p.hsStatus==='RECEBIDA'?'recebida':p.hsStatus==='NAO_RECEBIDA'?'não recebida':'prevista',"cmsToggle('"+v.id+"',"+p.n+",'hs')",p.hsStatus==='NAO_RECEBIDA')+'</div>':'';
+  var tl='<div class="cms-tl'+(k.serv?' cms-tl4':'')+'">'+k.parcelas.map(function(p){ var sh=p.share;
+    var hsRow=master?'<div class="row"><em>'+admCurta(v)+'</em><span>'+BRL2(p.hs)+'</span>'+pill(p.hsStatus==='RECEBIDA',p.hsStatus==='RECEBIDA'?'recebida':p.hsStatus==='NAO_RECEBIDA'?'não recebida':'prevista',"cmsToggle('"+v.id+"',"+p.n+",'hs')",p.hsStatus==='NAO_RECEBIDA')+'</div>':'';
     var fRow='<div class="row"><em>'+(master?'Func.':'Você')+'</em><span>'+BRL2(p.func)+'</span>'+pill(p.funcStatus==='PAGA',p.funcStatus==='PAGA'?'paga':p.funcStatus==='NAO_PAGA'?'não paga':'prevista',master?"cmsToggle('"+v.id+"',"+p.n+",'func')":null,p.funcStatus==='NAO_PAGA')+'</div>';
     return '<div class="st'+(p.funcStatus==='PAGA'?' paid':'')+'"><div class="n"><span>'+p.n+'ª parcela</span><em>'+Math.round(sh*100)+'%</em></div><div class="d">'+fmtBR(p.data)+'</div>'+hsRow+fRow+'</div>'; }).join('')+'</div>';
-  var pos='<div class="cms-pos"><span class="l">Pós-contemplação</span>'+tag(POS_LBL[v.pos_status]||v.pos_status, v.pos_status==='NAO_CONTEMPLADA'?'':'ok')+(v.pos_data?'<span class="note">'+fmtBR(v.pos_data)+'</span>':'')+'</div>';
+  var pos=k.serv?'':'<div class="cms-pos"><span class="l">Pós-contemplação</span>'+tag(POS_LBL[v.pos_status]||v.pos_status, v.pos_status==='NAO_CONTEMPLADA'?'':'ok')+(v.pos_data?'<span class="note">'+fmtBR(v.pos_data)+'</span>':'')+'</div>';
   var foot=master?'<div class="cms-foot"><div class="grp">'+(a==='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsAprovar(\''+v.id+'\')">Aprovar ou recusar</button>':'')+(v.origem_status==='EM_REVISAO'&&a!=='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsValidar(\''+v.id+'\')">Validar origem</button>':'')+'<button class="btn btn-ghost btn-sm" onclick="cmsPos(\''+v.id+'\')">Atualizar contemplação</button><button class="btn btn-ghost btn-sm" onclick="cmsSituacao(\''+v.id+'\')">Alterar situação</button><button class="btn btn-ghost btn-sm" onclick="cmsDesignar(\''+v.id+'\')">Designar colaborador</button><button class="btn btn-ghost btn-sm" onclick="cmsEditar(\''+v.id+'\')">Editar venda</button></div><div class="grp danger"><button class="btn btn-ghost btn-sm cms-danger" onclick="cmsExcluir(\''+v.id+'\')">Excluir venda</button></div></div>':'';
   return '<div class="cms-card">'+head+sum+tl+pos+foot+'</div>';
 }
@@ -514,9 +539,9 @@ function porMes(k,v,meses,tipo){ // tipo: 'func' | 'hs' | 'agion' -> valores pen
 function tabelaClientesHS(V, all, meses){
   var rows=[], tot=meses.map(function(){return 0;}), totP=0;
   V.forEach(function(v){ if(!ativa(v))return; var k=calc(v,all); var arr=porMes(k,v,meses,'hs'); if(!arr.some(function(x){return x>0.005;})&&k.hsPend<0.005)return; arr.forEach(function(x,i){tot[i]+=x;}); totP+=k.hsPend;
-    rows.push('<tr><td>'+esc(v.cliente_nome||'—')+' <span class="note">'+(v.grupo?v.grupo+'/'+(v.cota||''):'')+' · '+esc((user(v.vendedor_id).nome||'').split(' ')[0])+'</span> '+origemChip(v)+'</td><td class="n">'+BRL(k.credito)+'</td><td class="n">'+BRL2(k.hsPre)+'</td><td class="n">'+BRL2(k.hsRec)+'</td>'+arr.map(function(x){return '<td class="n">'+(x?BRL2(x):'—')+'</td>';}).join('')+'<td class="n"><b>'+BRL2(k.hsPend)+'</b></td></tr>'); });
-  var foot='<tr><td colspan="4"><b>Total a receber da HS</b></td>'+tot.map(function(x){return '<td class="n"><b>'+BRL2(x)+'</b></td>';}).join('')+'<td class="n"><b>'+BRL2(totP)+'</b></td></tr>';
-  return '<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th class="n">Crédito</th><th class="n">Gerado (2%)</th><th class="n">Já recebido</th>'+mesesCols(meses)+'<th class="n">A receber</th></tr></thead><tbody>'+(rows.join('')||emptyRow(meses.length+5,'Nada pendente da HS','Todas as parcelas previstas já foram recebidas.'))+'</tbody>'+(rows.length?'<tfoot>'+foot+'</tfoot>':'')+'</table></div>';
+    rows.push('<tr><td>'+esc(v.cliente_nome||'—')+' <span class="note">'+(v.grupo?v.grupo+'/'+(v.cota||''):'')+' · '+esc((user(v.vendedor_id).nome||'').split(' ')[0])+'</span> '+catChip(v)+origemChip(v)+'</td><td class="n">'+BRL(k.credito)+'</td><td class="n">'+BRL2(k.hsPre)+'</td><td class="n">'+BRL2(k.hsRec)+'</td>'+arr.map(function(x){return '<td class="n">'+(x?BRL2(x):'—')+'</td>';}).join('')+'<td class="n"><b>'+BRL2(k.hsPend)+'</b></td></tr>'); });
+  var foot='<tr><td colspan="4"><b>Total a receber das administradoras</b></td>'+tot.map(function(x){return '<td class="n"><b>'+BRL2(x)+'</b></td>';}).join('')+'<td class="n"><b>'+BRL2(totP)+'</b></td></tr>';
+  return '<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th class="n">Crédito</th><th class="n">Gerado</th><th class="n">Já recebido</th>'+mesesCols(meses)+'<th class="n">A receber</th></tr></thead><tbody>'+(rows.join('')||emptyRow(meses.length+5,'Nada pendente das administradoras','Todas as parcelas previstas já foram recebidas.'))+'</tbody>'+(rows.length?'<tfoot>'+foot+'</tfoot>':'')+'</table></div>';
 }
 /* lê uma variável CSS do tema (com fallback) e deriva rgba — para o Chart.js, que não entende var() */
 function cssVar(name, fb){ try{ var v=getComputedStyle(document.documentElement).getPropertyValue(name); return (v&&v.trim())||fb; }catch(e){ return fb; } }
@@ -624,13 +649,13 @@ function paintMaster(C){
   var all=_vendas, comp=compShift(_compSel,0), meses=mesesRolantes(), tudo=_periodo==='tudo';
   var inComp=function(v){return competencia(v.data_insercao).key===_compSel;};
   var V=tudo?all:all.filter(inComp);               // conjunto do período
-  var T={prod:0,prodL:0,prodP:0,hsPre:0,hsRec:0,func:0,funcPago:0,posHs:0,posFunc:0,posRec:0,reemb:0,an:0,rev:0};
+  var T={hsL:0,hsP:0,prod:0,prodL:0,prodP:0,hsPre:0,hsRec:0,func:0,funcPago:0,posHs:0,posFunc:0,posRec:0,reemb:0,an:0,rev:0};
   V.forEach(function(v){ if(analise(v)==='EM_ANALISE')T.an++; if(v.origem_status==='EM_REVISAO')T.rev++; if(!ativa(v)){T.reemb+=(+v.reembolso_valor||0);return;} var k=calc(v,all);
-    T.prod+=k.credito; if(v.origem==='LEAD_AGION')T.prodL+=k.credito; else T.prodP+=k.credito; T.hsPre+=k.hsPre; T.hsRec+=k.hsRec; T.func+=k.funcPre; T.funcPago+=k.funcPago; T.posHs+=k.posHs; T.posFunc+=k.posFunc; T.reemb+=k.reemb; if(v.pos_status==='COMISSAO_POS_RECEBIDA')T.posRec+=k.posHs; });
+    T.prod+=k.credito; if(v.origem==='LEAD_AGION'){T.prodL+=k.credito;T.hsL+=k.hsPre;} else {T.prodP+=k.credito;T.hsP+=k.hsPre;} T.hsPre+=k.hsPre; T.hsRec+=k.hsRec; T.func+=k.funcPre; T.funcPago+=k.funcPago; T.posHs+=k.posHs; T.posFunc+=k.posFunc; T.reemb+=k.reemb; if(v.pos_status==='COMISSAO_POS_RECEBIDA')T.posRec+=k.posHs; });
   var agion=T.hsPre-T.func, agionRec=T.hsRec-T.funcPago;
   var cards='<div class="cms-kts">'
     +cardTab('producao',tudo?'Produção total':'Produção da competência',BRL(T.prod),[['Leads Agion',BRL(T.prodL)],['Clientes próprios',BRL(T.prodP)]],true)
-    +cardTab('hs','Comissão pré · HS',BRL2(T.hsPre),tudo?[['Já recebido da HS',BRL2(T.hsRec)],['A receber da HS',BRL2(T.hsPre-T.hsRec)]]:[['Leads Agion',BRL2(T.prodL*HS_PRE)],['Clientes próprios',BRL2(T.prodP*HS_PRE)]])
+    +cardTab('hs','Comissão pré · administradoras',BRL2(T.hsPre),tudo?[['Já recebido',BRL2(T.hsRec)],['A receber',BRL2(T.hsPre-T.hsRec)]]:[['Leads Agion',BRL2(T.hsL)],['Clientes próprios',BRL2(T.hsP)]])
     +cardTab('func','Comissão pré · funcionários',BRL2(T.func),[['Já pago',BRL2(T.funcPago)],['A pagar',BRL2(T.func-T.funcPago)]])
     +cardTab('agion','Margem pré · Agion',BRL2(agion),[['Já realizada',BRL2(agionRec)],['A realizar',BRL2(agion-agionRec)]],true)
     +(tudo?cardTab('pos','Pós-contemplação potencial',BRL2(T.posHs),[['Funcionários · 1% próprios',BRL2(T.posFunc)],['Agion',BRL2(T.posHs-T.posFunc)],['Já recebida da HS',BRL2(T.posRec)]]):'')
@@ -642,11 +667,11 @@ function paintMaster(C){
   var ids=[]; V.forEach(function(v){ if(ids.indexOf(v.vendedor_id)<0)ids.push(v.vendedor_id); });
   var filt=tudo?null:inComp; var body='';
   if(_mtab==='producao'){
-    body='<div class="panel"><h2>'+(tudo?'Produção por funcionário — todo o período':'Produção por funcionário — '+esc(comp.rot))+' <span class="right note">gerada = 2% pagos pela HS sobre o crédito</span></h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">Leads Agion</th><th class="n">Clientes próprios</th>'+(tudo?'':'<th class="n">Cluster</th><th class="n">Falta p/ próximo</th>')+'<th class="n">Gerada · lead</th><th class="n">Gerada · próprio</th><th class="n">Gerada · total</th><th aria-label="Ações"></th></tr></thead><tbody>'
+    body='<div class="panel"><h2>'+(tudo?'Produção por funcionário — todo o período':'Produção por funcionário — '+esc(comp.rot))+' <span class="right note">gerada = comissão paga pela administradora (HS 2% · Âncora serviços 4%)</span></h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">Leads Agion</th><th class="n">Clientes próprios</th>'+(tudo?'':'<th class="n">Cluster</th><th class="n">Falta p/ próximo</th>')+'<th class="n">Gerada · lead</th><th class="n">Gerada · próprio</th><th class="n">Gerada · total</th><th aria-label="Ações"></th></tr></thead><tbody>'
       +(ids.map(function(id){ var S=statsFunc(id,all,filt); if(!S.n)return ''; var u=user(id); var pl=0,pp=0; all.forEach(function(v){ if(v.vendedor_id!==id||!ativa(v)||(filt&&!filt(v)))return; if(v.origem==='LEAD_AGION')pl+=+v.credito; else pp+=+v.credito; });
         return '<tr><td><b>'+esc(u.nome||id)+'</b></td><td class="n">'+S.n+'</td><td class="n">'+BRL(S.prod)+'</td><td class="n">'+(pl?BRL(pl):'—')+'</td><td class="n">'+(pp?BRL(pp):'—')+'</td>'+(tudo?'':'<td class="n">'+pct(S.cluster.r)+'</td><td class="n">'+(S.prox?BRL(S.falta):'máximo')+'</td>')+'<td class="n">'+(S.gerL?BRL2(S.gerL):'—')+'</td><td class="n">'+(S.gerP?BRL2(S.gerP):'—')+'</td><td class="n"><b>'+BRL2(S.ger)+'</b></td><td class="act"><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\''+id+'\')">Ver detalhes</button></td></tr>'; }).join('')||emptyRow(tudo?9:11,'Nenhuma venda no período','Troque a competência ou veja todo o período.'))+'</tbody></table></div></div>';
   } else if(_mtab==='hs'){
-    body='<div class="panel"><h2>Comissão pré da HS — por cliente <span class="right note">2% do crédito em 5 parcelas: 0,75% · 0,25% · 0,25% · 0,25% · 0,50%</span></h2>'+tabelaClientesHS(V,all,meses)+'</div>';
+    body='<div class="panel"><h2>Comissão pré das administradoras — por cliente <span class="right note">HS: 2% do crédito em 5 parcelas · Âncora (serviços): 4% em 4 parcelas</span></h2>'+tabelaClientesHS(V,all,meses)+'</div>';
   } else if(_mtab==='func'){
     body='<div class="panel"><h2>Pagamentos aos funcionários <span class="right note">clique em um nome para ver os clientes</span></h2>'+organograma(V,meses,'func')+'</div>'
         +'<div class="panel"><h2>Histórico por funcionário</h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Comissão gerada</th><th class="n">Já pago</th><th class="n">A pagar</th><th class="n">Pós já pago</th><th aria-label="Ações"></th></tr></thead><tbody>'
@@ -662,12 +687,24 @@ function paintMaster(C){
   } else {
     var lista=V.slice().sort(function(a,b){ var x=analise(a)==='EM_ANALISE'?0:1, y=analise(b)==='EM_ANALISE'?0:1; return x-y; });
     var lst=lista.filter(function(v){return grupoDe(v,all)===_tab;});
-    body='<div class="panel"><h2>Vendas <span class="right note">parcelas vencidas contam como pagas; clique no status para corrigir</span></h2>'+tabsHtml(lista,all)+'<p class="cms-desc">'+tabDesc()+'</p>'+(lst.length?lst.map(function(v){return vendaCard(v,all,true);}).join(''):empty('Nenhuma venda nesta aba','Registre uma venda ou veja outra aba.'))+'</div>';
+    body=distCategorias(V)+'<div class="panel"><h2>Vendas <span class="right note">parcelas vencidas contam como pagas; clique no status para corrigir</span></h2>'+tabsHtml(lista,all)+'<p class="cms-desc">'+tabDesc()+'</p>'+(lst.length?lst.map(function(v){return vendaCard(v,all,true);}).join(''):empty('Nenhuma venda nesta aba','Registre uma venda ou veja outra aba.'))+'</div>';
     var sit=V.filter(function(v){return v.situacao!=='EM_DIA';});
     body+='<div class="panel"><h2>Clientes com pendência ou reembolso</h2>'+(sit.length?'<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Funcionário</th><th>Situação</th><th class="n">Reembolso</th><th>Observação</th></tr></thead><tbody>'+sit.map(function(v){return '<tr><td>'+esc(v.cliente_nome||'—')+'</td><td>'+esc((user(v.vendedor_id).nome||'').split(' ')[0])+'</td><td>'+sitChip(v.situacao)+'</td><td class="n">'+(v.reembolso_valor?BRL2(v.reembolso_valor):'—')+'</td><td class="note">'+esc(v.obs||'')+'</td></tr>';}).join('')+'</tbody></table></div>':empty('Nenhuma pendência','Todos os clientes do período estão em dia.'))+'</div>';
   }
   ensureCss(); C.innerHTML='<div class="cms-wrap">'+sel+cards+body+'</div>';
 }
+
+/* Distribuição das vendas por categoria da carta (KPI) — usada na aba Vendas e na página de KPIs */
+function distCategorias(V, titulo){
+  var at=(V||[]).filter(ativa), tot=at.reduce(function(s,v){return s+(+v.credito||0);},0), semCat=0;
+  var by={}; Object.keys(CATS).forEach(function(k){ by[k]={n:0,cred:0}; });
+  at.forEach(function(v){ var b=by[v.categoria]; if(!b){ semCat++; return; } b.n++; b.cred+=(+v.credito||0); });
+  var max=Math.max.apply(null,Object.keys(by).map(function(k){return by[k].cred;}).concat([1]));
+  var tiles=Object.keys(CATS).map(function(k){ var b=by[k], c=CATS[k], pc=tot?b.cred/tot:0;
+    return '<div class="cms-cat'+(b.n?'':' vazio')+'"><div class="h"><span>'+c.ic+'</span><b>'+c.lb+'</b><em>'+(tot?Math.round(pc*100):0)+'%</em></div><div class="v">'+BRL(b.cred)+'</div><div class="s">'+b.n+' venda'+(b.n===1?'':'s')+'</div><div class="bar"><i style="width:'+Math.round(b.cred/max*100)+'%"></i></div></div>'; }).join('');
+  return '<div class="panel"><h2>'+(titulo||'Vendas por categoria')+' <span class="right note">'+at.length+' venda'+(at.length===1?'':'s')+' · '+BRL(tot)+(semCat?' · '+semCat+' sem categoria':'')+'</span></h2><div class="cms-cats">'+tiles+'</div></div>';
+}
+window.cmsDistCategorias=async function(titulo){ if(!_loaded) await load(); ensureCss(); return '<div class="cms-wrap">'+distCategorias(vendasVisiveis(),titulo)+'</div>'; };
 
 function paintLider(C){
   var uid=eId(), ids=teamIds();
@@ -733,16 +770,18 @@ window.cmsEditar=async function(id){
     var bg=document.createElement('div'); bg.style.cssText='position:fixed;inset:0;z-index:210;background:var(--surface-overlay,rgba(4,12,14,.72));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px';
     bg.innerHTML='<div class="cms-md" role="dialog" aria-modal="true" aria-labelledby="edTitle"><h2 id="edTitle">Editar venda</h2><p class="cms-sub">'+esc(v.cliente_nome||'')+(v.grupo?' — grupo '+esc(v.grupo)+' / cota '+esc(v.cota||''):'')+'</p>'
       +fld('Quem recebe a comissão',sel('<select id="edVend" class="'+bx+'">'+vendOpts+'</select>'))
+      +fld('Categoria da carta',sel('<select id="edCat" class="'+bx+'">'+catOpts(v.categoria||'')+'</select>'))
       +fld('Crédito vendido (R$)','<input id="edCred" inputmode="decimal" value="'+String(Math.round(+v.credito||0))+'" class="'+bx+'">')
       +fld('Data da venda (inserção na HS)','<input id="edData" type="date" value="'+String(v.data_insercao||'').slice(0,10)+'" class="'+bx+'">')
       +fld('Origem do cliente',sel('<select id="edOrig" class="'+bx+'"><option value="LEAD_AGION"'+(v.origem==='LEAD_AGION'?' selected':'')+'>Lead da Agion — comissão pelo cluster</option><option value="CLIENTE_PROPRIO"'+(v.origem==='CLIENTE_PROPRIO'?' selected':'')+'>Cliente próprio — 1% pré + 1% na contemplação</option></select>'))
       +'<div class="cms-acts"><button class="btn btn-ghost btn-sm" id="edC">Cancelar</button><button class="btn btn-gold btn-sm" id="edOk">Salvar alterações</button></div></div>';
     document.body.appendChild(bg);
     document.getElementById('edC').onclick=function(){bg.remove();res(null);};
-    document.getElementById('edOk').onclick=function(){ var r={vend:document.getElementById('edVend').value,credito:Number(String(document.getElementById('edCred').value).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0,data:document.getElementById('edData').value,origem:document.getElementById('edOrig').value}; if(!(r.credito>0)){flash('Informe o valor do crédito vendido.');return;} if(!r.data){flash('Informe a data da venda.');return;} bg.remove(); res(r); };
+    document.getElementById('edOk').onclick=function(){ var r={vend:document.getElementById('edVend').value,credito:Number(String(document.getElementById('edCred').value).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0,data:document.getElementById('edData').value,origem:document.getElementById('edOrig').value,categoria:document.getElementById('edCat').value}; if(!(r.credito>0)){flash('Informe o valor do crédito vendido.');return;} if(!r.data){flash('Informe a data da venda.');return;} bg.remove(); res(r); };
   });
   if(!out)return;
-  var patch={vendedor_id:out.vend,credito:out.credito,data_insercao:out.data,origem:out.origem,origem_status:'VALIDADA'};
+  var patch={vendedor_id:out.vend,credito:out.credito,data_insercao:out.data,origem:out.origem,origem_status:'VALIDADA',categoria:out.categoria||null};
+  if(out.categoria==='SERVICOS') patch.administradora='Âncora Consórcios'; else if(/[âa]ncora/i.test(v.administradora||'')&&v.categoria==='SERVICOS') patch.administradora='HS Consórcios';
   var desc='Editou venda de '+(v.cliente_nome||'')+(out.vend!==v.vendedor_id?' — designou para '+(user(out.vend).nome||''):'');
   await upd(id,patch,desc);
 };
@@ -781,7 +820,7 @@ window.cmsNovaVenda=async function(pre){
   var clis=(typeof visibleClients==='function'?visibleClients():(db.clients||[])).slice().sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'');});
   if(!clis.length){ flash('Cadastre um cliente antes de registrar a venda.'); return; }
   // valores pré-definidos: carta HS (valor) e lead do CRM (valor)
-  var cartasAll=[]; try{ var rc=await supa.from('cartas').select('id,cliente_id,administradora,grupo,cota,valor'); cartasAll=(rc.data||[]).filter(function(x){return /hs/i.test(x.administradora||'');}); }catch(e){}
+  var cartasAll=[]; try{ var rc=await supa.from('cartas').select('id,cliente_id,administradora,grupo,cota,valor,categoria'); cartasAll=(rc.data||[]).filter(function(x){return /hs/i.test(x.administradora||'')||x.categoria==='SERVICOS';}); }catch(e){}
   function leadDe(c){ var n=String(c.nome||'').trim().toLowerCase(); return (db.crm||[]).filter(function(l){return String(l.nome||'').trim().toLowerCase()===n;}).sort(function(x,y){return (y.stage||0)-(x.stage||0);})[0]||null; }
   function info(c){ var ks=cartasAll.filter(function(x){return x.cliente_id===c.id;}); var l=leadDe(c); var val=(ks.find(function(x){return x.valor;})||{}).valor||(l&&l.valor)||0; var orig=(l&&/^Origem:/.test(l.obs||''))?'LEAD_AGION':''; return {cartas:ks,lead:l,valor:val,origem:orig,fonte:ks.some(function(x){return x.valor;})?'carta':(l&&l.valor?'CRM':'')}; }
   var bx='cms-in', sel=function(inner){ return '<span class="cms-sel">'+inner+'</span>'; };
@@ -794,10 +833,11 @@ window.cmsNovaVenda=async function(pre){
   var vendOpts=''; if(eMaster()){ var vs=staffList(); vendOpts=vs.map(function(a){return '<option value="'+a.id+'">'+esc(a.nome||'')+'</option>';}).join(''); }
   var out=await new Promise(function(res){
     var bg=document.createElement('div'); bg.id='cmsSel'; bg.style.cssText='position:fixed;inset:0;z-index:210;background:var(--surface-overlay,rgba(4,12,14,.72));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px';
-    bg.innerHTML='<div class="cms-md" role="dialog" aria-modal="true" aria-labelledby="cmsNvT"><h2 id="cmsNvT">Registrar venda</h2><p class="cms-sub">Informe o cliente, o crédito e a origem da carta HS vendida.</p>'
+    bg.innerHTML='<div class="cms-md" role="dialog" aria-modal="true" aria-labelledby="cmsNvT"><h2 id="cmsNvT">Registrar venda</h2><p class="cms-sub">Informe o cliente, a categoria, o crédito e a origem da carta vendida.</p>'
       +(sug?'<div class="cms-fld"><span>Fechados recentemente no CRM</span><div id="cmsSug" class="cms-sug">'+sug+'</div></div>':'')
       +fld('Cliente','<div class="cms-row"><input id="cmsBusca" type="search" placeholder="Buscar cliente" class="'+bx+'">'+sel('<select id="cmsCli" class="'+bx+'">'+opts+'</select>')+'</div>')
-      +fld('Carta HS',sel('<select id="cmsCarta" class="'+bx+'"></select>'))
+      +fld('Carta',sel('<select id="cmsCarta" class="'+bx+'"></select>'))
+      +fld('Categoria da carta <span id="cmsCatHint" class="note"></span>',sel('<select id="cmsCat" class="'+bx+'"><option value="">Selecione…</option>'+catOpts(pre.categoria||'')+'</select>'))
       +fld('Crédito vendido (R$) <span id="cmsHint" class="note"></span>','<div class="cms-row"><input id="cmsCred" inputmode="decimal" placeholder="Ex.: 800000" class="'+bx+'"><button class="btn btn-ghost btn-sm" id="cmsUsar" type="button" title="Preencher com o valor da carta ou do CRM">Usar valor sugerido</button></div>')
       +fld('Data da venda (inserção na HS)','<input id="cmsData" type="date" value="'+(pre.data||iso(new Date()))+'" class="'+bx+'">')
       +fld('Origem do cliente',sel('<select id="cmsOrig" class="'+bx+'"><option value="LEAD_AGION">Lead da Agion — comissão pelo cluster</option><option value="CLIENTE_PROPRIO">Cliente próprio — 1% pré + 1% na contemplação'+(eMaster()?'':' (o Master valida)')+'</option></select>'))
@@ -806,33 +846,37 @@ window.cmsNovaVenda=async function(pre){
     document.body.appendChild(bg);
     var $=function(i){return document.getElementById(i);};
     function fill(){ var o=$('cmsCli').selectedOptions[0]; var cid=o.value; var ks=cartasAll.filter(function(x){return x.cliente_id===cid;});
-      $('cmsCarta').innerHTML=(ks.map(function(x){return '<option value="'+x.id+'" data-valor="'+(x.valor||'')+'"'+(pre.carta_id===x.id?' selected':'')+'>Grupo '+esc(x.grupo)+' / cota '+esc(x.cota)+(x.valor?' — '+BRL(x.valor):'')+'</option>';}).join(''))+'<option value="">Sem carta vinculada</option>';
+      $('cmsCarta').innerHTML=(ks.map(function(x){return '<option value="'+x.id+'" data-cat="'+(x.categoria||'')+'" data-valor="'+(x.valor||'')+'"'+(pre.carta_id===x.id?' selected':'')+'>Grupo '+esc(x.grupo)+' / cota '+esc(x.cota)+(x.valor?' — '+BRL(x.valor):'')+'</option>';}).join(''))+'<option value="">Sem carta vinculada</option>';
       var pv=pre.credito||o.getAttribute('data-valor')||''; $('cmsCred').value=pv?String(Math.round(+pv)):''; $('cmsHint').textContent=pv?'sugerido: '+BRL(+pv)+' ('+(o.getAttribute('data-fonte')||'')+')':'sem valor sugerido';
       if(o.getAttribute('data-origem')) $('cmsOrig').value=o.getAttribute('data-origem');
+      var cc=clis.find(function(x){return x.id===cid;})||{}, ko=$('cmsCarta').selectedOptions[0], ld=leadDe(cc);
+      var catSug=pre.categoria||(ko&&ko.getAttribute('data-cat'))||cc.categoria||(ld&&ld.categoria)||''; if(catSug) $('cmsCat').value=catSug; catTxt();
       if($('cmsVend')){ var c=clis.find(function(x){return x.id===cid;}); if(c&&c.ownerId&&[].some.call($('cmsVend').options,function(op){return op.value===c.ownerId;})) $('cmsVend').value=c.ownerId; else $('cmsVend').value=meId(); } }
-    fill(); $('cmsCli').onchange=fill;
+    function catTxt(){ var sv=$('cmsCat').value==='SERVICOS'; var op=$('cmsOrig').options; op[0].textContent=sv?'Lead da Agion — serviços: 0,25% ao mês × 4 (1%)':'Lead da Agion — comissão pelo cluster'; op[1].textContent=(sv?'Cliente próprio — serviços: 0,5% ao mês × 4 (2%)':'Cliente próprio — 1% pré + 1% na contemplação')+(eMaster()?'':' (o Master valida)'); $('cmsCatHint').textContent=sv?'administradora Âncora':''; }
+    fill(); $('cmsCli').onchange=fill; $('cmsCat').onchange=catTxt;
     $('cmsBusca').oninput=function(){ var q=this.value.trim().toLowerCase(); var first=null; [].forEach.call($('cmsCli').options,function(o){ var hit=!q||o.textContent.toLowerCase().indexOf(q)>=0; o.hidden=!hit; if(hit&&!first)first=o; }); if(first){ $('cmsCli').value=first.value; fill(); } };
     if($('cmsSug')) [].forEach.call($('cmsSug').querySelectorAll('button'),function(b){ b.onclick=function(){ $('cmsCli').value=b.getAttribute('data-cid'); fill(); var v=b.getAttribute('data-valor'); if(v&&!$('cmsCred').value) $('cmsCred').value=String(Math.round(+v)); [].forEach.call($('cmsSug').querySelectorAll('button'),function(x){x.classList.remove('on');}); b.classList.add('on'); }; });
-    $('cmsCarta').onchange=function(){ var v=this.selectedOptions[0]&&this.selectedOptions[0].getAttribute('data-valor'); if(v) $('cmsCred').value=String(Math.round(+v)); };
+    $('cmsCarta').onchange=function(){ var o2=this.selectedOptions[0]; var v=o2&&o2.getAttribute('data-valor'); if(v) $('cmsCred').value=String(Math.round(+v)); var ct=o2&&o2.getAttribute('data-cat'); if(ct){ $('cmsCat').value=ct; catTxt(); } };
     $('cmsUsar').onclick=function(){ var o=$('cmsCli').selectedOptions[0]; var v=o.getAttribute('data-valor'); if(v) $('cmsCred').value=String(Math.round(+v)); else flash('Este cliente não tem valor sugerido. Digite o crédito.'); };
     $('cmsCancel').onclick=function(){bg.remove();res(null);};
-    $('cmsOk').onclick=function(){ var r={cid:$('cmsCli').value,carta_id:$('cmsCarta').value||null,credito:Number(String($('cmsCred').value).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0,data:$('cmsData').value,origem:$('cmsOrig').value,vend:$('cmsVend')?$('cmsVend').value:null}; if(!(r.credito>0)){flash('Informe o valor do crédito vendido.');return;} if(!r.data){flash('Informe a data da venda.');return;} bg.remove(); res(r); };
+    $('cmsOk').onclick=function(){ var r={cid:$('cmsCli').value,carta_id:$('cmsCarta').value||null,credito:Number(String($('cmsCred').value).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0,data:$('cmsData').value,origem:$('cmsOrig').value,categoria:$('cmsCat').value,vend:$('cmsVend')?$('cmsVend').value:null}; if(!r.categoria){flash('Escolha a categoria da carta.');return;} if(!(r.credito>0)){flash('Informe o valor do crédito vendido.');return;} if(!r.data){flash('Informe a data da venda.');return;} bg.remove(); res(r); };
   });
   if(!out)return;
   var cli=clis.find(function(c){return c.id===out.cid;})||{};
   var carta=cartasAll.find(function(x){return x.id===out.carta_id;})||null;
-  var rec={cliente_id:out.cid,cliente_nome:cli.nome||'',vendedor_id:out.vend||meId(),administradora:(carta&&carta.administradora)||'HS Consórcios',grupo:carta?carta.grupo:null,cota:carta?carta.cota:null,carta_id:carta?carta.id:null,credito:out.credito,origem:out.origem,origem_status:(out.origem==='CLIENTE_PROPRIO'&&!eMaster())?'EM_REVISAO':'VALIDADA',data_insercao:out.data,parcelas:[],analise_status:eMaster()?'APROVADA':'EM_ANALISE',analise_prazo:eMaster()?null:diasUteis(iso(new Date()),2)};
+  var rec={cliente_id:out.cid,cliente_nome:cli.nome||'',vendedor_id:out.vend||meId(),categoria:out.categoria,administradora:out.categoria==='SERVICOS'?'Âncora Consórcios':((carta&&carta.administradora)||'HS Consórcios'),grupo:carta?carta.grupo:null,cota:carta?carta.cota:null,carta_id:carta?carta.id:null,credito:out.credito,origem:out.origem,origem_status:(out.origem==='CLIENTE_PROPRIO'&&!eMaster())?'EM_REVISAO':'VALIDADA',data_insercao:out.data,parcelas:[],analise_status:eMaster()?'APROVADA':'EM_ANALISE',analise_prazo:eMaster()?null:diasUteis(iso(new Date()),2)};
   try{ var ins=await supa.from('comissoes_vendas').insert(rec); if(ins.error) throw ins.error; }catch(e){ await ask({title:'Não foi possível registrar a venda',msg:'Tente de novo em instantes. Detalhe: '+String(e.message||e),ok:'Fechar'}); return; }
-  try{ logEvt('comissao','comissoes','Registrou venda de '+(cli.nome||'')+' — '+BRL(out.credito)+' ('+out.origem+')',{cliente_id:out.cid}); }catch(e){}
+  try{ logEvt('comissao','comissoes','Registrou venda de '+(cli.nome||'')+' — '+BRL(out.credito)+' ('+out.origem+', '+((CATS[out.categoria]||{}).lb||'')+')',{cliente_id:out.cid,categoria:out.categoria});
+    if(!cli.categoria&&out.categoria){ cli.categoria=out.categoria; supa.from('clientes').update({categoria:out.categoria}).eq('id',out.cid).then(function(){},function(){}); } }catch(e){}
   flash('Venda registrada'+(rec.analise_status==='EM_ANALISE'?'. Em pré-análise até '+fmtBR(rec.analise_prazo)+'.':'.'));
   await load(); if(view.page==='comissoes') render();
 };
 // chamado pelo cartaSave após inserir cartas (host passa recs e cliente_id)
 window.cmsAfterCarta=async function(recs,cid){
   try{
-    var hs=(recs||[]).filter(function(x){return /hs/i.test(x.administradora||'')&&x.valor;}); if(!hs.length)return;
-    var ok=await chooseModal('Registrar esta venda nas comissões?','A carta HS de '+BRL(hs[0].valor)+' foi cadastrada. Quer registrar a venda agora na aba Comissões?','Sim, registrar venda','Agora não');
-    if(ok==='a'){ var r=await supa.from('cartas').select('id').eq('cliente_id',cid).eq('grupo',hs[0].grupo).eq('cota',hs[0].cota).limit(1); await window.cmsNovaVenda({cliente_id:cid,credito:hs[0].valor,carta_id:(r.data&&r.data[0])?r.data[0].id:null}); }
+    var hs=(recs||[]).filter(function(x){return (/hs/i.test(x.administradora||'')||x.categoria==='SERVICOS')&&x.valor;}); if(!hs.length)return;
+    var ok=await chooseModal('Registrar esta venda nas comissões?','A carta '+((CATS[hs[0].categoria]||{}).lb||'')+' de '+BRL(hs[0].valor)+' ('+admCurta(hs[0])+') foi cadastrada. Quer registrar a venda agora na aba Comissões?','Sim, registrar venda','Agora não');
+    if(ok==='a'){ var r=await supa.from('cartas').select('id').eq('cliente_id',cid).eq('grupo',hs[0].grupo).eq('cota',hs[0].cota).limit(1); await window.cmsNovaVenda({cliente_id:cid,credito:hs[0].valor,categoria:hs[0].categoria||'',carta_id:(r.data&&r.data[0])?r.data[0].id:null}); }
   }catch(e){}
 };
 

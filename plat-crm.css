@@ -412,3 +412,15 @@ body.light .lead-v2 .leadObs::after{background:var(--ag-paper)}
 /* coluna flex não pode encolher o card; altura padrão que acomoda todo o conteúdo */
 .kanban .kbody > .lead.lead-v2{flex:0 0 auto;min-height:500px;height:auto;overflow:visible}
 body.isApp .kanban .kbody > .lead.lead-v2{min-height:0}
+
+/* ===== Categoria da carta (09/out): chip editável no card do lead e no card do cliente ===== */
+body .lead-v2 .lv2-catsel{position:relative;display:inline-flex;align-items:center;gap:6px;flex:0 1 auto;max-width:100%;padding:4px 10px 4px 8px;border:1px solid var(--line-gold,rgba(197,160,89,.35));border-radius:999px;background:rgba(197,160,89,.08);color:var(--head);font-weight:600;cursor:pointer;white-space:nowrap}
+body .lead-v2 .lv2-catsel small{font-weight:400;color:var(--muted);font-size:.92em;margin-left:2px;overflow:hidden;text-overflow:ellipsis}
+body .lead-v2 .lv2-catsel svg{flex:none;opacity:.7}
+body .lead-v2 .lv2-catsel select,body .cli-cat select{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;-webkit-appearance:none;appearance:none}
+body .lead-v2 .lv2-cat-sug{border-style:dashed;background:transparent}
+body .lead-v2 .lv2-cat-vazia{border-style:dashed;background:transparent;color:var(--muted);font-weight:500}
+body .lead-v2 .lv2-catsel:active{transform:scale(.98)}
+body .cli-cat{position:relative;display:inline-flex;align-items:center;gap:6px;margin:2px 0 10px;padding:5px 11px;border:1px solid var(--line-gold,rgba(197,160,89,.35));border-radius:999px;background:rgba(197,160,89,.08);color:var(--head);font-size:.82rem;font-weight:600;cursor:pointer}
+body .cli-cat.vazia{border-style:dashed;background:transparent;color:var(--muted);font-weight:500}
+body .cli-cat svg{opacity:.7}
