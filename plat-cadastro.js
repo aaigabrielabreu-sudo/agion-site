@@ -91,14 +91,15 @@
   /* ---------- aba Cadastro ---------- */
   function linhas(){
     var last=(typeof CRM_STAGES!=='undefined')?CRM_STAGES.length-1:4;
-    var porNome={}; (db.cadastros||[]).forEach(function(k){ var n=String(k.nome||'').trim().toLowerCase(); if(n) porNome[n]=(porNome[n]||0)+1; });
+    var cliNome={}; (db.clients||[]).forEach(function(c){ var n=String(c.nome||'').trim().toLowerCase(); if(n) cliNome[n]=(cliNome[n]||[]).concat(c.cadastroId||''); });
     return (db.cadastros||[]).map(function(k){
       var leads=(db.crm||[]).filter(function(l){return l.cadastroId===k.id;});
+      var inbox=(db.inbox||[]).filter(function(x){return x.cadastroId===k.id&&!x.importado;});
       var clis=(db.clients||[]).filter(function(c){return c.cadastroId===k.id;});
       var ativos=leads.filter(function(l){return !l.perdido&&(l.stage||0)<last;});
       var ganhos=leads.filter(function(l){return !l.perdido&&(l.stage||0)>=last;});
       var nCartas=clis.reduce(function(a,c){return a+((_cartasPorCli&&_cartasPorCli[c.id])||0);},0);
-      var status=clis.length?'cliente':(ativos.length?'lead':(ganhos.length?'ganho':(leads.length?'perdido':'semvinc')));
+      var status=clis.length?'cliente':(ativos.length?'lead':(ganhos.length?'ganho':(leads.length?'perdido':(inbox.length?'captacao':'semvinc'))));
       var resp=clis.length?clis[0].ownerId:(ativos.length?ativos[ativos.length-1].ownerId:(leads.length?leads[leads.length-1].ownerId:null));
       var alertas=[];
       if(clis.length>1) alertas.push(clis.length+' fichas de cliente');
@@ -106,9 +107,10 @@
       var t0=new Date(k.criado_em).getTime()+120000;
       var rec=hist.filter(function(h){ if(h.op!=='INSERT'||!h.por) return false; if(new Date(h.quando).getTime()<=t0) return false; var a=(typeof acc==='function')?acc(h.por):null; return a&&(a.role==='especialista'||a.role==='lider')&&(k.origem==='EMPRESA'||h.por!==k.origem_por); });
       if(rec.length) alertas.push('Registrado de novo por '+pn(rec[rec.length-1].por));
-      if(!k.tel_chave&&!k.cpf&&porNome[String(k.nome||'').trim().toLowerCase()]>1) alertas.push('Possível duplicado (sem telefone)');
+      var nk=String(k.nome||'').trim().toLowerCase();
+      if(!k.tel_chave&&!k.cpf&&nk&&(cliNome[nk]||[]).some(function(cid){return cid&&cid!==k.id;})) alertas.push('Possível duplicado de um cliente (sem telefone/CPF)');
       return {k:k,leads:leads,clis:clis,ativos:ativos,status:status,resp:resp,alertas:alertas,nCartas:nCartas};
-    }).sort(function(a,b){ return new Date(b.k.atualizado_em||b.k.criado_em)-new Date(a.k.atualizado_em||a.k.criado_em); });
+    }).sort(function(a,b){ return new Date(b.k.criado_em)-new Date(a.k.criado_em); });
   }
   function filtrar(L){
     var q=_q, qd=q.replace(/\D/g,'');
@@ -125,7 +127,7 @@
       return false;
     });
   }
-  var ST={cliente:['Cliente','cad-st-cli'],lead:['Lead em andamento','cad-st-lead'],ganho:['Ganho','cad-st-cli'],perdido:['Lead perdido','cad-st-off'],semvinc:['Sem vínculo ativo','cad-st-off']};
+  var ST={cliente:['Cliente','cad-st-cli'],lead:['Lead em andamento','cad-st-lead'],ganho:['Ganho','cad-st-cli'],perdido:['Lead perdido','cad-st-off'],captacao:['Na captação','cad-st-lead'],semvinc:['Lead excluído','cad-st-off']};
   function rowHtml(r){
     var k=r.k, st=ST[r.status]||ST.semvinc;
     var sub=[]; if(k.tel) sub.push('📱 '+esc(telFmt(k.tel))); if(k.cpf) sub.push('CPF '+esc(cpfFmt(k.cpf))); sub.push('desde '+dBR(k.criado_em)); if(r.resp) sub.push('responsável '+esc(pn(r.resp)));
