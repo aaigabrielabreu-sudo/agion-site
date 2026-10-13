@@ -7,7 +7,9 @@
   'use strict';
   var _q='', _f='todos', _n=60, _cartasPorCli=null;
 
-  function telKey(t){ var d=String(t||'').replace(/\D/g,''); if(/^55/.test(d)&&(d.length===12||d.length===13)) d=d.slice(2); if(d.length<8) return ''; if(d.length===10||d.length===11) return d.slice(0,2)+d.slice(-8); return d.slice(-8); }
+  var EMRX=/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+  function emailDe(t){ var m=String(t||'').match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/); return m?m[0].toLowerCase():''; }
+  function telKey(t){ var d=String(t||'').replace(EMRX,'').replace(/\D/g,''); if(/^55/.test(d)&&(d.length===12||d.length===13)) d=d.slice(2); if(d.length<8) return ''; if(d.length===10||d.length===11) return d.slice(0,2)+d.slice(-8); return d.slice(-8); }
   function cpfLimpo(t){ var x=String(t||'').replace(/\D/g,''); return (x.length===11||x.length===14)?x:''; }
   function cpfFmt(t){ var x=cpfLimpo(t); if(x.length===11) return x.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4'); if(x.length===14) return x.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5'); return String(t||''); }
   function telFmt(t){ var d=String(t||'').replace(/\D/g,''); if(/^55/.test(d)&&d.length>=12) d=d.slice(2); if(d.length===11) return '('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7); if(d.length===10) return '('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6); return d; }
@@ -21,8 +23,8 @@
   /* consulta no banco (enxerga todo mundo, mesmo de outra carteira) */
   async function consulta(tel,cpf){
     if(!cadOn()||!supa) return null;
-    if(!telKey(tel)&&!cpfLimpo(cpf)) return null;
-    try{ var r=await supa.rpc('cadastro_consulta',{p_tel:tel||null,p_cpf:cpf||null}); return (r&&!r.error&&r.data&&r.data.found)?r.data:null; }catch(e){ return null; }
+    if(!telKey(tel)&&!cpfLimpo(cpf)&&!emailDe(tel)) return null;
+    try{ var em=emailDe(tel); var r=await supa.rpc('cadastro_consulta',{p_tel:tel||null,p_cpf:cpf||null,p_email:em||null}); return (r&&!r.error&&r.data&&r.data.found)?r.data:null; }catch(e){ return null; }
   }
 
   /* modal com WhatsApp + CPF (e nome, quando pedido) */
@@ -152,7 +154,7 @@
     setTop('Cadastro','Todas as pessoas que já passaram pela plataforma','');
     if(!cadOn()){ C.innerHTML='<div class="panel"><p class="note">O Cadastro único ainda não está ativo no banco de dados.</p></div>'; return; }
     _n=60;
-    C.innerHTML='<div class="banner">Cada pessoa aparece uma vez só. Quando ela volta (novo lead, nova carta), a plataforma liga ao mesmo cadastro pelo telefone ou CPF. A <b>origem</b> (Agion ou própria do colaborador) é marcada na primeira entrada e não muda sozinha.</div>'
+    C.innerHTML='<div class="banner"><span>Cada pessoa aparece uma vez só. Quando ela volta (novo lead, nova carta), a plataforma liga ao mesmo cadastro pelo telefone, CPF ou e-mail. A <b>origem</b> (Agion ou própria do colaborador) é marcada na primeira entrada e não muda sozinha.</span></div>'
       +'<div id="cadKpis">'+kpisHtml()+'</div>'
       +'<div style="margin-bottom:14px"><input id="cadBusca" value="'+esc(_q)+'" placeholder="Buscar por nome, telefone, CPF ou e-mail…" aria-label="Buscar no cadastro" oninput="cadBuscar(this.value)" style="width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:11px 14px;border-radius:10px;font:inherit"></div>'
       +'<div class="panel cad-panel" id="cadList">'+listHtml()+'</div>';
