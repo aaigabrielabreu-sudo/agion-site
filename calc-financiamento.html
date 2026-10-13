@@ -271,7 +271,7 @@ function calc(){
  const init=Math.max(0,fEnt-cEnt), initF=Math.max(0,cEnt-fEnt);
  const arrPc=[],arrPf=[],arrDiff=[];
  // Pass 1 — A (juros compostos), CDI, C (resgata o rendimento), pilha do financiamento, ponto de virada
- let a=init, cdi=init, cpl=init, fpl=initF, cYield=0, bkMonth=null;
+ let a=init, cdi=init, cpl=init, fpl=initF, cYield=0, bkMonth=null; // cYield = só o rendimento efetivamente usado em parcelas
  const arrA=[a], arrC=[cpl], arrCdi=[cdi];
  for(let m=0;m<H;m++){
    const pc=m<nC?cPmts[m]:0, pf=m<nF?fArr[m]:0;
@@ -279,20 +279,21 @@ function calc(){
    arrPc.push(pc);arrPf.push(pf);arrDiff.push(d);
    a=a*(1+rInv)+d;
    cdi=cdi*(1+rCdi)+d;
-   cYield+=cpl*rInv; cpl=cpl+d;
+   { const yC=cpl*rInv, usedC=Math.min(yC,pc); cYield+=usedC; cpl=cpl+d+(yC-usedC); } // resgata só o que abate parcela; sem parcela, o rendimento fica investido
    fpl=fpl*(1+rInv)+dF;
    arrA.push(a);arrC.push(cpl);arrCdi.push(cdi);
    if(bkMonth===null&&a>=C)bkMonth=m+1;
  }
  // Pass 2 — B (compostos até a virada; depois rende e paga a parcela, preservando o principal)
- let b=init, bYield=0; const arrB=[b];
+ let b=init, bYield=0; const arrB=[b]; // bYield = parcelas efetivamente pagas com rendimento
  for(let m=0;m<H;m++){
    const pc=m<nC?cPmts[m]:0, pf=m<nF?fArr[m]:0, d=Math.max(0,pf-pc);
-   if(bkMonth!==null&&(m+1)>bkMonth){ const y=b*rInv; bYield+=y; const sp=y-pc; if(sp>0)b=b+sp; }
+   if(bkMonth!==null&&(m+1)>bkMonth){ const y=b*rInv, used=Math.min(y,pc); bYield+=used; b=b*(1+rInv)+d-used; } // segue investindo a sobra; só sai o rendimento que pagou parcela (principal intacto)
    else { b=b*(1+rInv)+d; }
    arrB.push(b);
  }
  const fvA=a, fvB=b, fvC=cpl, fvCdi=cdi, fvFin=fpl, net=fvA-fvFin;
+ const bkAfterEnd = bkMonth!==null && bkMonth>=nC; // meta só depois da última parcela
  $('o_c_ent').textContent=money(cEnt); $('o_c_parc').textContent=money(parcBase)+' → '+money(cPf);
  $('o_c_extra').textContent=money(cExtra); $('o_c_tot').textContent=money(cTot);
  $('o_f_ent').textContent=money(fEnt);
@@ -312,14 +313,14 @@ function calc(){
  // 3 cenários
  const difM=Math.max(0,fArr[0]-parcBase);
  $('sa_v').textContent=money(fvA); $('sa_s').textContent='Acumula a diferença a '+pct(num('rinv'))+' a.m. e não mexe. Maior patrimônio no fim.';
- $('sb_v').textContent=money(fvB); $('sb_s').textContent=bkMonth?('Rende até o mês '+bkMonth+'; depois só o rendimento paga a parcela ('+money(bYield)+' quitados pelo juro), preservando o principal.'):('Sem atingir 100% da carta no prazo — se comporta como o cenário A.');
- $('sc_v').textContent=money(fvC); $('sc_s').textContent='Resgata o rendimento todo mês pra abater a parcela ('+money(cYield)+' no total). Sem juros compostos: guarda só os aportes.';
+ $('sb_v').textContent=money(fvB); $('sb_s').textContent=!bkMonth?('Sem atingir 100% da carta no prazo — se comporta como o cenário A.'):(bkAfterEnd?('Meta atingida no mês '+bkMonth+', após o encerramento das parcelas (mês '+nC+'); nenhum pagamento realizado com rendimentos nessa fase — o rendimento segue todo no investimento.'):('Rende até o mês '+bkMonth+'; daí até o mês '+nC+' o rendimento paga a parcela ('+money(bYield)+' em parcelas pagas com rendimento) sem tocar no principal, e a sobra continua sendo investida. Depois do fim das parcelas, o rendimento fica todo no investimento.'));
+ $('sc_v').textContent=money(fvC); $('sc_s').textContent='Resgata o rendimento todo mês pra abater a parcela até o mês '+nC+' ('+money(cYield)+' em parcelas pagas com rendimento). Depois do fim das parcelas, o rendimento fica no investimento.';
  if(bkMonth){$('cta_v').textContent='No mês '+bkMonth+', a sobra investida já vale a carta inteira.';
    $('cta_s').textContent='Investindo a diferença a '+pct(num('rinv'))+' ao mês, em '+bkMonth+' meses ('+(bkMonth/12).toFixed(1)+' anos) o valor guardado atinge '+money(C)+' — o crédito inteiro, só com o que sobrou.';}
  else{$('cta_v').textContent='No fim do prazo, a sobra investida chega a '+money(fvA)+'.';
    $('cta_s').textContent='Nesta configuração a sobra investida acumula '+money(fvA)+' a '+pct(num('rinv'))+' ao mês, sem atingir 100% da carta ('+money(C)+') no prazo.';}
  $('note').innerHTML='A parcela do consórcio começa <b>'+money(difM)+'</b> menor por mês. Investindo essa diferença a '+pct(num('rinv'))+' ao mês, no cenário A você acumula <b>'+money(fvA)+'</b> (a '+pct(num('cdi'))+' de CDI seriam '+money(fvCdi)+'). '+(bkMonth?('E já no mês <b>'+bkMonth+'</b> esse dinheiro guardado paga 100% da carta de '+money(C)+'.'):'')+' No consórcio não há juros: o custo além do crédito é <b>'+money(cExtra)+'</b>, contra <b>'+money(fJuros)+'</b> de juros no financiamento ('+SYS+').';
- $('resumo').innerHTML='<b>Resumo.</b> A diferença que sobra pode ser usada de 3 jeitos: <b>A)</b> acumular tudo e terminar com <b>'+money(fvA)+'</b>; <b>B)</b> deixar render até o ponto de virada'+(bkMonth?(' (mês '+bkMonth+')'):'')+' e então usar só o rendimento pra pagar a parcela, mantendo <b>'+money(fvB)+'</b> de principal; ou <b>C)</b> resgatar o rendimento desde o 1º mês pra aliviar a parcela, guardando <b>'+money(fvC)+'</b> em aportes. Nos três, somando o que você investe, o consórcio '+(net>=0?('termina <b>'+money(net)+'</b> na frente do financiamento'):'fica lado a lado com o financiamento')+' — mesmo quando a parcela do financiamento parece menor no papel.';
+ $('resumo').innerHTML='<b>Resumo.</b> A diferença que sobra pode ser usada de 3 jeitos: <b>A)</b> acumular tudo e terminar com <b>'+money(fvA)+'</b>; <b>B)</b> '+(bkAfterEnd?('deixar render — a meta só é atingida no mês '+bkMonth+', depois do fim das parcelas, então nenhuma parcela é paga com rendimento e o investimento termina com <b>'+money(fvB)+'</b>;'):('deixar render até o ponto de virada'+(bkMonth?(' (mês '+bkMonth+')'):'')+' e então usar só o rendimento pra pagar a parcela, terminando com <b>'+money(fvB)+'</b>;'))+' ou <b>C)</b> resgatar o rendimento desde o 1º mês pra aliviar a parcela, terminando com <b>'+money(fvC)+'</b>. Nos três, somando o que você investe, o consórcio '+(net>=0?('termina <b>'+money(net)+'</b> na frente do financiamento'):'fica lado a lado com o financiamento')+' — mesmo quando a parcela do financiamento parece menor no papel.';
  try{ if(window.Chart) draw(arrPc,arrPf,arrDiff,arrA,arrB,arrC,C,H); }catch(e){}
 }
 function draw(pc,pf,diff,aA,aB,aC,C,H){
