@@ -171,9 +171,10 @@
     var cliRows=r.clis.map(function(c){ return '<div class="netrow"><span><b style="color:var(--head)">'+esc(c.nome)+'</b><br><span class="note">responsável '+esc(pn(c.ownerId))+(_cartasPorCli?' · '+((_cartasPorCli[c.id])||0)+' carta(s)':'')+(c.tel?' · 📱 '+esc(telFmt(c.tel)):'')+'</span></span><span style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm" onclick="cadFechar();openCartas(\''+c.id+'\')">🎫 Cartas</button></span></div>'; }).join('');
     var leadRows=r.leads.slice().sort(function(a,b){return (a.criadoEm||0)-(b.criadoEm||0);}).map(function(l){ return '<div class="netrow"><span><b style="color:var(--head)">'+esc(l.nome)+'</b><br><span class="note">'+dBR(l.criadoEm)+' · '+esc(stg(l))+' · com '+esc(pn(l.ownerId))+'</span></span><span><button class="btn btn-ghost btn-sm" onclick="cadFechar();openLead(\''+l.id+'\')">Abrir</button></span></div>'; }).join('');
     var TIPO={leads:'Lead',clientes:'Cliente',inbox:'Captação',unificado:'Cadastro unificado'};
-    var hist=(k.historico||[]).slice().sort(function(a,b){return new Date(a.quando)-new Date(b.quando);}).map(function(h){
-      var t=TIPO[h.tipo]||h.tipo; var quem=h.por?(' por '+pn(h.por)):(h.tipo==='inbox'?' (captação)':(h.tipo==='unificado'?'':' (robô / sistema)'));
-      var acao=h.tipo==='unificado'?'':(h.op==='UPDATE'?' atualizado':' registrado');
+    var _vistos={};
+    var hist=(k.historico||[]).slice().sort(function(a,b){return new Date(a.quando)-new Date(b.quando);}).filter(function(h){ if(h.tipo==='unificado') return true; var key=h.tipo+'|'+(h.ref||'')+'|'+(h.op||''); if(_vistos[key]) return false; _vistos[key]=1; return true; }).map(function(h){
+      var t=TIPO[h.tipo]||h.tipo; var quem=h.por?(' por '+pn(h.por)):(h.tipo==='inbox'?' (captação)':'');
+      var acao=h.tipo==='unificado'?'':(h.op==='UPDATE'?' com dados atualizados':' registrado');
       return '<div class="cad-h"><span class="cad-hd">'+dBR(h.quando)+'</span><span>'+esc(t)+acao+esc(quem)+(h.resp?' · responsável '+esc(pn(h.resp)):'')+'</span></div>'; }).join('');
     var acoes='';
     if(isMaster()){
