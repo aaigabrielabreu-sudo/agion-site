@@ -2396,7 +2396,7 @@ function renderCRM(C){
         <option value="200000-400000" ${view.crmValor==='200000-400000'?'selected':''}>R$ 200–400 mil</option>
         <option value="400000-0" ${view.crmValor==='400000-0'?'selected':''}>Acima de R$ 400 mil</option>
       </select>
-      <select onchange="crmSetCat(this.value)" style="padding:8px 12px;font-size:.82rem">
+      <select onchange="crmFiltroCat(this.value)" style="padding:8px 12px;font-size:.82rem">
         <option value="todas">Todas as categorias (${VLall.filter(l=>!l.perdido).length})</option>
         ${LEAD_CATS.concat([{k:'outros',lb:'Outros',ic:'📄'}]).map(c=>`<option value="${c.k}" ${view.crmCat===c.k?'selected':''}>${c.ic} ${c.lb} (${VLall.filter(l=>!l.perdido&&leadCategoria(l).k===c.k).length})</option>`).join('')}
       </select>
@@ -2452,14 +2452,14 @@ function leadOrigem(l){ const s=((l.obs||'')+' '+(l.tipo||'')).toLowerCase(); co
  if(/especialista/.test(s)||/^whats/.test(t)) return LEAD_ORIGENS[1];
  if(t==='Consórcio'||/n[aã]o distribu/.test(s)) return LEAD_ORIGENS[3];
  return {k:'outro',lb:'Outra origem',ic:'📄',cor:'#A8B8B3'}; }
-function crmLeadsFiltrados(arr){ let r=arr; if(view.crmCat&&view.crmCat!=='todas') r=r.filter(l=>leadCategoria(l).k===view.crmCat); if(view.crmOrigem&&view.crmOrigem!=='todas') r=r.filter(l=>leadOrigem(l).k===view.crmOrigem);
+function crmLeadsFiltrados(arr){ let r=arr; if(view.crmCat&&view.crmCat!=='todas'&&view.crmCat!=='outros'&&!LEAD_CATS.some(c=>c.k===view.crmCat)) view.crmCat='todas'; if(view.crmCat&&view.crmCat!=='todas') r=r.filter(l=>leadCategoria(l).k===view.crmCat); if(view.crmOrigem&&view.crmOrigem!=='todas') r=r.filter(l=>leadOrigem(l).k===view.crmOrigem);
   if(view.crmBusca){ const q=view.crmBusca.toLowerCase(); r=r.filter(l=>((l.nome||'')+' '+(l.contato||'')+' '+(l.obs||'')).toLowerCase().indexOf(q)>=0); }
   if(view.crmValor&&view.crmValor!=='todas'){ const pp=view.crmValor.split('-'); const mn=+pp[0]||0, mx=+pp[1]||0; r=r.filter(l=>{ const v=+l.valor||0; return v>=mn && (mx?v<mx:true); }); }
   return r; }
 function crmSetBusca(v){ view.crmBusca=v; render(); try{ const el=document.getElementById('crmBuscaInp'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length); } }catch(e){} }
 function crmSetValor(v){ view.crmValor=v; render(); }
 function crmSortLeads(a){ const m=view.crmSort||''; const b=a.slice(); if(m==='valor_desc')b.sort((x,y)=>(+y.valor||0)-(+x.valor||0)); else if(m==='valor_asc')b.sort((x,y)=>(+x.valor||0)-(+y.valor||0)); else if(m==='novo')b.sort((x,y)=>(y.criadoEm||0)-(x.criadoEm||0)); else if(m==='antigo')b.sort((x,y)=>(x.criadoEm||0)-(y.criadoEm||0)); return b; }
-function crmSetCat(v){view.crmCat=v;render();}
+function crmFiltroCat(v){view.crmCat=v;render();}
 function crmSetOrigem(v){view.crmOrigem=v;render();}
 function crmSetSort(v){view.crmSort=v;render();}
 function fmtDataLead(ts){ if(!ts)return '—'; const d=new Date(ts); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getFullYear()).slice(2); }
