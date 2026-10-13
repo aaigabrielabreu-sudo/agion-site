@@ -154,7 +154,7 @@
     setTop('Cadastro','Todas as pessoas que já passaram pela plataforma','');
     if(!cadOn()){ C.innerHTML='<div class="panel"><p class="note">O Cadastro único ainda não está ativo no banco de dados.</p></div>'; return; }
     _n=60;
-    C.innerHTML='<div class="banner"><span>Cada pessoa aparece uma vez só. Quando ela volta (novo lead, nova carta), a plataforma liga ao mesmo cadastro pelo telefone, CPF ou e-mail. A <b>origem</b> (Agion ou própria do colaborador) é marcada na primeira entrada e não muda sozinha.</span></div>'
+    C.innerHTML='<div class="banner cad-ban"><span>Cada pessoa aparece uma vez só. Quando ela volta (novo lead, nova carta), a plataforma liga ao mesmo cadastro pelo telefone, CPF ou e-mail. A <b>origem</b> (Agion ou própria do colaborador) é marcada na primeira entrada e não muda sozinha.</span></div>'
       +'<div id="cadKpis">'+kpisHtml()+'</div>'
       +'<div style="margin-bottom:14px"><input id="cadBusca" value="'+esc(_q)+'" placeholder="Buscar por nome, telefone, CPF ou e-mail…" aria-label="Buscar no cadastro" oninput="cadBuscar(this.value)" style="width:100%;background:var(--card2);border:1px solid var(--line);color:var(--head);padding:11px 14px;border-radius:10px;font:inherit"></div>'
       +'<div class="panel cad-panel" id="cadList">'+listHtml()+'</div>';
@@ -267,7 +267,7 @@
   };
 
   /* estilos */
-  var css='.cad-chip{display:inline-block;font-size:.68rem;font-weight:600;padding:3px 9px;border-radius:999px;margin-left:6px;vertical-align:middle;white-space:nowrap;text-transform:none;letter-spacing:0}'
+  var css='body.isApp .cad-ban{display:none}.cad-chip{display:inline-block;font-size:.68rem;font-weight:600;padding:3px 9px;border-radius:999px;margin-left:6px;vertical-align:middle;white-space:nowrap;text-transform:none;letter-spacing:0}'
    +'.cad-ag{background:rgba(31,158,139,.14);color:#5FCFBE;border:1px solid rgba(31,158,139,.35)}'
    +'.cad-prop{background:rgba(197,160,89,.14);color:#D9B56E;border:1px solid rgba(197,160,89,.4)}'
    +'body.light .cad-ag{color:#147A6B}body.light .cad-prop{color:#8A6A25}'
