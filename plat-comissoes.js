@@ -29,7 +29,7 @@ var SERV_N = 4, SERV_ADM_PARC = 0.01, SERV_FUNC_PROPRIO = 0.005, SERV_FUNC_LEAD 
 var CATS = {AUTOMOVEL:{lb:'Automóvel',ic:'\u{1F697}'}, IMOVEL:{lb:'Imóvel',ic:'\u{1F3E0}'}, INVESTIMENTO:{lb:'Investimento',ic:'\u{1F4C8}'}, SERVICOS:{lb:'Serviços',ic:'\u2728'}};
 function servico(v){ return v&&v.categoria==='SERVICOS'; }
 /* regra própria da venda (13/out/2026): administradora paga pct do crédito em n parcelas mensais — ex.: Âncora 5% em 16x, 0,5% ao mês em 8x.
-   Colaborador: 50% do que a administradora paga (cliente próprio) ou 25% (lead da Agion). Sem pós-contemplação. */
+   Colaborador: A DEFINIR (Gabriel vai passar a regra) — por enquanto 0. Sem pós-contemplação. */
 /* venda feita pelo Master (dono) = venda da EMPRESA: sem comissão de colaborador, tudo fica com a Agion (14/out/2026) */
 function vendaEmpresa(v){ try{ var u=(typeof user==='function')?user(v.vendedor_id):null; return !!(u&&u.role==='master'); }catch(e){ return false; } }
 function regraV(v){ var r=v&&v.regra; if(r&&+r.n>0&&+r.pct>0) return {n:Math.round(+r.n),pct:+r.pct}; return null; }
@@ -64,7 +64,8 @@ function janelaDe(dateISO){
   var antec = !(d.getMonth()===fim.getMonth() && d.getFullYear()===fim.getFullYear() && d.getDate()>=16);
   var p1 = antec ? mkDate(fim.getFullYear(), fim.getMonth(), 23) : mkDate(fim.getFullYear(), fim.getMonth()+1, DIA_FUNC);
   var datas=[iso(p1)];
-  for(var k=1;k<5;k++) datas.push(iso(mkDate(p1.getFullYear(), p1.getMonth()+k, DIA_FUNC)));
+  /* 14/out/2026: na antecipação o funcionário recebe a 1ª dia 23 e a 2ª só no dia 10 do mês seguinte ao próximo (ex.: 23/10 → 10/12) */
+  for(var k=1;k<5;k++) datas.push(iso(mkDate(p1.getFullYear(), p1.getMonth()+k+(antec?1:0), DIA_FUNC)));
   return {tipo: antec?'ANTECIPACAO':'NORMAL', datas:datas, ajusteData: iso(mkDate(fim.getFullYear(), fim.getMonth()+1, DIA_FUNC))};
 }
 function dataEmpresa(funcISO, i, tipo, vendaISO){ var f=parseISO(funcISO); var d=(i===0&&tipo==='ANTECIPACAO')?mkDate(f.getFullYear(),f.getMonth(),DIA_EMP):(i===0)?mkDate(f.getFullYear(),f.getMonth(),DIA_EMP_NORMAL):mkDate(f.getFullYear(),f.getMonth()-1,DIA_EMP); var v=parseISO(vendaISO); while(d<v) d=mkDate(d.getFullYear(),d.getMonth()+1,DIA_EMP); return iso(d); }
@@ -74,7 +75,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v35';
+var VERSAO='v36';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -110,7 +111,7 @@ function calc(v, all){
   var rate20 = serv ? rate : proprio ? PROPRIO_PRE : clusterDe(prod20).r;
   var hsPre = R ? credito*R.pct : serv ? credito*SERV_ADM_PARC*SERV_N : credito*HS_PRE;
   var nP = R ? R.n : serv ? SERV_N : 5;
-  var datas=jan.datas.slice(); while(datas.length<nP){ var b0=parseISO(datas[0]); datas.push(iso(mkDate(b0.getFullYear(), b0.getMonth()+datas.length, DIA_FUNC))); }
+  var datas=jan.datas.slice(); while(datas.length<nP){ var b0=parseISO(datas[datas.length-1]); datas.push(iso(mkDate(b0.getFullYear(), b0.getMonth()+1, DIA_FUNC))); }
   var parcelas=[];
   for(var i=0;i<nP;i++){
     var r_i = (i===0 && jan.tipo==='ANTECIPACAO') ? rate20 : rate;
@@ -118,7 +119,7 @@ function calc(v, all){
     var hsS=st.hs==='RECEBIDA'?'RECEBIDA':st.hs==='NAO_RECEBIDA'?'NAO_RECEBIDA':(passEmp?'RECEBIDA':'PREVISTA');
     var fS=st.func==='PAGA'?'PAGA':st.func==='NAO_PAGA'?'NAO_PAGA':(passado?'PAGA':'PREVISTA');
     var hsP = R ? credito*R.pct/R.n : serv?credito*SERV_ADM_PARC:credito*HS_PARC[i];
-    parcelas.push({n:i+1, data:datas[i], dataEmp:dEmp, hs:hsP, func:EMP?0:R?hsP*(proprio?0.5:0.25):serv?credito*rate/SERV_N:credito*r_i*FUNC_SHARE[i], share:R?1/R.n:serv?1/SERV_N:FUNC_SHARE[i], hsStatus:hsS, funcStatus:fS, auto:!st.hs&&!st.func&&passado, dataEfetiva:st.data_efetiva||null});
+    parcelas.push({n:i+1, data:datas[i], dataEmp:dEmp, hs:hsP, func:EMP?0:R?0:serv?credito*rate/SERV_N:credito*r_i*FUNC_SHARE[i], share:R?1/R.n:serv?1/SERV_N:FUNC_SHARE[i], hsStatus:hsS, funcStatus:fS, auto:!st.hs&&!st.func&&passado, dataEfetiva:st.data_efetiva||null});
     parcelas[i].agion=parcelas[i].hs-parcelas[i].func;
   }
   var ajuste = (!EMP && !serv && jan.tipo==='ANTECIPACAO' && rate>rate20) ? credito*(rate-rate20)*FUNC_SHARE[0] : 0;
@@ -128,7 +129,7 @@ function calc(v, all){
   var funcPago = parcelas.filter(function(p){return p.funcStatus==='PAGA';}).reduce(function(s,p){return s+p.func;},0) + (ajustePago?ajuste:0);
   var hsRec = parcelas.filter(function(p){return p.hsStatus==='RECEBIDA';}).reduce(function(s,p){return s+p.hs;},0);
   var reemb = +v.reembolso_valor||0;
-  return {serv:serv, regra:R, empresa:EMP, comp:c, jan:jan, prod:prod, prod20:prod20, rate:rate, rate20:rate20, cluster:clusterDe(prod), credito:credito, proprio:proprio,
+  return {serv:serv, regra:R, empresa:EMP, funcADefinir:!!(R&&!EMP), comp:c, jan:jan, prod:prod, prod20:prod20, rate:rate, rate20:rate20, cluster:clusterDe(prod), credito:credito, proprio:proprio,
     hsPre:hsPre, funcPre:funcTot, agionPre:hsPre-funcTot, parcelas:parcelas, ajuste:ajuste, ajusteData:jan.ajusteData,
     posHs:posHs, posFunc:posFunc, posAgion:posHs-posFunc, ajustePago:ajustePago, funcPago:funcPago, funcPend:funcTot-funcPago, hsRec:hsRec, hsPend:hsPre-hsRec, reemb:reemb,
     proximo: parcelas.filter(function(p){return p.funcStatus!=='PAGA';}).map(function(p){return p;})[0]||null };
@@ -633,7 +634,9 @@ function admTag(v){ var a=admCurta(v); return '<span class="cms-tag cms-adm cms-
 function mesesDesde(d){ var a=parseISO(d), b=new Date(); var m=(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth()); if(b.getDate()<a.getDate()) m--; return Math.max(0,m); }
 function tempoTag(v){ var m=mesesDesde(v.data_insercao), d=parseISO(v.data_insercao), oito=iso(mkDate(d.getFullYear(),d.getMonth()+8,d.getDate()));
   var txt=m<1?'menos de 1 mês':m+(m===1?' mês':' meses');
-  return '<b>'+txt+'</b> <span class="note">desde '+fmtBR(v.data_insercao)+'</span><br>'+(m>=8?tag('passou dos 8 meses','ok'):tag('8 meses em '+fmtBR(oito)+' · faltam '+(8-m),'warn')); }
+  /* estorno só existe se o cliente NÃO pagar — cliente em dia não tem estorno */
+  var risco=(v.situacao==='INADIMPLENTE')?tag(m<8?'não pagou · risco de estorno':'não pagou','bad'):'';
+  return '<b>'+txt+'</b> <span class="note">desde '+fmtBR(v.data_insercao)+'</span><br><span class="note">'+(m>=8?'já passou dos 8 meses':'completa 8 meses em '+fmtBR(oito))+'</span>'+(risco?'<br>'+risco:''); }
 function tabelaClientes(V, all){
   var L=V.filter(ativa).slice().sort(function(a,b){ return a.data_insercao<b.data_insercao?-1:a.data_insercao>b.data_insercao?1:String(a.cliente_nome).localeCompare(String(b.cliente_nome)); });
   if(!L.length) return empty('Nenhuma venda registrada','Registre a venda para acompanhar a comissão do cliente.');
@@ -644,7 +647,7 @@ function tabelaClientes(V, all){
     return '<tr><td><b>'+esc(v.cliente_nome||'—')+'</b> '+catChip(v)+'<br>'+quem+(v.grupo?' <span class="note">grupo '+esc(v.grupo)+' / cota '+esc(v.cota||'')+'</span>':'')+'</td>'
       +'<td data-l="Administradora">'+admTag(v)+'<br><span class="note">'+esc(regraTxt(v).replace(/^(HS|Âncora) · /,''))+'</span></td>'
       +'<td data-l="Tempo conosco">'+tempoTag(v)+'</td>'
-      +'<td class="n" data-l="Crédito">'+BRL(k.credito)+'</td><td class="n" data-l="Comissão total">'+BRL2(k.hsPre)+'</td><td class="n" data-l="Já recebido">'+BRL2(k.hsRec)+'</td>'
+      +'<td class="n" data-l="Crédito">'+BRL(k.credito)+'</td><td class="n" data-l="Comissão total">'+BRL2(k.hsPre)+(k.empresa?'':'<br><span class="note">'+(k.funcADefinir?'colaborador: a definir':'Agion '+BRL2(k.agionPre)+' · func. '+BRL2(k.funcPre))+'</span>')+'</td><td class="n" data-l="Já recebido">'+BRL2(k.hsRec)+'</td>'
       +'<td class="n" data-l="A receber"><b>'+(pend.length?BRL2(k.hsPre-k.hsRec):'—')+'</b></td>'
       +'<td data-l="Parcelas">'+'<b>'+pg+'/'+k.parcelas.length+'</b> '+(prox?'<span class="note">próx. '+fmtBR(prox.dataEmp)+'</span><br><span class="note">'+BRL2(prox.hs)+'</span>':'<br>'+tag('tudo recebido','ok'))+'</td></tr>'; }).join('');
   var foot='<tr class="tot"><td><b>Total</b></td><td class="x"></td><td class="x"></td><td class="n" data-l="Crédito"><b>'+BRL(T.cred)+'</b></td><td class="n" data-l="Comissão total"><b>'+BRL2(T.adm)+'</b></td><td class="n" data-l="Já recebido"><b>'+BRL2(T.rec)+'</b></td><td class="n" data-l="A receber"><b>'+BRL2(T.pend)+'</b></td><td class="x"></td></tr>';
@@ -697,9 +700,9 @@ function paintMaster(C){
   V.forEach(function(v){ if(analise(v)==='EM_ANALISE')T.an++; if(v.origem_status==='EM_REVISAO')T.rev++; if(!ativa(v)){T.reemb+=(+v.reembolso_valor||0);return;} var k=calc(v,all);
     T.prod+=k.credito; if(v.origem==='LEAD_AGION'){T.prodL+=k.credito;T.hsL+=k.hsPre;} else {T.prodP+=k.credito;T.hsP+=k.hsPre;} T.hsPre+=k.hsPre; T.hsRec+=k.hsRec; T.func+=k.funcPre; T.funcPago+=k.funcPago; T.posHs+=k.posHs; T.posFunc+=k.posFunc; T.reemb+=k.reemb; if(v.pos_status==='COMISSAO_POS_RECEBIDA')T.posRec+=k.posHs; });
   var agion=T.hsPre-T.func, agionRec=T.hsRec-T.funcPago;
-  var nCli=V.filter(ativa), nCliU=nCli.reduce(function(a,v){ if(a.indexOf(v.cliente_id||v.cliente_nome)<0)a.push(v.cliente_id||v.cliente_nome); return a; },[]).length, cliPend=nCli.filter(function(v){ return calc(v,all).parcelas.some(function(p){return p.hsStatus!=='RECEBIDA';}); }).length, cli8=nCli.filter(function(v){return mesesDesde(v.data_insercao)<8;}).length;
+  var nCli=V.filter(ativa), nCliU=nCli.reduce(function(a,v){ if(a.indexOf(v.cliente_id||v.cliente_nome)<0)a.push(v.cliente_id||v.cliente_nome); return a; },[]).length, cliPend=nCli.filter(function(v){ return calc(v,all).parcelas.some(function(p){return p.hsStatus!=='RECEBIDA';}); }).length, cli8=nCli.filter(function(v){return v.situacao==='INADIMPLENTE';}).length;
   var cards='<div class="cms-kts">'
-    +cardTab('clientes','Clientes',String(nCliU),[['Vendas com parcelas a receber',String(cliPend)],['Vendas ainda sem 8 meses',String(cli8)]],true)
+    +cardTab('clientes','Clientes',String(nCliU),[['Vendas com parcelas a receber',String(cliPend)],['Clientes sem pagar',String(cli8)]],true)
     +cardTab('producao',tudo?'Produção total':'Produção da competência',BRL(T.prod),[['Leads Agion',BRL(T.prodL)],['Clientes próprios',BRL(T.prodP)]],true)
     +cardTab('hs','Comissão pré · administradoras',BRL2(T.hsPre),tudo?[['Já recebido',BRL2(T.hsRec)],['A receber',BRL2(T.hsPre-T.hsRec)]]:[['Leads Agion',BRL2(T.hsL)],['Clientes próprios',BRL2(T.hsP)]])
     +cardTab('func','Comissão pré · funcionários',BRL2(T.func),[['Já pago',BRL2(T.funcPago)],['A pagar',BRL2(T.func-T.funcPago)]])
@@ -713,7 +716,7 @@ function paintMaster(C){
   var ids=[]; V.forEach(function(v){ if(ids.indexOf(v.vendedor_id)<0)ids.push(v.vendedor_id); });
   var filt=tudo?null:inComp; var body='';
   if(_mtab==='clientes'){
-    body='<div class="panel"><h2>Clientes — comissão e tempo conosco <span class="right note">valores que a administradora paga à Agion · empresa recebe por antecipação no dia 20 · tempo contado da data da venda (estorno até 8 meses)</span></h2>'+tabelaClientes(V,all)+'</div>';
+    body='<div class="panel"><h2>Clientes — comissão e tempo conosco <span class="right note">valores que a administradora paga à Agion · empresa recebe por antecipação no dia 20 · tempo contado da data da venda</span></h2>'+tabelaClientes(V,all)+'</div>';
   } else if(_mtab==='producao'){
     body='<div class="panel"><h2>'+(tudo?'Produção por funcionário — todo o período':'Produção por funcionário — '+esc(comp.rot))+' <span class="right note">gerada = comissão paga pela administradora (HS 2% · Âncora conforme a carta)</span></h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">Leads Agion</th><th class="n">Clientes próprios</th>'+(tudo?'':'<th class="n">Cluster</th><th class="n">Falta p/ próximo</th>')+'<th class="n">Gerada · lead</th><th class="n">Gerada · próprio</th><th class="n">Gerada · total</th><th aria-label="Ações"></th></tr></thead><tbody>'
       +(ids.map(function(id){ var S=statsFunc(id,all,filt); if(!S.n)return ''; var u=user(id); var pl=0,pp=0; all.forEach(function(v){ if(v.vendedor_id!==id||!ativa(v)||(filt&&!filt(v)))return; if(v.origem==='LEAD_AGION')pl+=+v.credito; else pp+=+v.credito; });
