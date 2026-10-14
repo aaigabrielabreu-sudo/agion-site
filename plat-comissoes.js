@@ -28,6 +28,9 @@ var PROPRIO_PRE = 0.01, PROPRIO_POS = 0.01;
 var SERV_N = 4, SERV_ADM_PARC = 0.01, SERV_FUNC_PROPRIO = 0.005, SERV_FUNC_LEAD = 0.0025;
 var CATS = {AUTOMOVEL:{lb:'Automóvel',ic:'\u{1F697}'}, IMOVEL:{lb:'Imóvel',ic:'\u{1F3E0}'}, INVESTIMENTO:{lb:'Investimento',ic:'\u{1F4C8}'}, SERVICOS:{lb:'Serviços',ic:'\u2728'}};
 function servico(v){ return v&&v.categoria==='SERVICOS'; }
+/* regra própria da venda (13/out/2026): administradora paga pct do crédito em n parcelas mensais — ex.: Âncora 5% em 16x, 0,5% ao mês em 8x.
+   Colaborador: 50% do que a administradora paga (cliente próprio) ou 25% (lead da Agion). Sem pós-contemplação. */
+function regraV(v){ var r=v&&v.regra; if(r&&+r.n>0&&+r.pct>0) return {n:Math.round(+r.n),pct:+r.pct}; return null; }
 function admCurta(v){ var a=String((v&&v.administradora)||''); return /[âa]ncora/i.test(a)?'Âncora':/hs/i.test(a)?'HS':(a||'HS'); }
 function catChip(v){ var c=CATS[v&&v.categoria]; return c?'<span class="cms-tag">'+c.ic+' '+c.lb+'</span>':''; }
 function catOpts(sel){ return Object.keys(CATS).map(function(k){ return '<option value="'+k+'"'+(sel===k?' selected':'')+'>'+CATS[k].ic+' '+CATS[k].lb+'</option>'; }).join(''); }
@@ -63,7 +66,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v26';
+var VERSAO='v29';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -94,18 +97,20 @@ function calc(v, all){
   var prod=mesmas.reduce(function(s,x){return s+(+x.credito||0);},0);
   var fim=parseISO(c.fim), cut=iso(mkDate(fim.getFullYear(), fim.getMonth(), CUTOFF_ANTEC));
   var prod20=mesmas.filter(function(x){return x.data_insercao<=cut;}).reduce(function(s,x){return s+(+x.credito||0);},0);
-  var credito=+v.credito||0, proprio=v.origem==='CLIENTE_PROPRIO', serv=servico(v);
+  var credito=+v.credito||0, proprio=v.origem==='CLIENTE_PROPRIO', R=regraV(v), serv=servico(v)||!!R;
   var rate = serv ? (proprio?SERV_FUNC_PROPRIO:SERV_FUNC_LEAD)*SERV_N : proprio ? PROPRIO_PRE : clusterDe(prod).r;
   var rate20 = serv ? rate : proprio ? PROPRIO_PRE : clusterDe(prod20).r;
-  var hsPre = serv ? credito*SERV_ADM_PARC*SERV_N : credito*HS_PRE;
-  var nP = serv ? SERV_N : 5;
+  var hsPre = R ? credito*R.pct : serv ? credito*SERV_ADM_PARC*SERV_N : credito*HS_PRE;
+  var nP = R ? R.n : serv ? SERV_N : 5;
+  var datas=jan.datas.slice(); while(datas.length<nP){ var b0=parseISO(datas[0]); datas.push(iso(mkDate(b0.getFullYear(), b0.getMonth()+datas.length, 10))); }
   var parcelas=[];
   for(var i=0;i<nP;i++){
     var r_i = (i===0 && jan.tipo==='ANTECIPACAO') ? rate20 : rate;
-    var st=parc(v,i+1), passado=jan.datas[i]<iso(new Date());
+    var st=parc(v,i+1), passado=datas[i]<iso(new Date());
     var hsS=st.hs==='RECEBIDA'?'RECEBIDA':st.hs==='NAO_RECEBIDA'?'NAO_RECEBIDA':(passado?'RECEBIDA':'PREVISTA');
     var fS=st.func==='PAGA'?'PAGA':st.func==='NAO_PAGA'?'NAO_PAGA':(passado?'PAGA':'PREVISTA');
-    parcelas.push({n:i+1, data:jan.datas[i], hs:serv?credito*SERV_ADM_PARC:credito*HS_PARC[i], func:serv?credito*rate/SERV_N:credito*r_i*FUNC_SHARE[i], share:serv?1/SERV_N:FUNC_SHARE[i], hsStatus:hsS, funcStatus:fS, auto:!st.hs&&!st.func&&passado, dataEfetiva:st.data_efetiva||null});
+    var hsP = R ? credito*R.pct/R.n : serv?credito*SERV_ADM_PARC:credito*HS_PARC[i];
+    parcelas.push({n:i+1, data:datas[i], hs:hsP, func:R?hsP*(proprio?0.5:0.25):serv?credito*rate/SERV_N:credito*r_i*FUNC_SHARE[i], share:R?1/R.n:serv?1/SERV_N:FUNC_SHARE[i], hsStatus:hsS, funcStatus:fS, auto:!st.hs&&!st.func&&passado, dataEfetiva:st.data_efetiva||null});
     parcelas[i].agion=parcelas[i].hs-parcelas[i].func;
   }
   var ajuste = (!serv && jan.tipo==='ANTECIPACAO' && rate>rate20) ? credito*(rate-rate20)*FUNC_SHARE[0] : 0;
@@ -115,7 +120,7 @@ function calc(v, all){
   var funcPago = parcelas.filter(function(p){return p.funcStatus==='PAGA';}).reduce(function(s,p){return s+p.func;},0) + (ajustePago?ajuste:0);
   var hsRec = parcelas.filter(function(p){return p.hsStatus==='RECEBIDA';}).reduce(function(s,p){return s+p.hs;},0);
   var reemb = +v.reembolso_valor||0;
-  return {serv:serv, comp:c, jan:jan, prod:prod, prod20:prod20, rate:rate, rate20:rate20, cluster:clusterDe(prod), credito:credito, proprio:proprio,
+  return {serv:serv, regra:R, comp:c, jan:jan, prod:prod, prod20:prod20, rate:rate, rate20:rate20, cluster:clusterDe(prod), credito:credito, proprio:proprio,
     hsPre:hsPre, funcPre:funcTot, agionPre:hsPre-funcTot, parcelas:parcelas, ajuste:ajuste, ajusteData:jan.ajusteData,
     posHs:posHs, posFunc:posFunc, posAgion:posHs-posFunc, ajustePago:ajustePago, funcPago:funcPago, funcPend:funcTot-funcPago, hsRec:hsRec, hsPend:hsPre-hsRec, reemb:reemb,
     proximo: parcelas.filter(function(p){return p.funcStatus!=='PAGA';}).map(function(p){return p;})[0]||null };
@@ -373,6 +378,7 @@ body.light .cms-wrap,body.light .cms-md{--csurf-2:var(--surface-2,rgba(14,74,65,
 }
 /* --- Categoria da carta --- */
 @media(min-width:901px){.cms-tl.cms-tl4{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.cms-tl.cms-tlx{grid-template-columns:repeat(auto-fill,minmax(118px,1fr))}
 .cms-cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
 .cms-cat{background:var(--csurf-2);border:1px solid var(--line);border-radius:var(--cr-md);padding:14px 14px 12px;min-width:0}
 .cms-cat.vazio{opacity:.55}
@@ -454,7 +460,7 @@ function vendaCard(v,all,master){
     +(k.posFunc>0?'<div><div class="l">'+(master?'Pós · funcionário (1%)':'Sua comissão · pós (1%)')+'</div><div class="v">'+BRL2(k.posFunc)+'<small>'+(v.pos_func_pago?'paga':'na contemplação')+'</small></div></div>':'')
     +(master&&!k.serv?'<div><div class="l">Pós · Agion</div><div class="v">'+BRL2(k.posAgion)+'</div></div>':'')
     +'</div>';
-  var tl='<div class="cms-tl'+(k.serv?' cms-tl4':'')+'">'+k.parcelas.map(function(p){ var sh=p.share;
+  var tl='<div class="cms-tl'+(k.regra?' cms-tlx':k.serv?' cms-tl4':'')+'">'+k.parcelas.map(function(p){ var sh=p.share;
     var hsRow=master?'<div class="row"><em>'+admCurta(v)+'</em><span>'+BRL2(p.hs)+'</span>'+pill(p.hsStatus==='RECEBIDA',p.hsStatus==='RECEBIDA'?'recebida':p.hsStatus==='NAO_RECEBIDA'?'não recebida':'prevista',"cmsToggle('"+v.id+"',"+p.n+",'hs')",p.hsStatus==='NAO_RECEBIDA')+'</div>':'';
     var fRow='<div class="row"><em>'+(master?'Func.':'Você')+'</em><span>'+BRL2(p.func)+'</span>'+pill(p.funcStatus==='PAGA',p.funcStatus==='PAGA'?'paga':p.funcStatus==='NAO_PAGA'?'não paga':'prevista',master?"cmsToggle('"+v.id+"',"+p.n+",'func')":null,p.funcStatus==='NAO_PAGA')+'</div>';
     return '<div class="st'+(p.funcStatus==='PAGA'?' paid':'')+'"><div class="n"><span>'+p.n+'ª parcela</span><em>'+Math.round(sh*100)+'%</em></div><div class="d">'+fmtBR(p.data)+'</div>'+hsRow+fRow+'</div>'; }).join('')+'</div>';
