@@ -68,7 +68,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v31';
+var VERSAO='v32';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -170,6 +170,7 @@ body.light .cms-wrap,body.light .cms-md{--csurf-2:var(--surface-2,rgba(14,74,65,
 .cms-tag,.cms-pill{display:inline-flex;align-items:center;gap:var(--cs-1);height:22px;padding:0 var(--cs-2);border-radius:999px;font-family:inherit;font-size:var(--cfs-2xs);font-weight:600;line-height:1;letter-spacing:var(--ctrack);text-transform:uppercase;white-space:nowrap;vertical-align:middle;color:var(--chip-fg,var(--muted));background:var(--chip-bg,rgba(143,217,204,.06));border:1px solid var(--chip-line,var(--line))}
 .cms-tag.ok,.cms-pill.on{--chip-fg:var(--ok);--chip-bg:var(--ok-bg,rgba(92,201,160,.12));--chip-line:var(--ok-line,rgba(92,201,160,.4))}
 .cms-adm{font-weight:700;letter-spacing:.02em}.cms-adm-hs{--chip-fg:#8FD9CC;--chip-line:rgba(143,217,204,.45)}.cms-adm-anc{--chip-fg:#E8CC8B;--chip-line:rgba(232,204,139,.5)}
+@media(max-width:760px){.cms-cli{border:0;overflow:visible}.cms-cli table,.cms-cli tbody{display:block;white-space:normal}.cms-cli thead{display:none}.cms-cli tr{display:block;border:1px solid var(--line);border-radius:var(--cr-md);padding:10px 12px;margin-bottom:10px;background:var(--csurf-2)}.cms-cli td{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;border:0!important;padding:5px 0!important;text-align:right}.cms-cli td:first-child{display:block;text-align:left;padding-bottom:8px!important;border-bottom:1px solid var(--line)!important;margin-bottom:4px}.cms-cli td[data-l]::before{content:attr(data-l);color:var(--muted);font-size:var(--cfs-xs);text-align:left;flex:none}.cms-cli td.x{display:none}}
 .cms-tbl tr.tot td{border-top:2px solid var(--line-gold,rgba(197,160,89,.4));background:rgba(197,160,89,.05)}
 .cms-tag.warn{--chip-fg:var(--warn);--chip-bg:var(--warn-bg,rgba(224,185,120,.12));--chip-line:var(--warn-line,rgba(224,185,120,.4))}
 .cms-tag.bad,.cms-pill.bad{--chip-fg:var(--bad);--chip-bg:var(--bad-bg,rgba(224,122,106,.12));--chip-line:var(--bad-line,rgba(224,122,106,.4))}
@@ -635,13 +636,13 @@ function tabelaClientes(V, all){
     T.cred+=k.credito; T.adm+=k.hsPre; T.rec+=k.hsRec; T.pend+=k.hsPre-k.hsRec;
     var quem=vendaEmpresa(v)?tag('Venda da empresa','ok'):'<span class="note">'+esc((u.nome||'').split(' ')[0])+'</span> '+origemChip(v);
     return '<tr><td><b>'+esc(v.cliente_nome||'—')+'</b> '+catChip(v)+'<br>'+quem+(v.grupo?' <span class="note">grupo '+esc(v.grupo)+' / cota '+esc(v.cota||'')+'</span>':'')+'</td>'
-      +'<td>'+admTag(v)+'<br><span class="note">'+esc(regraTxt(v).replace(/^(HS|Âncora) · /,''))+'</span></td>'
-      +'<td>'+tempoTag(v)+'</td>'
-      +'<td class="n">'+BRL(k.credito)+'</td><td class="n">'+BRL2(k.hsPre)+'</td><td class="n">'+BRL2(k.hsRec)+'</td>'
-      +'<td class="n"><b>'+(pend.length?BRL2(k.hsPre-k.hsRec):'—')+'</b></td>'
-      +'<td>'+'<b>'+pg+'/'+k.parcelas.length+'</b> '+(prox?'<span class="note">próx. '+fmtBR(prox.data)+'</span><br><span class="note">'+BRL2(prox.hs)+'</span>':'<br>'+tag('tudo recebido','ok'))+'</td></tr>'; }).join('');
-  var foot='<tr class="tot"><td><b>Total</b></td><td></td><td></td><td class="n"><b>'+BRL(T.cred)+'</b></td><td class="n"><b>'+BRL2(T.adm)+'</b></td><td class="n"><b>'+BRL2(T.rec)+'</b></td><td class="n"><b>'+BRL2(T.pend)+'</b></td><td></td></tr>';
-  return '<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Administradora · regra</th><th>Tempo conosco</th><th class="n">Crédito</th><th class="n">Comissão total</th><th class="n">Já recebido</th><th class="n">A receber</th><th>Parcelas recebidas</th></tr></thead><tbody>'+rows+foot+'</tbody></table></div>';
+      +'<td data-l="Administradora">'+admTag(v)+'<br><span class="note">'+esc(regraTxt(v).replace(/^(HS|Âncora) · /,''))+'</span></td>'
+      +'<td data-l="Tempo conosco">'+tempoTag(v)+'</td>'
+      +'<td class="n" data-l="Crédito">'+BRL(k.credito)+'</td><td class="n" data-l="Comissão total">'+BRL2(k.hsPre)+'</td><td class="n" data-l="Já recebido">'+BRL2(k.hsRec)+'</td>'
+      +'<td class="n" data-l="A receber"><b>'+(pend.length?BRL2(k.hsPre-k.hsRec):'—')+'</b></td>'
+      +'<td data-l="Parcelas">'+'<b>'+pg+'/'+k.parcelas.length+'</b> '+(prox?'<span class="note">próx. '+fmtBR(prox.data)+'</span><br><span class="note">'+BRL2(prox.hs)+'</span>':'<br>'+tag('tudo recebido','ok'))+'</td></tr>'; }).join('');
+  var foot='<tr class="tot"><td><b>Total</b></td><td class="x"></td><td class="x"></td><td class="n" data-l="Crédito"><b>'+BRL(T.cred)+'</b></td><td class="n" data-l="Comissão total"><b>'+BRL2(T.adm)+'</b></td><td class="n" data-l="Já recebido"><b>'+BRL2(T.rec)+'</b></td><td class="n" data-l="A receber"><b>'+BRL2(T.pend)+'</b></td><td class="x"></td></tr>';
+  return '<div class="tbl-scroll cms-tbl cms-cli"><table><thead><tr><th>Cliente</th><th>Administradora · regra</th><th>Tempo conosco</th><th class="n">Crédito</th><th class="n">Comissão total</th><th class="n">Já recebido</th><th class="n">A receber</th><th>Parcelas recebidas</th></tr></thead><tbody>'+rows+foot+'</tbody></table></div>';
 }
 
 window.cmsSetMtab=function(t){ _mtab=t; repaint(true); };
