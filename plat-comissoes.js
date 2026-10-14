@@ -75,7 +75,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v36';
+var VERSAO='v37';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -349,7 +349,7 @@ body.light .cms-wrap,body.light .cms-md{--csurf-2:var(--surface-2,rgba(14,74,65,
 .cms-fx-tot li em{font-style:normal;color:var(--muted);font-size:.7rem;letter-spacing:.04em;text-transform:uppercase}
 .cms-fx-tot li em b{font-weight:600;color:var(--gold2);margin-left:6px;text-transform:none;letter-spacing:0}
 .cms-fx-tot li.ag{color:var(--teal);font-weight:600}
-.cms-fx-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.cms-fx-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
 .cms-fxs{background:var(--csurf-2);border:1px solid var(--line);border-radius:var(--cr-md);padding:11px 14px 10px;min-width:0}
 .cms-fxs .m{display:flex;justify-content:space-between;align-items:baseline;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold2);font-weight:700;padding-bottom:7px;margin-bottom:6px;border-bottom:1px solid var(--line)}
 .cms-fxs .m small{font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted);font-size:.68rem}
@@ -491,7 +491,8 @@ function compSelect(){
   for(var i=0;i>-12;i--){ var c=compShift(cur.key,i); opts+='<option value="'+c.key+'"'+(c.key===_compSel?' selected':'')+'>'+c.rot+'</option>'; }
   return '<label class="cms-sel"><select onchange="cmsSetComp(this.value)" aria-label="Competência">'+opts+'</select></label>';
 }
-function mesesRolantes(){ var out=[], d=new Date(); for(var i=0;i<5;i++){ var m=mkDate(d.getFullYear(), d.getMonth()+i, 1); out.push({key:iso(m).slice(0,7), rot:['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][m.getMonth()]+'/'+String(m.getFullYear()).slice(2)}); } return out; }
+var N_MESES=6; // janela de previsão (14/out/2026: 6 meses para todos)
+function mesesRolantes(){ var out=[], d=new Date(); for(var i=0;i<N_MESES;i++){ var m=mkDate(d.getFullYear(), d.getMonth()+i, 1); out.push({key:iso(m).slice(0,7), rot:['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][m.getMonth()]+'/'+String(m.getFullYear()).slice(2)}); } return out; }
 function tabelaRolante(vendas, all, comAgion){
   /* Próximos recebimentos — organizado POR MÊS: total do mês em destaque, clientes ao tocar. */
   var meses=mesesRolantes(), m0=meses[0].key, MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -507,7 +508,7 @@ function tabelaRolante(vendas, all, comAgion){
   if(tot5<=0.005&&B.atr.tot<=0.005) return empty('Nenhum pagamento pendente','Tudo o que venceu já foi pago.');
   var lista=function(it){ it.sort(function(x,y){return x.data<y.data?-1:x.data>y.data?1:y.val-x.val;});
     return '<ul class="cms-rc-list">'+it.map(function(x){ return '<li><div class="who"><b>'+esc(x.nome)+'</b><span>'+x.rot+' · '+fmtBR(x.data)+'</span></div><em>'+BRL2(x.val)+'</em></li>'; }).join('')+'</ul>'; };
-  var hero='<div class="cms-rc-hero"><div><span class="k">Total a receber · próximos 5 meses</span><b>'+BRL2(tot5)+'</b></div>'
+  var hero='<div class="cms-rc-hero"><div><span class="k">Total a receber · próximos 6 meses</span><b>'+BRL2(tot5)+'</b></div>'
     +(B.atr.tot>0.005?'<div class="atr"><span class="k">Em atraso</span><b>'+BRL2(B.atr.tot)+'</b></div>':'')+'</div>';
   var atr=B.atr.tot>0.005?'<details class="cms-rc cms-rc--atr"><summary><div class="m"><b>Em atraso</b><span>'+B.atr.itens.length+' pagamento'+(B.atr.itens.length>1?'s':'')+' vencido'+(B.atr.itens.length>1?'s':'')+'</span></div><div class="v">'+BRL2(B.atr.tot)+'</div><i class="cms-rc-chev" aria-hidden="true"></i></summary>'+lista(B.atr.itens)+'</details>':'';
   var cards=meses.map(function(m,ix){ var x=B[m.key], mm=+m.key.slice(5,7)-1, n=x.itens.length;
@@ -533,7 +534,7 @@ function paintFunc(C, uid, titulo){
   var sel='<div class="cms-bar">'+compSelect()+'</div>';
   var lst=mine.filter(function(v){return grupoDe(v,_vendas)===_tab;});
   var tbl='<div class="panel"><h2>Vendas</h2>'+tabsHtml(mine,_vendas)+'<p class="cms-desc">'+tabDesc()+'</p>'+(lst.length?lst.map(function(v){return vendaCard(v,_vendas,false);}).join(''):empty('Nenhuma venda nesta aba','Registre uma venda ou veja outra aba.'))+'</div>';
-  var rol='<div class="panel"><h2>Próximos recebimentos <span class="right note">previsão para os próximos 5 meses</span></h2>'+tabelaRolante(mine,_vendas,false)+'</div>';
+  var rol='<div class="panel"><h2>Próximos recebimentos <span class="right note">previsão para os próximos 6 meses</span></h2>'+tabelaRolante(mine,_vendas,false)+'</div>';
   var sit=mine.filter(function(v){return v.situacao!=='EM_DIA'||analise(v)==='RECUSADA'||analise(v)==='EM_ANALISE';});
   var sitHtml='<div class="panel"><h2>Situação dos clientes</h2>'+(sit.length?'<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Situação</th><th class="n">Reembolso</th><th>Observação</th></tr></thead><tbody>'+sit.map(function(v){return '<tr><td>'+esc(v.cliente_nome||'—')+'</td><td>'+(analise(v)==='RECUSADA'||analise(v)==='EM_ANALISE'?anChip(v):sitChip(v.situacao))+'</td><td class="n">'+(v.reembolso_valor?BRL2(v.reembolso_valor):'—')+'</td><td class="note">'+esc(v.analise_obs||v.obs||'')+'</td></tr>';}).join('')+'</tbody></table></div>':empty('Todos os clientes estão em dia','Nenhuma venda em análise, recusada ou com pendência.'))+'</div>';
   ensureCss(); C.innerHTML='<div class="cms-wrap">'+sel+cards+tbl+(_tab==='andamento'?rol+sitHtml:'')+'</div>';
@@ -580,7 +581,7 @@ function fluxo(V, all, meses){
   }).join('');
 
   /* (c) bloco Total destacado */
-  var total='<div class="cms-fx-tot"><div class="m">Total · 5 meses</div><div class="big">'+BRL(tAg)+'<small>margem Agion prevista</small></div>'
+  var total='<div class="cms-fx-tot"><div class="m">Total · 6 meses</div><div class="big">'+BRL(tAg)+'<small>margem Agion prevista</small></div>'
     +'<ul><li><em>Administradoras</em><span>'+BRL(tHs)+'</span></li>'
     +'<li><em>Func. <b>'+pMed+'% médio</b></em><span>'+BRL(tFu)+'</span></li>'
     +'<li class="ag"><em>Agion</em><span>'+BRL(tAg)+'</span></li></ul></div>';
@@ -620,7 +621,7 @@ function fluxo(V, all, meses){
     });
   },0);
 
-  return '<div class="panel cms-fx"><h2>Fluxo — administradoras → funcionários → Agion <span class="right note">previsão para os próximos 5 meses</span></h2>'
+  return '<div class="panel cms-fx"><h2>Fluxo — administradoras → funcionários → Agion <span class="right note">previsão para os próximos 6 meses</span></h2>'
     +'<div class="cms-fx-top">'+chart+total+'</div>'
     +'<div class="cms-fx-stats">'+stats+'</div></div>';
 }
@@ -665,13 +666,13 @@ function organograma(all, meses, tipo){
     var kids=open?rows.map(function(r,ri){ return '<tr class="cms-sub'+(ri===rows.length-1?' last':'')+'"><td>'+esc(r.v.cliente_nome||'—')+' <span class="note">'+(r.v.grupo?r.v.grupo+'/'+(r.v.cota||''):'')+'</span> '+origemChip(r.v)+'</td>'+r.arr.map(function(x){return '<td class="n">'+(x?BRL2(x):'—')+'</td>';}).join('')+'<td class="n">'+BRL2(r.tot)+'</td></tr>'; }).join(''):'';
     return head+kids; }).join('');
   var foot='<tr><td><b>Total</b></td>'+tot.map(function(x){return '<td class="n"><b>'+BRL2(x)+'</b></td>';}).join('')+'<td class="n"><b>'+BRL2(totAll)+'</b></td></tr>';
-  return '<div class="tbl-scroll cms-tbl cms-org"><table><thead><tr><th>Funcionário / cliente</th>'+mesesCols(meses)+'<th class="n">Total pendente</th></tr></thead><tbody>'+(body||emptyRow(meses.length+2,'Nada pendente','Nenhum valor previsto para os próximos 5 meses.'))+'</tbody>'+(body?'<tfoot>'+foot+'</tfoot>':'')+'</table></div>';
+  return '<div class="tbl-scroll cms-tbl cms-org"><table><thead><tr><th>Funcionário / cliente</th>'+mesesCols(meses)+'<th class="n">Total pendente</th></tr></thead><tbody>'+(body||emptyRow(meses.length+2,'Nada pendente','Nenhum valor previsto para os próximos 6 meses.'))+'</tbody>'+(body?'<tfoot>'+foot+'</tfoot>':'')+'</table></div>';
 }
 function agenda(V, all){ // próximos pagamentos: data -> funcionário (acordeão) -> clientes
   var byD={};
   function slot(data,id){ var d=byD[data]=byD[data]||{}; return d[id]=d[id]||{tot:0,itens:[]}; }
   V.forEach(function(v){ if(!ativa(v))return; var k=calc(v,all); var nome=v.cliente_nome||'—';
-    k.parcelas.forEach(function(p){ if(p.funcStatus==='PAGA')return; var f=slot(p.data,v.vendedor_id); f.tot+=p.func; f.itens.push({txt:nome, sub:p.n+'ª parcela', val:p.func, adj:false}); });
+    k.parcelas.forEach(function(p){ if(p.funcStatus==='PAGA'||!(p.func>0.004))return; var f=slot(p.data,v.vendedor_id); f.tot+=p.func; f.itens.push({txt:nome, sub:p.n+'ª parcela', val:p.func, adj:false}); });
     if(k.ajuste&&!k.ajustePago){ var f=slot(k.ajusteData,v.vendedor_id); f.tot+=k.ajuste; f.itens.push({txt:nome, sub:'ajuste de cluster', val:k.ajuste, adj:true}); } });
   var todas=Object.keys(byD).sort(), datas=todas.slice(0,12);
   if(!datas.length) return empty('Nenhum pagamento pendente','Tudo o que venceu já foi pago aos funcionários.');
@@ -708,7 +709,7 @@ function paintMaster(C){
     +cardTab('func','Comissão pré · funcionários',BRL2(T.func),[['Já pago',BRL2(T.funcPago)],['A pagar',BRL2(T.func-T.funcPago)]])
     +cardTab('agion','Margem pré · Agion',BRL2(agion),[['Já realizada',BRL2(agionRec)],['A realizar',BRL2(agion-agionRec)]],true)
     +(tudo?cardTab('pos','Pós-contemplação potencial',BRL2(T.posHs),[['Funcionários · 1% próprios',BRL2(T.posFunc)],['Agion',BRL2(T.posHs-T.posFunc)],['Já recebida da administradora',BRL2(T.posRec)]]):'')
-    +cardTab('fluxo','Fluxo de recebimentos','5 meses',[['A pagar aos funcionários',BRL2(V.filter(ativa).reduce(function(s,v){return s+somaArr(porMes(calc(v,all),v,meses,'func'));},0))],['Fica com a Agion',BRL2(V.filter(ativa).reduce(function(s,v){return s+somaArr(porMes(calc(v,all),v,meses,'agion'));},0))]])
+    +cardTab('fluxo','Fluxo de recebimentos','6 meses',[['A pagar aos funcionários',BRL2(V.filter(ativa).reduce(function(s,v){return s+somaArr(porMes(calc(v,all),v,meses,'func'));},0))],['Fica com a Agion',BRL2(V.filter(ativa).reduce(function(s,v){return s+somaArr(porMes(calc(v,all),v,meses,'agion'));},0))]])
     +cardTab('vendas','Vendas',String(V.length),[['Em análise',String(T.an)],['Reembolsos',BRL2(T.reemb)]])
     +'</div>';
   var per='<div class="cms-tabs" role="group" aria-label="Período"><button class="'+(!tudo?'on':'')+'" onclick="cmsSetPeriodo(\'comp\')">Competência</button><button class="'+(tudo?'on':'')+'" onclick="cmsSetPeriodo(\'tudo\')">Todo o período</button></div>';
