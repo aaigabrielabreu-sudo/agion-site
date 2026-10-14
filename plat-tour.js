@@ -56,51 +56,60 @@ var IC={
    ========================================================================== */
 var S3=['master','lider','especialista'], ML=['master','lider'], M=['master'], CL=['cliente'];
 var CFG=[
- /* ---------------- EQUIPE ---------------- */
- {id:'dash',page:'dash',roles:S3,v:1,g:'Comece por aqui',ic:'map',title:'Painel',desc:'Visão do dia: números principais, funil, tarefas e carteira.',steps:[
-   {t:null,title:'Bem-vindo ao Painel',text:'Esta é a primeira tela depois do login. Ela resume o que está acontecendo na sua operação. Vamos passar pelas partes principais, direto na tela.'},
-   {t:q('#content .kpis'),title:'Indicadores do topo',text:'Os cartões mostram os números principais da sua visão (equipe ou carteira própria, conforme o seu perfil).'},
-   {t:panel('funil'),title:'Funil de negócios',text:'Quantos leads estão em cada etapa do CRM. Serve para ver onde as negociações estão parando.',optional:true},
-   {t:panel('tarefas de hoje'),title:'Tarefas de hoje',text:'O que vence hoje. Marcar uma tarefa como feita aqui é uma ação real — no tutorial só mostramos onde fica.',optional:true},
-   {t:panel('carteira'),title:'Carteira de clientes',text:'Os clientes sob gestão. Use para entrar rápido em quem precisa de atenção.',optional:true},
-   {t:q('.side .navi, #mobnav'),title:'Menu de áreas',text:'Cada área tem o próprio tutorial. Abra “Tutoriais” no menu quando quiser rever qualquer uma.'}
+ /* ---------------- EQUIPE ----------------
+    text pode ser string ou objeto por perfil {master:..., lider:..., especialista:..., _:padrão}.
+    roles no passo restringe o passo a alguns perfis. ---------------- */
+ {id:'dash',page:'dash',roles:S3,v:2,g:'Comece por aqui',ic:'map',title:'Painel',desc:{_:'Sua visão do dia: números, funil, tarefas e carteira.',especialista:'Seu dia em uma tela: seus números, seu funil, suas tarefas e seus clientes.'},steps:[
+   {t:null,title:'Bem-vindo ao Painel',text:{master:'Esta é a primeira tela depois do login. Ela resume a operação inteira da Agion: todos os especialistas, todos os clientes. Vamos passar pelas partes principais, direto na tela.',lider:'Esta é a primeira tela depois do login. Ela resume a sua equipe: os seus clientes e os dos especialistas que estão sob a sua liderança. Vamos passar pelas partes principais, direto na tela.',especialista:'Esta é a primeira tela depois do login. Tudo aqui é sobre a sua carteira: só os seus leads, clientes e tarefas aparecem. Vamos passar pelas partes principais, direto na tela.'}},
+   {t:q('#content .kpis'),title:'Indicadores do topo',text:{master:'Clientes da empresa, patrimônio sob gestão, valor em negociação no CRM e tarefas pendentes — da empresa inteira.',lider:'Clientes, patrimônio sob gestão, valor em negociação no CRM e tarefas pendentes — somando você e a sua equipe.',especialista:'Seus clientes, o patrimônio que você acompanha, o valor que você tem em negociação no CRM e as suas tarefas pendentes.'}},
+   {t:panel('funil'),title:'Funil de negócios',text:'Quantos leads estão em cada etapa do CRM. Se uma etapa acumula, é ali que as negociações estão parando. “Abrir CRM” leva direto para o quadro.'},
+   {t:panel('tarefas de hoje'),title:'Tarefas de hoje',text:'O que vence hoje. Marcar a caixinha conclui a tarefa de verdade — no tutorial só mostramos onde fica.'},
+   {t:panel('patrimônio'),title:'Patrimônio por especialista',text:{master:'Quanto cada especialista tem sob gestão. Serve para comparar a equipe e distribuir leads com critério.',lider:'Quanto cada especialista da sua equipe tem sob gestão.',especialista:'O seu patrimônio sob gestão ao longo do tempo.'},optional:true},
+   {t:panel('carteira'),title:'Carteira de clientes',text:{_:'Os clientes sob gestão, com o plano de cada um. “Abrir plano” entra na ficha do cliente; “+ Novo cliente” cria um cliente (ação real).',especialista:'Os seus clientes, com o plano de cada um. “Abrir plano” entra na ficha; “+ Novo cliente” cria um cliente novo na sua carteira (ação real).'}},
+   {t:q('#topActions .tut-help'),title:'Ajuda em cada aba',text:'Este botão “?” existe em todas as abas: abre o tutorial daquela tela. Para rever tudo, use “Tutoriais” no menu.'}
  ]},
- {id:'kpis',page:'kpis',roles:ML,v:1,g:'Gestão',ic:'chart',title:'KPIs',desc:'Base de clientes por categoria, funil, origem e atividade da equipe.',steps:[
-   {t:q('#content .kc-wrap .cms-tabs, #content .cms-tabs'),title:'Escolha o período',text:'Alterne entre “Todo o período”, “Por mês” e “Histórico”. Trocar a aba só muda a visualização.',demo:'click'},
-   {t:q('#gCatVendas'),title:'Vendas por categoria',text:'Como a base de clientes se divide por categoria de carta.',optional:true},
-   {t:q('#gCatCrm'),title:'CRM por categoria',text:'A mesma divisão para os leads em negociação.',optional:true},
-   {t:q('#gFunil'),title:'Funil',text:'Conversão entre as etapas do CRM.',optional:true},
-   {t:q('#gOrigem'),title:'Origem dos leads',text:'De onde os leads chegaram. Ajuda a decidir onde investir em captação.',optional:true}
+ {id:'kpis',page:'kpis',roles:ML,v:2,g:'Gestão',ic:'chart',title:'KPIs',desc:'Base de clientes por categoria, funil, origem dos leads e atividade da equipe.',steps:[
+   {t:q('#content .kc-wrap .cms-tabs, #content .cms-tabs'),title:'Escolha o período',text:'“Todo o período” soma tudo; “Por mês” mostra um mês de cada vez; “Histórico” mostra a evolução. Trocar a aba só muda a visualização.',demo:'click'},
+   {t:q('#gCatVendas'),title:'Vendas por categoria',text:'Como a base de clientes se divide por categoria de carta (automóvel, imóvel, serviços…). Mostra onde a empresa está vendendo mais.',optional:true},
+   {t:q('#gCatCrm'),title:'CRM por categoria',text:'A mesma divisão, mas para os leads ainda em negociação. Comparar com o gráfico anterior mostra o que está entrando.',optional:true},
+   {t:q('#gFunil'),title:'Funil',text:'Conversão entre as etapas do CRM. Uma queda grande entre duas etapas indica onde a equipe perde negócios.',optional:true},
+   {t:q('#gOrigem'),title:'Origem dos leads',text:'De onde os leads chegaram (anúncio, site, indicação…). Use para decidir onde investir em captação.',optional:true},
+   {t:q('#gAtiv'),title:'Atividade',text:{master:'Atividade de cada especialista na plataforma.',lider:'Atividade dos especialistas da sua equipe.'},optional:true}
  ]},
- {id:'crm',page:'crm',roles:S3,v:1,g:'Vendas e relacionamento',ic:'funnel',title:'CRM',desc:'Kanban de leads: filtros, busca e as ações de cada card.',steps:[
-   {t:topBtn(),title:'Novo lead',text:'Cadastra um lead manualmente. Abre a ficha do lead — nada é salvo até você tocar em Salvar.',demo:'click'},
-   {t:q('#crmBuscaInp'),title:'Busca',text:'Procure por nome, telefone ou e-mail. Veja um exemplo (a digitação é só demonstração, o campo não muda).',demo:'type',typeText:'Maria'},
-   {t:q('#content .crmFiltros'),title:'Filtros',text:'Filtre por valor, categoria e origem, e escolha a ordenação dos cards.'},
-   {t:q('#content .kcol'),title:'Colunas = etapas',text:'Cada coluna é uma etapa da negociação. Os cards andam da esquerda para a direita.'},
-   {t:q('#content .lead'),title:'Card do lead',text:'Mostra nome, valor, categoria e responsável. Cada botão do card é uma ação real.',optional:true},
-   {t:inLead('.lv2-catsel'),title:'Categoria da carta',text:'Define a categoria do lead (automóvel, imóvel, serviços…). Alterar aqui grava no lead.',optional:true},
-   {t:inLead('a.lv2-wa'),title:'WhatsApp',text:'Abre a conversa com o lead no WhatsApp.',optional:true},
-   {t:inLead('.aMove'),title:'Mover de etapa',text:'As setas voltam ou avançam o lead uma etapa.',optional:true},
-   {t:inLead('.aGanho'),title:'Ganho ou perdido',text:'Fecha a negociação. Ganho transforma o lead em cliente.',optional:true}
+ {id:'crm',page:'crm',roles:S3,v:2,g:'Vendas e relacionamento',ic:'funnel',title:'CRM',desc:{_:'O quadro de leads: filtros, busca e as ações de cada card.',especialista:'Seu quadro de leads: busca, filtros e as ações de cada card.'},steps:[
+   {t:q('#content .kpis'),title:'Resumo do funil',text:{_:'Valor em pipeline, leads ativos, valor ganho e conversão — do que você enxerga nesta tela.',especialista:'Valor que você tem em negociação, seus leads ativos, o que já ganhou e a sua conversão.'}},
+   {t:topBtn(),title:'Novo lead',text:'Cadastra um lead à mão (quem chegou por telefone ou indicação, por exemplo). Abre a ficha do lead — nada é salvo até você tocar em Salvar.',demo:'click'},
+   {t:q('#crmBuscaInp'),title:'Busca',text:'Procure por nome, telefone ou e-mail. Veja um exemplo (a digitação é só demonstração; o campo não muda).',demo:'type',typeText:'Maria'},
+   {t:q('#content .crmFiltros'),title:'Filtros',text:'Filtre por valor, categoria da carta e origem, e escolha a ordenação dos cards. Os filtros valem só para a visualização.'},
+   {t:q('#content .kcol'),title:'Colunas = etapas',text:'Cada coluna é uma etapa da negociação (Novo lead → Contato feito → … → Fechado). Os cards andam da esquerda para a direita.'},
+   {t:q('#content .lead'),title:'Card do lead',text:'Nome, valor, categoria e responsável. Tudo o que você faz com o lead acontece pelos botões do card.',optional:true},
+   {t:inLead('.lv2-catsel'),title:'Categoria da carta',text:'Define a categoria (automóvel, imóvel, serviços…). Alterar aqui grava no lead e alimenta os KPIs por categoria.',optional:true},
+   {t:inLead('.lv2-owner-sel'),title:'Responsável',text:{master:'Quem cuida do lead. Aqui você distribui leads entre os especialistas.',lider:'Quem cuida do lead. Você pode distribuir entre os especialistas da sua equipe.',especialista:'Quem cuida do lead. Os leads desta tela são os seus.'},optional:true,roles:ML},
+   {t:inLead('a.lv2-wa'),title:'WhatsApp',text:'Abre a conversa com o lead no WhatsApp. O tutorial não abre conversas.',optional:true},
+   {t:inLead('.aMove'),title:'Mover de etapa',text:'As setas voltam ou avançam o lead uma etapa. É assim que o funil fica atualizado.',optional:true},
+   {t:inLead('.aNota'),title:'Nota e proposta',text:'Registra uma nota na linha do tempo do lead ou anexa uma proposta.',optional:true},
+   {t:inLead('.aGanho'),title:'Ganho ou perdido',text:'Fecha a negociação. “Ganho” transforma o lead em cliente e cria o acesso dele à plataforma; “Perdido” tira do funil.',optional:true}
  ]},
  {id:'ficha-lead',page:null,ficha:'lead',roles:S3,v:1,g:'Vendas e relacionamento',ic:'doc',title:'Ficha do lead',desc:'Os campos da ficha de um lead, um por um.',steps:[
    {t:q('#leadModal #le_nome'),title:'Nome',text:'Nome do lead como ele será exibido no CRM.',demo:'type',typeText:'João da Silva'},
-   {t:q('#leadModal #le_contato'),title:'Contato',text:'Telefone ou e-mail. É por ele que a plataforma liga o lead ao cadastro único.',demo:'type',typeText:'(51) 99999-0000'},
-   {t:q('#leadModal #le_cpf'),title:'CPF (opcional)',text:'Ajuda a evitar cadastro duplicado.',optional:true},
+   {t:q('#leadModal #le_contato'),title:'Contato',text:'Telefone ou e-mail. É por ele que a plataforma liga o lead ao cadastro único (e evita duplicar a mesma pessoa).',demo:'type',typeText:'(51) 99999-0000'},
+   {t:q('#leadModal #le_cpf'),title:'CPF (opcional)',text:'Ajuda a reconhecer a pessoa mesmo que ela troque de telefone.',optional:true},
    {t:q('#leadModal #le_tipo'),title:'Tipo de negócio',text:'Consórcio, Planejamento ou Consultoria.'},
-   {t:q('#leadModal #le_valor'),title:'Valor potencial',text:'Valor estimado do negócio. Alimenta os totais do CRM.'},
+   {t:q('#leadModal #le_valor'),title:'Valor potencial',text:'Valor estimado do negócio. Alimenta o total em pipeline do CRM.'},
    {t:q('#leadModal #le_obs'),title:'Observações',text:'Anotações livres sobre o lead.'},
    {t:function(){ return $$('#leadModal .modal-actions button').filter(vis).pop()||null; },title:'Salvar',text:'Só aqui os dados são gravados. Neste tutorial nada foi preenchido de verdade.'}
  ]},
- {id:'captacao',page:'captacao',roles:S3,v:1,g:'Vendas e relacionamento',ic:'spark',title:'Captação',desc:'Caixa de entrada dos leads que chegam pelos canais conectados.',steps:[
-   {t:q('#content .kpis'),title:'Resumo da captação',text:'Volume de leads recebidos pelos canais.',optional:true},
-   {t:panel('caixa de entrada'),title:'Caixa de entrada',text:'Os leads chegam aqui antes de entrar no CRM. Importar um lead é uma ação real.',optional:true}
+ {id:'captacao',page:'captacao',roles:S3,v:2,g:'Vendas e relacionamento',ic:'spark',title:'Captação',desc:'A caixa de entrada dos leads que chegam pelos canais conectados.',steps:[
+   {t:q('#content .kpis'),title:'Resumo da captação',text:'Quantos leads chegaram pelos canais (site, anúncios, WhatsApp) e quantos ainda não foram importados.',optional:true},
+   {t:panel('caixa de entrada'),title:'Caixa de entrada',text:{_:'Os leads chegam aqui antes de entrar no CRM. Importar um lead cria o card no funil — ação real.',especialista:'Os leads que chegaram para você. Importar um lead cria o card no seu funil — ação real.'},optional:true},
+   {t:panel('simular'),title:'Simular chegada',text:'Cria um lead de teste para você ver o caminho completo. Só use quando quiser testar.',optional:true}
  ]},
- {id:'marketing',page:'marketing',roles:S3,v:1,g:'Marketing e comunicação',ic:'spark',title:'Marketing',desc:'Automações, pontuação de leads, templates, campanhas e integrações.',steps:[
+ {id:'marketing',page:'marketing',roles:S3,v:2,g:'Marketing e comunicação',ic:'spark',title:'Marketing',desc:'Automações, pontuação de leads, templates, campanhas e integrações.',steps:[
    {t:q('#mktNav'),title:'Seções do marketing',text:'Visão geral, Automações, Leads & Scoring, Templates, Campanhas e Integrações. Trocar de seção só muda o que aparece abaixo.',demo:'click'},
-   {t:q('#mktBody'),title:'Conteúdo da seção',text:'Aqui aparece o conteúdo da seção escolhida.'}
+   {t:q('#mktBody'),title:'Conteúdo da seção',text:'Aqui aparece o conteúdo da seção escolhida: na Visão geral, o funil e a origem dos leads; em Templates, as mensagens prontas do WhatsApp.'},
+   {t:topBtn(),title:'Criar template',text:'Monta uma mensagem de WhatsApp para aprovação. Nada é enviado por aqui.',optional:true}
  ]},
- {id:'ferramentas',page:'ferramentas',roles:S3,v:1,g:'Marketing e comunicação',ic:'gear',title:'Ferramentas',desc:'Calculadoras e o gerador de propostas.',steps:[
+ {id:'ferramentas',page:'ferramentas',roles:S3,v:1,g:'Marketing e comunicação',ic:'gear',title:'Ferramentas',desc:'Calculadoras para usar na frente do cliente e o gerador de propostas.',steps:[
    {t:q('[data-tour-target="tool-0"]'),title:'Financiamento × Consórcio',text:'Compara custo real, CET e SAC/Price, e mostra quanto sobra para investir. Abre em uma nova aba.',optional:true,wait:6000},
    {t:q('[data-tour-target="tool-1"]'),title:'Escada Financeira',text:'Monta a escada de cartas que se paga sozinha.',optional:true},
    {t:q('[data-tour-target="tool-2"]'),title:'Alavancagem Patrimonial',text:'Simula vender a carta contemplada ou transformá-la em renda de imóvel.',optional:true},
@@ -114,26 +123,26 @@ var CFG=[
    {t:q('#feedTxt'),title:'Escreva um aviso',text:'O texto aparece para a equipe depois de publicar.',demo:'type',typeText:'Bom dia, time!'},
    {t:btn('publicar','#content'),title:'Publicar',text:'Publica o aviso. No tutorial nada é publicado.',optional:true}
  ]},
- {id:'chat',page:'chat',roles:S3,v:1,g:'Marketing e comunicação',ic:'chat',title:'Chat',desc:'Canais de conversa interna.',steps:[
+ {id:'chat',page:'chat',roles:S3,v:1,g:'Marketing e comunicação',ic:'chat',title:'Chat',desc:'Canais de conversa interna da equipe.',steps:[
    {t:q('#content .ch'),title:'Canais',text:'Escolha o canal da conversa interna.'},
    {t:q('#chatInput'),title:'Mensagem',text:'Escreva e envie para o canal aberto.',demo:'type',typeText:'Alguém pode me ajudar?'}
  ]},
- {id:'tarefas',page:'tarefas',roles:S3,v:1,g:'Gestão',ic:'check',title:'Tarefas',desc:'O que fazer, o que vence hoje e o que está atrasado.',steps:[
-   {t:q('#content .kpis'),title:'Resumo',text:'Quantas tarefas estão abertas, vencendo e atrasadas.',optional:true},
-   {t:topBtn(),title:'Nova tarefa',text:'Cria uma tarefa com prazo e responsável.',optional:true},
-   {t:panel('a fazer'),title:'A fazer',text:'A lista de pendências. Marcar como feita grava a conclusão.',optional:true}
+ {id:'tarefas',page:'tarefas',roles:S3,v:2,g:'Gestão',ic:'check',title:'Tarefas',desc:'O que fazer, o que vence hoje e o que está atrasado.',steps:[
+   {t:q('#content .kpis'),title:'Resumo',text:'Quantas tarefas estão pendentes e quantas já foram concluídas.',optional:true},
+   {t:topBtn(),title:'Nova tarefa',text:'Cria uma tarefa com prazo. Tarefas de retomar lead são criadas sozinhas pelo CRM.',optional:true},
+   {t:panel('a fazer'),title:'A fazer',text:'A lista de pendências. A caixinha conclui a tarefa; o “×” remove — as duas são ações reais.',optional:true}
  ]},
  {id:'consultoria',page:'consultoria',roles:M,v:1,g:'Gestão',ic:'money',title:'Consultoria',desc:'Clientes da consultoria e o acompanhamento de cada um.',steps:[
    {t:q('#content .c-b'),title:'Novo cliente',text:'Inclui um cliente de consultoria.',optional:true},
    {t:q('#cLista'),title:'Lista de clientes',text:'Todos os clientes de consultoria, com o resumo de cada um.',optional:true}
  ]},
- {id:'users',page:'users',roles:S3,v:1,g:'Vendas e relacionamento',ic:'user',title:'Clientes',desc:'A carteira: busca, ficha, cartas e visão do cliente.',steps:[
-   {t:topBtn(),title:'Novo cliente',text:'Cria o cliente e envia o convite de acesso a ele.',optional:true},
+ {id:'users',page:'users',roles:S3,v:2,g:'Vendas e relacionamento',ic:'user',title:'Clientes',desc:{_:'A carteira: busca, ficha, cartas e visão do cliente.',especialista:'Seus clientes: busca, ficha, cartas e como o cliente vê a plataforma.'},steps:[
+   {t:topBtn(),title:'Novo cliente',text:'Cria o cliente e envia o convite de acesso por e-mail. Ele define a própria senha.',optional:true},
    {t:q('#cliSearch'),title:'Buscar cliente',text:'Procure por nome, e-mail ou telefone.',demo:'type',typeText:'Silva'},
-   {t:inCard(null),title:'Ficha resumida',text:'Cada cartão mostra contato, categoria, desde quando é cliente e as ações.',optional:true},
+   {t:function(){ return $$('#content .cards').filter(vis)[0]||$$('#content p.note').filter(vis)[0]||null; },title:'Lista de clientes',text:{master:'Todos os clientes da empresa. Cada cartão mostra contato, categoria, desde quando é cliente e o especialista responsável.',lider:'Os seus clientes e os dos especialistas da sua equipe. Se a lista estiver vazia, ainda não há clientes vinculados a vocês.',especialista:'Os seus clientes. Cada cartão mostra contato, categoria e desde quando a pessoa é cliente.'},optional:true},
    {t:function(){ var c=inCard(null)(); return c?$$('button',c).filter(function(b){return /editar plano/i.test(b.textContent);})[0]:null; },title:'Editar plano',text:'Abre a ficha completa do planejamento do cliente. Ela tem tutorial próprio: “Como usar esta ficha”.',optional:true},
-   {t:function(){ var c=inCard(null)(); return c?$$('button',c).filter(function(b){return /cartas/i.test(b.textContent);})[0]:null; },title:'Cartas',text:'As cartas de consórcio do cliente.',optional:true},
-   {t:function(){ var c=inCard(null)(); return c?$$('button',c).filter(function(b){return /vis[aã]o cliente/i.test(b.textContent);})[0]:null; },title:'Visão do cliente',text:'Mostra a plataforma exatamente como o cliente vê, só para leitura.',optional:true}
+   {t:function(){ var c=inCard(null)(); return c?$$('button',c).filter(function(b){return /cartas/i.test(b.textContent);})[0]:null; },title:'Cartas',text:'As cartas de consórcio do cliente: administradora, crédito e situação. É aqui que a comissão de cada carta nasce.',optional:true},
+   {t:function(){ var c=inCard(null)(); return c?$$('button',c).filter(function(b){return /vis[aã]o cliente/i.test(b.textContent);})[0]:null; },title:'Visão do cliente',text:'Mostra a plataforma exatamente como o cliente vê, só para leitura. Bom para orientar o cliente por telefone.',optional:true}
  ]},
  {id:'ficha-cliente',page:'editor',ficha:'cliente',roles:S3,v:1,g:'Vendas e relacionamento',ic:'doc',title:'Ficha do cliente',desc:'O planejamento do cliente: dados, patrimônio, dívidas e consórcios.',steps:[
    {t:null,title:'Ficha do cliente',text:'Abrimos a ficha em modo somente leitura para o tutorial — nada pode ser alterado enquanto ele roda.'},
@@ -146,17 +155,23 @@ var CFG=[
  {id:'cadastro',page:'cadastro',roles:ML,v:1,g:'Vendas e relacionamento',ic:'user',title:'Cadastro único',desc:'Uma pessoa, um cadastro: liga lead, cliente e WhatsApp.',steps:[
    {t:q('#cadKpis'),title:'Resumo',text:'Quantos cadastros existem e como estão vinculados.',optional:true},
    {t:q('#cadBusca'),title:'Busca',text:'Procure por nome, telefone, CPF ou e-mail.',demo:'type',typeText:'(51) 9'},
-   {t:q('#cadList'),title:'Cadastros',text:'Cada linha reúne tudo o que a plataforma sabe sobre a pessoa.',optional:true}
+   {t:q('#cadList'),title:'Cadastros',text:'Cada linha reúne tudo o que a plataforma sabe sobre a pessoa: lead, cliente e conversas.',optional:true}
  ]},
- {id:'comissoes',page:'comissoes',roles:S3,v:1,g:'Gestão',ic:'money',title:'Comissões',desc:'Competência, recebimentos e a visão por cliente.',steps:[
-   {t:q('#content .cms-tabs'),title:'Período',text:'“Competência” mostra um mês; “Todo o período” soma tudo. Trocar só muda a visualização.',demo:'click'},
-   {t:q('#content .cms-kts'),title:'Visões',text:'Cada cartão abre uma visão: parcelas, fluxo, clientes e mais.',optional:true},
-   {t:btn('registrar venda','#content'),title:'Registrar venda',text:'Lança uma venda nova e calcula as parcelas de comissão.',optional:true}
+ {id:'comissoes',page:'comissoes',roles:S3,v:2,g:'Gestão',ic:'money',title:'Comissões',desc:{_:'Competência, recebimentos e a visão por cliente.',especialista:'Suas vendas, o que você recebe e quando.'},steps:[
+   {t:q('#content .cms-tabs'),title:'Período',text:{_:'“Competência” mostra um mês; “Todo o período” soma tudo. Trocar só muda a visualização.',especialista:'Filtra as suas vendas por situação: em andamento, pagas, pós-contemplação. Trocar só muda a visualização.'},demo:'click'},
+   {t:q('#content .kpis'),title:'Seus números',text:{_:'Produção, comissão das administradoras, comissão dos funcionários e margem da Agion.',especialista:'Produção da competência, a sua comissão pré-contemplação e o potencial pós-contemplação.'},optional:true},
+   {t:q('#content .cms-kts'),title:'Visões',text:'Cada cartão abre uma visão: parcelas, fluxo, clientes e mais.',optional:true,roles:ML},
+   {t:q('#content .cms-card'),title:'Venda',text:'Cada cartão é uma venda: cliente, administradora, crédito e as parcelas de comissão com a data prevista de cada uma.',optional:true,roles:['especialista']},
+   {t:panel('próximos recebimentos'),title:'Próximos recebimentos',text:'As parcelas que ainda vão cair, em ordem de data. Funcionário recebe no dia 10 (a 1ª parcela, no dia 23 se estiver na janela de antecipação).',optional:true,roles:['especialista']},
+   {t:panel('situação dos clientes'),title:'Situação dos clientes',text:'Quem está em dia e quem precisa de atenção. A comissão depende de o cliente seguir pagando.',optional:true,roles:['especialista']},
+   {t:topBtn(),title:'Registrar venda',text:'Lança uma venda nova e calcula as parcelas de comissão. Ação real — só use com uma venda fechada.',optional:true}
  ]},
- {id:'contas',page:'contas',roles:ML,v:1,g:'Gestão',ic:'user',title:'Equipe',desc:'Contas da equipe, acesso e “Ver como”.',steps:[
-   {t:q('#content .kpis'),title:'Resumo da equipe',text:'Contas ativas por perfil.',optional:true},
-   {t:q('#contSearch'),title:'Buscar conta',text:'Encontre alguém da equipe ou um cliente.',demo:'type',typeText:'Lu'},
-   {t:btn('ver como','#content'),title:'Ver como',text:'Mostra a plataforma do ponto de vista daquela pessoa, só para leitura. Nada do seu progresso é misturado.',optional:true}
+ {id:'contas',page:'contas',roles:ML,v:2,g:'Gestão',ic:'user',title:{master:'Contas',lider:'Equipe'},desc:{master:'Contas da equipe e dos clientes, acesso e “Ver como”.',lider:'Os especialistas da sua equipe, acesso e “Ver como”.'},steps:[
+   {t:q('#content .kpis'),title:'Resumo',text:{master:'Contas ativas por perfil: líderes, especialistas e clientes.',lider:'Os especialistas da sua equipe e as contas ativas.'},optional:true},
+   {t:q('#contSearch'),title:'Buscar conta',text:'Encontre alguém pelo nome ou e-mail.',demo:'type',typeText:'Lu'},
+   {t:topBtn(),title:'Nova conta',text:{master:'Cria um acesso de líder, especialista ou cliente.',lider:'Cria um acesso de especialista para a sua equipe.'},optional:true},
+   {t:btn('ver como','#content'),title:'Ver como',text:'Mostra a plataforma do ponto de vista daquela pessoa, só para leitura. Nada do que você fizer ali é gravado — nem o progresso dos tutoriais.',optional:true},
+   {t:btn('resetar senha','#content'),title:'Resetar senha',text:'Envia um e-mail para a pessoa definir uma senha nova. Você nunca vê a senha dela.',optional:true}
  ]},
  {id:'atividades',page:'atividades',roles:M,v:1,g:'Gestão',ic:'chart',title:'Atividades',desc:'Registro do que cada pessoa fez na plataforma.',steps:[
    {t:q('#content .kpis'),title:'Resumo',text:'Volume de atividades no período.',optional:true},
@@ -209,6 +224,8 @@ var CFG=[
  ]}
 ];
 var GROUP_ORDER=['Comece por aqui','Vendas e relacionamento','Gestão','Marketing e comunicação','Seu painel','Seu plano','Seu dinheiro'];
+function TX(v){ if(v==null) return ''; if(typeof v==='string') return v; var r=role(); return v[r]!=null?v[r]:(v._!=null?v._:(v.master||v.lider||v.especialista||'')); }
+function stepsOf(t){ var r=role(); return t.steps.filter(function(st){ return !st.roles||st.roles.indexOf(r)>=0; }); }
 function forRole(){ var r=role(); return CFG.filter(function(t){ return t.roles.indexOf(r)>=0; }); }
 function byId(id){ for(var i=0;i<CFG.length;i++) if(CFG[i].id===id) return CFG[i]; return null; }
 function forPage(page){ var r=role(); if(page==='editor') return byId('ficha-cliente');
@@ -284,11 +301,11 @@ function onKey(e){ if(!RUN) return; var tag=(e.target&&e.target.tagName)||''; va
 function obstacles(){ var nav=$('#mobnav'); var nb=0; if(nav&&vis(nav)){ var r=nav.getBoundingClientRect(); if(r.top<W.innerHeight) nb=W.innerHeight-r.top; } return {bottom:nb}; }
 function place(){
   if(!UI||!RUN) return;
-  if(RUN.el&&!RUN.el.isConnected){ var st0=RUN.t.steps[RUN.i]||{}; try{ var ne=typeof st0.t==='function'?st0.t():(st0.t?$$(st0.t).filter(vis)[0]:null); RUN.el=ne||null; if(ne&&UI.ro){ UI.ro.observe(ne); } }catch(e){ RUN.el=null; } }
+  if(RUN.el&&!RUN.el.isConnected){ var st0=stepsOf(RUN.t)[RUN.i]||{}; try{ var ne=typeof st0.t==='function'?st0.t():(st0.t?$$(st0.t).filter(vis)[0]:null); RUN.el=ne||null; if(ne&&UI.ro){ UI.ro.observe(ne); } }catch(e){ RUN.el=null; } }
   var el=RUN.el, vw=W.innerWidth, vh=W.innerHeight, sheet=narrow();
   UI.root.classList.toggle('sheet',sheet);
   var r=el&&el.isConnected?el.getBoundingClientRect():null;
-  var pad=6, off=!r||r.bottom<4||r.top>vh-4||r.right<4||r.left>vw-4;
+  var pad=6, ob0=obstacles(), off=!r||r.bottom<40||r.top>vh-ob0.bottom-40||r.right<4||r.left>vw-4;
   UI.root.classList.toggle('offscreen',!!(r&&off));
   UI.root.classList.toggle('nodim',!r);
   if(r&&!off){ var x=Math.max(2,r.left-pad), y=Math.max(2,r.top-pad), w=Math.min(vw-4,r.right+pad)-x, h=Math.min(vh-4,r.bottom+pad)-y;
@@ -347,11 +364,17 @@ function alive(tok){ return RUN&&RUN.stepTok===tok; }
 async function waitFor(t,ms,ok){ if(!t) return null; var end=Date.now()+(ms||3500);
   while(Date.now()<end){ if(!ok()) return null; var el=typeof t==='function'?t():$$(t).filter(vis)[0]; if(el&&vis(el)) return el; await sleep(120); } return null; }
 function scrollTo(el,force){ return new Promise(function(res){ if(!el) return res(); var r=el.getBoundingClientRect(), vh=W.innerHeight, ob=obstacles();
-  var limit=narrow()?vh*0.55:vh-ob.bottom-12; var okv=r.top>=(narrow()?70:12)&&r.bottom<=limit;
+  var topMin=narrow()?70:12, limit=narrow()?vh*0.55:vh-ob.bottom-12, tall=r.height>(limit-topMin)*0.8;
+  var okv=tall?(r.top>=topMin-4&&r.top<=topMin+80):(r.top>=topMin&&r.bottom<=limit);
   if(okv&&!force) return res();
-  try{ el.scrollIntoView({block:narrow()?'start':'center',inline:'nearest',behavior:reduced()?'auto':'smooth'}); }catch(e){ el.scrollIntoView(); }
-  if(narrow()){ setTimeout(function(){ try{ W.scrollBy({top:-76,behavior:reduced()?'auto':'smooth'}); }catch(e){} },reduced()?0:280); }
-  setTimeout(res,reduced()?40:520); }); }
+  var smooth=!reduced()&&!D.hidden;
+  try{ el.scrollIntoView({block:(tall||narrow())?'start':'center',inline:'nearest',behavior:smooth?'smooth':'auto'}); }catch(e){ el.scrollIntoView(); }
+  if(tall||narrow()){ setTimeout(function(){ try{ var sc=scroller(el); var dy=-(narrow()?76:topMin+4); if(sc===W) W.scrollBy({top:dy,behavior:smooth?'smooth':'auto'}); else sc.scrollBy({top:dy,behavior:smooth?'smooth':'auto'}); }catch(e){} },smooth?260:0); }
+  // espera a rolagem assentar (posição estável por 2 leituras) — máx. 1,4 s
+  var last=null, same=0, t0=Date.now();
+  (function poll(){ var q=el.getBoundingClientRect().top; if(last!==null&&Math.abs(q-last)<0.5) same++; else same=0; last=q;
+    if(same>=2||Date.now()-t0>1400) return res(); setTimeout(poll,smooth?90:30); })(); }); }
+function scroller(el){ var p=el.parentElement; while(p&&p!==D.body){ var cs=getComputedStyle(p); if(/(auto|scroll)/.test(cs.overflowY)&&p.scrollHeight>p.clientHeight+2) return p; p=p.parentElement; } return W; }
 function navTo(page){ if(!page||view.page===page) return; RUN&&(RUN.nav=true); try{ go(page); }finally{ RUN&&(RUN.nav=false); } }
 async function prepare(t){
   if(t.ficha==='lead'){ var m=$('#leadModal'); if(m&&m.classList.contains('hidden')){ if(view.page!=='crm') navTo('crm'); try{ openLead(); RUN.openedLead=true; }catch(e){} } return true; }
@@ -369,26 +392,26 @@ async function prepare(t){
 async function start(id,mode){
   var t=byId(id); if(!t||t.roles.indexOf(role())<0) return;
   if(RUN) stop('switch');
-  closeInvite();
+  closeInvite(); closeAreaInvite();
   TOK++; RUN={t:t,i:0,tok:TOK,stepTok:0,auto:false,timer:null,el:null,from:view.page};
   buildUI(); UI.root.classList.remove('collapsed','offscreen'); UI.card.classList.remove('enter'); void UI.card.offsetWidth; UI.card.classList.add('enter');
-  var r=rec(t.id); if(mode==='resume'&&!r.done&&r.step>0) RUN.i=Math.min(r.step,t.steps.length-1);
+  var r=rec(t.id); r.ask='no'; if(mode==='resume'&&!r.done&&r.step>0) RUN.i=Math.min(r.step,stepsOf(t).length-1);
   var ok=await prepare(t); if(!RUN||RUN.tok!==TOK) return;
-  if(!ok){ show(-1); UI.title.textContent=t.title; UI.text.textContent=t.ficha==='cliente'?'Ainda não há nenhum cliente com plano visível para você. Cadastre um cliente e abra “Editar plano” para ver esta ficha.':'Esta área não está disponível agora.'; UI.next.textContent='Fechar'; UI.next.onclick=function(){ stop('close'); }; place(); return; }
+  if(!ok){ show(-1); UI.title.textContent=TX(t.title); UI.text.textContent=t.ficha==='cliente'?'Ainda não há nenhum cliente com plano visível para você. Cadastre um cliente e abra “Editar plano” para ver esta ficha.':'Esta área não está disponível agora.'; UI.next.textContent='Fechar'; UI.next.onclick=function(){ stop('close'); }; place(); return; }
   show(RUN.i,1);
   setTimeout(function(){ try{ UI&&UI.next.focus({preventScroll:true}); }catch(e){} },60);
 }
 async function show(i,dir){
   if(!RUN) return; var t=RUN.t; clearTimeout(RUN.timer); clearDemo();
   if(i<0){ RUN.el=null; UI.root.classList.add('nodim'); return; }
-  var tok=++RUN.stepTok; RUN.i=i; var st=t.steps[i], n=t.steps.length;
+  var tok=++RUN.stepTok; RUN.i=i; var STEPS=stepsOf(t), st=STEPS[i], n=STEPS.length;
   UI.next.onclick=function(){ next(); };
   var r=rec(t.id); if(!r.done||status(t)!=='done'){ r.step=i; save(); }
   var pg=st.page||(t.ficha?null:t.page); if(pg&&view.page!==pg) navTo(pg);
   // texto já aparece enquanto o alvo carrega
-  UI.area.textContent=t.title; UI.count.textContent='Passo '+(i+1)+' de '+n;
+  UI.area.textContent=TX(t.title); UI.count.textContent='Passo '+(i+1)+' de '+n;
   UI.bar.style.transform='scaleX('+((i+1)/n)+')';
-  UI.title.textContent=st.title; UI.text.textContent=st.text; UI.miss.hidden=true;
+  UI.title.textContent=TX(st.title); UI.text.textContent=TX(st.text); UI.miss.hidden=true;
   UI.prev.disabled=i===0; UI.next.textContent=i===n-1?'Concluir':'Próximo';
   paintPlay();
   var el=null;
@@ -399,16 +422,16 @@ async function show(i,dir){
   if(el){ await scrollTo(el); if(!alive(tok)) return; setTimeout(function(){ if(alive(tok)) place(); },420); }
   if(UI.ro&&el){ try{ UI.ro.disconnect(); UI.ro.observe(D.body); UI.ro.observe(el); }catch(e){} }
   place();
-  UI.live.textContent='Passo '+(i+1)+' de '+n+': '+st.title+'. '+st.text;
+  UI.live.textContent='Passo '+(i+1)+' de '+n+': '+TX(st.title)+'. '+TX(st.text);
   demo(st,el,tok);
   if(RUN.auto) schedAuto();
 }
-function next(){ if(!RUN) return; if(RUN.i>=RUN.t.steps.length-1) return complete(); show(RUN.i+1,1); }
+function next(){ if(!RUN) return; if(RUN.i>=stepsOf(RUN.t).length-1) return complete(); show(RUN.i+1,1); }
 function prev(){ if(!RUN||RUN.i<=0) return; show(RUN.i-1,-1); }
 function paintPlay(){ if(!UI||!RUN) return; UI.play.innerHTML=(RUN.auto?IC.pause+' Pausar':IC.play+' Reproduzir'); UI.play.setAttribute('aria-pressed',String(!!RUN.auto)); }
 function setAuto(on){ if(!RUN) return; RUN.auto=!!on; paintPlay(); clearTimeout(RUN.timer); if(on) schedAuto(); }
-function schedAuto(){ clearTimeout(RUN.timer); var st=RUN.t.steps[RUN.i]; var ms=Math.max(3800,Math.min(9000,1800+(st.text.length+(st.typeText||'').length*3)*45));
-  RUN.timer=setTimeout(function(){ if(!RUN||!RUN.auto) return; if(RUN.i>=RUN.t.steps.length-1){ setAuto(false); return; } next(); },ms); }
+function schedAuto(){ clearTimeout(RUN.timer); var st=stepsOf(RUN.t)[RUN.i]||{text:''}; var ms=Math.max(3800,Math.min(9000,1800+(TX(st.text).length+(st.typeText||'').length*3)*45));
+  RUN.timer=setTimeout(function(){ if(!RUN||!RUN.auto) return; if(RUN.i>=stepsOf(RUN.t).length-1){ setAuto(false); return; } next(); },ms); }
 function cleanup(){ if(!RUN) return; if(RUN.openedLead){ try{ closeLead(); }catch(e){} } }
 function stop(why){
   if(!RUN) return; clearTimeout(RUN.timer); cleanup(); var t=RUN.t; RUN=null; TOK++; clearDemo(); destroyUI();
@@ -431,13 +454,13 @@ function complete(){
    ========================================================================== */
 var JUST=null, QRY='';
 function cardHtml(t,i){
-  var s=status(t), r=data().items[t.id]||{}, n=t.steps.length, mins=Math.max(1,Math.round(n*12/60));
+  var s=status(t), r=data().items[t.id]||{}, n=stepsOf(t).length, mins=Math.max(1,Math.round(n*12/60));
   var chip=s==='upd'?'<span class="chip upd">Atualizado</span>':(s==='prog'?'<span class="chip">Em andamento</span>':'');
   var act=s==='prog'?'Continuar':(s==='upd'?'Ver novidades':'Iniciar');
   var bar=s==='prog'?'<div class="bar" aria-hidden="true"><i style="width:'+Math.round(((r.step||0)+1)/n*100)+'%"></i></div>':'';
   var done=s==='done'?'<div class="done"><div class="ck">'+IC.check+'</div><strong>Concluído</strong><small>'+new Date(r.done.ts).toLocaleDateString('pt-BR')+'</small><button class="btn btn-ghost btn-sm" onclick="AgionTour.start(\''+t.id+'\')">Rever tutorial</button></div>':'';
-  return '<div class="tut-card'+(JUST===t.id?' justdone':'')+'" data-tut="'+t.id+'" data-q="'+esc((t.title+' '+t.desc+' '+t.g).toLowerCase())+'" style="--i:'+i+'">'+
-    '<div class="hd"><span class="ico">'+(IC[t.ic]||IC.map)+'</span><h4>'+esc(t.title)+'</h4>'+chip+'</div><p>'+esc(t.desc)+'</p>'+bar+
+  return '<div class="tut-card'+(JUST===t.id?' justdone':'')+'" data-tut="'+t.id+'" data-q="'+esc((TX(t.title)+' '+TX(t.desc)+' '+t.g).toLowerCase())+'" style="--i:'+i+'">'+
+    '<div class="hd"><span class="ico">'+(IC[t.ic]||IC.map)+'</span><h4>'+esc(TX(t.title))+'</h4>'+chip+'</div><p>'+esc(TX(t.desc))+'</p>'+bar+
     '<div class="ft"><span class="meta">'+n+' passos · ~'+mins+' min</span>'+
     '<button class="btn btn-gold btn-sm"'+(s==='done'?' tabindex="-1" aria-hidden="true"':'')+' onclick="AgionTour.start(\''+t.id+'\',\'resume\')">'+act+'</button></div>'+done+'</div>';
 }
@@ -475,6 +498,29 @@ function ensureHelp(){
 function leadModalHelp(){ var m=$('#leadModal .modal'); if(!m||$('.tut-help-ficha',m)) return; var h=$('h3',m); if(!h) return;
   var b=D.createElement('button'); b.type='button'; b.className='tut-help tut-help-ficha'; b.innerHTML='<b aria-hidden="true">?</b><span>Como usar esta ficha</span>';
   b.onclick=function(){ if(role()==='cliente') return; start('ficha-lead'); }; h.insertAdjacentElement('afterend',b); }
+
+/* ---------- convite por aba: "primeira vez aqui?" (uma vez por área, até iniciar ou dispensar) ---------- */
+var AINV=null, ainvTimer=null;
+function closeAreaInvite(){ clearTimeout(ainvTimer); if(!AINV) return; var el=AINV; AINV=null; if(reduced()){ el.remove(); return; } el.classList.add('out'); setTimeout(function(){ el.remove(); },220); }
+function areaInvite(){
+  closeAreaInvite();
+  if(!session||!session.role||session.viewAs||RUN||INV) return;
+  if(view.page==='tutoriais'||view.page==='editor') return;
+  var t=forPage(view.page); if(!t||t.ficha) return;
+  var d=data(), r=d.items[t.id]; if(r&&(r.done||r.step>0||r.ask)) return;
+  var first=role()==='cliente'?'c-dash':'dash'; if(t.id===first&&!(d.invite&&(d.invite.never||(d.invite.until||0)>Date.now()))) return; // o convite geral cuida do painel
+  var page=view.page;
+  ainvTimer=setTimeout(function(){
+    if(view.page!==page||RUN||INV||session.viewAs) return;
+    var el=D.createElement('div'); el.className='tr-invite tr-ainv'+(narrow()?' sheet':''); el.setAttribute('role','dialog'); el.setAttribute('aria-labelledby','trAinvT');
+    el.innerHTML='<div class="k">Primeira vez aqui?</div><h4 id="trAinvT">Como usar '+esc(TX(t.title))+'</h4><p>'+esc(TX(t.desc))+' Um guia de '+stepsOf(t).length+' passos, direto nesta tela, sem alterar nada.</p>'+
+      '<div class="r"><button class="gold" data-a="go">Iniciar</button><button data-a="skip">Agora não</button></div>';
+    el.addEventListener('click',function(e){ var a=e.target&&e.target.getAttribute('data-a'); if(!a) return;
+      if(a==='skip'){ rec(t.id).ask='no'; save(); closeAreaInvite(); }
+      else if(a==='go'){ closeAreaInvite(); start(t.id); } });
+    D.body.appendChild(el); AINV=el;
+  },900);
+}
 
 /* ---------- convite de primeira visita ---------- */
 var INV=null, invChecked=false;
@@ -520,15 +566,15 @@ function hook(){
 function afterRender(){
   try{ ensureHelp(); }catch(e){}
   // navegação feita pela pessoa durante o tutorial: pausa sem perder o passo
-  if(RUN&&!RUN.nav){ var st=RUN.t.steps[RUN.i]||{}; var pg=st.page||(RUN.t.ficha==='cliente'?(role()==='cliente'?'plan':'editor'):RUN.t.page); if(pg&&view.page!==pg&&!(RUN.t.ficha==='lead')) stop('nav'); }
+  if(RUN&&!RUN.nav){ var st=stepsOf(RUN.t)[RUN.i]||{}; var pg=st.page||(RUN.t.ficha==='cliente'?(role()==='cliente'?'plan':'editor'):RUN.t.page); if(pg&&view.page!==pg&&!(RUN.t.ficha==='lead')) stop('nav'); }
   if(view.page==='config'&&role()==='cliente'&&isAppUI()) cfgLink();
-  leadModalHelp(); maybeInvite();
+  leadModalHelp(); maybeInvite(); areaInvite();
 }
 function cfgLink(){ var C=D.getElementById('content'); if(!C||$('.tut-cfg',C)) return; var p=D.createElement('div'); p.className='panel tut-cfg';
   p.innerHTML='<h2>Tutoriais</h2><p class="note" style="margin:0 0 12px">Reveja como usar cada área do aplicativo.</p><button class="btn btn-gold btn-sm" onclick="go(\'tutoriais\')">Abrir tutoriais</button>'; C.appendChild(p); }
 function boot(){ leadModalHelp(); try{ if(session&&session.role){ renderNav(); ensureHelp(); } }catch(e){} }
 // trocar de conta / sair do "Ver como": encerra tutorial e recarrega o progresso do contexto certo
-['verComo','sairVerComo','verComoCliente'].forEach(function(fn){ var tryWrap=function(){ if(typeof W[fn]!=='function') return setTimeout(tryWrap,80); if(W[fn].__tr) return; var o=W[fn]; W[fn]=function(){ if(RUN) stop('switch'); closeInvite(); P.key=null; return o.apply(this,arguments); }; W[fn].__tr=1; }; tryWrap(); });
+['verComo','sairVerComo','verComoCliente'].forEach(function(fn){ var tryWrap=function(){ if(typeof W[fn]!=='function') return setTimeout(tryWrap,80); if(W[fn].__tr) return; var o=W[fn]; W[fn]=function(){ if(RUN) stop('switch'); closeInvite(); closeAreaInvite(); P.key=null; return o.apply(this,arguments); }; W[fn].__tr=1; }; tryWrap(); });
 
 W.AgionTour={start:start,stop:stop,list:function(){ return forRole().map(function(t){ return {id:t.id,title:t.title,status:status(t)}; }); },
   reset:function(id){ var d=data(); if(id) delete d.items[id]; else { d.items={}; d.invite=null; } save(); if(view.page==='tutoriais') render(); },

@@ -36,6 +36,8 @@ No array `CFG` de `plat-tour.js`:
 - `page`: a chave da aba (`go('minhaaba')`). `roles`: `S3` (equipe), `ML` (master+líder), `M` (master), `CL` (cliente).
 - Alvos: `q(seletor)`, `panel('texto do h2')`, `btn('texto', '#content')`, `topBtn()`, `inLead(sel)`, `inCard(sel)`, `cardTxt('texto')` ou uma função que retorne o elemento. Prefira ids estáveis; se não houver, use `data-tour-target="nome"` no HTML e `q('[data-tour-target="nome"]')`.
 - `t:null` = passo centralizado, sem destaque.
+- Texto por perfil: `title`, `desc` e `text` aceitam um objeto `{master:'…', lider:'…', especialista:'…', _:'padrão'}`. Um passo com `roles:['especialista']` só aparece para esse perfil.
+- Convite por aba: na primeira visita a cada aba aparece "Primeira vez aqui?" com Iniciar / Agora não (uma vez por área; some ao iniciar ou dispensar).
 - `optional:true`: se o elemento não existir (sem dados, perfil diferente), o passo é pulado. Sem `optional`, a caixa mostra um aviso e segue.
 - `demo`: `'click'` (toque animado) ou `'type'` (digitação de exemplo; só em `input`/`textarea`).
 - Mudou o conteúdo de um tutorial? Suba `v`. Quem já tinha concluído vê "Atualizado".
