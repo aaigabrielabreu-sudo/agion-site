@@ -626,7 +626,7 @@ function admTag(v){ var a=admCurta(v); return '<span class="cms-tag cms-adm cms-
 function mesesDesde(d){ var a=parseISO(d), b=new Date(); var m=(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth()); if(b.getDate()<a.getDate()) m--; return Math.max(0,m); }
 function tempoTag(v){ var m=mesesDesde(v.data_insercao), d=parseISO(v.data_insercao), oito=iso(mkDate(d.getFullYear(),d.getMonth()+8,d.getDate()));
   var txt=m<1?'menos de 1 mês':m+(m===1?' mês':' meses');
-  return '<b>'+txt+'</b><br>'+(m>=8?tag('passou dos 8 meses','ok'):tag('8 meses em '+fmtBR(oito)+' · faltam '+(8-m),'warn')); }
+  return '<b>'+txt+'</b> <span class="note">desde '+fmtBR(v.data_insercao)+'</span><br>'+(m>=8?tag('passou dos 8 meses','ok'):tag('8 meses em '+fmtBR(oito)+' · faltam '+(8-m),'warn')); }
 function tabelaClientes(V, all){
   var L=V.filter(ativa).slice().sort(function(a,b){ return a.data_insercao<b.data_insercao?-1:a.data_insercao>b.data_insercao?1:String(a.cliente_nome).localeCompare(String(b.cliente_nome)); });
   if(!L.length) return empty('Nenhuma venda registrada','Registre a venda para acompanhar a comissão do cliente.');
@@ -636,13 +636,12 @@ function tabelaClientes(V, all){
     var quem=vendaEmpresa(v)?tag('Venda da empresa','ok'):'<span class="note">'+esc((u.nome||'').split(' ')[0])+'</span> '+origemChip(v);
     return '<tr><td><b>'+esc(v.cliente_nome||'—')+'</b> '+catChip(v)+'<br>'+quem+(v.grupo?' <span class="note">grupo '+esc(v.grupo)+' / cota '+esc(v.cota||'')+'</span>':'')+'</td>'
       +'<td>'+admTag(v)+'<br><span class="note">'+esc(regraTxt(v).replace(/^(HS|Âncora) · /,''))+'</span></td>'
-      +'<td>'+fmtBR(v.data_insercao)+'</td><td>'+tempoTag(v)+'</td>'
+      +'<td>'+tempoTag(v)+'</td>'
       +'<td class="n">'+BRL(k.credito)+'</td><td class="n">'+BRL2(k.hsPre)+'</td><td class="n">'+BRL2(k.hsRec)+'</td>'
       +'<td class="n"><b>'+(pend.length?BRL2(k.hsPre-k.hsRec):'—')+'</b></td>'
-      +'<td class="n">'+pg+'/'+k.parcelas.length+'</td>'
-      +'<td>'+(prox?fmtBR(prox.data)+'<br><span class="note">'+BRL2(prox.hs)+'</span>':tag('tudo recebido','ok'))+'</td></tr>'; }).join('');
-  var foot='<tr class="tot"><td><b>Total</b></td><td></td><td></td><td></td><td class="n"><b>'+BRL(T.cred)+'</b></td><td class="n"><b>'+BRL2(T.adm)+'</b></td><td class="n"><b>'+BRL2(T.rec)+'</b></td><td class="n"><b>'+BRL2(T.pend)+'</b></td><td></td><td></td></tr>';
-  return '<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Administradora · regra</th><th>Venda</th><th>Tempo conosco</th><th class="n">Crédito</th><th class="n">Comissão total</th><th class="n">Já recebido</th><th class="n">A receber</th><th class="n">Parcelas</th><th>Próxima</th></tr></thead><tbody>'+rows+foot+'</tbody></table></div>';
+      +'<td>'+'<b>'+pg+'/'+k.parcelas.length+'</b> '+(prox?'<span class="note">próx. '+fmtBR(prox.data)+'</span><br><span class="note">'+BRL2(prox.hs)+'</span>':'<br>'+tag('tudo recebido','ok'))+'</td></tr>'; }).join('');
+  var foot='<tr class="tot"><td><b>Total</b></td><td></td><td></td><td class="n"><b>'+BRL(T.cred)+'</b></td><td class="n"><b>'+BRL2(T.adm)+'</b></td><td class="n"><b>'+BRL2(T.rec)+'</b></td><td class="n"><b>'+BRL2(T.pend)+'</b></td><td></td></tr>';
+  return '<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Administradora · regra</th><th>Tempo conosco</th><th class="n">Crédito</th><th class="n">Comissão total</th><th class="n">Já recebido</th><th class="n">A receber</th><th>Parcelas recebidas</th></tr></thead><tbody>'+rows+foot+'</tbody></table></div>';
 }
 
 window.cmsSetMtab=function(t){ _mtab=t; repaint(true); };
@@ -691,9 +690,9 @@ function paintMaster(C){
   V.forEach(function(v){ if(analise(v)==='EM_ANALISE')T.an++; if(v.origem_status==='EM_REVISAO')T.rev++; if(!ativa(v)){T.reemb+=(+v.reembolso_valor||0);return;} var k=calc(v,all);
     T.prod+=k.credito; if(v.origem==='LEAD_AGION'){T.prodL+=k.credito;T.hsL+=k.hsPre;} else {T.prodP+=k.credito;T.hsP+=k.hsPre;} T.hsPre+=k.hsPre; T.hsRec+=k.hsRec; T.func+=k.funcPre; T.funcPago+=k.funcPago; T.posHs+=k.posHs; T.posFunc+=k.posFunc; T.reemb+=k.reemb; if(v.pos_status==='COMISSAO_POS_RECEBIDA')T.posRec+=k.posHs; });
   var agion=T.hsPre-T.func, agionRec=T.hsRec-T.funcPago;
-  var nCli=V.filter(ativa), cliPend=nCli.filter(function(v){ return calc(v,all).parcelas.some(function(p){return p.hsStatus!=='RECEBIDA';}); }).length, cli8=nCli.filter(function(v){return mesesDesde(v.data_insercao)<8;}).length;
+  var nCli=V.filter(ativa), nCliU=nCli.reduce(function(a,v){ if(a.indexOf(v.cliente_id||v.cliente_nome)<0)a.push(v.cliente_id||v.cliente_nome); return a; },[]).length, cliPend=nCli.filter(function(v){ return calc(v,all).parcelas.some(function(p){return p.hsStatus!=='RECEBIDA';}); }).length, cli8=nCli.filter(function(v){return mesesDesde(v.data_insercao)<8;}).length;
   var cards='<div class="cms-kts">'
-    +cardTab('clientes','Clientes',String(nCli.length),[['Com parcelas a receber',String(cliPend)],['Ainda sem 8 meses',String(cli8)]],true)
+    +cardTab('clientes','Clientes',String(nCliU),[['Vendas com parcelas a receber',String(cliPend)],['Vendas ainda sem 8 meses',String(cli8)]],true)
     +cardTab('producao',tudo?'Produção total':'Produção da competência',BRL(T.prod),[['Leads Agion',BRL(T.prodL)],['Clientes próprios',BRL(T.prodP)]],true)
     +cardTab('hs','Comissão pré · administradoras',BRL2(T.hsPre),tudo?[['Já recebido',BRL2(T.hsRec)],['A receber',BRL2(T.hsPre-T.hsRec)]]:[['Leads Agion',BRL2(T.hsL)],['Clientes próprios',BRL2(T.hsP)]])
     +cardTab('func','Comissão pré · funcionários',BRL2(T.func),[['Já pago',BRL2(T.funcPago)],['A pagar',BRL2(T.func-T.funcPago)]])
