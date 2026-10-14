@@ -75,7 +75,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v37';
+var VERSAO='v38';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -567,7 +567,9 @@ function cssVar(name, fb){ try{ var v=getComputedStyle(document.documentElement)
 function rgbaOf(hex, a){ var h=String(hex).replace('#',''); if(h.length===3) h=h.split('').map(function(c){return c+c;}).join(''); if(!/^[0-9a-fA-F]{6}$/.test(h)) return hex; return 'rgba('+parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(4,6),16)+','+a+')'; }
 function fluxo(V, all, meses){
   var hs=meses.map(function(){return 0;}), fu=hs.slice(), ag;
-  V.forEach(function(v){ if(!ativa(v))return; var k=calc(v,all); porMes(k,v,meses,'hs').forEach(function(x,i){hs[i]+=x;}); porMes(k,v,meses,'func').forEach(function(x,i){fu[i]+=x;}); });
+  /* cada parcela entra no mês em que a EMPRESA recebe (dia 20 / antecipação); a parte do funcionário dessa parcela
+     é separada no mesmo mês — assim a margem da Agion nunca fica negativa. As datas reais de pagamento ao funcionário estão na agenda abaixo. */
+  V.forEach(function(v){ if(!ativa(v))return; var k=calc(v,all); k.parcelas.forEach(function(p){ if(p.hsStatus==='RECEBIDA')return; var i=-1; meses.forEach(function(m,j){ if((p.dataEmp||p.data).slice(0,7)===m.key) i=j; }); if(i<0)return; hs[i]+=p.hs; fu[i]+=p.func; }); });
   ag=hs.map(function(x,i){return x-fu[i];});
   var tHs=somaArr(hs), tFu=somaArr(fu), tAg=somaArr(ag), pMed=tHs?Math.round(tFu/tHs*100):0;
   var pf=function(i){ return hs[i]?Math.round(fu[i]/hs[i]*100):0; };
