@@ -40,7 +40,7 @@ function catOpts(sel){ return Object.keys(CATS).map(function(k){ return '<option
    Funcionário: 1ª parcela dia 23 (antecipação) ou dia 10 do mês seguinte; demais todo dia 10.
    Empresa (proprietário): recebe SEMPRE por antecipação, no dia 20 — um mês à frente do funcionário
    (a parcela que o funcionário recebe dia 10 de novembro a empresa já recebeu dia 20 de outubro). */
-var DIA_FUNC = 10, DIA_EMP = 20;
+var DIA_FUNC = 10, DIA_EMP = 20, DIA_EMP_NORMAL = 7;   // venda na janela normal: empresa recebe a 1ª parcela dia 7 (paga o funcionário dia 10)
 var CUTOFF_ANTEC = 20;   // vendas até o dia 20 entram no cluster da antecipação (dia 23)
 var SIT_LBL = {EM_DIA:'Em dia', INADIMPLENTE:'Não pagou', REEMBOLSO_PARCIAL:'Reembolso parcial', REEMBOLSO_TOTAL:'Reembolso total', CANCELADA:'Cancelada'};
 var POS_LBL = {NAO_CONTEMPLADA:'Aguardando contemplação', CONTEMPLADA:'Contemplada', COMISSAO_POS_RECEBIDA:'Comissão pós recebida'};
@@ -67,14 +67,14 @@ function janelaDe(dateISO){
   for(var k=1;k<5;k++) datas.push(iso(mkDate(p1.getFullYear(), p1.getMonth()+k, DIA_FUNC)));
   return {tipo: antec?'ANTECIPACAO':'NORMAL', datas:datas, ajusteData: iso(mkDate(fim.getFullYear(), fim.getMonth()+1, DIA_FUNC))};
 }
-function dataEmpresa(funcISO, i, tipo, vendaISO){ var f=parseISO(funcISO); var d=(i===0&&tipo==='ANTECIPACAO')?mkDate(f.getFullYear(),f.getMonth(),DIA_EMP):mkDate(f.getFullYear(),f.getMonth()-1,DIA_EMP); var v=parseISO(vendaISO); while(d<v) d=mkDate(d.getFullYear(),d.getMonth()+1,DIA_EMP); return iso(d); }
+function dataEmpresa(funcISO, i, tipo, vendaISO){ var f=parseISO(funcISO); var d=(i===0&&tipo==='ANTECIPACAO')?mkDate(f.getFullYear(),f.getMonth(),DIA_EMP):(i===0)?mkDate(f.getFullYear(),f.getMonth(),DIA_EMP_NORMAL):mkDate(f.getFullYear(),f.getMonth()-1,DIA_EMP); var v=parseISO(vendaISO); while(d<v) d=mkDate(d.getFullYear(),d.getMonth()+1,DIA_EMP); return iso(d); }
 function clusterDe(prod){ for(var i=0;i<CLUSTERS.length;i++) if(prod<=CLUSTERS[i].ate) return CLUSTERS[i]; return CLUSTERS[CLUSTERS.length-1]; }
 function proxCluster(prod){ for(var i=0;i<CLUSTERS.length;i++) if(prod<=CLUSTERS[i].ate) return CLUSTERS[i+1]||null; return null; }
 function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%'; }
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v34';
+var VERSAO='v35';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
