@@ -30,6 +30,8 @@ var CATS = {AUTOMOVEL:{lb:'Automóvel',ic:'\u{1F697}'}, IMOVEL:{lb:'Imóvel',ic:
 function servico(v){ return v&&v.categoria==='SERVICOS'; }
 /* regra própria da venda (13/out/2026): administradora paga pct do crédito em n parcelas mensais — ex.: Âncora 5% em 16x, 0,5% ao mês em 8x.
    Colaborador: 50% do que a administradora paga (cliente próprio) ou 25% (lead da Agion). Sem pós-contemplação. */
+/* venda feita pelo Master (dono) = venda da EMPRESA: sem comissão de colaborador, tudo fica com a Agion (14/out/2026) */
+function vendaEmpresa(v){ try{ var u=(typeof user==='function')?user(v.vendedor_id):null; return !!(u&&u.role==='master'); }catch(e){ return false; } }
 function regraV(v){ var r=v&&v.regra; if(r&&+r.n>0&&+r.pct>0) return {n:Math.round(+r.n),pct:+r.pct}; return null; }
 function admCurta(v){ var a=String((v&&v.administradora)||''); return /[âa]ncora/i.test(a)?'Âncora':/hs/i.test(a)?'HS':(a||'HS'); }
 function catChip(v){ var c=CATS[v&&v.categoria]; return c?'<span class="cms-tag">'+c.ic+' '+c.lb+'</span>':''; }
@@ -66,7 +68,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v29';
+var VERSAO='v30';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -97,7 +99,7 @@ function calc(v, all){
   var prod=mesmas.reduce(function(s,x){return s+(+x.credito||0);},0);
   var fim=parseISO(c.fim), cut=iso(mkDate(fim.getFullYear(), fim.getMonth(), CUTOFF_ANTEC));
   var prod20=mesmas.filter(function(x){return x.data_insercao<=cut;}).reduce(function(s,x){return s+(+x.credito||0);},0);
-  var credito=+v.credito||0, proprio=v.origem==='CLIENTE_PROPRIO', R=regraV(v), serv=servico(v)||!!R;
+  var credito=+v.credito||0, proprio=v.origem==='CLIENTE_PROPRIO', R=regraV(v), serv=servico(v)||!!R, EMP=vendaEmpresa(v);
   var rate = serv ? (proprio?SERV_FUNC_PROPRIO:SERV_FUNC_LEAD)*SERV_N : proprio ? PROPRIO_PRE : clusterDe(prod).r;
   var rate20 = serv ? rate : proprio ? PROPRIO_PRE : clusterDe(prod20).r;
   var hsPre = R ? credito*R.pct : serv ? credito*SERV_ADM_PARC*SERV_N : credito*HS_PRE;
@@ -110,17 +112,17 @@ function calc(v, all){
     var hsS=st.hs==='RECEBIDA'?'RECEBIDA':st.hs==='NAO_RECEBIDA'?'NAO_RECEBIDA':(passado?'RECEBIDA':'PREVISTA');
     var fS=st.func==='PAGA'?'PAGA':st.func==='NAO_PAGA'?'NAO_PAGA':(passado?'PAGA':'PREVISTA');
     var hsP = R ? credito*R.pct/R.n : serv?credito*SERV_ADM_PARC:credito*HS_PARC[i];
-    parcelas.push({n:i+1, data:datas[i], hs:hsP, func:R?hsP*(proprio?0.5:0.25):serv?credito*rate/SERV_N:credito*r_i*FUNC_SHARE[i], share:R?1/R.n:serv?1/SERV_N:FUNC_SHARE[i], hsStatus:hsS, funcStatus:fS, auto:!st.hs&&!st.func&&passado, dataEfetiva:st.data_efetiva||null});
+    parcelas.push({n:i+1, data:datas[i], hs:hsP, func:EMP?0:R?hsP*(proprio?0.5:0.25):serv?credito*rate/SERV_N:credito*r_i*FUNC_SHARE[i], share:R?1/R.n:serv?1/SERV_N:FUNC_SHARE[i], hsStatus:hsS, funcStatus:fS, auto:!st.hs&&!st.func&&passado, dataEfetiva:st.data_efetiva||null});
     parcelas[i].agion=parcelas[i].hs-parcelas[i].func;
   }
-  var ajuste = (!serv && jan.tipo==='ANTECIPACAO' && rate>rate20) ? credito*(rate-rate20)*FUNC_SHARE[0] : 0;
-  var posFunc = (proprio&&!serv) ? credito*PROPRIO_POS : 0, posHs=serv?0:credito*HS_POS;
+  var ajuste = (!EMP && !serv && jan.tipo==='ANTECIPACAO' && rate>rate20) ? credito*(rate-rate20)*FUNC_SHARE[0] : 0;
+  var posFunc = (proprio&&!serv&&!EMP) ? credito*PROPRIO_POS : 0, posHs=serv?0:credito*HS_POS;
   var funcTot = parcelas.reduce(function(s,p){return s+p.func;},0)+ajuste;
   var ajustePago = v.ajuste_pago===true || (v.ajuste_pago!==false && jan.ajusteData<iso(new Date()));
   var funcPago = parcelas.filter(function(p){return p.funcStatus==='PAGA';}).reduce(function(s,p){return s+p.func;},0) + (ajustePago?ajuste:0);
   var hsRec = parcelas.filter(function(p){return p.hsStatus==='RECEBIDA';}).reduce(function(s,p){return s+p.hs;},0);
   var reemb = +v.reembolso_valor||0;
-  return {serv:serv, regra:R, comp:c, jan:jan, prod:prod, prod20:prod20, rate:rate, rate20:rate20, cluster:clusterDe(prod), credito:credito, proprio:proprio,
+  return {serv:serv, regra:R, empresa:EMP, comp:c, jan:jan, prod:prod, prod20:prod20, rate:rate, rate20:rate20, cluster:clusterDe(prod), credito:credito, proprio:proprio,
     hsPre:hsPre, funcPre:funcTot, agionPre:hsPre-funcTot, parcelas:parcelas, ajuste:ajuste, ajusteData:jan.ajusteData,
     posHs:posHs, posFunc:posFunc, posAgion:posHs-posFunc, ajustePago:ajustePago, funcPago:funcPago, funcPend:funcTot-funcPago, hsRec:hsRec, hsPend:hsPre-hsRec, reemb:reemb,
     proximo: parcelas.filter(function(p){return p.funcStatus!=='PAGA';}).map(function(p){return p;})[0]||null };
@@ -450,7 +452,7 @@ function emptyRow(cols,txt,sub){ return '<tr class="cms-emptyrow"><td colspan="'
 function vendaCard(v,all,master){
   master=master&&eMaster();
   var k=calc(v,all), u=user(v.vendedor_id), a=analise(v);
-  var tags=catChip(v)+origemChip(v)+anChip(v)+sitChip(v.situacao)+(v.reembolso_valor?tag('reemb. '+BRL2(v.reembolso_valor),'warn'):'');
+  var tags=catChip(v)+(vendaEmpresa(v)?tag('Venda da empresa','ok'):origemChip(v))+anChip(v)+sitChip(v.situacao)+(v.reembolso_valor?tag('reemb. '+BRL2(v.reembolso_valor),'warn'):'');
   var meta=[master?'<span class="nm">'+esc((u.nome||'').split(' ').slice(0,2).join(' '))+'</span>':null, v.administradora?'<span>'+esc(v.administradora)+'</span>':null, v.grupo?'<span>grupo '+esc(v.grupo)+' / cota '+esc(v.cota||'')+'</span>':null, '<span>venda em '+fmtBR(v.data_insercao)+'</span>', '<span>competência '+esc(k.comp.rot)+'</span>', '<span>'+(k.jan.tipo==='ANTECIPACAO'?'antecipação · 1ª parcela dia 23':'janela normal · 1ª parcela dia 10')+(k.serv?' · 4 parcelas':'')+'</span>'].filter(Boolean).join('');
   var head='<div class="cms-head"><div class="who"><h3>'+esc(v.cliente_nome||'—')+'</h3><div class="meta">'+meta+'</div><div class="tags">'+tags+'</div></div><div class="amt"><b>'+BRL(k.credito)+'</b><span>comissão de <em>'+pct(k.rate)+'</em> sobre o crédito'+(k.ajuste?'<br>ajuste de cluster de '+BRL2(k.ajuste)+' em '+fmtBR(k.ajusteData):'')+'</span></div></div>';
   var sum='<div class="cms-sum">'
