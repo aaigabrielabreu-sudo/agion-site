@@ -704,7 +704,7 @@ function distCategorias(V, titulo){
     return '<div class="cms-cat'+(b.n?'':' vazio')+'"><div class="h"><span>'+c.ic+'</span><b>'+c.lb+'</b><em>'+(tot?Math.round(pc*100):0)+'%</em></div><div class="v">'+BRL(b.cred)+'</div><div class="s">'+b.n+' venda'+(b.n===1?'':'s')+'</div><div class="bar"><i style="width:'+Math.round(b.cred/max*100)+'%"></i></div></div>'; }).join('');
   return '<div class="panel"><h2>'+(titulo||'Vendas por categoria')+' <span class="right note">'+at.length+' venda'+(at.length===1?'':'s')+' · '+BRL(tot)+(semCat?' · '+semCat+' sem categoria':'')+'</span></h2><div class="cms-cats">'+tiles+'</div></div>';
 }
-window.cmsDistCategorias=async function(titulo){ if(!_loaded) await load(); ensureCss(); return '<div class="cms-wrap">'+distCategorias(vendasVisiveis(),titulo)+'</div>'; };
+window.cmsDistCategorias=async function(titulo,mes){ if(!_loaded) await load(); ensureCss(); var V=vendasVisiveis(); if(mes) V=V.filter(function(v){return String(v.data_insercao||'').slice(0,7)===mes;}); return '<div class="cms-wrap">'+distCategorias(V,titulo)+'</div>'; };
 
 function paintLider(C){
   var uid=eId(), ids=teamIds();

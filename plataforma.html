@@ -1335,7 +1335,7 @@ html.capNative body.isApp #viewbar,html.capNative body.isApp .topbar,html.capNat
 }catch(e){}})();</script>
 <link rel="stylesheet" href="/plat-motion.css?v=1">
 <link rel="stylesheet" href="/plat-theme.css?v=15">
-<link rel="stylesheet" href="/plat-crm.css?v=4">
+<link rel="stylesheet" href="/plat-crm.css?v=5">
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
 <div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" type="email" inputmode="email" placeholder="seu@email.com" value="" autocomplete="username" aria-label="E-mail"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="" autocomplete="current-password" aria-label="Senha" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> </div>
@@ -1381,7 +1381,7 @@ async function loadCloud(){
           .sort((a,b)=>(b.principal?1:0)-(a.principal?1:0))
           .map(p=>({ ...(p.data||{}), id:p.id, titulo:p.nome||(p.data&&p.data.titulo)||'Plano Principal', main:!!p.principal }));
         if(!plans.length) plans.push(blankPlan(c.nome));
-        return {id:c.id,nome:c.nome,email:c.email||'',tel:c.tel||'',ownerId:c.owner_id,userId:c.user_id||null,categoria:c.categoria||null,cadastroId:c.cadastro_id||null,cpf:c.cpf||'',plans};
+        return {id:c.id,nome:c.nome,email:c.email||'',tel:c.tel||'',ownerId:c.owner_id,userId:c.user_id||null,categoria:c.categoria||null,cadastroId:c.cadastro_id||null,cpf:c.cpf||'',criadoEm:c.criado_em?new Date(c.criado_em).getTime():null,plans};
       });
       cloudReady=true;
     } else if(isMaster()){
@@ -2764,7 +2764,7 @@ function renderGerencial(C){
   VL.forEach(function(l){ const k=(user(l.ownerId).nome||'—').split(' ')[0]; if(!byOwn[k])byOwn[k]={n:0,p:0,leads:0,won:0}; if(!l.perdido)byOwn[k].leads++; if(l.stage>=4&&!l.perdido)byOwn[k].won++; });
   const kpi=function(lab,val,grad){ return '<div class="kpi'+(grad?' grad':'')+'"><div class="lab">'+lab+'</div><b>'+val+'</b></div>'; };
   C.innerHTML='<div class="kpis">'+kpi(ICN.users+'Clientes',VC.length,1)+kpi(ICN.money+'Patrimônio sob gestão',BRL(patr))+kpi(ICN.funnel+'Pipeline (CRM)',BRL(pipe))+kpi(ICN.bolt+'Conversão',conv+'%')+kpi(ICN.check+'Tarefas pendentes',tp)+kpi(ICN.bolt+'Leads aguardando',aguard)+'</div>'
-   +'<div id="gCatVendas"></div>'
+   +'<div id="gCatVendas"></div><div id="gCatCrm"></div>'
    +'<div class="grid2"><div class="panel"><h2>'+ICN.funnel+' Funil de negócios</h2><div style="height:230px"><canvas id="gFunil"></canvas></div></div>'
    +'<div class="panel"><h2>'+ICN.bolt+' Origem dos leads</h2><div style="height:230px"><canvas id="gOrigem"></canvas></div></div></div>'
    +'<div class="panel"><h2>'+ICN.check+' Atividade da equipe (14 dias)</h2><div style="height:220px"><canvas id="gAtiv"></canvas></div></div>'
@@ -2772,14 +2772,15 @@ function renderGerencial(C){
    +Object.keys(byOwn).map(function(k){ const o=byOwn[k]; return '<tr><td style="padding:9px 10px;border-top:1px solid var(--line)"><b>'+esc(k)+'</b></td><td style="text-align:center;border-top:1px solid var(--line)">'+o.n+'</td><td style="text-align:center;border-top:1px solid var(--line)">'+BRL(Math.round(o.p))+'</td><td style="text-align:center;border-top:1px solid var(--line)">'+o.leads+'</td><td style="text-align:center;border-top:1px solid var(--line)">'+o.won+'</td></tr>'; }).join('')
    +'</tbody></table></div></div>';
   /* KPIs por categoria da carta: vendas fechadas (aba Comissões) + funil do CRM */
-  (async function(){ try{ const box=document.getElementById('gCatVendas'); if(!box||typeof cmsDistCategorias!=='function')return;
-    let h=await cmsDistCategorias('Vendas fechadas por categoria');
+  (async function(){ try{ const box=document.getElementById('gCatVendas'); if(!box)return;
+    if(typeof kpiCatRender==='function') kpiCatRender(box); else if(typeof cmsDistCategorias==='function') box.innerHTML=await cmsDistCategorias('Vendas fechadas por categoria');
+    let h='';
     const ativos=VL.filter(l=>!l.perdido), maxN=Math.max(1,...CARTA_CATS.map(c=>ativos.filter(l=>leadCartaCat(l)===c.k).length));
     const tiles=CARTA_CATS.map(c=>{ const L=ativos.filter(l=>leadCartaCat(l)===c.k); const g=L.filter(l=>l.stage>=CRM_STAGES.length-1).length; const v=L.reduce((a,l)=>a+(+l.valor||0),0);
       return '<div class="cms-cat'+(L.length?'':' vazio')+'"><div class="h"><span>'+c.ic+'</span><b>'+c.lb+'</b><em>'+L.length+' leads</em></div><div class="v">'+BRL(v)+'</div><div class="s">'+g+' ganho'+(g===1?'':'s')+' no funil</div><div class="bar"><i style="width:'+Math.round(L.length/maxN*100)+'%"></i></div></div>'; }).join('');
     const sem=ativos.filter(l=>!leadCartaCat(l)).length;
     h+='<div class="cms-wrap"><div class="panel"><h2>CRM por categoria <span class="right note">leads ativos'+(sem?' · '+sem+' sem categoria':'')+'</span></h2><div class="cms-cats">'+tiles+'</div></div></div>';
-    if(document.body.contains(box)) box.innerHTML=h; }catch(e){} })();
+    const bc=document.getElementById('gCatCrm'); if(bc) bc.innerHTML=h; }catch(e){} })();
   try{ mkChart('gFunil',{type:'bar',data:{labels:stages,datasets:[{data:stCount,backgroundColor:['#8FD9CC','#5BC0AE','#2E8B7A','#C5A059','#0E4A41']}]},options:{indexAxis:'y',maintainAspectRatio:false,plugins:{legend:{display:false}}}}); }catch(e){}
   try{ const src=_gerSrc(); const ks=Object.keys(src); mkChart('gOrigem',{type:'doughnut',data:{labels:ks.length?ks:['Sem dados'],datasets:[{data:ks.length?ks.map(function(k){return src[k];}):[1],backgroundColor:['#0E4A41','#C5A059','#8FD9CC','#5BC0AE','#E8CC8B','#2E8B7A']}]},options:{maintainAspectRatio:false}}); }catch(e){}
   try{ mkChart('gAtiv',{type:'line',data:{labels:days.map(dayKey),datasets:[{label:'Ações',data:actByDay,borderColor:'#0E4A41',backgroundColor:'rgba(14,74,65,.12)',fill:true,tension:.3,pointRadius:2}]},options:{maintainAspectRatio:false,plugins:{legend:{display:false}}}}); }catch(e){}
@@ -3122,12 +3123,21 @@ async function cartaDel(id){
   try{ await supa.from('cartas').delete().eq('id',id); logEvt&&logEvt('DELETE','cartas','Excluiu uma carta',{cliente_id:_cartasCid}); }catch(e){}
   openCartas(_cartasCid);
 }
+/* data em que virou cliente + aniversário de casa (13/out/2026) */
+function cliDesdeHtml(c){ if(!c||!c.criadoEm) return ''; const d=new Date(c.criadoEm), hj=new Date(); hj.setHours(0,0,0,0);
+  const f=x=>('0'+x.getDate()).slice(-2)+'/'+('0'+(x.getMonth()+1)).slice(-2)+'/'+x.getFullYear();
+  let anos=hj.getFullYear()-d.getFullYear(); let prox=new Date(hj.getFullYear(),d.getMonth(),d.getDate()); if(prox<hj){ prox=new Date(hj.getFullYear()+1,d.getMonth(),d.getDate()); }
+  const nAnos=prox.getFullYear()-d.getFullYear(), dias=Math.round((prox-hj)/86400000);
+  const meses=(hj.getFullYear()-d.getFullYear())*12+(hj.getMonth()-d.getMonth())-(hj.getDate()<d.getDate()?1:0);
+  const tempo=meses<1?'há menos de 1 mês':meses<12?'há '+meses+(meses===1?' mês':' meses'):'há '+Math.floor(meses/12)+(Math.floor(meses/12)===1?' ano':' anos')+(meses%12?' e '+(meses%12)+(meses%12===1?' mês':' meses'):'');
+  let aniv=''; if(nAnos>=1&&dias===0) aniv='<span class="cli-aniv hoje">🎉 Hoje faz '+nAnos+(nAnos===1?' ano':' anos')+' de casa!</span>'; else if(nAnos>=1&&dias<=30) aniv='<span class="cli-aniv">🎉 '+nAnos+(nAnos===1?' ano':' anos')+' de casa em '+('0'+prox.getDate()).slice(-2)+'/'+('0'+(prox.getMonth()+1)).slice(-2)+'</span>';
+  return '<div class="cli-desde" title="Data em que virou cliente da Agion">🗓 Cliente desde <b>'+f(d)+'</b> · '+tempo+aniv+'</div>'; }
 function cliListHtml(){
   let VC=visibleClients();
   if(_cliQ){ const qd=_cliQ.replace(/\D/g,''); VC=VC.filter(c=>{ const s=((c.nome||'')+' '+(c.email||'')).toLowerCase(); if(s.indexOf(_cliQ)>=0)return true; if(qd){ const tl=(''+(c.tel||'')).replace(/\D/g,''); if(tl.indexOf(qd)>=0)return true; } return false; }); }
   const total=VC.length; const shown=VC.slice(0,_cliN);
   const cards=shown.map(c=>{const m=mainPlan(c),t=totals(c.plans.find(p=>p.main));const copies=c.plans.filter(p=>!p.main).length;
-    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div> <div class="meta">${esc(c.email||'')}${c.tel?' · 📱 '+esc(c.tel):''}${c.cpf&&window.cpfFmt?' · CPF '+esc(cpfFmt(c.cpf)):''}${isMaster()?' · 👤 '+esc(user(c.ownerId).nome.split(' ')[0]):''}</div>${(c.cadastroId&&window.cadOf&&cadOf(c.cadastroId))?'<div>'+cadOrigemChip(cadOf(c.cadastroId))+'</div>':''}<label class="cli-cat${c.categoria?'':' vazia'}" title="Categoria da carta — toque para mudar">${c.categoria&&cartaCat(c.categoria)?cartaCat(c.categoria).ic+' '+cartaCat(c.categoria).lb:'\u2795 Definir categoria'}<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg><select onchange="cliSetCat('${c.id}',this.value)">${cartaCatOpts(c.categoria||'','— sem categoria —')}</select></label> <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div> <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button> <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button> <button class="btn btn-ghost btn-sm" onclick="openCartas('${c.id}')">🎫 Cartas</button> <button class="btn btn-ghost btn-sm" onclick="verComoCliente('${c.id}')">👁 Visão cliente</button>${isMaster()?` <button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="excluirClienteEmpresa('${c.id}')">Excluir</button>`:''}</div></div>`}).join('')||`<p class="note">${_cliQ?'Nenhum cliente encontrado para essa busca.':'Você ainda não tem clientes. Crie um cliente ou converta um lead no CRM.'}</p>`;
+    return `<div class="ccard"><div class="row"><h3>${esc(c.nome)}</h3><span class="tag tag-main">Principal</span></div> <div class="meta">${esc(c.email||'')}${c.tel?' · 📱 '+esc(c.tel):''}${c.cpf&&window.cpfFmt?' · CPF '+esc(cpfFmt(c.cpf)):''}${isMaster()?' · 👤 '+esc(user(c.ownerId).nome.split(' ')[0]):''}</div>${(c.cadastroId&&window.cadOf&&cadOf(c.cadastroId))?'<div>'+cadOrigemChip(cadOf(c.cadastroId))+'</div>':''}${cliDesdeHtml(c)}<label class="cli-cat${c.categoria?'':' vazia'}" title="Categoria da carta — toque para mudar">${c.categoria&&cartaCat(c.categoria)?cartaCat(c.categoria).ic+' '+cartaCat(c.categoria).lb:'\u2795 Definir categoria'}<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg><select onchange="cliSetCat('${c.id}',this.value)">${cartaCatOpts(c.categoria||'','— sem categoria —')}</select></label> <div style="font-size:.82rem;color:var(--muted);margin-bottom:4px">Patrimônio: <b style="color:var(--head)">${BRL(t.patr)}</b></div> <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Aporte/mês: <b style="color:var(--head)">${BRL(t.sobra)}</b> · ${copies} simulação(ões)</div> <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn btn-gold btn-sm" onclick="openEditor('${c.id}','${m.id}',false)">Editar plano</button> <button class="btn btn-ghost btn-sm" onclick="openCompare('${c.id}')">Comparar cenários</button> <button class="btn btn-ghost btn-sm" onclick="openCartas('${c.id}')">🎫 Cartas</button> <button class="btn btn-ghost btn-sm" onclick="verComoCliente('${c.id}')">👁 Visão cliente</button>${isMaster()?` <button class="btn btn-ghost btn-sm" style="color:var(--bad)" onclick="excluirClienteEmpresa('${c.id}')">Excluir</button>`:''}</div></div>`}).join('')||`<p class="note">${_cliQ?'Nenhum cliente encontrado para essa busca.':'Você ainda não tem clientes. Crie um cliente ou converta um lead no CRM.'}</p>`;
   return `<div class="cards">${cards}</div>${total>_cliN?`<div style="text-align:center;margin-top:16px"><button class="btn btn-ghost" onclick="cliMore()">Carregar mais (${total-_cliN} restantes)</button></div>`:''}`;
 }
 function cliSearch(v){_cliQ=(v||'').toLowerCase();_cliN=24;const el=document.getElementById('cliList');if(el)el.innerHTML=cliListHtml();}
@@ -3872,8 +3882,9 @@ function masterReportPDF(){
 </script>
 <script src="/plat-charts.js?v=1"></script>
 <script src="/plat-consultoria.js?v=4"></script>
-<script src="/plat-comissoes.js?v=27"></script>
+<script src="/plat-comissoes.js?v=28"></script>
 <script src="/plat-cadastro.js?v=5"></script>
+<script src="/plat-kpicat.js?v=1"></script>
 <script src="/plat-motion-hook.js?v=1"></script>
 
 <!-- ===== Propostas (anexos por lead) — identidade Agion ===== -->

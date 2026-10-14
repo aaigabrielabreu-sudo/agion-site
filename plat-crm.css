@@ -424,3 +424,8 @@ body .lead-v2 .lv2-catsel:active{transform:scale(.98)}
 body .cli-cat{position:relative;display:inline-flex;align-items:center;gap:6px;margin:2px 0 10px;padding:5px 11px;border:1px solid var(--line-gold,rgba(197,160,89,.35));border-radius:999px;background:rgba(197,160,89,.08);color:var(--head);font-size:.82rem;font-weight:600;cursor:pointer}
 body .cli-cat.vazia{border-style:dashed;background:transparent;color:var(--muted);font-weight:500}
 body .cli-cat svg{opacity:.7}
+/* Cliente desde + aniversário de casa (13/out/2026) */
+body .cli-desde{font-size:.8rem;color:var(--soft);margin:2px 0 8px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+body .cli-desde b{color:var(--head);font-weight:600}
+body .cli-aniv{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:rgba(197,160,89,.14);border:1px solid var(--line-gold,rgba(197,160,89,.35));color:var(--gold2,#E8CC8B);font-weight:600;font-size:.74rem}
+body .cli-aniv.hoje{background:rgba(197,160,89,.28)}
