@@ -36,6 +36,7 @@ function regraV(v){ var r=v&&v.regra; if(r&&+r.n>0&&+r.pct>0) return {n:Math.rou
 function admCurta(v){ var a=String((v&&v.administradora)||''); return /[âa]ncora/i.test(a)?'Âncora':/hs/i.test(a)?'HS':(a||'HS'); }
 function catChip(v){ var c=CATS[v&&v.categoria]; return c?'<span class="cms-tag">'+c.ic+' '+c.lb+'</span>':''; }
 function catOpts(sel){ return Object.keys(CATS).map(function(k){ return '<option value="'+k+'"'+(sel===k?' selected':'')+'>'+CATS[k].ic+' '+CATS[k].lb+'</option>'; }).join(''); }
+var DIA_PAG = 23;      // dia em que a administradora paga as comissões
 var CUTOFF_ANTEC = 20;   // vendas até o dia 20 entram no cluster da antecipação (dia 23)
 var SIT_LBL = {EM_DIA:'Em dia', INADIMPLENTE:'Não pagou', REEMBOLSO_PARCIAL:'Reembolso parcial', REEMBOLSO_TOTAL:'Reembolso total', CANCELADA:'Cancelada'};
 var POS_LBL = {NAO_CONTEMPLADA:'Aguardando contemplação', CONTEMPLADA:'Contemplada', COMISSAO_POS_RECEBIDA:'Comissão pós recebida'};
@@ -57,10 +58,11 @@ function compShift(key,n){ var d=parseISO(key); return competencia(iso(mkDate(d.
 function janelaDe(dateISO){
   var c=competencia(dateISO), d=parseISO(dateISO), fim=parseISO(c.fim);
   var antec = !(d.getMonth()===fim.getMonth() && d.getFullYear()===fim.getFullYear() && d.getDate()>=16);
-  var p1 = antec ? mkDate(fim.getFullYear(), fim.getMonth(), 23) : mkDate(fim.getFullYear(), fim.getMonth()+1, 10);
+  /* 14/out/2026: a Agion recebe as comissões sempre no dia 23 (DIA_PAG) */
+  var p1 = antec ? mkDate(fim.getFullYear(), fim.getMonth(), DIA_PAG) : mkDate(fim.getFullYear(), fim.getMonth()+1, DIA_PAG);
   var datas=[iso(p1)];
-  for(var k=1;k<5;k++) datas.push(iso(mkDate(p1.getFullYear(), p1.getMonth()+k, 10)));
-  return {tipo: antec?'ANTECIPACAO':'NORMAL', datas:datas, ajusteData: iso(mkDate(fim.getFullYear(), fim.getMonth()+1, 10))};
+  for(var k=1;k<5;k++) datas.push(iso(mkDate(p1.getFullYear(), p1.getMonth()+k, DIA_PAG)));
+  return {tipo: antec?'ANTECIPACAO':'NORMAL', datas:datas, ajusteData: iso(mkDate(fim.getFullYear(), fim.getMonth()+1, DIA_PAG))};
 }
 function clusterDe(prod){ for(var i=0;i<CLUSTERS.length;i++) if(prod<=CLUSTERS[i].ate) return CLUSTERS[i]; return CLUSTERS[CLUSTERS.length-1]; }
 function proxCluster(prod){ for(var i=0;i<CLUSTERS.length;i++) if(prod<=CLUSTERS[i].ate) return CLUSTERS[i+1]||null; return null; }
@@ -68,7 +70,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v32';
+var VERSAO='v33';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -104,7 +106,7 @@ function calc(v, all){
   var rate20 = serv ? rate : proprio ? PROPRIO_PRE : clusterDe(prod20).r;
   var hsPre = R ? credito*R.pct : serv ? credito*SERV_ADM_PARC*SERV_N : credito*HS_PRE;
   var nP = R ? R.n : serv ? SERV_N : 5;
-  var datas=jan.datas.slice(); while(datas.length<nP){ var b0=parseISO(datas[0]); datas.push(iso(mkDate(b0.getFullYear(), b0.getMonth()+datas.length, 10))); }
+  var datas=jan.datas.slice(); while(datas.length<nP){ var b0=parseISO(datas[0]); datas.push(iso(mkDate(b0.getFullYear(), b0.getMonth()+datas.length, DIA_PAG))); }
   var parcelas=[];
   for(var i=0;i<nP;i++){
     var r_i = (i===0 && jan.tipo==='ANTECIPACAO') ? rate20 : rate;
@@ -456,7 +458,7 @@ function vendaCard(v,all,master){
   master=master&&eMaster();
   var k=calc(v,all), u=user(v.vendedor_id), a=analise(v);
   var tags=admTag(v)+catChip(v)+(vendaEmpresa(v)?tag('Venda da empresa','ok'):origemChip(v))+anChip(v)+sitChip(v.situacao)+(v.reembolso_valor?tag('reemb. '+BRL2(v.reembolso_valor),'warn'):'');
-  var meta=[master?'<span class="nm">'+esc((u.nome||'').split(' ').slice(0,2).join(' '))+'</span>':null, v.administradora?'<span>'+esc(v.administradora)+'</span>':null, v.grupo?'<span>grupo '+esc(v.grupo)+' / cota '+esc(v.cota||'')+'</span>':null, '<span>venda em '+fmtBR(v.data_insercao)+'</span>', '<span>competência '+esc(k.comp.rot)+'</span>', '<span>'+(k.jan.tipo==='ANTECIPACAO'?'antecipação · 1ª parcela dia 23':'janela normal · 1ª parcela dia 10')+(k.serv?' · 4 parcelas':'')+'</span>'].filter(Boolean).join('');
+  var meta=[master?'<span class="nm">'+esc((u.nome||'').split(' ').slice(0,2).join(' '))+'</span>':null, v.administradora?'<span>'+esc(v.administradora)+'</span>':null, v.grupo?'<span>grupo '+esc(v.grupo)+' / cota '+esc(v.cota||'')+'</span>':null, '<span>venda em '+fmtBR(v.data_insercao)+'</span>', '<span>competência '+esc(k.comp.rot)+'</span>', '<span>'+(k.jan.tipo==='ANTECIPACAO'?'antecipação · 1ª parcela dia 23':'janela normal · 1ª parcela dia 23 do mês seguinte')+(k.serv?' · 4 parcelas':'')+'</span>'].filter(Boolean).join('');
   var head='<div class="cms-head"><div class="who"><h3>'+esc(v.cliente_nome||'—')+'</h3><div class="meta">'+meta+'</div><div class="tags">'+tags+'</div></div><div class="amt"><b>'+BRL(k.credito)+'</b><span>comissão de <em>'+pct(k.rate)+'</em> sobre o crédito'+(k.ajuste?'<br>ajuste de cluster de '+BRL2(k.ajuste)+' em '+fmtBR(k.ajusteData):'')+'</span></div></div>';
   var sum='<div class="cms-sum">'
     +(master?'<div><div class="l">Pré · '+admCurta(v)+' ('+pct(k.hsPre/(k.credito||1))+')</div><div class="v">'+BRL2(k.hsPre)+'<small>recebido '+BRL2(k.hsRec)+'</small></div></div>':'')
