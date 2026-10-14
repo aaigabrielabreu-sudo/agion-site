@@ -219,6 +219,7 @@ function forPage(page){ var r=role(); if(page==='editor') return byId('ficha-cli
    4) PROGRESSO — por conta + contexto. Cache local + tabela tutorial_progresso.
    ========================================================================== */
 var P={key:null,data:null}, SV={off:false,pulled:{},timer:null,uid:null};
+function SB(){ try{ return W.supa||(typeof supa!=="undefined"?supa:null); }catch(e){ return null; } }
 function ctx(){ return (session&&session.viewAs)?'view:'+session.viewAs.id:'self'; }
 function stor(){ return (session&&session.viewAs)?W.sessionStorage:W.localStorage; }
 function pkey(){ var id=null; try{ id=meId(); }catch(e){} return 'agion:tutorial:v1:'+(id||'anon')+':'+ctx(); }
@@ -227,17 +228,17 @@ function rec(id){ var d=data(); return d.items[id]||(d.items[id]={step:0,done:nu
 function save(){ var d=data(); d.upd=Date.now(); try{ stor().setItem(P.key,JSON.stringify(d)); }catch(e){} push(); }
 function status(t){ var r=data().items[t.id]; if(!r) return 'new'; if(r.done&&r.done.v===t.v) return 'done'; if(r.done) return 'upd'; return r.step>0?'prog':'new'; }
 function missing(e){ return !!e&&(e.code==='42P01'||e.code==='PGRST205'||e.code==='PGRST202'||e.code==='PGRST106'||/does not exist|schema cache|not find/i.test(e.message||'')); }
-async function uid(){ if(SV.uid) return SV.uid; try{ var r=await W.supa.auth.getUser(); SV.uid=r&&r.data&&r.data.user?r.data.user.id:null; }catch(e){} return SV.uid; }
+async function uid(){ if(SV.uid) return SV.uid; try{ var r=await SB().auth.getUser(); SV.uid=r&&r.data&&r.data.user?r.data.user.id:null; }catch(e){} return SV.uid; }
 function merge(a,b){ if(!b||!b.items) return a; Object.keys(b.items).forEach(function(id){ var x=a.items[id], y=b.items[id]; if(!x){ a.items[id]=y; return; }
   var dx=x.done&&x.done.v||0, dy=y.done&&y.done.v||0; if(dy>dx||(dy===dx&&y.done&&!x.done)) x.done=y.done; if((y.step||0)>(x.step||0)&&!x.done) x.step=y.step; });
   if(b.invite&&(!a.invite||(b.invite.ts||0)>(a.invite.ts||0))) a.invite=b.invite; return a; }
-async function pull(){ if(SV.off||!W.supa||ctx()!=='self') return; var k=P.key; if(SV.pulled[k]) return; SV.pulled[k]=1;
-  try{ var u=await uid(); if(!u) return; var r=await W.supa.from('tutorial_progresso').select('dados').eq('user_id',u).eq('contexto','self').maybeSingle();
+async function pull(){ if(SV.off||!SB()||ctx()!=='self') return; var k=P.key; if(SV.pulled[k]) return; SV.pulled[k]=1;
+  try{ var u=await uid(); if(!u) return; var r=await SB().from('tutorial_progresso').select('dados').eq('user_id',u).eq('contexto','self').maybeSingle();
     if(r.error){ if(missing(r.error)) SV.off=true; return; }
     if(r.data&&r.data.dados&&P.key===k){ merge(P.data,r.data.dados); try{ stor().setItem(k,JSON.stringify(P.data)); }catch(e){} if(view.page==='tutoriais'&&!RUN) renderCenter(D.getElementById('content')); }
   }catch(e){} }
-function push(){ if(SV.off||!W.supa||ctx()!=='self') return; clearTimeout(SV.timer); var snap=JSON.parse(JSON.stringify(P.data));
-  SV.timer=setTimeout(async function(){ try{ var u=await uid(); if(!u) return; var r=await W.supa.from('tutorial_progresso').upsert({user_id:u,contexto:'self',dados:snap,updated_at:new Date().toISOString()},{onConflict:'user_id,contexto'}); if(r.error&&missing(r.error)) SV.off=true; }catch(e){} },900); }
+function push(){ if(SV.off||!SB()||ctx()!=='self') return; clearTimeout(SV.timer); var snap=JSON.parse(JSON.stringify(P.data));
+  SV.timer=setTimeout(async function(){ try{ var u=await uid(); if(!u) return; var r=await SB().from('tutorial_progresso').upsert({user_id:u,contexto:'self',dados:snap,updated_at:new Date().toISOString()},{onConflict:'user_id,contexto'}); if(r.error&&missing(r.error)) SV.off=true; }catch(e){} },900); }
 
 /* ==========================================================================
    3) VISUAL — destaque, seta pontilhada, cursor, caixa de explicação
