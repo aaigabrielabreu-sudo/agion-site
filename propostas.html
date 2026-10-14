@@ -72,6 +72,20 @@ textarea{resize:vertical;min-height:44px}
 .carta .rm{margin-left:auto;border:none;background:#f0d7d7;color:#a23;border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:700}
 .badge{display:inline-block;background:#eef4f2;color:var(--petd);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700}
 #stage{position:fixed;left:-30000px;top:0}
+.stab{border-collapse:separate;border-spacing:0;width:100%;min-width:420px;font-size:13px;background:#fff;border:1px solid #e3e6e2;border-radius:12px;overflow:hidden}
+.stab th,.stab td{padding:8px;border-bottom:1px solid #e9ece8;text-align:center;vertical-align:middle}
+.stab .cl{text-align:left;min-width:170px}
+.stab td.cl b{display:block;color:#2c3a33;font-weight:600}
+.stab td.cl span{font-size:11.5px;color:var(--mut)}
+.stab thead th{background:#f3f6f4}
+.sth{display:flex;align-items:center;gap:6px;min-width:160px}
+.sth .sl{flex:none;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--goldl);font-family:'Lora',serif;font-weight:700;display:flex;align-items:center;justify-content:center}
+.sth .sn{padding:6px 8px;font-size:12.5px}
+.sth .sx{flex:none;border:none;background:#f0d7d7;color:#a23;border-radius:7px;width:24px;height:28px;cursor:pointer;font-weight:700}
+.stab .sq{width:70px;text-align:center;padding:7px 4px;font-weight:600}
+.stab .sq.on{border-color:var(--gold);background:var(--cream);color:var(--goldd)}
+.stab tfoot td{font-size:11.5px;color:#4a544e;line-height:1.5;border-bottom:none;background:#fafbfa}
+.stab tfoot td.cl{font-weight:700;color:#3a463f}
 </style>
 </head>
 <body>
@@ -171,6 +185,15 @@ textarea{resize:vertical;min-height:44px}
         <button class="addrow" onclick="addCarta('contemplada')">+ carta contemplada</button>
       </div>
 
+      <div class="section-t">Estratégias <span class="hint">(alternativas separadas ou cartas unidas)</span></div>
+      <div class="note-inline">Cada <b>coluna é uma estratégia</b>: digite quantas cotas de cada carta entram nela (0 = fora). <b>1 carta = alternativa</b>; <b>várias cartas = estratégia unificada</b> (crédito, parcelas e oportunidades somam só dentro dela). Estratégias diferentes nunca se somam — o cliente escolhe uma. Aparece no deck na página “Estratégias &amp; múltiplas cotas”.</div>
+      <div class="btnrow" style="margin:0 0 10px">
+        <button type="button" class="addrow" onclick="stratPreset('separar')">Cada carta = uma alternativa</button>
+        <button type="button" class="addrow" onclick="stratPreset('unir')">Unir tudo numa estratégia</button>
+        <button type="button" class="addrow" onclick="stratAdd()">+ nova estratégia</button>
+      </div>
+      <div id="c_strats" style="overflow-x:auto"></div>
+
       <div class="section-t">Páginas do deck <span class="hint">(marque as que quer incluir)</span></div>
       <div class="pagecat" id="c_pages"></div>
     </div>
@@ -231,7 +254,7 @@ const PAGES=[
  {id:'agio',label:'Rota: vender com ágio',on:false,numbered:true},
  {id:'darLance',label:'Rota: dar o lance',on:false,numbered:true},
  {id:'renda1',label:'Rota: carregar + renda 1%',on:false,numbered:true},
- {id:'cotas',label:'Múltiplas cotas (1·2·3)',on:false,numbered:true},
+ {id:'cotas',label:'Estratégias & múltiplas cotas',on:false,numbered:true},
  {id:'comparativo',label:'Comparativo das cartas',on:true,numbered:true},
  {id:'premissas',label:'Premissas & transparência',on:true,numbered:true},
  {id:'glossario',label:'Glossário',on:true,numbered:true},
@@ -242,6 +265,45 @@ const PAGES=[
  l.innerHTML='<input type="checkbox" id="pg_'+p.id+'"'+(p.on?' checked':'')+'> '+p.label;box.appendChild(l);});})();
 function pgOn(id){const e=document.getElementById('pg_'+id);return e?e.checked:false;}
 
+/* ---------- estratégias: alternativas separadas × unificadas (cada coluna = 1 estratégia; nunca somam entre si) ---------- */
+var STRATS=[], STRAT_MODE='separar';
+function _cEls(){return [].slice.call(document.querySelectorAll('#c_cartas .carta'));}
+function _seedQ(id){const d=document.querySelector('#c_cartas .carta[data-id="'+id+'"]');const v=Math.round(parseFloat(((d&&d.dataset.qtd)||'1').toString().replace(',','.')));return v>0?v:1;}
+function _maxQ(id){let m=0;STRATS.forEach(s=>{if((s.q[id]||0)>m)m=s.q[id];});return m||_seedQ(id);}
+function _L(i){return String.fromCharCode(65+(i%26));}
+function escH(t){return String(t==null?'':t).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+function stratSync(){const ids=_cEls().map(d=>d.dataset.id);
+ if(STRAT_MODE==='separar'){const nm={};STRATS.forEach(s=>{const ks=Object.keys(s.q).filter(k=>s.q[k]>0);if(ks.length===1&&!(ks[0] in nm))nm[ks[0]]=s.nome;});
+  const q0={};ids.forEach(id=>q0[id]=_maxQ(id));STRATS=ids.map(id=>({nome:nm[id]||'',q:{[id]:q0[id]}}));}
+ else if(STRAT_MODE==='unir'){const q={};ids.forEach(id=>q[id]=_maxQ(id));STRATS=[{nome:(STRATS[0]&&STRATS.length===1&&STRATS[0].nome)||'',q}];}
+ else{STRATS.forEach(s=>Object.keys(s.q).forEach(k=>{if(ids.indexOf(k)<0)delete s.q[k];}));
+  const seen={};STRATS.forEach(s=>Object.keys(s.q).forEach(k=>{if(s.q[k]>0)seen[k]=1;}));
+  ids.forEach(id=>{if(!seen[id]&&!STRATS.some(s=>id in s.q))STRATS.push({nome:'',q:{[id]:_seedQ(id)}});});
+  STRATS.forEach(s=>ids.forEach(id=>{if(s.q[id]==null)s.q[id]=0;}));
+  if(!STRATS.length&&ids.length)STRATS=[{nome:'',q:{}}];}
+ renderStrats();}
+function _pgCotasOn(){const cb=document.getElementById('pg_cotas');if(cb)cb.checked=true;}
+function stratPreset(m){STRAT_MODE=m;stratSync();if(m==='unir'||_cEls().some(d=>_maxQ(d.dataset.id)>1))_pgCotasOn();liveUpdate();}
+function stratAdd(){STRAT_MODE='custom';const q={};_cEls().forEach(d=>q[d.dataset.id]=0);STRATS.push({nome:'',q});renderStrats();_pgCotasOn();}
+function stratDel(i){if(STRATS.length<=1)return;STRAT_MODE='custom';STRATS.splice(i,1);renderStrats();liveUpdate();}
+function _cartaTxt(d){const r=(d.querySelector('.k_rotulo')||{}).value||'Carta';const cr=parseBR((d.querySelector('.k_credito')||{}).value);return '<b>'+escH(r)+'</b><span>'+money0(cr)+(d.dataset.tipo==='contemplada'?' · contemplada':'')+'</span>';}
+function _stratSum(s){let n=0,k=0,cr=0,pa=0;_cEls().forEach(d=>{const q=s.q[d.dataset.id]||0;if(q>0){k++;n+=q;cr+=parseBR((d.querySelector('.k_credito')||{}).value)*q;pa+=parseBR((d.querySelector(d.dataset.tipo==='padrao'?'.k_parcela':'.k_parcelam')||{}).value)*q;}});
+ if(!k)return '<span style="color:#a23">vazia — fica fora do deck</span>';
+ return '<b style="color:'+(k>1?'#A6853F':'#2F7280')+'">'+(k>1?'Unificada':'Alternativa')+'</b> · '+n+(n>1?' cotas':' cota')+'<br>'+money0(cr)+'<br>'+money0(pa)+'/mês';}
+function renderStrats(){const box=document.getElementById('c_strats');if(!box)return;const ds=_cEls();
+ if(!ds.length){box.innerHTML='<span class="hint">Adicione cartas acima para montar as estratégias.</span>';return;}
+ let h='<table class="stab"><thead><tr><th class="cl">Carta</th>';
+ STRATS.forEach((s,i)=>{h+='<th><div class="sth"><span class="sl">'+_L(i)+'</span><input class="sn" data-i="'+i+'" placeholder="Estratégia '+_L(i)+'" value="'+escH(s.nome)+'">'+(STRATS.length>1?'<button type="button" class="sx" title="remover esta estratégia" onclick="stratDel('+i+')">×</button>':'')+'</div></th>';});
+ h+='</tr></thead><tbody>';
+ ds.forEach(d=>{h+='<tr><td class="cl" data-cid="'+d.dataset.id+'">'+_cartaTxt(d)+'</td>';
+  STRATS.forEach((s,i)=>{const q=s.q[d.dataset.id]||0;h+='<td><input class="sq'+(q>0?' on':'')+'" type="number" min="0" step="1" inputmode="numeric" data-i="'+i+'" data-c="'+d.dataset.id+'" value="'+q+'" title="cotas desta carta nesta estratégia (0 = fora)"></td>';});h+='</tr>';});
+ h+='</tbody><tfoot><tr><td class="cl">Resumo</td>';STRATS.forEach((s,i)=>{h+='<td class="ssum" data-i="'+i+'">'+_stratSum(s)+'</td>';});h+='</tr></tfoot></table>';
+ box.innerHTML=h;
+ box.querySelectorAll('.sq').forEach(inp=>inp.addEventListener('input',()=>{const i=+inp.dataset.i,v=Math.max(0,Math.round(parseFloat(inp.value)||0));STRATS[i].q[inp.dataset.c]=v;inp.classList.toggle('on',v>0);STRAT_MODE='custom';_pgCotasOn();const c=box.querySelector('.ssum[data-i="'+i+'"]');if(c)c.innerHTML=_stratSum(STRATS[i]);}));
+ box.querySelectorAll('.sn').forEach(inp=>inp.addEventListener('input',()=>{STRATS[+inp.dataset.i].nome=inp.value;}));}
+function stratLabels(){const box=document.getElementById('c_strats');if(!box)return;_cEls().forEach(d=>{const td=box.querySelector('td.cl[data-cid="'+d.dataset.id+'"]');if(td)td.innerHTML=_cartaTxt(d);});STRATS.forEach((s,i)=>{const c=box.querySelector('.ssum[data-i="'+i+'"]');if(c)c.innerHTML=_stratSum(s);});}
+function readStrats(cartas){const out=[];STRATS.forEach(s=>{const itens=[];cartas.forEach(ct=>{const q=s.q[ct.id]||0;if(q>0)itens.push({ct,q});});if(itens.length)out.push({letra:_L(out.length),nome:(s.nome||'').trim(),itens});});return out;}
+
 /* ---------- cartas ---------- */
 let CID=0;
 function addCarta(tipo,pre){pre=pre||{};const id=++CID;const d=document.createElement('div');d.className='carta';d.dataset.id=id;
@@ -249,7 +311,8 @@ function addCarta(tipo,pre){pre=pre||{};const id=++CID;const d=document.createEl
   +'<input class="k_rotulo" style="max-width:280px" placeholder="rótulo da carta">'
   +'<button class="rm">remover</button></div><div class="cbody"></div>';
  d.dataset.tipo=tipo;
- d.querySelector('.rm').onclick=()=>{d.remove();liveUpdate();};
+ d.querySelector('.rm').onclick=()=>{d.remove();stratSync();liveUpdate();};
+ d.addEventListener('input',()=>stratLabels());
  const body=d.querySelector('.cbody');
  if(tipo==='padrao'){
   body.innerHTML='<div class="grid3">'
@@ -259,9 +322,9 @@ function addCarta(tipo,pre){pre=pre||{};const id=++CID;const d=document.createEl
    +'<div class="grid3"><div class="field"><label>Lance embutido (%) — 0 = sem</label><input class="k_lance" value="0"></div>'
    +'<div class="field"><label>Lance embutido (R$) — auto</label><input class="k_lancev" readonly></div>'
    +'<div class="field"><label>Crédito líquido (R$) — auto</label><input class="k_liquido" readonly></div></div>'
-   +'<div class="grid3"><div class="field"><label>Quantidade de cotas iguais</label><input class="k_qtd" value="1"></div></div>';
+   ;
   d.querySelector('.k_rotulo').value=pre.rotulo||'Participação direta';
-  d.querySelector('.k_qtd').value=pre.qtd||'1';
+  d.dataset.qtd=pre.qtd||'1';
   d.querySelector('.k_credito').value=pre.credito||'238452,72';
   d.querySelector('.k_prazo').value=pre.prazo||'89';
   d.querySelector('.k_parcela').value=pre.parcela||'1553,99';
@@ -276,9 +339,9 @@ function addCarta(tipo,pre){pre=pre||{};const id=++CID;const d=document.createEl
    +'<div class="grid3"><div class="field"><label>Entrada à vista (R$)</label><input class="k_entrada"></div>'
    +'<div class="field"><label>Parcela mensal (R$)</label><input class="k_parcelam"></div>'
    +'<div class="field"><label>Parcelas restantes</label><input class="k_restantes"></div></div>'
-   +'<div class="grid3"><div class="field"><label>Quantidade de cotas iguais</label><input class="k_qtd" value="1"></div></div>';
+   ;
   d.querySelector('.k_rotulo').value=pre.rotulo||'Carta contemplada';
-  d.querySelector('.k_qtd').value=pre.qtd||'1';
+  d.dataset.qtd=pre.qtd||'1';
   d.querySelector('.k_credito').value=pre.credito||'92000,00';
   d.querySelector('.k_categoria').value=pre.categoria||'Automóvel';
   d.querySelector('.k_adm').value=pre.adm||'Bradesco';
@@ -286,7 +349,7 @@ function addCarta(tipo,pre){pre=pre||{};const id=++CID;const d=document.createEl
   d.querySelector('.k_parcelam').value=pre.parcelam||'1103,00';
   d.querySelector('.k_restantes').value=pre.restantes||'90';
  }
- document.getElementById('c_cartas').appendChild(d);if(typeof liveUpdate==='function')liveUpdate();}
+ document.getElementById('c_cartas').appendChild(d);stratSync();if(typeof liveUpdate==='function')liveUpdate();}
 /* defaults: reproduz o deck de 2 rotas */
 addCarta('padrao',{rotulo:'Participação direta',lance:'0'});
 addCarta('padrao',{rotulo:'Com lance embutido 30%',lance:'30'});
@@ -412,11 +475,11 @@ function renderResumido(){
 
 /* ============================================================ COMPLETO (modular) ============================================================ */
 function readCartas(){return [...document.querySelectorAll('#c_cartas .carta')].map(d=>{const g=s=>{const e=d.querySelector(s);return e?e.value.trim():'';};
- const tipo=d.dataset.tipo;
- const qtd=Math.max(1,Math.round(parseFloat((g('.k_qtd')||'1').replace(',','.'))||1));
+ const tipo=d.dataset.tipo,cid=d.dataset.id;
+ const qtd=Math.max(1,Math.round(parseFloat((d.dataset.qtd||'1').toString().replace(',','.'))||1));
  if(tipo==='padrao'){const cr=parseBR(g('.k_credito')),lp=parseFloat((g('.k_lance')||'0').replace(',','.'))||0;
-  return {tipo,rotulo:g('.k_rotulo'),credito:cr,prazo:g('.k_prazo'),parcela:parseBR(g('.k_parcela')),lance:lp,lancev:cr*lp/100,liquido:cr-cr*lp/100,qtd};}
- return {tipo,rotulo:g('.k_rotulo'),credito:parseBR(g('.k_credito')),categoria:g('.k_categoria'),adm:g('.k_adm'),entrada:parseBR(g('.k_entrada')),parcelam:parseBR(g('.k_parcelam')),restantes:g('.k_restantes'),qtd};});}
+  return {tipo,rotulo:g('.k_rotulo'),credito:cr,prazo:g('.k_prazo'),parcela:parseBR(g('.k_parcela')),lance:lp,lancev:cr*lp/100,liquido:cr-cr*lp/100,qtd,id:cid};}
+ return {tipo,rotulo:g('.k_rotulo'),credito:parseBR(g('.k_credito')),categoria:g('.k_categoria'),adm:g('.k_adm'),entrada:parseBR(g('.k_entrada')),parcelam:parseBR(g('.k_parcelam')),restantes:g('.k_restantes'),qtd,id:cid};});}
 
 function renderCompleto(){
  const D={cliente:document.getElementById('c_cliente').value.trim(),bem:document.getElementById('c_bem').value.trim()||'imóvel',
@@ -439,15 +502,17 @@ function renderCompleto(){
  if(pgOn('agio'))seq.push({id:'agio',n:true});
  if(pgOn('darLance'))seq.push({id:'darLance',n:true});
  if(pgOn('renda1'))seq.push({id:'renda1',n:true});
- if(pgOn('cotas'))seq.push({id:'cotas',n:true});
+ if(pgOn('cotas')){const sts=readStrats(cartas);
+  if(sts.length===1)seq.push({id:'cotas',n:true,st:sts[0],k:0,tot:1});
+  else if(sts.length>1){seq.push({id:'estrComp',n:true,sts});sts.forEach((st,k)=>seq.push({id:'cotas',n:true,st,k,tot:sts.length}));}}
  if(pgOn('comparativo')&&cartas.length>=2)seq.push({id:'comparativo',n:true});
  if(pgOn('premissas'))seq.push({id:'premissas',n:true});
  if(pgOn('glossario'))seq.push({id:'glossario',n:true});
  if(pgOn('passos'))seq.push({id:'passos',n:true});
  if(pgOn('cta'))seq.push({id:'cta',n:false});
- const NAMES={capa:'Capa',comoFunciona:'Como funciona',sobreAgion:'Sobre a Agion',formas:'Formas de contemplação',meiaParcela:'Meia parcela',pontoPartida:'Ponto de partida',reajuste:'Reajuste anual',metodoReal:'Método REAL',cartasGrid:'As cartas',agio:'Vender com ágio',darLance:'Dar o lance',renda1:'Carrego + renda',cotas:'Múltiplas cotas',comparativo:'Comparativo',premissas:'Premissas',glossario:'Glossário',passos:'Próximos passos',cta:'Contato'};
+ const NAMES={capa:'Capa',comoFunciona:'Como funciona',sobreAgion:'Sobre a Agion',formas:'Formas de contemplação',meiaParcela:'Meia parcela',pontoPartida:'Ponto de partida',reajuste:'Reajuste anual',metodoReal:'Método REAL',cartasGrid:'As cartas',agio:'Vender com ágio',darLance:'Dar o lance',renda1:'Carrego + renda',cotas:'Múltiplas cotas',estrComp:'Escolha a estratégia',comparativo:'Comparativo',premissas:'Premissas',glossario:'Glossário',passos:'Próximos passos',cta:'Contato'};
  const DEN=seq.filter(s=>s.n).length;let pgc=0;const out=[];
- for(const s of seq){const pg=s.n?(++pgc):0;const nm=s.id==='carta'?(s.ct.rotulo||'Carta'):NAMES[s.id];const label=pg?(String(pg).padStart(2,'0')+' · '+nm):nm;out.push({cv:build(s,pg,DEN,D,cartas,cw,first),label,footer:s.n,id:s.id});}
+ for(const s of seq){const pg=s.n?(++pgc):0;const nm=s.id==='carta'?(s.ct.rotulo||'Carta'):(s.id==='cotas'&&s.tot>1)?('Estratégia '+s.st.letra+(s.st.nome?(' · '+s.st.nome):'')):NAMES[s.id];const label=pg?(String(pg).padStart(2,'0')+' · '+nm):nm;out.push({cv:build(s,pg,DEN,D,cartas,cw,first),label,footer:s.n,id:s.id});}
  const fmt=(document.getElementById('c_formato')||{}).value;
  const H=Math.max(1633,Math.max.apply(null,out.map(p=>p.cv.height))/S); // altura (user); proporção fixa 518:783, render em 4K
  const uni=toSize(out,H);
@@ -455,6 +520,27 @@ function renderCompleto(){
  return uni;
 }
 
+function fitT(x,t,f,mw){x.font=f;t=String(t);if(tw(x,t)<=mw)return t;while(t.length>1&&tw(x,t+'…')>mw)t=t.slice(0,-1);return t+'…';}
+function _parc(ct){return ct.tipo==='padrao'?ct.parcela:ct.parcelam;}
+function _stTot(st,chn){let q=0,cr=0,pa=0,op=0;st.itens.forEach(o=>{q+=o.q;cr+=o.ct.credito*o.q;pa+=_parc(o.ct)*o.q;if(o.ct.tipo==='padrao')op+=chn*o.q;});return {q,cr,pa,op};}
+/* contemplação por proximidade: a "gangorra" — o saldo vai e volta entre as vizinhas (302→301→303→300→304) */
+function gangorra(x,px,y){
+ left(x,'CONTEMPLAÇÃO POR PROXIMIDADE',px,y+14,fPop(13,'700'),C.gold);y+=30;
+ const nums=[300,301,302,303,304],step={302:1,301:2,303:3,300:4,304:5};
+ const cw=152,gap=24,totw=5*cw+4*gap,x0=M+((W-2*M)-totw)/2,arcH=104,rowY=y+arcH+36,chH=84,by=rowY-42;
+ const bx=n=>x0+nums.indexOf(n)*(cw+gap)+cw/2;
+ [[302,301],[301,303],[303,300],[300,304]].forEach((p,i)=>{const a=bx(p[0]),b=bx(p[1]),h=22+i*26,d=Math.sign(b-a),sx=a+d*10,ex=b-d*10,mx=(sx+ex)/2,cy=by-2*h;
+  x.save();x.globalAlpha=1-i*0.16;x.strokeStyle=C.gold;x.lineWidth=3.4;x.lineCap='round';
+  x.beginPath();x.moveTo(sx,by);x.quadraticCurveTo(mx,cy,ex,by);x.stroke();
+  const ang=Math.atan2(by-cy,ex-mx),al=14;x.fillStyle=C.gold;x.beginPath();x.moveTo(ex,by+1);x.lineTo(ex-al*Math.cos(ang-0.42),by+1-al*Math.sin(ang-0.42));x.lineTo(ex-al*Math.cos(ang+0.42),by+1-al*Math.sin(ang+0.42));x.closePath();x.fill();
+  x.restore();});
+ nums.forEach((num,i)=>{const cx=x0+i*(cw+gap),own=(num===302),b=cx+cw/2;
+  x.beginPath();x.arc(b,rowY-18,17,0,Math.PI*2);x.fillStyle=own?C.gold:C.line;x.fill();
+  {const t=String(step[num]);x.font=fPop(15,'700');left(x,t,b-tw(x,t)/2,rowY-13,fPop(15,'700'),own?'#FFFFFF':C.ink2);}
+  rr(x,cx,rowY,cx+cw,rowY+chH,14);x.fillStyle=own?C.cream:C.white;x.fill();x.strokeStyle=own?C.gold:C.line;x.lineWidth=own?3:1;x.stroke();
+  {const t=String(num);x.font=fLora(34,'700');left(x,t,cx+(cw-tw(x,t))/2,rowY+53,fLora(34,'700'),own?C.goldd:C.ink);}
+  if(own){const t='SUA COTA';x.font=fPop(12,'700');left(x,t,cx+(cw-tw(x,t))/2,rowY+chH+24,fPop(12,'700'),C.goldd);}});
+ return rowY+chH+48;}
 function build(s,pg,DEN,D,cartas,cw,first){
  const [c,x]=newpg();let y=160,px=M;
  const crRef=cartas.length?cartas[0].credito:0;const crM=money(crRef);
@@ -659,39 +745,60 @@ function build(s,pg,DEN,D,cartas,cw,first){
   }
   return crop(c,footer(x,y,pg,DEN));
  }
+ if(s.id==='estrComp'){
+  const sts=s.sts,n=sts.length,chn=numf('c_chances',7);
+  y=eb(x,px,y,'AS ALTERNATIVAS');y=tit(x,px,y,'Escolha a sua estratégia',50);
+  y=para(x,px,y,'São '+n+' caminhos diferentes para o mesmo objetivo — você escolhe um. Os valores de uma estratégia não se somam aos das outras.',fPop(25,'400'),C.ink2,W-2*M,40);y+=26;
+  const per=Math.min(3,n),gap=40,cwid=(W-2*M-(per-1)*gap)/per,lineH=30,maxL=Math.max.apply(null,sts.map(st=>Math.min(5,st.itens.length+(st.itens.length>5?1:0))));
+  const big=cwid>300,ch=112+maxL*lineH+30+4*58+16;
+  sts.forEach((st,i)=>{const r=Math.floor(i/per),col=i%per,cx=px+col*(cwid+gap),cy=y+r*(ch+gap),T=_stTot(st,chn),uni=st.itens.length>1;
+   rr(x,cx,cy,cx+cwid,cy+ch,20);x.fillStyle=uni?C.cream:C.white;x.fill();x.strokeStyle=uni?C.gold:C.line;x.lineWidth=uni?2.5:1.2;x.stroke();
+   x.beginPath();x.arc(cx+46,cy+50,26,0,Math.PI*2);x.fillStyle=C.ink;x.fill();
+   {const t=st.letra;x.font=fLora(28,'700');left(x,t,cx+46-tw(x,t)/2,cy+60,fLora(28,'700'),C.goldl);}
+   left(x,uni?'UNIFICADA':'ALTERNATIVA',cx+86,cy+40,fPop(12,'700'),uni?C.goldd:C.petd);
+   {const f=fLora(big?24:20,'700');left(x,fitT(x,st.nome||('Estratégia '+st.letra),f,cwid-104),cx+86,cy+70,f,C.ink);}
+   let yy=cy+112;const fi=fPop(big?17:15,'600');
+   st.itens.slice(0,st.itens.length>5?4:5).forEach(o=>{left(x,fitT(x,o.q+'× '+money0(o.ct.credito)+(o.ct.tipo==='contemplada'?' · contemplada':' · '+(o.ct.rotulo||'carta')),fi,cwid-48),cx+24,yy+20,fi,C.ink2);yy+=lineH;});
+   if(st.itens.length>5){left(x,'+ '+(st.itens.length-4)+' outras cartas',cx+24,yy+20,fPop(14,'500'),C.mut);yy+=lineH;}
+   yy=cy+112+maxL*lineH+14;x.strokeStyle=C.line;x.lineWidth=1;x.beginPath();x.moveTo(cx+24,yy);x.lineTo(cx+cwid-24,yy);x.stroke();yy+=16;
+   [['Crédito total',money0(T.cr)],['Parcelas/mês',money(T.pa)],['Cotas',String(T.q)],['Oportunidades',T.op?String(T.op):'Crédito na hora']].forEach(m=>{
+    left(x,m[0],cx+24,yy+14,fPop(13,'500'),C.mut);const f=fLora(big?24:20,'700');left(x,fitT(x,m[1],f,cwid-48),cx+24,yy+42,f,uni?C.goldd:C.ink);yy+=58;});
+   if(col<per-1&&i<n-1){const ox=cx+cwid+gap/2,oy=cy+ch/2;x.beginPath();x.arc(ox,oy,18,0,Math.PI*2);x.fillStyle=C.bg;x.fill();x.strokeStyle=C.gold;x.lineWidth=1.4;x.stroke();x.font=fPop(13,'700');left(x,'ou',ox-tw(x,'ou')/2,oy+5,fPop(13,'700'),C.goldd);}
+  });
+  const rows=Math.ceil(n/per);y+=rows*ch+(rows-1)*gap+30;
+  y=noteBox(x,px,y,'Cada estratégia tem a sua página com os detalhes. Escolha a que cabe melhor no seu bolso e no seu prazo — o especialista ajusta o resto com você.',W-2*M);
+  return crop(c,footer(x,y,pg,DEN));
+ }
  if(s.id==='cotas'){
-  const pcs=cartas.filter(k=>k.tipo==='padrao'),chn=numf('c_chances',7);
-  y=eb(x,px,y,'MAIS COTAS, MAIS CHANCES');y=tit(x,px,y,'Investir em mais cotas',48);
-  y=para(x,px,y,'Com mais de uma cota — de preferência com números próximos — você concorre com várias ao mesmo tempo e multiplica as chances de contemplação.',fPop(26,'400'),C.ink2,W-2*M,42);y+=30;
-  if(pcs.length){
-   const n=Math.min(4,pcs.length),gap=20,cwid=(W-2*M-(n-1)*gap)/n,cardh=486,vs=cwid>300?28:23;
-   let totCred=0,totParc=0,totOp=0,totQtd=0;
-   for(let i=0;i<n;i++){const ct=pcs[i],q=Math.max(1,ct.qtd||1),cx=px+i*(cwid+gap),acc=(q>1);
-    totCred+=ct.credito*q;totParc+=ct.parcela*q;totOp+=chn*q;totQtd+=q;
-    rr(x,cx,y,cx+cwid,y+cardh,18);x.fillStyle=acc?C.cream:C.white;x.fill();x.strokeStyle=acc?C.gold:C.line;x.lineWidth=acc?3:1;x.stroke();
-    left(x,(ct.rotulo||('Carta '+(i+1))).toUpperCase(),cx+24,y+42,fPop(13,'700'),C.mut);
-    left(x,'×'+q,cx+24,y+100,fLora(50,'700'),acc?C.goldd:C.ink);left(x,q>1?'cotas':'cota',cx+24+tw(x,'×'+q,fLora(50,'700'))+10,y+100,fPop(18,'600'),C.mut);
-    let yy=y+150;const rows=[['Crédito total',money(ct.credito*q)],['Parcela/mês',money(ct.parcela*q)],['Oportunidades',String(chn*q)]];
-    rows.forEach(rw=>{left(x,rw[0],cx+24,yy+16,fPop(15,'500'),C.mut);yy+=22;left(x,rw[1],cx+24,yy+vs*0.78,fLora(vs,'700'),acc?C.goldd:C.ink);yy+=vs+24;});}
-   y+=cardh+28;
-   if(totQtd>1){rr(x,px,y,W-M,y+124,16);x.fillStyle=C.ink;x.fill();
-    left(x,'SEU INVESTIMENTO · '+totQtd+' cotas',px+28,y+42,fPop(15,'700'),C.goldl);
-    const seg=[['Crédito total',money(totCred)],['Parcelas/mês',money(totParc)],['Oportunidades',String(totOp)]],sw=(W-2*M)/3;
-    seg.forEach((sgv,k)=>{left(x,sgv[0],px+28+k*sw,y+80,fPop(13,'500'),'#B9C6BF');left(x,sgv[1],px+28+k*sw,y+108,fLora(26,'700'),C.goldl);});
-    y+=124+26;}
-   left(x,'CONTEMPLAÇÃO POR PROXIMIDADE',px,y+14,fPop(13,'700'),C.gold);y+=40;
-   {const nums=[300,301,302,303,304],step={302:1,301:2,303:3,300:4,304:5};
-    const cw=152,gap=24,totw=5*cw+4*gap,x0=M+((W-2*M)-totw)/2,rowY=y+30,chH=84;
-    nums.forEach((num,i)=>{const cx=x0+i*(cw+gap),own=(num===302),bx=cx+cw/2;
-     x.beginPath();x.arc(bx,rowY-18,17,0,Math.PI*2);x.fillStyle=own?C.gold:C.line;x.fill();
-     {const t=String(step[num]);x.font=fPop(15,'700');left(x,t,bx-tw(x,t)/2,rowY-13,fPop(15,'700'),own?'#FFFFFF':C.ink2);}
-     rr(x,cx,rowY,cx+cw,rowY+chH,14);x.fillStyle=own?C.cream:C.white;x.fill();x.strokeStyle=own?C.gold:C.line;x.lineWidth=own?3:1;x.stroke();
-     {const t=String(num);x.font=fLora(34,'700');left(x,t,cx+(cw-tw(x,t))/2,rowY+53,fLora(34,'700'),own?C.goldd:C.ink);}
-     if(own){const t='SUA COTA';x.font=fPop(12,'700');left(x,t,cx+(cw-tw(x,t))/2,rowY+chH+24,fPop(12,'700'),C.goldd);}});
-    y=rowY+chH+48;}
-   y=para(x,px,y,'Quando a sua cota (302) é contemplada, o saldo do grupo segue contemplando as vizinhas — 301, depois 303, depois 300, depois 304 — e assim por diante. Estar cercado de cotas próximas acelera as próximas contemplações.',fPop(24,'400'),C.ink2,W-2*M,40);y+=10;
-   y=noteBox(x,px,y,'Cotas próximas aumentam a proximidade nas assembleias — mais oportunidades de contemplar antes. Cada cota tem a sua parcela; o crédito soma.',W-2*M);
-  }
+  const st=s.st,many=s.tot>1,chn=numf('c_chances',7),T=_stTot(st,chn),uni=st.itens.length>1;
+  if(many){tagPill(x,px,y,'ESTRATÉGIA '+st.letra+' · ALTERNATIVA '+(s.k+1)+' DE '+s.tot,uni?'#F5ECD5':'#E6F2F4',uni?C.goldd:C.petd);y+=72;
+   y=tit(x,px,y,st.nome||(uni?'Estratégia unificada':('Estratégia '+st.letra)),46);
+   y=para(x,px,y,uni?'Nesta estratégia as cotas trabalham juntas: crédito, parcelas e oportunidades se somam — só dentro dela.':(T.q>1?('Uma alternativa direta: '+T.q+' cotas iguais da mesma carta, concorrendo juntas.'):'Uma alternativa direta: uma carta, foco total.'),fPop(25,'400'),C.ink2,W-2*M,40);y+=24;}
+  else{y=eb(x,px,y,'MAIS COTAS, MAIS CHANCES');y=tit(x,px,y,st.nome||'Investir em mais cotas',48);
+   y=para(x,px,y,'Com mais de uma cota — de preferência com números próximos — você concorre com várias ao mesmo tempo e multiplica as chances de contemplação.',fPop(26,'400'),C.ink2,W-2*M,42);y+=30;}
+  const it=st.itens,per=Math.min(4,it.length),gap=20,cwid=(W-2*M-(per-1)*gap)/per,nr=Math.ceil(it.length/per),cmp=true;
+  const cardh=cmp?332:430,vs=cwid>300?28:23,yQ=cmp?88:100,yR=cmp?128:150,sp=cmp?14:24;
+  if(it.length===1){const o=it[0],ct=o.ct,q=o.q,c2=(W-2*M-24)/2;
+   stat(x,px,y,c2,196,'CRÉDITO TOTAL',money(ct.credito*q),q>1?(q+' cotas de '+money0(ct.credito)):'valor da carta',C.gold,C.goldd,38);
+   stat(x,px+c2+24,y,c2,196,'PARCELA/MÊS',money(_parc(ct)*q),q>1?('somando as '+q+' cotas'):'parcela do plano',null,null,38);y+=196+24;
+   stat(x,px,y,c2,196,'COTAS','×'+q,ct.rotulo||'carta',null,null,44);
+   stat(x,px+c2+24,y,c2,196,ct.tipo==='padrao'?'OPORTUNIDADES':'CONTEMPLAÇÃO',ct.tipo==='padrao'?String(chn*q):'Na hora',ct.tipo==='padrao'?'chances de contemplar':'carta já contemplada',null,null,44);y+=196+28;}
+  else{
+  it.forEach((o,i)=>{const ct=o.ct,q=o.q,cx=px+(i%per)*(cwid+gap),cy=y+Math.floor(i/per)*(cardh+gap),acc=q>1;
+   rr(x,cx,cy,cx+cwid,cy+cardh,18);x.fillStyle=acc?C.cream:C.white;x.fill();x.strokeStyle=acc?C.gold:C.line;x.lineWidth=acc?3:1;x.stroke();
+   left(x,fitT(x,(ct.rotulo||('Carta '+(i+1))).toUpperCase(),fPop(13,'700'),cwid-48),cx+24,cy+42,fPop(13,'700'),C.mut);
+   left(x,'×'+q,cx+24,cy+yQ,fLora(50,'700'),acc?C.goldd:C.ink);left(x,q>1?'cotas':'cota',cx+24+tw(x,'×'+q,fLora(50,'700'))+10,cy+yQ,fPop(18,'600'),C.mut);
+   let yy=cy+yR;const rows=[['Crédito total',money(ct.credito*q)],['Parcela/mês',money(_parc(ct)*q)],ct.tipo==='padrao'?['Oportunidades',String(chn*q)]:['Contemplação','Crédito na hora']];
+   rows.forEach(rw=>{left(x,rw[0],cx+24,yy+16,fPop(15,'500'),C.mut);yy+=22;const f=fLora(vs,'700');left(x,fitT(x,rw[1],f,cwid-48),cx+24,yy+vs*0.78,f,acc?C.goldd:C.ink);yy+=vs+sp;});});
+  y+=nr*cardh+(nr-1)*gap+28;}
+  if(T.q>1&&it.length>1){rr(x,px,y,W-M,y+124,16);x.fillStyle=C.ink;x.fill();
+   left(x,(many?'ESTA ESTRATÉGIA · ':'SEU INVESTIMENTO · ')+T.q+' cotas',px+28,y+42,fPop(15,'700'),C.goldl);
+   const seg=[['Crédito total',money(T.cr)],['Parcelas/mês',money(T.pa)],['Oportunidades',T.op?String(T.op):'Crédito na hora']],sw=(W-2*M)/3;
+   seg.forEach((sgv,k)=>{left(x,sgv[0],px+28+k*sw,y+80,fPop(13,'500'),'#B9C6BF');left(x,sgv[1],px+28+k*sw,y+108,fLora(26,'700'),C.goldl);});
+   y+=124+26;}
+  if(T.q>1||!many){y=gangorra(x,px,y);
+   y=noteBox(x,px,y,'Como numa gangorra: quando a sua cota (302) é contemplada, o saldo vai e volta entre as vizinhas — 301, 303, 300, 304. Cotas próximas = mais chances de contemplar antes.',W-2*M);}
+  else y=noteBox(x,px,y,many?'Compare com as outras alternativas na página “Escolha a sua estratégia” — os valores de cada uma não se somam.':'Cada cota tem a sua parcela; o crédito soma.',W-2*M);
   return crop(c,footer(x,y,pg,DEN));
  }
  if(s.id==='comparativo'){
@@ -809,7 +916,7 @@ window.addEventListener('message',function(ev){
   __CRM=(d.mode==='crm');
   try{
     if(d.tab==='completo'||d.tab==='resumido')setTipo(d.tab);
-    if(Array.isArray(d.cartas)){var box=document.getElementById('c_cartas');if(box){box.innerHTML='';d.cartas.forEach(function(c){addCarta(c.tipo||'padrao',c);});}}
+    if(Array.isArray(d.cartas)){var box=document.getElementById('c_cartas');if(box){box.innerHTML='';STRAT_MODE='separar';STRATS=[];d.cartas.forEach(function(c){addCarta(c.tipo||'padrao',c);});if(Array.isArray(d.estrategias)&&d.estrategias.length){var ids=_cEls().map(function(e){return e.dataset.id;});STRAT_MODE='custom';STRATS=d.estrategias.map(function(e){var q={};ids.forEach(function(id,ix){q[id]=Math.max(0,Math.round(+((e.cartas||[])[ix]||0)));});return {nome:e.nome||'',q:q};});renderStrats();if(typeof _pgCotasOn==='function')_pgCotasOn();}}}
     if(d.fields){Object.keys(d.fields).forEach(function(k){var el=document.getElementById(k);if(el&&d.fields[k]!=null)el.value=d.fields[k];});}
     if(Array.isArray(d.pages)&&typeof PAGES!=='undefined'){PAGES.forEach(function(p){var cb=document.getElementById('pg_'+p.id);if(cb)cb.checked=(d.pages.indexOf(p.id)>=0)||p.id==='capa'||p.id==='cta';});}
     if(Array.isArray(d.rows)&&d.rows.length&&typeof addRow==='function'){var rb=document.getElementById('r_rows');if(rb){rb.innerHTML='';d.rows.forEach(function(r){addRow(r[0],r[1]);});}}
