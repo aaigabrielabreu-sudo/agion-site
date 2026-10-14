@@ -329,3 +329,53 @@ tbody tr:hover td{background-color:var(--state-hover)}
   body.isApp .mobnav a.on .icon{animation:none!important}
   #agionPtr.girando i{animation-duration:.7s!important;animation-iteration-count:infinite!important} /* spinner de carga continua legível */
 }
+
+/* --------------------------------------------------------------------------
+   14. INDICADOR DESLIZANTE (plat-motion-2.js cria <i class="m-ind"> no grupo)
+   A pílula é o fundo do item selecionado; o item .on fica transparente por cima.
+   -------------------------------------------------------------------------- */
+.m-ind{position:absolute!important;left:0!important;top:0!important;margin:0!important;padding:0!important;z-index:0;pointer-events:none;border-radius:inherit;display:block;flex:none;
+  transition:transform 300ms cubic-bezier(.16,1,.3,1),width 300ms cubic-bezier(.16,1,.3,1),height 300ms cubic-bezier(.16,1,.3,1)}
+.has-ind>:not(.m-ind){position:relative;z-index:1}
+#navi.has-ind .m-ind{border-radius:12px;background:var(--state-active)}
+#navi.has-ind a.on{background:transparent}
+#mobnav.has-ind .m-ind{border-radius:12px;background:var(--wash-gold,rgba(197,160,89,.12))}
+#mobnav.has-ind a.on{background:transparent!important}
+.subnav.has-ind .m-ind{border-radius:999px;background:var(--wash-gold,rgba(197,160,89,.12));box-shadow:inset 0 0 0 1px var(--hair-gold,var(--line-gold))}
+.subnav.has-ind button.on{background:transparent;border-color:transparent}
+.tabs.has-ind .m-ind{border-radius:var(--r-sm,9px);background:var(--grad-gold);box-shadow:var(--shadow-1)}
+.tabs.has-ind button.on{background:transparent}
+.cms-tabs.has-ind .m-ind{border-radius:var(--cr-sm,8px);background:var(--cactive,rgba(197,160,89,.12));box-shadow:inset 0 0 0 1px var(--line-gold)}
+.cms-tabs.has-ind button.on{background:transparent;box-shadow:none}
+#mktNav.has-ind .m-ind{border-radius:999px;background:var(--grad-gold);box-shadow:var(--shadow-1)}
+#mktNav.has-ind button.on,#mktNav.has-ind button.btn-gold{background:transparent;box-shadow:none;border-color:transparent}
+.navi a.on::before{z-index:2}
+
+/* --------------------------------------------------------------------------
+   16. ENTRADA SÓ NA REGIÃO VISÍVEL (listas longas)
+   -------------------------------------------------------------------------- */
+.io-wait{opacity:0;transform:translateY(10px)}
+.io-wait.io-in{opacity:1;transform:none;transition:opacity var(--dur-3) var(--ease-out),transform var(--dur-3) var(--ease-out)}
+.content.is-entering .io-wait{animation:none}
+
+/* --------------------------------------------------------------------------
+   17. ESTADOS VAZIOS — compactos e cuidados (um .note sozinho dentro do painel)
+   -------------------------------------------------------------------------- */
+.panel>p.note:only-child,.panel>.note:only-child,#content>p.note:only-child,.notif .empty{
+  margin:0;padding:22px 16px;text-align:center;color:var(--soft);font-size:.86rem;line-height:1.5;
+  border:1px dashed var(--line);border-radius:12px;background:rgba(143,217,204,.03)}
+.panel>p.note:only-child::before,.panel>.note:only-child::before{
+  content:"";display:block;width:34px;height:34px;margin:0 auto 10px;border-radius:50%;
+  border:1px solid var(--line-strong);background:
+    linear-gradient(var(--soft),var(--soft)) center/14px 1.5px no-repeat;opacity:.7}
+
+/* --------------------------------------------------------------------------
+   18. ÍCONES SVG coerentes nos botões e tags
+   -------------------------------------------------------------------------- */
+.btn svg,.btn-sm svg,.lv2-ib svg,.tut-help svg{width:15px;height:15px;flex:0 0 auto;vertical-align:-3px;stroke-width:2}
+.lv2-wa svg{width:16px;height:16px}
+
+@media (prefers-reduced-motion: reduce){
+  .m-ind{transition:none!important}
+  .io-wait{opacity:1!important;transform:none!important;transition:none!important}
+}
