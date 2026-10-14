@@ -1,5 +1,5 @@
 /* =====================================================================
-   AGION — COMISSÕES (HS Consórcios)  —  Fase 1
+   AGION — COMISSÕES (HS Consórcios e Âncora)  —  Fase 1
    Carregado pelo plataforma.html via <script src>. Prefixo cms*.
    Host: esc() BRL() BRL2() ask() chooseModal() flash() setTop() supa
          session meId() isMaster() isLider() effRole() user() db logEvt()
@@ -68,7 +68,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v30';
+var VERSAO='v31';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -169,6 +169,8 @@ body.light .cms-wrap,body.light .cms-md{--csurf-2:var(--surface-2,rgba(14,74,65,
 /* --- Chip único (DESIGN §2.10): .cms-tag (estático) e .cms-pill (botão) compartilham anatomia; tons via --chip-* --- */
 .cms-tag,.cms-pill{display:inline-flex;align-items:center;gap:var(--cs-1);height:22px;padding:0 var(--cs-2);border-radius:999px;font-family:inherit;font-size:var(--cfs-2xs);font-weight:600;line-height:1;letter-spacing:var(--ctrack);text-transform:uppercase;white-space:nowrap;vertical-align:middle;color:var(--chip-fg,var(--muted));background:var(--chip-bg,rgba(143,217,204,.06));border:1px solid var(--chip-line,var(--line))}
 .cms-tag.ok,.cms-pill.on{--chip-fg:var(--ok);--chip-bg:var(--ok-bg,rgba(92,201,160,.12));--chip-line:var(--ok-line,rgba(92,201,160,.4))}
+.cms-adm{font-weight:700;letter-spacing:.02em}.cms-adm-hs{--chip-fg:#8FD9CC;--chip-line:rgba(143,217,204,.45)}.cms-adm-anc{--chip-fg:#E8CC8B;--chip-line:rgba(232,204,139,.5)}
+.cms-tbl tr.tot td{border-top:2px solid var(--line-gold,rgba(197,160,89,.4));background:rgba(197,160,89,.05)}
 .cms-tag.warn{--chip-fg:var(--warn);--chip-bg:var(--warn-bg,rgba(224,185,120,.12));--chip-line:var(--warn-line,rgba(224,185,120,.4))}
 .cms-tag.bad,.cms-pill.bad{--chip-fg:var(--bad);--chip-bg:var(--bad-bg,rgba(224,122,106,.12));--chip-line:var(--bad-line,rgba(224,122,106,.4))}
 .cms-tag.gold{--chip-fg:var(--gold2);--chip-bg:var(--cactive);--chip-line:var(--line-gold)}
@@ -452,7 +454,7 @@ function emptyRow(cols,txt,sub){ return '<tr class="cms-emptyrow"><td colspan="'
 function vendaCard(v,all,master){
   master=master&&eMaster();
   var k=calc(v,all), u=user(v.vendedor_id), a=analise(v);
-  var tags=catChip(v)+(vendaEmpresa(v)?tag('Venda da empresa','ok'):origemChip(v))+anChip(v)+sitChip(v.situacao)+(v.reembolso_valor?tag('reemb. '+BRL2(v.reembolso_valor),'warn'):'');
+  var tags=admTag(v)+catChip(v)+(vendaEmpresa(v)?tag('Venda da empresa','ok'):origemChip(v))+anChip(v)+sitChip(v.situacao)+(v.reembolso_valor?tag('reemb. '+BRL2(v.reembolso_valor),'warn'):'');
   var meta=[master?'<span class="nm">'+esc((u.nome||'').split(' ').slice(0,2).join(' '))+'</span>':null, v.administradora?'<span>'+esc(v.administradora)+'</span>':null, v.grupo?'<span>grupo '+esc(v.grupo)+' / cota '+esc(v.cota||'')+'</span>':null, '<span>venda em '+fmtBR(v.data_insercao)+'</span>', '<span>competência '+esc(k.comp.rot)+'</span>', '<span>'+(k.jan.tipo==='ANTECIPACAO'?'antecipação · 1ª parcela dia 23':'janela normal · 1ª parcela dia 10')+(k.serv?' · 4 parcelas':'')+'</span>'].filter(Boolean).join('');
   var head='<div class="cms-head"><div class="who"><h3>'+esc(v.cliente_nome||'—')+'</h3><div class="meta">'+meta+'</div><div class="tags">'+tags+'</div></div><div class="amt"><b>'+BRL(k.credito)+'</b><span>comissão de <em>'+pct(k.rate)+'</em> sobre o crédito'+(k.ajuste?'<br>ajuste de cluster de '+BRL2(k.ajuste)+' em '+fmtBR(k.ajusteData):'')+'</span></div></div>';
   var sum='<div class="cms-sum">'
@@ -530,7 +532,7 @@ function paintFunc(C, uid, titulo){
 }
 
 /* ===================== UI: MASTER ===================== */
-var _periodo='comp';
+var _periodo='tudo';
 window.cmsSetPeriodo=function(p){ _periodo=p; repaint(); };
 function statsFunc(id, all, filt){
   var S={n:0,prod:0,prodCl:0,gerP:0,gerL:0,hsRec:0,funcPago:0,funcGer:0,posRec:0,posFuncPago:0};
@@ -564,19 +566,19 @@ function fluxo(V, all, meses){
   /* (b) mini-stats por mês — na linha Func. o percentual fica à esquerda (junto ao rótulo) e o valor à direita */
   var stats=meses.map(function(m,i){
     return '<div class="cms-fxs"><div class="m"><span>'+esc(m.rot)+'</span>'+(hs[i]?'':'<small>sem previsão</small>')+'</div>'
-      +'<div class="r"><em>HS</em><span>'+BRL(hs[i])+'</span></div>'
+      +'<div class="r"><em>Adm.</em><span>'+BRL(hs[i])+'</span></div>'
       +'<div class="r"><em>Func. <b>'+pf(i)+'%</b></em><span>'+BRL(fu[i])+'</span></div>'
       +'<div class="r ag"><em>Agion</em><span>'+BRL(ag[i])+'</span></div></div>';
   }).join('');
 
   /* (c) bloco Total destacado */
   var total='<div class="cms-fx-tot"><div class="m">Total · 5 meses</div><div class="big">'+BRL(tAg)+'<small>margem Agion prevista</small></div>'
-    +'<ul><li><em>HS</em><span>'+BRL(tHs)+'</span></li>'
+    +'<ul><li><em>Administradoras</em><span>'+BRL(tHs)+'</span></li>'
     +'<li><em>Func. <b>'+pMed+'% médio</b></em><span>'+BRL(tFu)+'</span></li>'
     +'<li class="ag"><em>Agion</em><span>'+BRL(tAg)+'</span></li></ul></div>';
 
   /* (a) gráfico Chart.js empilhado — montado após a inserção no DOM */
-  var chart='<div class="cms-fx-chart"><div class="cms-fx-lg"><span><i class="f"></i>Funcionários</span><span><i class="a"></i>Agion</span><span class="hs">barra inteira = total a receber da HS</span></div><div class="cms-fx-cv"><canvas id="cmsFluxoChart"></canvas></div></div>';
+  var chart='<div class="cms-fx-chart"><div class="cms-fx-lg"><span><i class="f"></i>Funcionários</span><span><i class="a"></i>Agion</span><span class="hs">barra inteira = total a receber das administradoras</span></div><div class="cms-fx-cv"><canvas id="cmsFluxoChart"></canvas></div></div>';
   var labels=meses.map(function(m){return m.rot;}), dFu=fu.slice(), dAg=ag.slice(), dHs=hs.slice();
   setTimeout(function(){
     var gold=cssVar('--gold','#C5A059'), gold2=cssVar('--gold2','#E8CC8B'), teal=cssVar('--teal','#8FD9CC'), muted=cssVar('--muted','#8FA8A0'), head=cssVar('--head','#F1EFE6'), card=cssVar('--card','#103A32');
@@ -597,7 +599,7 @@ function fluxo(V, all, meses){
             titleFont:{weight:'600'}, bodyFont:{size:12}, footerFont:{size:11, weight:'400'},
             callbacks:{
               label:function(c){ return ' '+c.dataset.label+': '+BRL2(c.parsed.y); },
-              footer:function(items){ var i=items.length?items[0].dataIndex:0; var p=dHs[i]?Math.round(dFu[i]/dHs[i]*100):0; return 'HS: '+BRL2(dHs[i])+'  ·  '+p+'% p/ funcionários'; }
+              footer:function(items){ var i=items.length?items[0].dataIndex:0; var p=dHs[i]?Math.round(dFu[i]/dHs[i]*100):0; return 'Administradoras: '+BRL2(dHs[i])+'  ·  '+p+'% p/ funcionários'; }
             }
           }
         },
@@ -610,11 +612,39 @@ function fluxo(V, all, meses){
     });
   },0);
 
-  return '<div class="panel cms-fx"><h2>Fluxo — HS → funcionários → Agion <span class="right note">previsão para os próximos 5 meses</span></h2>'
+  return '<div class="panel cms-fx"><h2>Fluxo — administradoras → funcionários → Agion <span class="right note">previsão para os próximos 5 meses</span></h2>'
     +'<div class="cms-fx-top">'+chart+total+'</div>'
     +'<div class="cms-fx-stats">'+stats+'</div></div>';
 }
-var _mtab='producao', _orgOpen={};
+var _mtab='clientes', _orgOpen={};
+/* ===================== CLIENTES — comissão + tempo conosco (14/out/2026) ===================== */
+function regraTxt(v){ var R=regraV(v), a=admCurta(v);
+  if(R){ var m=R.pct*100/R.n, mt=Math.round(m*100)/100===m; return a+' · '+(R.pct*100).toLocaleString('pt-BR')+'% em '+R.n+'x'+(mt?' ('+m.toLocaleString('pt-BR')+'% ao mês)':''); }
+  if(servico(v)) return 'Âncora · serviços 4% em 4x (1% ao mês)';
+  return a+' · 2% em 5x + 2% na contemplação'; }
+function admTag(v){ var a=admCurta(v); return '<span class="cms-tag cms-adm cms-adm-'+(a==='Âncora'?'anc':'hs')+'">'+esc(a)+'</span>'; }
+function mesesDesde(d){ var a=parseISO(d), b=new Date(); var m=(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth()); if(b.getDate()<a.getDate()) m--; return Math.max(0,m); }
+function tempoTag(v){ var m=mesesDesde(v.data_insercao), d=parseISO(v.data_insercao), oito=iso(mkDate(d.getFullYear(),d.getMonth()+8,d.getDate()));
+  var txt=m<1?'menos de 1 mês':m+(m===1?' mês':' meses');
+  return '<b>'+txt+'</b><br>'+(m>=8?tag('passou dos 8 meses','ok'):tag('8 meses em '+fmtBR(oito)+' · faltam '+(8-m),'warn')); }
+function tabelaClientes(V, all){
+  var L=V.filter(ativa).slice().sort(function(a,b){ return a.data_insercao<b.data_insercao?-1:a.data_insercao>b.data_insercao?1:String(a.cliente_nome).localeCompare(String(b.cliente_nome)); });
+  if(!L.length) return empty('Nenhuma venda registrada','Registre a venda para acompanhar a comissão do cliente.');
+  var T={cred:0,adm:0,rec:0,pend:0};
+  var rows=L.map(function(v){ var k=calc(v,all), u=user(v.vendedor_id), pend=k.parcelas.filter(function(p){return p.hsStatus!=='RECEBIDA';}), pg=k.parcelas.length-pend.length, prox=pend[0];
+    T.cred+=k.credito; T.adm+=k.hsPre; T.rec+=k.hsRec; T.pend+=k.hsPre-k.hsRec;
+    var quem=vendaEmpresa(v)?tag('Venda da empresa','ok'):'<span class="note">'+esc((u.nome||'').split(' ')[0])+'</span> '+origemChip(v);
+    return '<tr><td><b>'+esc(v.cliente_nome||'—')+'</b> '+catChip(v)+'<br>'+quem+(v.grupo?' <span class="note">grupo '+esc(v.grupo)+' / cota '+esc(v.cota||'')+'</span>':'')+'</td>'
+      +'<td>'+admTag(v)+'<br><span class="note">'+esc(regraTxt(v).replace(/^(HS|Âncora) · /,''))+'</span></td>'
+      +'<td>'+fmtBR(v.data_insercao)+'</td><td>'+tempoTag(v)+'</td>'
+      +'<td class="n">'+BRL(k.credito)+'</td><td class="n">'+BRL2(k.hsPre)+'</td><td class="n">'+BRL2(k.hsRec)+'</td>'
+      +'<td class="n"><b>'+(pend.length?BRL2(k.hsPre-k.hsRec):'—')+'</b></td>'
+      +'<td class="n">'+pg+'/'+k.parcelas.length+'</td>'
+      +'<td>'+(prox?fmtBR(prox.data)+'<br><span class="note">'+BRL2(prox.hs)+'</span>':tag('tudo recebido','ok'))+'</td></tr>'; }).join('');
+  var foot='<tr class="tot"><td><b>Total</b></td><td></td><td></td><td></td><td class="n"><b>'+BRL(T.cred)+'</b></td><td class="n"><b>'+BRL2(T.adm)+'</b></td><td class="n"><b>'+BRL2(T.rec)+'</b></td><td class="n"><b>'+BRL2(T.pend)+'</b></td><td></td><td></td></tr>';
+  return '<div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Administradora · regra</th><th>Venda</th><th>Tempo conosco</th><th class="n">Crédito</th><th class="n">Comissão total</th><th class="n">Já recebido</th><th class="n">A receber</th><th class="n">Parcelas</th><th>Próxima</th></tr></thead><tbody>'+rows+foot+'</tbody></table></div>';
+}
+
 window.cmsSetMtab=function(t){ _mtab=t; repaint(true); };
 window.cmsOrgToggle=function(id){ _orgOpen[id]=!_orgOpen[id]; repaint(); };
 function somaArr(a){ return a.reduce(function(x,y){return x+y;},0); }
@@ -661,12 +691,14 @@ function paintMaster(C){
   V.forEach(function(v){ if(analise(v)==='EM_ANALISE')T.an++; if(v.origem_status==='EM_REVISAO')T.rev++; if(!ativa(v)){T.reemb+=(+v.reembolso_valor||0);return;} var k=calc(v,all);
     T.prod+=k.credito; if(v.origem==='LEAD_AGION'){T.prodL+=k.credito;T.hsL+=k.hsPre;} else {T.prodP+=k.credito;T.hsP+=k.hsPre;} T.hsPre+=k.hsPre; T.hsRec+=k.hsRec; T.func+=k.funcPre; T.funcPago+=k.funcPago; T.posHs+=k.posHs; T.posFunc+=k.posFunc; T.reemb+=k.reemb; if(v.pos_status==='COMISSAO_POS_RECEBIDA')T.posRec+=k.posHs; });
   var agion=T.hsPre-T.func, agionRec=T.hsRec-T.funcPago;
+  var nCli=V.filter(ativa), cliPend=nCli.filter(function(v){ return calc(v,all).parcelas.some(function(p){return p.hsStatus!=='RECEBIDA';}); }).length, cli8=nCli.filter(function(v){return mesesDesde(v.data_insercao)<8;}).length;
   var cards='<div class="cms-kts">'
+    +cardTab('clientes','Clientes',String(nCli.length),[['Com parcelas a receber',String(cliPend)],['Ainda sem 8 meses',String(cli8)]],true)
     +cardTab('producao',tudo?'Produção total':'Produção da competência',BRL(T.prod),[['Leads Agion',BRL(T.prodL)],['Clientes próprios',BRL(T.prodP)]],true)
     +cardTab('hs','Comissão pré · administradoras',BRL2(T.hsPre),tudo?[['Já recebido',BRL2(T.hsRec)],['A receber',BRL2(T.hsPre-T.hsRec)]]:[['Leads Agion',BRL2(T.hsL)],['Clientes próprios',BRL2(T.hsP)]])
     +cardTab('func','Comissão pré · funcionários',BRL2(T.func),[['Já pago',BRL2(T.funcPago)],['A pagar',BRL2(T.func-T.funcPago)]])
     +cardTab('agion','Margem pré · Agion',BRL2(agion),[['Já realizada',BRL2(agionRec)],['A realizar',BRL2(agion-agionRec)]],true)
-    +(tudo?cardTab('pos','Pós-contemplação potencial',BRL2(T.posHs),[['Funcionários · 1% próprios',BRL2(T.posFunc)],['Agion',BRL2(T.posHs-T.posFunc)],['Já recebida da HS',BRL2(T.posRec)]]):'')
+    +(tudo?cardTab('pos','Pós-contemplação potencial',BRL2(T.posHs),[['Funcionários · 1% próprios',BRL2(T.posFunc)],['Agion',BRL2(T.posHs-T.posFunc)],['Já recebida da administradora',BRL2(T.posRec)]]):'')
     +cardTab('fluxo','Fluxo de recebimentos','5 meses',[['A pagar aos funcionários',BRL2(V.filter(ativa).reduce(function(s,v){return s+somaArr(porMes(calc(v,all),v,meses,'func'));},0))],['Fica com a Agion',BRL2(V.filter(ativa).reduce(function(s,v){return s+somaArr(porMes(calc(v,all),v,meses,'agion'));},0))]])
     +cardTab('vendas','Vendas',String(V.length),[['Em análise',String(T.an)],['Reembolsos',BRL2(T.reemb)]])
     +'</div>';
@@ -674,18 +706,20 @@ function paintMaster(C){
   var sel='<div class="cms-bar">'+per+(!tudo?compSelect():'')+'<span class="sp"></span><button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button></div>';
   var ids=[]; V.forEach(function(v){ if(ids.indexOf(v.vendedor_id)<0)ids.push(v.vendedor_id); });
   var filt=tudo?null:inComp; var body='';
-  if(_mtab==='producao'){
-    body='<div class="panel"><h2>'+(tudo?'Produção por funcionário — todo o período':'Produção por funcionário — '+esc(comp.rot))+' <span class="right note">gerada = comissão paga pela administradora (HS 2% · Âncora serviços 4%)</span></h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">Leads Agion</th><th class="n">Clientes próprios</th>'+(tudo?'':'<th class="n">Cluster</th><th class="n">Falta p/ próximo</th>')+'<th class="n">Gerada · lead</th><th class="n">Gerada · próprio</th><th class="n">Gerada · total</th><th aria-label="Ações"></th></tr></thead><tbody>'
+  if(_mtab==='clientes'){
+    body='<div class="panel"><h2>Clientes — comissão e tempo conosco <span class="right note">valores que a administradora paga à Agion · tempo contado da data da venda (estorno até 8 meses)</span></h2>'+tabelaClientes(V,all)+'</div>';
+  } else if(_mtab==='producao'){
+    body='<div class="panel"><h2>'+(tudo?'Produção por funcionário — todo o período':'Produção por funcionário — '+esc(comp.rot))+' <span class="right note">gerada = comissão paga pela administradora (HS 2% · Âncora conforme a carta)</span></h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">Leads Agion</th><th class="n">Clientes próprios</th>'+(tudo?'':'<th class="n">Cluster</th><th class="n">Falta p/ próximo</th>')+'<th class="n">Gerada · lead</th><th class="n">Gerada · próprio</th><th class="n">Gerada · total</th><th aria-label="Ações"></th></tr></thead><tbody>'
       +(ids.map(function(id){ var S=statsFunc(id,all,filt); if(!S.n)return ''; var u=user(id); var pl=0,pp=0; all.forEach(function(v){ if(v.vendedor_id!==id||!ativa(v)||(filt&&!filt(v)))return; if(v.origem==='LEAD_AGION')pl+=+v.credito; else pp+=+v.credito; });
         return '<tr><td><b>'+esc(u.nome||id)+'</b></td><td class="n">'+S.n+'</td><td class="n">'+BRL(S.prod)+'</td><td class="n">'+(pl?BRL(pl):'—')+'</td><td class="n">'+(pp?BRL(pp):'—')+'</td>'+(tudo?'':'<td class="n">'+pct(S.cluster.r)+'</td><td class="n">'+(S.prox?BRL(S.falta):'máximo')+'</td>')+'<td class="n">'+(S.gerL?BRL2(S.gerL):'—')+'</td><td class="n">'+(S.gerP?BRL2(S.gerP):'—')+'</td><td class="n"><b>'+BRL2(S.ger)+'</b></td><td class="act"><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\''+id+'\')">Ver detalhes</button></td></tr>'; }).join('')||emptyRow(tudo?9:11,'Nenhuma venda no período','Troque a competência ou veja todo o período.'))+'</tbody></table></div></div>';
   } else if(_mtab==='hs'){
-    body='<div class="panel"><h2>Comissão pré das administradoras — por cliente <span class="right note">HS: 2% do crédito em 5 parcelas · Âncora (serviços): 4% em 4 parcelas</span></h2>'+tabelaClientesHS(V,all,meses)+'</div>';
+    body='<div class="panel"><h2>Comissão pré das administradoras — por cliente <span class="right note">HS: 2% em 5 parcelas · Âncora: conforme a regra da carta</span></h2>'+tabelaClientesHS(V,all,meses)+'</div>';
   } else if(_mtab==='func'){
     body='<div class="panel"><h2>Pagamentos aos funcionários <span class="right note">clique em um nome para ver os clientes</span></h2>'+organograma(V,meses,'func')+'</div>'
         +'<div class="panel"><h2>Histórico por funcionário</h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Comissão gerada</th><th class="n">Já pago</th><th class="n">A pagar</th><th class="n">Pós já pago</th><th aria-label="Ações"></th></tr></thead><tbody>'
         +(ids.map(function(id){ var S=statsFunc(id,all,filt); if(!S.n)return ''; return '<tr><td><b>'+esc(user(id).nome||'')+'</b></td><td class="n">'+S.n+'</td><td class="n">'+BRL2(S.funcGer)+'</td><td class="n">'+BRL2(S.funcPago)+'</td><td class="n"><b>'+BRL2(S.funcGer-S.funcPago)+'</b></td><td class="n">'+BRL2(S.posFuncPago)+'</td><td class="act"><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\''+id+'\')">Ver detalhes</button></td></tr>'; }).join('')||emptyRow(7,'Nenhuma venda no período','Troque a competência ou veja todo o período.'))+'</tbody></table></div></div>';
   } else if(_mtab==='agion'){
-    body='<div class="panel"><h2>Margem Agion — por funcionário e cliente <span class="right note">margem = recebido da HS − pago ao funcionário</span></h2>'+organograma(V,meses,'agion')+'</div>';
+    body='<div class="panel"><h2>Margem Agion — por funcionário e cliente <span class="right note">margem = recebido da administradora − pago ao funcionário</span></h2>'+organograma(V,meses,'agion')+'</div>';
   } else if(_mtab==='pos'){
     var pr=V.filter(function(v){return ativa(v);}).sort(function(a,b){return (a.pos_status>b.pos_status)?-1:1;});
     body='<div class="panel"><h2>Pós-contemplação <span class="right note">a HS paga 2% do crédito na contemplação; 1% vai ao funcionário só em cliente próprio</span></h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Funcionário</th><th class="n">Crédito</th><th class="n">Pós · Agion</th><th class="n">Pós · funcionário</th><th>Status</th><th aria-label="Ações"></th></tr></thead><tbody>'
@@ -779,17 +813,19 @@ window.cmsEditar=async function(id){
     bg.innerHTML='<div class="cms-md" role="dialog" aria-modal="true" aria-labelledby="edTitle"><h2 id="edTitle">Editar venda</h2><p class="cms-sub">'+esc(v.cliente_nome||'')+(v.grupo?' — grupo '+esc(v.grupo)+' / cota '+esc(v.cota||''):'')+'</p>'
       +fld('Quem recebe a comissão',sel('<select id="edVend" class="'+bx+'">'+vendOpts+'</select>'))
       +fld('Categoria da carta',sel('<select id="edCat" class="'+bx+'">'+catOpts(v.categoria||'')+'</select>'))
-      +fld('Crédito vendido (R$)','<input id="edCred" inputmode="decimal" value="'+String(Math.round(+v.credito||0))+'" class="'+bx+'">')
-      +fld('Data da venda (inserção na HS)','<input id="edData" type="date" value="'+String(v.data_insercao||'').slice(0,10)+'" class="'+bx+'">')
+      +fld('Administradora',sel('<select id="edAdm" class="'+bx+'"><option value="HS Consórcios"'+(admCurta(v)!=='Âncora'?' selected':'')+'>HS Consórcios</option><option value="Âncora Consórcios"'+(admCurta(v)==='Âncora'?' selected':'')+'>Âncora Consórcios</option></select>'))
+      +fld('Regra própria da comissão (opcional)','<div style="display:flex;gap:8px"><input id="edRpct" inputmode="decimal" placeholder="% total (ex: 5)" value="'+(regraV(v)?String(+(regraV(v).pct*100).toFixed(4)).replace('.',','):'')+'" class="'+bx+'"><input id="edRn" inputmode="numeric" placeholder="nº de parcelas (ex: 16)" value="'+(regraV(v)?regraV(v).n:'')+'" class="'+bx+'"></div><span class="note">Em branco = regra padrão (HS 2% em 5x · serviços Âncora 4% em 4x)</span>')
+      +fld('Crédito vendido (R$)','<input id="edCred" inputmode="decimal" value="'+String(+v.credito||0).replace('.',',')+'" class="'+bx+'">')
+      +fld('Data da venda (inserção na administradora)','<input id="edData" type="date" value="'+String(v.data_insercao||'').slice(0,10)+'" class="'+bx+'">')
       +fld('Origem do cliente',sel('<select id="edOrig" class="'+bx+'"><option value="LEAD_AGION"'+(v.origem==='LEAD_AGION'?' selected':'')+'>Lead da Agion — comissão pelo cluster</option><option value="CLIENTE_PROPRIO"'+(v.origem==='CLIENTE_PROPRIO'?' selected':'')+'>Cliente próprio — 1% pré + 1% na contemplação</option></select>'))
       +'<div class="cms-acts"><button class="btn btn-ghost btn-sm" id="edC">Cancelar</button><button class="btn btn-gold btn-sm" id="edOk">Salvar alterações</button></div></div>';
     document.body.appendChild(bg);
     document.getElementById('edC').onclick=function(){bg.remove();res(null);};
-    document.getElementById('edOk').onclick=function(){ var r={vend:document.getElementById('edVend').value,credito:Number(String(document.getElementById('edCred').value).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0,data:document.getElementById('edData').value,origem:document.getElementById('edOrig').value,categoria:document.getElementById('edCat').value}; if(!(r.credito>0)){flash('Informe o valor do crédito vendido.');return;} if(!r.data){flash('Informe a data da venda.');return;} bg.remove(); res(r); };
+    document.getElementById('edOk').onclick=function(){ var r={vend:document.getElementById('edVend').value,credito:Number(String(document.getElementById('edCred').value).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0,data:document.getElementById('edData').value,origem:document.getElementById('edOrig').value,categoria:document.getElementById('edCat').value,adm:document.getElementById('edAdm').value,rpct:Number(String(document.getElementById('edRpct').value).replace(',','.'))||0,rn:parseInt(document.getElementById('edRn').value,10)||0}; if(!(r.credito>0)){flash('Informe o valor do crédito vendido.');return;} if(!r.data){flash('Informe a data da venda.');return;} bg.remove(); res(r); };
   });
   if(!out)return;
-  var patch={vendedor_id:out.vend,credito:out.credito,data_insercao:out.data,origem:out.origem,origem_status:'VALIDADA',categoria:out.categoria||null};
-  if(out.categoria==='SERVICOS') patch.administradora='Âncora Consórcios'; else if(/[âa]ncora/i.test(v.administradora||'')&&v.categoria==='SERVICOS') patch.administradora='HS Consórcios';
+  var patch={vendedor_id:out.vend,credito:out.credito,data_insercao:out.data,origem:out.origem,origem_status:'VALIDADA',categoria:out.categoria||null,administradora:out.adm||v.administradora,regra:(out.rpct>0&&out.rn>0)?{pct:out.rpct/100,n:out.rn}:null};
+  if(out.categoria==='SERVICOS') patch.administradora='Âncora Consórcios';
   var desc='Editou venda de '+(v.cliente_nome||'')+(out.vend!==v.vendedor_id?' — designou para '+(user(out.vend).nome||''):'');
   await upd(id,patch,desc);
 };
@@ -847,7 +883,7 @@ window.cmsNovaVenda=async function(pre){
       +fld('Carta',sel('<select id="cmsCarta" class="'+bx+'"></select>'))
       +fld('Categoria da carta <span id="cmsCatHint" class="note"></span>',sel('<select id="cmsCat" class="'+bx+'"><option value="">Selecione…</option>'+catOpts(pre.categoria||'')+'</select>'))
       +fld('Crédito vendido (R$) <span id="cmsHint" class="note"></span>','<div class="cms-row"><input id="cmsCred" inputmode="decimal" placeholder="Ex.: 800000" class="'+bx+'"><button class="btn btn-ghost btn-sm" id="cmsUsar" type="button" title="Preencher com o valor da carta ou do CRM">Usar valor sugerido</button></div>')
-      +fld('Data da venda (inserção na HS)','<input id="cmsData" type="date" value="'+(pre.data||iso(new Date()))+'" class="'+bx+'">')
+      +fld('Data da venda (inserção na administradora)','<input id="cmsData" type="date" value="'+(pre.data||iso(new Date()))+'" class="'+bx+'">')
       +fld('Origem do cliente',sel('<select id="cmsOrig" class="'+bx+'"><option value="LEAD_AGION">Lead da Agion — comissão pelo cluster</option><option value="CLIENTE_PROPRIO">Cliente próprio — 1% pré + 1% na contemplação'+(eMaster()?'':' (o Master valida)')+'</option></select>'))
       +(eMaster()?fld('Quem recebe a comissão',sel('<select id="cmsVend" class="'+bx+'">'+vendOpts+'</select>')):'')
       +'<div class="cms-acts"><button class="btn btn-ghost btn-sm" id="cmsCancel">Cancelar</button><button class="btn btn-gold btn-sm" id="cmsOk">Registrar venda</button></div></div>';
@@ -948,7 +984,7 @@ function _pinta(C){
 async function _rotaComissoes(C){
   if(!_compSel) _compSel=compAtual().key;
   var M=eMaster(), L=eLider();
-  setTop('Comissões', M?'Gestão das comissões HS':(L?'Suas comissões e as da sua equipe':'Suas comissões HS'), (M?'':'<button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button>')+'<span class="note" style="margin-left:10px;opacity:.6">'+VERSAO+'</span>');
+  setTop('Comissões', M?'Gestão das comissões':(L?'Suas comissões e as da sua equipe':'Suas comissões'), (M?'':'<button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button>')+'<span class="note" style="margin-left:10px;opacity:.6">'+VERSAO+'</span>');
   C.innerHTML='<p class="note" style="padding:20px">Carregando comissões…</p>';
   await load();
   if(!M) _vendas=vendasVisiveis();
