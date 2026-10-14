@@ -36,7 +36,11 @@ function regraV(v){ var r=v&&v.regra; if(r&&+r.n>0&&+r.pct>0) return {n:Math.rou
 function admCurta(v){ var a=String((v&&v.administradora)||''); return /[âa]ncora/i.test(a)?'Âncora':/hs/i.test(a)?'HS':(a||'HS'); }
 function catChip(v){ var c=CATS[v&&v.categoria]; return c?'<span class="cms-tag">'+c.ic+' '+c.lb+'</span>':''; }
 function catOpts(sel){ return Object.keys(CATS).map(function(k){ return '<option value="'+k+'"'+(sel===k?' selected':'')+'>'+CATS[k].ic+' '+CATS[k].lb+'</option>'; }).join(''); }
-var DIA_PAG = 23;      // dia em que a administradora paga as comissões
+/* 14/out/2026 — DATAS:
+   Funcionário: 1ª parcela dia 23 (antecipação) ou dia 10 do mês seguinte; demais todo dia 10.
+   Empresa (proprietário): recebe SEMPRE por antecipação, no dia 20 — um mês à frente do funcionário
+   (a parcela que o funcionário recebe dia 10 de novembro a empresa já recebeu dia 20 de outubro). */
+var DIA_FUNC = 10, DIA_EMP = 20;
 var CUTOFF_ANTEC = 20;   // vendas até o dia 20 entram no cluster da antecipação (dia 23)
 var SIT_LBL = {EM_DIA:'Em dia', INADIMPLENTE:'Não pagou', REEMBOLSO_PARCIAL:'Reembolso parcial', REEMBOLSO_TOTAL:'Reembolso total', CANCELADA:'Cancelada'};
 var POS_LBL = {NAO_CONTEMPLADA:'Aguardando contemplação', CONTEMPLADA:'Contemplada', COMISSAO_POS_RECEBIDA:'Comissão pós recebida'};
@@ -58,19 +62,19 @@ function compShift(key,n){ var d=parseISO(key); return competencia(iso(mkDate(d.
 function janelaDe(dateISO){
   var c=competencia(dateISO), d=parseISO(dateISO), fim=parseISO(c.fim);
   var antec = !(d.getMonth()===fim.getMonth() && d.getFullYear()===fim.getFullYear() && d.getDate()>=16);
-  /* 14/out/2026: a Agion recebe as comissões sempre no dia 23 (DIA_PAG) */
-  var p1 = antec ? mkDate(fim.getFullYear(), fim.getMonth(), DIA_PAG) : mkDate(fim.getFullYear(), fim.getMonth()+1, DIA_PAG);
+  var p1 = antec ? mkDate(fim.getFullYear(), fim.getMonth(), 23) : mkDate(fim.getFullYear(), fim.getMonth()+1, DIA_FUNC);
   var datas=[iso(p1)];
-  for(var k=1;k<5;k++) datas.push(iso(mkDate(p1.getFullYear(), p1.getMonth()+k, DIA_PAG)));
-  return {tipo: antec?'ANTECIPACAO':'NORMAL', datas:datas, ajusteData: iso(mkDate(fim.getFullYear(), fim.getMonth()+1, DIA_PAG))};
+  for(var k=1;k<5;k++) datas.push(iso(mkDate(p1.getFullYear(), p1.getMonth()+k, DIA_FUNC)));
+  return {tipo: antec?'ANTECIPACAO':'NORMAL', datas:datas, ajusteData: iso(mkDate(fim.getFullYear(), fim.getMonth()+1, DIA_FUNC))};
 }
+function dataEmpresa(funcISO, i, tipo, vendaISO){ var f=parseISO(funcISO); var d=(i===0&&tipo==='ANTECIPACAO')?mkDate(f.getFullYear(),f.getMonth(),DIA_EMP):mkDate(f.getFullYear(),f.getMonth()-1,DIA_EMP); var v=parseISO(vendaISO); while(d<v) d=mkDate(d.getFullYear(),d.getMonth()+1,DIA_EMP); return iso(d); }
 function clusterDe(prod){ for(var i=0;i<CLUSTERS.length;i++) if(prod<=CLUSTERS[i].ate) return CLUSTERS[i]; return CLUSTERS[CLUSTERS.length-1]; }
 function proxCluster(prod){ for(var i=0;i<CLUSTERS.length;i++) if(prod<=CLUSTERS[i].ate) return CLUSTERS[i+1]||null; return null; }
 function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%'; }
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v33';
+var VERSAO='v34';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -106,15 +110,15 @@ function calc(v, all){
   var rate20 = serv ? rate : proprio ? PROPRIO_PRE : clusterDe(prod20).r;
   var hsPre = R ? credito*R.pct : serv ? credito*SERV_ADM_PARC*SERV_N : credito*HS_PRE;
   var nP = R ? R.n : serv ? SERV_N : 5;
-  var datas=jan.datas.slice(); while(datas.length<nP){ var b0=parseISO(datas[0]); datas.push(iso(mkDate(b0.getFullYear(), b0.getMonth()+datas.length, DIA_PAG))); }
+  var datas=jan.datas.slice(); while(datas.length<nP){ var b0=parseISO(datas[0]); datas.push(iso(mkDate(b0.getFullYear(), b0.getMonth()+datas.length, DIA_FUNC))); }
   var parcelas=[];
   for(var i=0;i<nP;i++){
     var r_i = (i===0 && jan.tipo==='ANTECIPACAO') ? rate20 : rate;
-    var st=parc(v,i+1), passado=datas[i]<iso(new Date());
-    var hsS=st.hs==='RECEBIDA'?'RECEBIDA':st.hs==='NAO_RECEBIDA'?'NAO_RECEBIDA':(passado?'RECEBIDA':'PREVISTA');
+    var st=parc(v,i+1), hoje=iso(new Date()), passado=datas[i]<hoje, dEmp=dataEmpresa(datas[i],i,jan.tipo,v.data_insercao), passEmp=dEmp<=hoje;
+    var hsS=st.hs==='RECEBIDA'?'RECEBIDA':st.hs==='NAO_RECEBIDA'?'NAO_RECEBIDA':(passEmp?'RECEBIDA':'PREVISTA');
     var fS=st.func==='PAGA'?'PAGA':st.func==='NAO_PAGA'?'NAO_PAGA':(passado?'PAGA':'PREVISTA');
     var hsP = R ? credito*R.pct/R.n : serv?credito*SERV_ADM_PARC:credito*HS_PARC[i];
-    parcelas.push({n:i+1, data:datas[i], hs:hsP, func:EMP?0:R?hsP*(proprio?0.5:0.25):serv?credito*rate/SERV_N:credito*r_i*FUNC_SHARE[i], share:R?1/R.n:serv?1/SERV_N:FUNC_SHARE[i], hsStatus:hsS, funcStatus:fS, auto:!st.hs&&!st.func&&passado, dataEfetiva:st.data_efetiva||null});
+    parcelas.push({n:i+1, data:datas[i], dataEmp:dEmp, hs:hsP, func:EMP?0:R?hsP*(proprio?0.5:0.25):serv?credito*rate/SERV_N:credito*r_i*FUNC_SHARE[i], share:R?1/R.n:serv?1/SERV_N:FUNC_SHARE[i], hsStatus:hsS, funcStatus:fS, auto:!st.hs&&!st.func&&passado, dataEfetiva:st.data_efetiva||null});
     parcelas[i].agion=parcelas[i].hs-parcelas[i].func;
   }
   var ajuste = (!EMP && !serv && jan.tipo==='ANTECIPACAO' && rate>rate20) ? credito*(rate-rate20)*FUNC_SHARE[0] : 0;
@@ -458,7 +462,7 @@ function vendaCard(v,all,master){
   master=master&&eMaster();
   var k=calc(v,all), u=user(v.vendedor_id), a=analise(v);
   var tags=admTag(v)+catChip(v)+(vendaEmpresa(v)?tag('Venda da empresa','ok'):origemChip(v))+anChip(v)+sitChip(v.situacao)+(v.reembolso_valor?tag('reemb. '+BRL2(v.reembolso_valor),'warn'):'');
-  var meta=[master?'<span class="nm">'+esc((u.nome||'').split(' ').slice(0,2).join(' '))+'</span>':null, v.administradora?'<span>'+esc(v.administradora)+'</span>':null, v.grupo?'<span>grupo '+esc(v.grupo)+' / cota '+esc(v.cota||'')+'</span>':null, '<span>venda em '+fmtBR(v.data_insercao)+'</span>', '<span>competência '+esc(k.comp.rot)+'</span>', '<span>'+(k.jan.tipo==='ANTECIPACAO'?'antecipação · 1ª parcela dia 23':'janela normal · 1ª parcela dia 23 do mês seguinte')+(k.serv?' · 4 parcelas':'')+'</span>'].filter(Boolean).join('');
+  var meta=[master?'<span class="nm">'+esc((u.nome||'').split(' ').slice(0,2).join(' '))+'</span>':null, v.administradora?'<span>'+esc(v.administradora)+'</span>':null, v.grupo?'<span>grupo '+esc(v.grupo)+' / cota '+esc(v.cota||'')+'</span>':null, '<span>venda em '+fmtBR(v.data_insercao)+'</span>', '<span>competência '+esc(k.comp.rot)+'</span>', '<span>'+(k.jan.tipo==='ANTECIPACAO'?'antecipação · 1ª parcela dia 23':'janela normal · 1ª parcela dia 10 do mês seguinte')+(k.serv?' · 4 parcelas':'')+'</span>'].filter(Boolean).join('');
   var head='<div class="cms-head"><div class="who"><h3>'+esc(v.cliente_nome||'—')+'</h3><div class="meta">'+meta+'</div><div class="tags">'+tags+'</div></div><div class="amt"><b>'+BRL(k.credito)+'</b><span>comissão de <em>'+pct(k.rate)+'</em> sobre o crédito'+(k.ajuste?'<br>ajuste de cluster de '+BRL2(k.ajuste)+' em '+fmtBR(k.ajusteData):'')+'</span></div></div>';
   var sum='<div class="cms-sum">'
     +(master?'<div><div class="l">Pré · '+admCurta(v)+' ('+pct(k.hsPre/(k.credito||1))+')</div><div class="v">'+BRL2(k.hsPre)+'<small>recebido '+BRL2(k.hsRec)+'</small></div></div>':'')
@@ -468,9 +472,9 @@ function vendaCard(v,all,master){
     +(master&&!k.serv?'<div><div class="l">Pós · Agion</div><div class="v">'+BRL2(k.posAgion)+'</div></div>':'')
     +'</div>';
   var tl='<div class="cms-tl'+(k.regra?' cms-tlx':k.serv?' cms-tl4':'')+'">'+k.parcelas.map(function(p){ var sh=p.share;
-    var hsRow=master?'<div class="row"><em>'+admCurta(v)+'</em><span>'+BRL2(p.hs)+'</span>'+pill(p.hsStatus==='RECEBIDA',p.hsStatus==='RECEBIDA'?'recebida':p.hsStatus==='NAO_RECEBIDA'?'não recebida':'prevista',"cmsToggle('"+v.id+"',"+p.n+",'hs')",p.hsStatus==='NAO_RECEBIDA')+'</div>':'';
+    var hsRow=master?'<div class="row"><em>'+admCurta(v)+' · '+fmtBR(p.dataEmp).slice(0,5)+'</em><span>'+BRL2(p.hs)+'</span>'+pill(p.hsStatus==='RECEBIDA',p.hsStatus==='RECEBIDA'?'recebida':p.hsStatus==='NAO_RECEBIDA'?'não recebida':'prevista',"cmsToggle('"+v.id+"',"+p.n+",'hs')",p.hsStatus==='NAO_RECEBIDA')+'</div>':'';
     var fRow='<div class="row"><em>'+(master?'Func.':'Você')+'</em><span>'+BRL2(p.func)+'</span>'+pill(p.funcStatus==='PAGA',p.funcStatus==='PAGA'?'paga':p.funcStatus==='NAO_PAGA'?'não paga':'prevista',master?"cmsToggle('"+v.id+"',"+p.n+",'func')":null,p.funcStatus==='NAO_PAGA')+'</div>';
-    return '<div class="st'+(p.funcStatus==='PAGA'?' paid':'')+'"><div class="n"><span>'+p.n+'ª parcela</span><em>'+Math.round(sh*100)+'%</em></div><div class="d">'+fmtBR(p.data)+'</div>'+hsRow+fRow+'</div>'; }).join('')+'</div>';
+    return '<div class="st'+(p.funcStatus==='PAGA'?' paid':'')+'"><div class="n"><span>'+p.n+'ª parcela</span><em>'+Math.round(sh*100)+'%</em></div><div class="d">'+fmtBR(k.empresa?p.dataEmp:p.data)+(k.empresa?' <small>antecipação</small>':'')+'</div>'+hsRow+(k.empresa?'':fRow)+'</div>'; }).join('')+'</div>';
   var pos=k.serv?'':'<div class="cms-pos"><span class="l">Pós-contemplação</span>'+tag(POS_LBL[v.pos_status]||v.pos_status, v.pos_status==='NAO_CONTEMPLADA'?'':'ok')+(v.pos_data?'<span class="note">'+fmtBR(v.pos_data)+'</span>':'')+'</div>';
   var foot=master?'<div class="cms-foot"><div class="grp">'+(a==='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsAprovar(\''+v.id+'\')">Aprovar ou recusar</button>':'')+(v.origem_status==='EM_REVISAO'&&a!=='EM_ANALISE'?'<button class="btn btn-gold btn-sm" onclick="cmsValidar(\''+v.id+'\')">Validar origem</button>':'')+'<button class="btn btn-ghost btn-sm" onclick="cmsPos(\''+v.id+'\')">Atualizar contemplação</button><button class="btn btn-ghost btn-sm" onclick="cmsSituacao(\''+v.id+'\')">Alterar situação</button><button class="btn btn-ghost btn-sm" onclick="cmsDesignar(\''+v.id+'\')">Designar colaborador</button><button class="btn btn-ghost btn-sm" onclick="cmsEditar(\''+v.id+'\')">Editar venda</button></div><div class="grp danger"><button class="btn btn-ghost btn-sm cms-danger" onclick="cmsExcluir(\''+v.id+'\')">Excluir venda</button></div></div>':'';
   return '<div class="cms-card">'+head+sum+tl+pos+foot+'</div>';
@@ -546,7 +550,7 @@ function statsFunc(id, all, filt){
 }
 function mesesCols(meses){ return meses.map(function(m){return '<th class="n">'+m.rot+'</th>';}).join(''); }
 function porMes(k,v,meses,tipo){ // tipo: 'func' | 'hs' | 'agion' -> valores pendentes por mês
-  return meses.map(function(m){ var s=0; k.parcelas.forEach(function(p){ if(p.data.slice(0,7)!==m.key)return; if(tipo==='func'){ if(p.funcStatus!=='PAGA')s+=p.func; } else if(tipo==='hs'){ if(p.hsStatus!=='RECEBIDA')s+=p.hs; } else { s+=(p.hsStatus!=='RECEBIDA'?p.hs:0)-(p.funcStatus!=='PAGA'?p.func:0); } });
+  return meses.map(function(m){ var s=0; k.parcelas.forEach(function(p){ var em=(p.dataEmp||p.data).slice(0,7)===m.key, fm=p.data.slice(0,7)===m.key; if(tipo==='func'){ if(fm&&p.funcStatus!=='PAGA')s+=p.func; } else if(tipo==='hs'){ if(em&&p.hsStatus!=='RECEBIDA')s+=p.hs; } else { s+=(em&&p.hsStatus!=='RECEBIDA'?p.hs:0)-(fm&&p.funcStatus!=='PAGA'?p.func:0); } });
     if(k.ajuste&&k.ajusteData.slice(0,7)===m.key&&!k.ajustePago){ if(tipo==='func')s+=k.ajuste; if(tipo==='agion')s-=k.ajuste; } return s; });
 }
 function tabelaClientesHS(V, all, meses){
@@ -642,7 +646,7 @@ function tabelaClientes(V, all){
       +'<td data-l="Tempo conosco">'+tempoTag(v)+'</td>'
       +'<td class="n" data-l="Crédito">'+BRL(k.credito)+'</td><td class="n" data-l="Comissão total">'+BRL2(k.hsPre)+'</td><td class="n" data-l="Já recebido">'+BRL2(k.hsRec)+'</td>'
       +'<td class="n" data-l="A receber"><b>'+(pend.length?BRL2(k.hsPre-k.hsRec):'—')+'</b></td>'
-      +'<td data-l="Parcelas">'+'<b>'+pg+'/'+k.parcelas.length+'</b> '+(prox?'<span class="note">próx. '+fmtBR(prox.data)+'</span><br><span class="note">'+BRL2(prox.hs)+'</span>':'<br>'+tag('tudo recebido','ok'))+'</td></tr>'; }).join('');
+      +'<td data-l="Parcelas">'+'<b>'+pg+'/'+k.parcelas.length+'</b> '+(prox?'<span class="note">próx. '+fmtBR(prox.dataEmp)+'</span><br><span class="note">'+BRL2(prox.hs)+'</span>':'<br>'+tag('tudo recebido','ok'))+'</td></tr>'; }).join('');
   var foot='<tr class="tot"><td><b>Total</b></td><td class="x"></td><td class="x"></td><td class="n" data-l="Crédito"><b>'+BRL(T.cred)+'</b></td><td class="n" data-l="Comissão total"><b>'+BRL2(T.adm)+'</b></td><td class="n" data-l="Já recebido"><b>'+BRL2(T.rec)+'</b></td><td class="n" data-l="A receber"><b>'+BRL2(T.pend)+'</b></td><td class="x"></td></tr>';
   return '<div class="tbl-scroll cms-tbl cms-cli"><table><thead><tr><th>Cliente</th><th>Administradora · regra</th><th>Tempo conosco</th><th class="n">Crédito</th><th class="n">Comissão total</th><th class="n">Já recebido</th><th class="n">A receber</th><th>Parcelas recebidas</th></tr></thead><tbody>'+rows+foot+'</tbody></table></div>';
 }
@@ -709,7 +713,7 @@ function paintMaster(C){
   var ids=[]; V.forEach(function(v){ if(ids.indexOf(v.vendedor_id)<0)ids.push(v.vendedor_id); });
   var filt=tudo?null:inComp; var body='';
   if(_mtab==='clientes'){
-    body='<div class="panel"><h2>Clientes — comissão e tempo conosco <span class="right note">valores que a administradora paga à Agion · tempo contado da data da venda (estorno até 8 meses)</span></h2>'+tabelaClientes(V,all)+'</div>';
+    body='<div class="panel"><h2>Clientes — comissão e tempo conosco <span class="right note">valores que a administradora paga à Agion · empresa recebe por antecipação no dia 20 · tempo contado da data da venda (estorno até 8 meses)</span></h2>'+tabelaClientes(V,all)+'</div>';
   } else if(_mtab==='producao'){
     body='<div class="panel"><h2>'+(tudo?'Produção por funcionário — todo o período':'Produção por funcionário — '+esc(comp.rot))+' <span class="right note">gerada = comissão paga pela administradora (HS 2% · Âncora conforme a carta)</span></h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Produção</th><th class="n">Leads Agion</th><th class="n">Clientes próprios</th>'+(tudo?'':'<th class="n">Cluster</th><th class="n">Falta p/ próximo</th>')+'<th class="n">Gerada · lead</th><th class="n">Gerada · próprio</th><th class="n">Gerada · total</th><th aria-label="Ações"></th></tr></thead><tbody>'
       +(ids.map(function(id){ var S=statsFunc(id,all,filt); if(!S.n)return ''; var u=user(id); var pl=0,pp=0; all.forEach(function(v){ if(v.vendedor_id!==id||!ativa(v)||(filt&&!filt(v)))return; if(v.origem==='LEAD_AGION')pl+=+v.credito; else pp+=+v.credito; });
