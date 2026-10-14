@@ -75,7 +75,7 @@ function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,
 
 /* ===================== DADOS ===================== */
 var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
-var VERSAO='v38';
+var VERSAO='v39';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
 function eMaster(){ return eRole()==='master'; }
@@ -552,7 +552,7 @@ function statsFunc(id, all, filt){
 }
 function mesesCols(meses){ return meses.map(function(m){return '<th class="n">'+m.rot+'</th>';}).join(''); }
 function porMes(k,v,meses,tipo){ // tipo: 'func' | 'hs' | 'agion' -> valores pendentes por mês
-  return meses.map(function(m){ var s=0; k.parcelas.forEach(function(p){ var em=(p.dataEmp||p.data).slice(0,7)===m.key, fm=p.data.slice(0,7)===m.key; if(tipo==='func'){ if(fm&&p.funcStatus!=='PAGA')s+=p.func; } else if(tipo==='hs'){ if(em&&p.hsStatus!=='RECEBIDA')s+=p.hs; } else { s+=(em&&p.hsStatus!=='RECEBIDA'?p.hs:0)-(fm&&p.funcStatus!=='PAGA'?p.func:0); } });
+  return meses.map(function(m){ var s=0; k.parcelas.forEach(function(p){ var em=(p.dataEmp||p.data).slice(0,7)===m.key, fm=p.data.slice(0,7)===m.key; if(tipo==='func'){ if(fm&&p.funcStatus!=='PAGA')s+=p.func; } else if(tipo==='hs'){ if(em&&p.hsStatus!=='RECEBIDA')s+=p.hs; } else { if(em&&p.hsStatus!=='RECEBIDA') s+=p.hs-p.func; } }); /* margem da parcela no mês em que a empresa recebe (não fica negativa) */
     if(k.ajuste&&k.ajusteData.slice(0,7)===m.key&&!k.ajustePago){ if(tipo==='func')s+=k.ajuste; if(tipo==='agion')s-=k.ajuste; } return s; });
 }
 function tabelaClientesHS(V, all, meses){
@@ -731,7 +731,7 @@ function paintMaster(C){
         +'<div class="panel"><h2>Histórico por funcionário</h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Funcionário</th><th class="n">Vendas</th><th class="n">Comissão gerada</th><th class="n">Já pago</th><th class="n">A pagar</th><th class="n">Pós já pago</th><th aria-label="Ações"></th></tr></thead><tbody>'
         +(ids.map(function(id){ var S=statsFunc(id,all,filt); if(!S.n)return ''; return '<tr><td><b>'+esc(user(id).nome||'')+'</b></td><td class="n">'+S.n+'</td><td class="n">'+BRL2(S.funcGer)+'</td><td class="n">'+BRL2(S.funcPago)+'</td><td class="n"><b>'+BRL2(S.funcGer-S.funcPago)+'</b></td><td class="n">'+BRL2(S.posFuncPago)+'</td><td class="act"><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\''+id+'\')">Ver detalhes</button></td></tr>'; }).join('')||emptyRow(7,'Nenhuma venda no período','Troque a competência ou veja todo o período.'))+'</tbody></table></div></div>';
   } else if(_mtab==='agion'){
-    body='<div class="panel"><h2>Margem Agion — por funcionário e cliente <span class="right note">margem = recebido da administradora − pago ao funcionário</span></h2>'+organograma(V,meses,'agion')+'</div>';
+    body='<div class="panel"><h2>Margem Agion — por funcionário e cliente <span class="right note">margem de cada parcela = o que a administradora paga − a parte do funcionário, no mês em que a empresa recebe</span></h2>'+organograma(V,meses,'agion')+'</div>';
   } else if(_mtab==='pos'){
     var pr=V.filter(function(v){return ativa(v);}).sort(function(a,b){return (a.pos_status>b.pos_status)?-1:1;});
     body='<div class="panel"><h2>Pós-contemplação <span class="right note">a HS paga 2% do crédito na contemplação; 1% vai ao funcionário só em cliente próprio</span></h2><div class="tbl-scroll cms-tbl"><table><thead><tr><th>Cliente</th><th>Funcionário</th><th class="n">Crédito</th><th class="n">Pós · Agion</th><th class="n">Pós · funcionário</th><th>Status</th><th aria-label="Ações"></th></tr></thead><tbody>'
