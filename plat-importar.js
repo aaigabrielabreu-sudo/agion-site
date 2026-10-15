@@ -115,8 +115,8 @@ async function vendasAtivas(adm){
 }
 function casar(v,row){ var t=' '+norm(row.text)+' ';
   var digs=(row.text.match(/\d+/g)||[]).map(function(x){ return x.replace(/^0+/,'')||'0'; });
-  var g=nz(v.grupo), c=nz(v.cota);
-  if(g&&c&&digs.indexOf(g)>=0&&digs.indexOf(c)>=0) return 'grupo/cota';
+  var g=nz(v.grupo), cs=(String(v.cota||'').match(/\d+/g)||[]).map(function(x){ return x.replace(/^0+/,'')||'0'; });
+  if(g&&cs.length&&digs.indexOf(g)>=0&&cs.some(function(c){ return digs.indexOf(c)>=0; })) return 'grupo/cota';
   var nm=norm(v.cliente_nome).split(' ').filter(function(w){ return w.length>2&&['dos','das','de','da','do'].indexOf(w)<0; });
   if(nm.length>=2&&t.indexOf(' '+nm[0]+' ')>=0&&t.indexOf(' '+nm[nm.length-1]+' ')>=0) return 'nome';
   return null; }
