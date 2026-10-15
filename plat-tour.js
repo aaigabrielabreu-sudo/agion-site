@@ -109,11 +109,12 @@ var CFG=[
    {t:q('#mktBody'),title:'Conteúdo da seção',text:'Aqui aparece o conteúdo da seção escolhida: na Visão geral, o funil e a origem dos leads; em Templates, as mensagens prontas do WhatsApp.'},
    {t:topBtn(),title:'Criar template',text:'Monta uma mensagem de WhatsApp para aprovação. Nada é enviado por aqui.',optional:true}
  ]},
- {id:'ferramentas',page:'ferramentas',roles:S3,v:1,g:'Marketing e comunicação',ic:'gear',title:'Ferramentas',desc:'Calculadoras para usar na frente do cliente e o gerador de propostas.',steps:[
+ {id:'ferramentas',page:'ferramentas',roles:S3,v:2,g:'Marketing e comunicação',ic:'gear',title:'Ferramentas',desc:'Calculadoras para usar na frente do cliente e o gerador de propostas.',steps:[
    {t:q('[data-tour-target="tool-0"]'),title:'Financiamento × Consórcio',text:'Compara custo real, CET e SAC/Price, e mostra quanto sobra para investir. Abre em uma nova aba.',optional:true,wait:6000},
    {t:q('[data-tour-target="tool-1"]'),title:'Escada Financeira',text:'Monta a escada de cartas que se paga sozinha.',optional:true},
    {t:q('[data-tour-target="tool-2"]'),title:'Alavancagem Patrimonial',text:'Simula vender a carta contemplada ou transformá-la em renda de imóvel.',optional:true},
-   {t:q('[data-tour-target="tool-3"]'),title:'Gerador de Propostas',text:'Monta a proposta do cliente e gera o PDF.',optional:true}
+   {t:q('[data-tour-target="tool-3"]'),title:'Gerador de Propostas',text:'Monta a proposta do cliente e gera o PDF.',optional:true},
+   {t:q('[data-tour-target="tool-4"]'),title:'Assembleias',text:{master:'O resultado das assembleias de cada mês, por grupo: contemplações por sorteio e por lance (livre, fixo, 2º fixo, embutido), excluídos e o calendário. Você importa o PDF da administradora e a equipe consulta.',_:'O resultado das assembleias de cada mês, por grupo: contemplações por sorteio e por lance, excluídos e o calendário. Use para indicar ao cliente o grupo que mais contempla.'},optional:true}
  ]},
  {id:'conversas',page:'conversas',roles:S3,v:1,g:'Vendas e relacionamento',ic:'chat',title:'Conversas',desc:'As conversas de WhatsApp dos clientes e leads.',steps:[
    {t:q('#waSrch'),title:'Buscar conversa',text:'Encontre uma conversa pelo nome ou número.',demo:'type',typeText:'Ana'},
@@ -157,14 +158,16 @@ var CFG=[
    {t:q('#cadBusca'),title:'Busca',text:'Procure por nome, telefone, CPF ou e-mail.',demo:'type',typeText:'(51) 9'},
    {t:q('#cadList'),title:'Cadastros',text:'Cada linha reúne tudo o que a plataforma sabe sobre a pessoa: lead, cliente e conversas.',optional:true}
  ]},
- {id:'comissoes',page:'comissoes',roles:S3,v:2,g:'Gestão',ic:'money',title:'Comissões',desc:{_:'Competência, recebimentos e a visão por cliente.',especialista:'Suas vendas, o que você recebe e quando.'},steps:[
+ {id:'comissoes',page:'comissoes',roles:S3,v:3,g:'Gestão',ic:'money',title:'Comissões',desc:{_:'Competência, recebimentos e a visão por cliente.',especialista:'Suas vendas, o que você recebe e quando.'},steps:[
    {t:q('#content .cms-tabs'),title:'Período',text:{_:'“Competência” mostra um mês; “Todo o período” soma tudo. Trocar só muda a visualização.',especialista:'Filtra as suas vendas por situação: em andamento, pagas, pós-contemplação. Trocar só muda a visualização.'},demo:'click'},
    {t:q('#content .kpis'),title:'Seus números',text:{_:'Produção, comissão das administradoras, comissão dos funcionários e margem da Agion.',especialista:'Produção da competência, a sua comissão pré-contemplação e o potencial pós-contemplação.'},optional:true},
    {t:q('#content .cms-kts'),title:'Visões',text:'Cada cartão abre uma visão: parcelas, fluxo, clientes e mais.',optional:true,roles:ML},
    {t:q('#content .cms-card'),title:'Venda',text:'Cada cartão é uma venda: cliente, administradora, crédito e as parcelas de comissão com a data prevista de cada uma.',optional:true,roles:['especialista']},
    {t:panel('próximos recebimentos'),title:'Próximos recebimentos',text:'As parcelas que ainda vão cair, em ordem de data. Funcionário recebe no dia 10 (a 1ª parcela, no dia 23 se estiver na janela de antecipação).',optional:true,roles:['especialista']},
    {t:panel('situação dos clientes'),title:'Situação dos clientes',text:'Quem está em dia e quem precisa de atenção. A comissão depende de o cliente seguir pagando.',optional:true,roles:['especialista']},
-   {t:topBtn(),title:'Registrar venda',text:'Lança uma venda nova e calcula as parcelas de comissão. Ação real — só use com uma venda fechada.',optional:true}
+   {t:topBtn(),title:'Registrar venda',text:'Lança uma venda nova e calcula as parcelas de comissão. Ação real — só use com uma venda fechada.',optional:true},
+   {t:q('#topActions .imp-btn'),title:'Importar',text:'Todo dia 11, importe o PDF de pagamentos da administradora: a plataforma casa cada cliente pelo grupo/cota ou pelo nome, mostra quem pagou e quem não pagou, e só grava depois que você confere. Aqui também entra o resultado das assembleias.',optional:true,roles:M},
+   {t:q('#content .imp-banner'),title:'Último retorno',text:'Mostra o mês do último retorno de pagamentos importado e quantos pagaram ou não por administradora.',optional:true,roles:M}
  ]},
  {id:'contas',page:'contas',roles:ML,v:2,g:'Gestão',ic:'user',title:{master:'Contas',lider:'Equipe'},desc:{master:'Contas da equipe e dos clientes, acesso e “Ver como”.',lider:'Os especialistas da sua equipe, acesso e “Ver como”.'},steps:[
    {t:q('#content .kpis'),title:'Resumo',text:{master:'Contas ativas por perfil: líderes, especialistas e clientes.',lider:'Os especialistas da sua equipe e as contas ativas.'},optional:true},
