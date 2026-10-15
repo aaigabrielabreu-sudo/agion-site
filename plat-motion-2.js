@@ -55,11 +55,26 @@ function watchCards(){
   ['.cards>.ccard','#cadList>*'].forEach(function(sel){ $$(sel,c).forEach(function(el,i){ if(i<8||el.classList.contains('io-in')||el.classList.contains('io-wait')) return; var r=el.getBoundingClientRect(); if(r.top<w.innerHeight){ el.classList.add('io-in'); return; } el.classList.add('io-wait'); IO.observe(el); }); });
 }
 
+/* ---------- 4. gráficos que ficaram em branco ----------
+   O Chart.js desenha pela animação (requestAnimationFrame). Se a tela foi montada com a aba
+   ou o app em segundo plano, a animação pode ficar parada e o gráfico aparece vazio.
+   Depois de cada render (e ao voltar para a aba), qualquer gráfico com animação ainda
+   "em andamento" além do tempo normal é finalizado e desenhado na hora. */
+function graficosTravados(){ try{
+  if(typeof W.Chart==='undefined'||!W.Chart.instances) return;
+  var an=W.Chart.animator; Object.keys(W.Chart.instances).forEach(function(k){ var c=W.Chart.instances[k]; if(!c||!c.canvas||!d.contains(c.canvas)) return;
+    var rodando=false; try{ rodando=!!(an&&an._charts&&an._charts.get(c)&&an._charts.get(c).running); }catch(e){}
+    if(rodando||c.__agPintar){ try{ c.stop(); c.update('none'); c.draw(); c.__agPintar=false; }catch(e){} } });
+}catch(e){} }
+function vigiarGraficos(){ setTimeout(graficosTravados,1600); }
+d.addEventListener('visibilitychange',function(){ if(!d.hidden) setTimeout(graficosTravados,250); });
+
 /* ---------- integração ---------- */
 function wrap(name,after){ var tries=0; (function go(){ var o=w[name]; if(typeof o!=='function'){ if(++tries<200) setTimeout(go,50); return; } if(o.__m2) return;
   var f=function(){ var r=o.apply(this,arguments); try{ after(); }catch(e){} return r; }; f.__m2=1; w[name]=f; })(); }
-wrap('render',function(){ sched(); setTimeout(watchCards,60); setTimeout(sched,450); setTimeout(function(){ $$('.io-wait:not(.io-in)').forEach(function(el){ el.classList.add('io-in'); }); },1800); });
+wrap('render',function(){ sched(); vigiarGraficos(); setTimeout(watchCards,60); setTimeout(sched,450); setTimeout(function(){ $$('.io-wait:not(.io-in)').forEach(function(el){ el.classList.add('io-in'); }); },1800); });
 wrap('renderNav',sched);
+wrap('mkChart',vigiarGraficos);
 wrap('setTop',sched);
 function boot(){ sched(); }
 if(d.readyState==='loading') d.addEventListener('DOMContentLoaded',boot); else boot();
