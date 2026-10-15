@@ -14,7 +14,7 @@ var raf=function(f){ if(d.hidden||!w.requestAnimationFrame) return setTimeout(f,
 function $$(s,r){ try{ return [].slice.call((r||d).querySelectorAll(s)); }catch(e){ return []; } }
 
 /* ---------- 1. indicador deslizante ---------- */
-var GROUPS=['#navi','#mobnav','#content .subnav','#content .tabs','#content .cms-tabs','#mktNav','#content .kc-bar .cms-tabs'];
+var GROUPS=['#navi','#mobnav','#content .subnav','#content .tabs','#content .cms-tabs','#mktNav','#content .kc-bar .cms-tabs','#content .as-seg'];
 var last={};                       // chave do grupo -> {x,y,w,h} do último item selecionado
 function key(g){ var p=g.id?('#'+g.id):g.className.split(' ')[0]; var all=$$(GROUPS.join(','),d); var idx=0; for(var i=0;i<all.length;i++){ if(all[i]===g) break; if((all[i].id?('#'+all[i].id):all[i].className.split(' ')[0])===p) idx++; } return p+':'+idx+':'+(w.view&&w.view.page||''); }
 function rectIn(g,el){ var a=g.getBoundingClientRect(), b=el.getBoundingClientRect(); return {x:b.left-a.left+g.scrollLeft,y:b.top-a.top+g.scrollTop,w:b.width,h:b.height}; }

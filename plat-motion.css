@@ -347,6 +347,8 @@ tbody tr:hover td{background-color:var(--state-hover)}
 .tabs.has-ind button.on{background:transparent}
 .cms-tabs.has-ind .m-ind{border-radius:var(--cr-sm,8px);background:var(--cactive,rgba(197,160,89,.12));box-shadow:inset 0 0 0 1px var(--line-gold)}
 .cms-tabs.has-ind button.on{background:transparent;box-shadow:none}
+.as-seg.has-ind .m-ind{border-radius:9px;background:rgba(197,160,89,.12);box-shadow:inset 0 0 0 1px var(--line-gold)}
+.as-seg.has-ind button.on{background:transparent;box-shadow:none}
 #mktNav.has-ind .m-ind{border-radius:999px;background:var(--grad-gold);box-shadow:var(--shadow-1)}
 #mktNav.has-ind button.on,#mktNav.has-ind button.btn-gold{background:transparent;box-shadow:none;border-color:transparent}
 .navi a.on::before{z-index:2}
