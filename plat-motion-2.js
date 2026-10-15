@@ -60,14 +60,17 @@ function watchCards(){
    ou o app em segundo plano, a animação pode ficar parada e o gráfico aparece vazio.
    Depois de cada render (e ao voltar para a aba), qualquer gráfico com animação ainda
    "em andamento" além do tempo normal é finalizado e desenhado na hora. */
-function graficosTravados(){ try{
+function graficosTravados(forcar){ try{
   if(typeof W.Chart==='undefined'||!W.Chart.instances) return;
   var an=W.Chart.animator; Object.keys(W.Chart.instances).forEach(function(k){ var c=W.Chart.instances[k]; if(!c||!c.canvas||!d.contains(c.canvas)) return;
     var rodando=false; try{ rodando=!!(an&&an._charts&&an._charts.get(c)&&an._charts.get(c).running); }catch(e){}
-    if(rodando||c.__agPintar){ try{ c.stop(); c.update('none'); c.draw(); c.__agPintar=false; }catch(e){} } });
+    if(!rodando){ c.__agDesde=0; return; }
+    var agora=Date.now(); if(!c.__agDesde){ c.__agDesde=agora; if(!forcar) return; }
+    if(forcar||agora-c.__agDesde>1800){ try{ c.stop(); c.update('none'); c.draw(); }catch(e){} c.__agDesde=0; } });
 }catch(e){} }
-function vigiarGraficos(){ setTimeout(graficosTravados,1600); }
-d.addEventListener('visibilitychange',function(){ if(!d.hidden) setTimeout(graficosTravados,250); });
+function vigiarGraficos(){ setTimeout(function(){ graficosTravados(false); },1600); }
+d.addEventListener('visibilitychange',function(){ if(!d.hidden) setTimeout(function(){ graficosTravados(true); },300); });
+setInterval(function(){ if(!d.hidden) graficosTravados(false); },1000);
 
 /* ---------- integração ---------- */
 function wrap(name,after){ var tries=0; (function go(){ var o=w[name]; if(typeof o!=='function'){ if(++tries<200) setTimeout(go,50); return; } if(o.__m2) return;
