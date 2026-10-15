@@ -47,3 +47,11 @@ No array `CFG` de `plat-tour.js`:
 - `AgionTour.list()`: tutoriais do perfil com status.
 - `AgionTour.start('crm')`: inicia um tutorial.
 - `AgionTour.reset()` ou `AgionTour.reset('crm')`: limpa o progresso (o convite volta a aparecer).
+
+## Versões e novidades (plat-novidades.js)
+
+- A versão atual da plataforma é a primeira de `VERSOES` (hoje **23**). Aparece no rodapé do menu ("Versão 23 · Novidades") e, no app, em Ajustes.
+- **Publicar uma novidade:** acrescente no TOPO de `VERSOES` um bloco `{v:24, data:'dd/mm/aaaa', titulo:'…', itens:[…]}` e troque `plat-novidades.js?v=23` por `?v=24` no `plataforma.html`.
+- Cada item: `{roles:[…], ic:'chart|money|doc|map|spark|user', t:'Título', d:'Descrição', tutorial:'id-do-tutorial', abrir:function(){ go('aba'); }}`. Só aparece para os perfis em `roles`.
+- Quem entra depois da publicação vê o pop-up uma vez (fica gravado na conta, em `tutorial_progresso` com contexto `novidades`). Em "Ver como" nunca aparece.
+- Se a novidade muda uma tela que já tem tutorial, suba também o `v` daquele tutorial em `plat-tour.js` (o cartão aparece como "Atualizado").

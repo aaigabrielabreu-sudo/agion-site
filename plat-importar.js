@@ -26,7 +26,7 @@ function num(s){ if(s==null) return null; var t=String(s).replace(/[^\d,.\-]/g,'
 function int0(s){ var n=num(s); return n==null?0:Math.round(n); }
 function admKey(s){ s=norm(s); if(/ancora/.test(s)) return 'ANCORA'; if(/\bhs\b|hs cons/.test(s)) return 'HS'; return s?s.toUpperCase():''; }
 var ADM_LBL={HS:'HS Consórcios',ANCORA:'Âncora Consórcios'};
-var TIPO_LBL={IMOVEL:'Imóvel',AUTOMOVEL:'Automóvel',SERVICOS:'Serviços',OUTRO:'Outro'};
+var TIPO_LBL={IMOVEL:'Imóvel',AUTOMOVEL:'Automóvel',SERVICOS:'Serviços',INVESTIMENTO:'Investimento',OUTRO:'Outros'};
 
 /* ---------- estilos ---------- */
 (function css(){ if($('#impCss')) return; var st=D.createElement('style'); st.id='impCss'; st.textContent=[
@@ -55,6 +55,8 @@ var TIPO_LBL={IMOVEL:'Imóvel',AUTOMOVEL:'Automóvel',SERVICOS:'Serviços',OUTRO
 '.as-hc ol{margin:0;padding-left:18px;font-size:.86rem}.as-hc li{margin:3px 0}.as-hc li b{color:var(--gold2)}.as-hc .v{float:right;color:var(--soft);font-variant-numeric:tabular-nums}',
 '.as-ag{display:flex;gap:8px;flex-wrap:wrap}.as-ag span{border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:.8rem}.as-ag span b{color:var(--gold2)}',
 '.as-tbl th{cursor:pointer;user-select:none}.as-tbl th.on{color:var(--gold2)}.as-tbl tr.top td:first-child{box-shadow:inset 3px 0 0 var(--gold)}',
+'.as-nav{display:flex;gap:14px 22px;flex-wrap:wrap;align-items:flex-end;margin:0 0 12px}.as-lv{display:flex;flex-direction:column;gap:5px}.as-lb{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}.as-nav .cms-tabs{margin:0}.as-nav .cms-tabs button span{margin-left:4px}',
+'.as-ctx{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 14px;font:600 1.25rem/1.2 Lora,Georgia,serif}.as-ctx-adm{color:var(--head,#F2FAF8)}.as-ctx-sep{color:var(--soft)}.as-ctx-tipo{color:var(--gold2)}.as-ctx .imp-chip{font-family:DM Sans,sans-serif}',
 '.as-det td{background:rgba(143,217,204,.03)}.as-dg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 18px;padding:4px 2px}.as-dg b{font-size:.76rem;color:var(--head,#F2FAF8)}.as-dg .note{font-size:.76rem;line-height:1.5;margin-top:2px;word-break:break-word}',
 '@media (max-width:640px){.imp-md{max-height:96vh}.imp-hd,.imp-bd,.imp-ft{padding-left:14px;padding-right:14px}}'
 ].join('\n'); D.head.appendChild(st); })();
@@ -266,17 +268,18 @@ async function gravarHS(st){
   var r=await SB().from('assembleias_resultado').upsert(recs,{onConflict:'administradora,mes_ref,grupo'});
   if(!r.error&&data){ await SB().from('assembleias_agenda').upsert([{administradora:adm,tipo:tipo,data_assembleia:data,obs:'realizada'}],{onConflict:'administradora,tipo,data_assembleia'}); }
   if(r.error){ ok.disabled=false; ok.textContent='Confirmar e gravar'; $('#iaOut').insertAdjacentHTML('afterbegin','<p class="imp-err">Não gravou: '+esc(r.error.message)+'</p>'); return; }
-  closeModal(); toast(recs.length+' grupos de '+mesLbl(mes)+' ('+(TIPO_LBL[tipo]||tipo)+') gravados'); if(AS.open) abrirAssembleias(); }
+  closeModal(); toast(recs.length+' grupos de '+(ADM_LBL[adm]||adm)+' · '+(TIPO_LBL[tipo]||tipo)+' · '+mesLbl(mes)+' gravados'); AS.adm=adm; AS.tipo=tipo; AS.mes=mes; if(AS.open) abrirAssembleias(); }
 function abrirAssembleiaImport(){
   if(!isM()) return;
   modal('Importar resultado das assembleias','PDF de resultado da administradora. Você confere as colunas e os números antes de gravar. Fica visível para a equipe (clientes não veem).',
    '<div class="imp-row"><div><label for="iaAdm">Administradora</label><select id="iaAdm"><option value="HS">HS Consórcios</option><option value="ANCORA">Âncora Consórcios</option></select></div>'+
-   '<div><label for="iaTipo">Tipo</label><select id="iaTipo"><option value="IMOVEL">Imóvel</option><option value="AUTOMOVEL">Automóvel</option><option value="SERVICOS">Serviços</option><option value="OUTRO">Outro</option></select></div>'+
+   '<div><label for="iaTipo">Tipo</label><select id="iaTipo"><option value="IMOVEL">Imóvel</option><option value="AUTOMOVEL">Automóvel</option><option value="SERVICOS">Serviços</option><option value="INVESTIMENTO">Investimento</option><option value="OUTRO">Outros</option></select></div>'+
    '<div><label for="iaMes">Mês da assembleia</label><input id="iaMes" type="month" value="'+mesAtual()+'"></div>'+
    '<div><label for="iaData">Data da assembleia</label><input id="iaData" type="date"></div></div>'+
    dropZone('iaDrop','Escolher o PDF do resultado')+'<p class="imp-note">Sem PDF? <button class="btn btn-ghost btn-sm" id="iaManual" type="button">Digitar manualmente</button></p><div id="iaOut"></div>',
    '<span class="sp"></span><button class="btn btn-ghost btn-sm" id="iaCancel">Cancelar</button><button class="btn btn-gold btn-sm" id="iaOk" disabled>Confirmar e gravar</button>');
   $('#iaCancel').onclick=closeModal;
+  if(AS.open){ try{ $('#iaAdm').value=AS.adm||'HS'; if(AS.tipo) $('#iaTipo').value=AS.tipo; }catch(e){} }
   var st={file:''};
   bindDrop('iaDrop',async function(f){ st.file=f.name; $('#iaOut').innerHTML='<p class="imp-note">Lendo '+esc(f.name)+'…</p>'; var rows;
     try{ rows=await pdfRows(f); }catch(e){ $('#iaOut').innerHTML='<p class="imp-err">'+esc(e.message||e)+'</p>'; return; }
@@ -311,11 +314,11 @@ async function gravarAssembleia(st){
   var r=await SB().from('assembleias_resultado').upsert(recs,{onConflict:'administradora,mes_ref,grupo'});
   if(!r.error&&data){ await SB().from('assembleias_agenda').upsert([{administradora:adm,tipo:tipo,data_assembleia:data,obs:'realizada'}],{onConflict:'administradora,tipo,data_assembleia'}); }
   if(r.error){ ok.disabled=false; ok.textContent='Confirmar e gravar'; $('#iaOut').insertAdjacentHTML('afterbegin','<p class="imp-err">Não gravou: '+esc(r.error.message)+'</p>'); return; }
-  closeModal(); toast(recs.length+' grupos de '+mesLbl(mes)+' gravados'); if(AS.open) abrirAssembleias(); }
+  closeModal(); toast(recs.length+' grupos de '+(ADM_LBL[adm]||adm)+' · '+(TIPO_LBL[tipo]||tipo)+' · '+mesLbl(mes)+' gravados'); AS.adm=adm; AS.tipo=tipo; AS.mes=mes; if(AS.open) abrirAssembleias(); }
 async function novaData(){
   if(!isM()) return;
   modal('Calendário de assembleias','Datas das próximas assembleias, para a equipe se programar.',
-   '<div class="imp-row"><div><label for="adAdm">Administradora</label><select id="adAdm"><option value="HS">HS Consórcios</option><option value="ANCORA">Âncora Consórcios</option></select></div><div><label for="adTipo">Tipo</label><select id="adTipo"><option value="IMOVEL">Imóvel</option><option value="AUTOMOVEL">Automóvel</option><option value="SERVICOS">Serviços</option><option value="OUTRO">Outro</option></select></div><div><label for="adData">Data</label><input id="adData" type="date"></div><div><label for="adObs">Observação</label><input id="adObs" placeholder="opcional"></div></div>',
+   '<div class="imp-row"><div><label for="adAdm">Administradora</label><select id="adAdm"><option value="HS">HS Consórcios</option><option value="ANCORA">Âncora Consórcios</option></select></div><div><label for="adTipo">Tipo</label><select id="adTipo"><option value="IMOVEL">Imóvel</option><option value="AUTOMOVEL">Automóvel</option><option value="SERVICOS">Serviços</option><option value="INVESTIMENTO">Investimento</option><option value="OUTRO">Outros</option></select></div><div><label for="adData">Data</label><input id="adData" type="date"></div><div><label for="adObs">Observação</label><input id="adObs" placeholder="opcional"></div></div>',
    '<span class="sp"></span><button class="btn btn-ghost btn-sm" id="adCancel">Cancelar</button><button class="btn btn-gold btn-sm" id="adOk">Salvar data</button>');
   $('#adCancel').onclick=closeModal;
   $('#adOk').onclick=async function(){ var d=$('#adData').value; if(!d){ toast('Escolha a data'); return; }
@@ -324,7 +327,7 @@ async function novaData(){
 }
 
 /* ---------- tela Assembleias (dentro de Ferramentas) ---------- */
-var AS={open:false,adm:'',tipo:'',mes:'',sort:'contemplados',dir:-1,data:null,agenda:null};
+var AS={open:false,adm:'HS',tipo:'',mes:'',sort:'contemplados',dir:-1,data:null,agenda:null};
 var COLS_ALL=[['grupo','Grupo'],['tipo','Tipo'],['contemplados','Contempl.'],['sorteio','Sorteio'],['lance_fixo','Fixo'],['lance_fixo2','2º fixo'],['lance_livre','Livre'],['lance_limitado','Limitado'],['lance_embutido','Embutido'],['excluidos','Excluídas'],['lance_parcelas','Fixo (parc.)'],['menor_lance_pct','Menor lance %'],['taxa_adm_pct','Taxa adm %'],['hist','Contempl. 6 meses']];
 async function abrirAssembleias(){
   if(!isStaffEff()) return; AS.open=true;
@@ -336,57 +339,61 @@ async function abrirAssembleias(){
   if(view.page!=='ferramentas'||!AS.open) return;
   if(r1.error){ C.innerHTML='<button class="as-back" onclick="go(\'ferramentas\')">‹ Ferramentas</button><div class="panel"><p class="imp-err">Não foi possível carregar: '+esc(r1.error.message)+'</p></div>'; return; }
   AS.data=r1.data||[]; AS.agenda=r2.data||[];
-  var meses=[]; AS.data.forEach(function(x){ if(meses.indexOf(x.mes_ref)<0) meses.push(x.mes_ref); }); meses.sort().reverse();
-  if(!AS.mes||meses.indexOf(AS.mes)<0) AS.mes=meses[0]||'';
-  pintar(meses);
+  pintar();
 }
-function pintar(meses){
+function tiposDe(adm){ return adm==='ANCORA'?[['SERVICOS','Serviços'],['IMOVEL','Imóvel'],['AUTOMOVEL','Automóvel'],['INVESTIMENTO','Investimento'],['OUTRO','Outros']]:[['IMOVEL','Imóvel'],['AUTOMOVEL','Automóvel'],['SERVICOS','Serviços'],['INVESTIMENTO','Investimento'],['OUTRO','Outros']]; }
+function mesesDe(adm,tipo){ var m=[]; (AS.data||[]).forEach(function(x){ if(x.administradora===adm&&x.tipo===tipo&&m.indexOf(x.mes_ref)<0) m.push(x.mes_ref); }); return m.sort().reverse(); }
+function pintar(){
   var C=$('#content'); if(!C) return;
+  if(AS.adm!=='HS'&&AS.adm!=='ANCORA') AS.adm='HS';
+  var TP=tiposDe(AS.adm);
+  if(!AS.tipo||!TP.some(function(t){ return t[0]===AS.tipo; })){ var com=TP.filter(function(t){ return mesesDe(AS.adm,t[0]).length; })[0]; AS.tipo=(com||TP[0])[0]; }
+  var meses=mesesDe(AS.adm,AS.tipo); if(meses.indexOf(AS.mes)<0) AS.mes=meses[0]||'';
   var hoje=new Date().toISOString().slice(0,10);
-  var prox=AS.agenda.filter(function(a){ return a.data_assembleia>=hoje&&(!AS.adm||a.administradora===AS.adm); }).slice(0,8);
-  var L=AS.data.filter(function(x){ return x.mes_ref===AS.mes&&(!AS.adm||x.administradora===AS.adm)&&(!AS.tipo||x.tipo===AS.tipo); });
-  // histórico: soma de contemplados nos 6 meses mais recentes até o mês escolhido
-  var ult6=meses.filter(function(m){ return m<=AS.mes; }).slice(0,6);
-  var hist={}; AS.data.forEach(function(x){ if(ult6.indexOf(x.mes_ref)<0) return; if(AS.adm&&x.administradora!==AS.adm) return; var k=x.administradora+'|'+x.grupo; hist[k]=(hist[k]||0)+(x.contemplados||0); });
-  L.forEach(function(x){ x.hist=hist[x.administradora+'|'+x.grupo]||0; });
-  var s=AS.sort, dir=AS.dir; L.sort(function(a,b){ var A=a[s],B=b[s]; if(s==='grupo'||s==='tipo'){ return String(A).localeCompare(String(B),'pt',{numeric:true})*dir; } A=A==null?(dir<0?-1e9:1e9):+A; B=B==null?(dir<0?-1e9:1e9):+B; return (A-B)*dir; });
+  var prox=(AS.agenda||[]).filter(function(a){ return a.data_assembleia>=hoje&&a.administradora===AS.adm&&a.tipo===AS.tipo; }).slice(0,8);
+  var L=(AS.data||[]).filter(function(x){ return x.mes_ref===AS.mes&&x.administradora===AS.adm&&x.tipo===AS.tipo; });
+  var s=AS.sort, dir=AS.dir; L.sort(function(a,b){ var A=a[s],B=b[s]; if(s==='grupo'){ return String(A).localeCompare(String(B),'pt',{numeric:true})*dir; } A=A==null?(dir<0?-1e9:1e9):+A; B=B==null?(dir<0?-1e9:1e9):+B; return (A-B)*dir; });
   var tot=function(f){ return L.reduce(function(m,x){ return m+(+x[f]||0); },0); };
-  var top=function(f,asc,lbl,fmt){ var arr=L.filter(function(x){ return x[f]!=null&&(asc||+x[f]>0); }).slice().sort(function(a,b){ return asc?a[f]-b[f]:b[f]-a[f]; }).slice(0,3);
-    return '<div class="as-hc"><h4>'+lbl+'</h4>'+(arr.length?'<ol>'+arr.map(function(x){ return '<li><b>Grupo '+esc(x.grupo)+'</b> <span class="note">'+esc(TIPO_LBL[x.tipo]||'')+'</span><span class="v">'+(fmt?fmt(x[f]):x[f])+'</span></li>'; }).join('')+'</ol>':'<p class="imp-note">Sem dados neste filtro.</p>')+'</div>'; };
-  var pct=function(v){ return String(v).replace('.',',')+'%'; };
-  var sel=function(id,val,opts){ return '<select id="'+id+'">'+opts.map(function(o){ return '<option value="'+o[0]+'"'+(o[0]===val?' selected':'')+'>'+o[1]+'</option>'; }).join('')+'</select>'; };
-  var html='<button class="as-back" onclick="go(\'ferramentas\')">‹ Ferramentas</button>'+
-   '<div class="as-top"><div><label for="asMes">Mês</label>'+(meses.length?sel('asMes',AS.mes,meses.map(function(m){ return [m,mesLbl(m)]; })):'<select id="asMes" disabled><option>—</option></select>')+'</div>'+
-   '<div><label for="asAdm">Administradora</label>'+sel('asAdm',AS.adm,[['','Todas'],['HS','HS Consórcios'],['ANCORA','Âncora Consórcios']])+'</div>'+
-   '<div><label for="asTipo">Tipo</label>'+sel('asTipo',AS.tipo,[['','Todos'],['IMOVEL','Imóvel'],['AUTOMOVEL','Automóvel'],['SERVICOS','Serviços'],['OUTRO','Outro']])+'</div></div>';
-  html+='<div class="panel"><h2>Próximas assembleias</h2>'+(prox.length?'<div class="as-ag">'+prox.map(function(a){ var d=a.data_assembleia.split('-'); return '<span><b>'+d[2]+'/'+d[1]+'</b> · '+esc(ADM_LBL[a.administradora]||a.administradora)+' · '+esc(TIPO_LBL[a.tipo]||a.tipo)+(a.obs?' · '+esc(a.obs):'')+'</span>'; }).join('')+'</div>':'<p class="note">Nenhuma data cadastrada.'+(isM()?' Use “+ Data de assembleia”.':'')+'</p>')+'</div>';
-  if(!AS.data.length){
-    html+='<div class="panel"><p class="note">Nenhum resultado de assembleia importado ainda.'+(isM()?' Use “⇪ Importar resultado” com o PDF da administradora (imóvel e automóvel, todo mês).':' Assim que o proprietário importar, os grupos aparecem aqui.')+'</p></div>';
-    C.innerHTML=html; bindFiltros(meses); return; }
-  html+='<div class="kpis"><div class="kpi"><div class="lab">Grupos</div><b>'+L.length+'</b></div><div class="kpi"><div class="lab">Contemplações</div><b>'+tot('contemplados')+'</b></div><div class="kpi"><div class="lab">Sorteio</div><b>'+tot('sorteio')+'</b></div><div class="kpi"><div class="lab">Lances</div><b>'+(tot('lance_livre')+tot('lance_fixo')+tot('lance_fixo2')+tot('lance_embutido')+tot('lance_limitado'))+'</b></div><div class="kpi"><div class="lab">Excluídas sorteadas</div><b>'+tot('excluidos')+'</b></div></div>';
   var tem=function(f){ return L.some(function(x){ return x[f]!=null&&+x[f]>0; }); };
-  html+='<div class="as-hl">'+top('contemplados',false,'Mais contemplações')+top('sorteio',false,'Mais cotas no sorteio')+top('lance_fixo',false,'Mais lance fixo')+top('lance_fixo2',false,'Mais 2º lance fixo')+top('lance_livre',false,'Mais lance livre')+top('lance_limitado',false,'Mais lance limitado')+(tem('lance_embutido')?top('lance_embutido',false,'Mais lance embutido'):'')+top('lance_parcelas',true,'Lance fixo com menos parcelas',function(v){ return v+' parc.'; })+top('excluidos',false,'Mais excluídas sorteadas')+(tem('menor_lance_pct')?top('menor_lance_pct',true,'Menor lance vencedor',pct):'')+(tem('taxa_adm_pct')?top('taxa_adm_pct',true,'Menor taxa de administração',pct):'')+top('hist',false,'Mais contemplações em 6 meses')+'</div>';
-  var COLS=COLS_ALL.filter(function(c){ return ['lance_embutido','menor_lance_pct','taxa_adm_pct'].indexOf(c[0])<0||tem(c[0]); });
-  html+='<div class="panel"><h2>Grupos · '+esc(mesLbl(AS.mes))+'</h2><p class="note" style="margin-top:-4px">Clique no título de uma coluna para ordenar.</p><div class="tbl-scroll"><table class="imp-tbl as-tbl"><thead><tr>'+COLS.map(function(c){ return '<th data-k="'+c[0]+'" class="'+(c[0]!=='grupo'&&c[0]!=='tipo'?'n ':'')+(AS.sort===c[0]?'on':'')+'">'+c[1]+(AS.sort===c[0]?(AS.dir<0?' ↓':' ↑'):'')+'</th>'; }).join('')+'</tr></thead><tbody>'+
+  var pct=function(v){ return String(v).replace('.',',')+'%'; };
+  var top=function(f,asc,lbl,fmt){ var arr=L.filter(function(x){ return x[f]!=null&&(asc||+x[f]>0); }).slice().sort(function(a,b){ return asc?a[f]-b[f]:b[f]-a[f]; }).slice(0,3);
+    return '<div class="as-hc"><h4>'+lbl+'</h4>'+(arr.length?'<ol>'+arr.map(function(x){ return '<li><b>Grupo '+esc(x.grupo)+'</b><span class="v">'+(fmt?fmt(x[f]):x[f])+'</span></li>'; }).join('')+'</ol>':'<p class="imp-note">Sem dados.</p>')+'</div>'; };
+  var nGrupos=function(adm,tipo){ var m=mesesDe(adm,tipo)[0]; return m?(AS.data||[]).filter(function(x){ return x.administradora===adm&&x.tipo===tipo&&x.mes_ref===m; }).length:0; };
+  var admLbl=ADM_LBL[AS.adm], tipoLbl=(TP.filter(function(t){ return t[0]===AS.tipo; })[0]||[])[1]||'';
+  var html='<button class="as-back" onclick="go(\'ferramentas\')">‹ Ferramentas</button>'+
+   '<div class="as-nav"><div class="as-lv"><span class="as-lb">Administradora</span><div class="cms-tabs" id="asAdmTabs" role="tablist">'+[['HS','HS Consórcios'],['ANCORA','Âncora Consórcios']].map(function(a){ return '<button type="button" role="tab" aria-selected="'+(a[0]===AS.adm)+'" class="'+(a[0]===AS.adm?'on':'')+'" data-adm="'+a[0]+'">'+a[1]+'</button>'; }).join('')+'</div></div>'+
+   '<div class="as-lv"><span class="as-lb">Categoria do bem</span><div class="cms-tabs" id="asTipoTabs" role="tablist">'+TP.map(function(t){ var n=nGrupos(AS.adm,t[0]); return '<button type="button" role="tab" aria-selected="'+(t[0]===AS.tipo)+'" class="'+(t[0]===AS.tipo?'on':'')+'" data-tipo="'+t[0]+'">'+t[1]+(n?' <span>'+n+'</span>':'')+'</button>'; }).join('')+'</div></div>'+
+   '<div class="as-lv"><label class="as-lb" for="asMes">Mês da assembleia</label>'+(meses.length?'<select id="asMes">'+meses.map(function(m){ return '<option value="'+m+'"'+(m===AS.mes?' selected':'')+'>'+mesLbl(m)+'</option>'; }).join('')+'</select>':'<select id="asMes" disabled><option>—</option></select>')+'</div></div>';
+  html+='<div class="as-ctx"><span class="as-ctx-adm">'+esc(admLbl)+'</span><span class="as-ctx-sep">›</span><span class="as-ctx-tipo">'+esc(tipoLbl)+'</span>'+(AS.mes?'<span class="imp-chip">resultado de '+esc(mesLbl(AS.mes))+'</span>':'')+'</div>';
+  html+='<div class="panel"><h2>Próximas assembleias · '+esc(admLbl)+' · '+esc(tipoLbl)+'</h2>'+(prox.length?'<div class="as-ag">'+prox.map(function(a){ var d=a.data_assembleia.split('-'); return '<span><b>'+d[2]+'/'+d[1]+'/'+d[0]+'</b>'+(a.obs?' · '+esc(a.obs):'')+'</span>'; }).join('')+'</div>':'<p class="note">Nenhuma data cadastrada.'+(isM()?' Use “+ Data de assembleia”.':'')+'</p>')+'</div>';
+  if(!L.length){
+    html+='<div class="panel"><p class="note">Nenhum resultado de <b>'+esc(admLbl)+' · '+esc(tipoLbl)+'</b> importado ainda.'+(isM()?' Use “⇪ Importar resultado” e escolha esta administradora e categoria.':' Assim que o proprietário importar, os grupos aparecem aqui.')+'</p></div>';
+    C.innerHTML=html; bindNav(); return; }
+  html+='<div class="kpis"><div class="kpi"><div class="lab">Grupos</div><b>'+L.length+'</b></div><div class="kpi"><div class="lab">Contemplações</div><b>'+tot('contemplados')+'</b></div><div class="kpi"><div class="lab">Sorteio</div><b>'+tot('sorteio')+'</b></div><div class="kpi"><div class="lab">Lances</div><b>'+(tot('lance_livre')+tot('lance_fixo')+tot('lance_fixo2')+tot('lance_embutido')+tot('lance_limitado'))+'</b></div><div class="kpi"><div class="lab">Excluídas sorteadas</div><b>'+tot('excluidos')+'</b></div></div>';
+  html+='<div class="as-hl">'+top('contemplados',false,'Mais contemplações')+top('sorteio',false,'Mais cotas no sorteio')+top('lance_fixo',false,'Mais lance fixo')+top('lance_fixo2',false,'Mais 2º lance fixo')+top('lance_livre',false,'Mais lance livre')+top('lance_limitado',false,'Mais lance limitado')+(tem('lance_embutido')?top('lance_embutido',false,'Mais lance embutido'):'')+top('lance_parcelas',true,'Lance fixo com menos parcelas',function(v){ return v+' parc.'; })+top('excluidos',false,'Mais excluídas sorteadas')+(tem('menor_lance_pct')?top('menor_lance_pct',true,'Menor lance vencedor',pct):'')+(tem('taxa_adm_pct')?top('taxa_adm_pct',true,'Menor taxa de administração',pct):'')+'</div>';
+  var COLS=COLS_ALL.filter(function(c){ return c[0]!=='tipo'&&c[0]!=='hist'&&(['lance_embutido','menor_lance_pct','taxa_adm_pct'].indexOf(c[0])<0||tem(c[0])); });
+  html+='<div class="panel"><h2>Grupos · '+esc(admLbl)+' · '+esc(tipoLbl)+' · '+esc(mesLbl(AS.mes))+'</h2><p class="note" style="margin-top:-4px">Clique no título de uma coluna para ordenar e numa linha para ver as cotas contempladas.</p><div class="tbl-scroll"><table class="imp-tbl as-tbl"><thead><tr>'+COLS.map(function(c){ return '<th data-k="'+c[0]+'" class="'+(c[0]!=='grupo'?'n ':'')+(AS.sort===c[0]?'on':'')+'">'+c[1]+(AS.sort===c[0]?(AS.dir<0?' ↓':' ↑'):'')+'</th>'; }).join('')+'</tr></thead><tbody>'+
    L.map(function(x,i){ return '<tr class="as-row'+(i<3&&AS.sort!=='grupo'?' top':'')+'" data-i="'+i+'" tabindex="0" style="cursor:pointer" title="Ver as cotas contempladas">'+COLS.map(function(c){ var f=c[0], v=x[f];
-       if(f==='grupo') return '<td><b>'+esc(x.grupo)+'</b> <span class="note">'+esc(x.administradora==='ANCORA'?'Âncora':'HS')+'</span></td>';
-       if(f==='tipo') return '<td>'+esc(TIPO_LBL[x.tipo]||x.tipo)+'</td>';
+       if(f==='grupo') return '<td><b>'+esc(x.grupo)+'</b></td>';
        if(f==='menor_lance_pct'||f==='taxa_adm_pct') return '<td class="n">'+(v!=null?pct(v):'—')+'</td>';
        if(f==='lance_parcelas') return '<td class="n">'+(v!=null?v:'—')+'</td>';
        return '<td class="n">'+(v||0)+'</td>'; }).join('')+'</tr><tr class="as-det" data-d="'+i+'" hidden><td colspan="'+COLS.length+'">'+detalheHtml(x)+'</td></tr>'; }).join('')+
    '</tbody></table></div></div>';
-  C.innerHTML=html; bindFiltros(meses);
+  C.innerHTML=html; bindNav();
   $$('.as-row').forEach(function(tr){ var tog=function(){ var d=$('.as-det[data-d="'+tr.dataset.i+'"]'); if(d) d.hidden=!d.hidden; }; tr.onclick=tog; tr.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); tog(); } }; });
-  $$('.as-tbl th').forEach(function(th){ th.onclick=function(){ var k=th.dataset.k; if(AS.sort===k) AS.dir=-AS.dir; else { AS.sort=k; AS.dir=(k==='grupo'||k==='tipo'||k==='menor_lance_pct'||k==='taxa_adm_pct'||k==='lance_parcelas')?1:-1; } pintar(meses); }; });
+  $$('.as-tbl th').forEach(function(th){ th.onclick=function(){ var k=th.dataset.k; if(AS.sort===k) AS.dir=-AS.dir; else { AS.sort=k; AS.dir=(k==='grupo'||k==='menor_lance_pct'||k==='taxa_adm_pct'||k==='lance_parcelas')?1:-1; } pintar(); }; });
 }
-function pintarCache(){ var meses=[]; (AS.data||[]).forEach(function(x){ if(meses.indexOf(x.mes_ref)<0) meses.push(x.mes_ref); }); meses.sort().reverse();
+function bindNav(){
+  $$('#asAdmTabs button').forEach(function(b){ b.onclick=function(){ if(AS.adm===b.dataset.adm) return; AS.adm=b.dataset.adm; AS.tipo=''; AS.mes=''; pintar(); }; });
+  $$('#asTipoTabs button').forEach(function(b){ b.onclick=function(){ if(AS.tipo===b.dataset.tipo) return; AS.tipo=b.dataset.tipo; AS.mes=''; pintar(); }; });
+  var m=$('#asMes'); if(m) m.onchange=function(){ AS.mes=m.value; pintar(); };
+}
+function pintarCache(){
   try{ setTop('Assembleias','Resultado dos grupos e calendário',isM()?'<button class="btn btn-ghost btn-sm" onclick="AgionImport.novaData()">+ Data de assembleia</button><button class="btn btn-gold btn-sm" onclick="AgionImport.importarAssembleias()">⇪ Importar resultado</button>':''); }catch(e){}
-  pintar(meses); }
+  pintar(); }
 function detalheHtml(x){ var d=x.detalhes; if(!d) return '<span class="note">Sem detalhamento de cotas para este grupo.</span>';
   var L=[['ativa','Sorteio (cota sorteada)'],['excluida','Sorteio (cota excluída - versão)'],['fixo','Lance fixo · cota [parcelas]'],['fixo2','2º lance fixo'],['livre','Lance livre'],['limitado','Lance limitado']];
   return '<div class="as-dg">'+L.filter(function(l){ return d[l[0]]&&d[l[0]].length; }).map(function(l){ var arr=d[l[0]]; var mais=arr.length>40; return '<div><b>'+l[1]+' ('+arr.length+')</b><div class="note">'+esc(arr.slice(0,40).join(' / '))+(mais?' / … +'+(arr.length-40):'')+'</div></div>'; }).join('')+'</div>'; }
-function bindFiltros(meses){ var a=$('#asMes'),b=$('#asAdm'),c=$('#asTipo');
-  if(a) a.onchange=function(){ AS.mes=a.value; pintar(meses); }; if(b) b.onchange=function(){ AS.adm=b.value; pintar(meses); }; if(c) c.onchange=function(){ AS.tipo=c.value; pintar(meses); }; }
 
 /* ---------- cartão em Ferramentas ---------- */
 function cartaoFerramentas(){
@@ -411,6 +418,6 @@ function hook(){ var t=0; (function go_(){ if(typeof W.render!=='function'||type
   // Ferramentas é assíncrona: observa o #content para acrescentar o cartão quando os cartões aparecerem
   var C=D.getElementById('content'); if(C&&W.MutationObserver){ new MutationObserver(function(){ if(view.page==='ferramentas'&&!AS.open) cartaoFerramentas(); }).observe(C,{childList:true}); }
 })(); }
-W.AgionImport={pagamentos:abrirPagamentos,importarAssembleias:abrirAssembleiaImport,assembleias:abrirAssembleias,novaData:novaData,_pdfRows:pdfRows,_tabela:tabela};
+W.AgionImport={isOpen:function(){ return !!AS.open; },pagamentos:abrirPagamentos,importarAssembleias:abrirAssembleiaImport,assembleias:abrirAssembleias,novaData:novaData,_pdfRows:pdfRows,_tabela:tabela};
 hook();
 })();

@@ -1,0 +1,134 @@
+/* ==========================================================================
+   Agion — plat-novidades.js · Versões da plataforma + pop-up "O que há de novo"
+   - VERSOES: a mais nova primeiro. Para publicar uma novidade: acrescente uma
+     versão no topo (número seguinte) e suba o ?v= deste arquivo no plataforma.html.
+   - Cada item pode ter: roles (quem vê), tutorial (id do tutorial) e abrir (aba).
+   - O pop-up aparece uma vez por versão para cada pessoa (servidor + cache local).
+     Em "Ver como" nunca aparece. Quem não tem item na versão não vê o pop-up.
+   ========================================================================== */
+(function(){
+'use strict';
+var W=window, D=document;
+var S3=['master','lider','especialista'], ML=['master','lider'], M=['master'], TODOS=['master','lider','especialista','cliente'];
+
+var VERSOES=[
+ {v:23,data:'14/10/2026',titulo:'Assembleias, importação de pagamentos e novidades',itens:[
+   {roles:S3,ic:'chart',t:'Ferramentas › Assembleias',d:'Resultado mensal dos grupos separado por administradora (HS ou Âncora) e categoria do bem (Imóvel, Automóvel, Serviços…): cotas sorteadas, lance fixo, 2º fixo, livre e limitado, excluídas e o calendário. Clique num grupo para ver as cotas contempladas.',tutorial:'assembleias',abrir:function(){ go('ferramentas'); setTimeout(function(){ W.AgionImport&&W.AgionImport.assembleias(); },60); }},
+   {roles:M,ic:'money',t:'Comissões › Importar pagamentos do mês',d:'Todo dia 11, envie o PDF da administradora com quem pagou e quem não pagou. A plataforma encontra cada cliente pelo grupo/cota ou nome e você confere antes de gravar.',tutorial:'comissoes',abrir:function(){ go('comissoes'); }},
+   {roles:M,ic:'doc',t:'Importar resultado das assembleias',d:'O PDF “Resultado de Assembleia” da HS é lido direto: grupo, sorteio (inclusive com duas cotas), lances e parcelas. Escolha a administradora e a categoria ao importar.',tutorial:'assembleias',abrir:function(){ go('ferramentas'); setTimeout(function(){ W.AgionImport&&W.AgionImport.assembleias(); },60); }},
+   {roles:TODOS,ic:'map',t:'Tutorial em cada aba',d:'Na primeira vez em cada aba aparece “Primeira vez aqui?” com um guia curto direto na tela. O botão “?” no topo abre o tutorial da aba a qualquer momento.',abrir:function(){ go('tutoriais'); }},
+   {roles:TODOS,ic:'spark',t:'Versões e novidades',d:'A cada atualização da plataforma esta janela mostra o que mudou. A versão atual fica no rodapé do menu (no app, em Ajustes).'}
+ ]},
+ {v:22,data:'14/10/2026',titulo:'Central de Tutoriais e Comissões por data de venda',itens:[
+   {roles:TODOS,ic:'map',t:'Central de Tutoriais',d:'Nova aba “Tutoriais”: guias passo a passo nas telas reais, sem alterar nenhum dado. Ao concluir, o cartão fica marcado como concluído.',abrir:function(){ go('tutoriais'); }},
+   {roles:M,ic:'money',t:'Comissões pela data real da venda',d:'Cada venda mostra se é HS ou Âncora, o tempo do cliente com a Agion (marca dos 8 meses) e as regras próprias da Âncora. Recebimentos em janela de 6 meses.',tutorial:'comissoes',abrir:function(){ go('comissoes'); }},
+   {roles:['lider','especialista'],ic:'money',t:'Suas comissões mais claras',d:'Suas vendas, a data prevista de cada parcela e a situação de cada cliente.',tutorial:'comissoes',abrir:function(){ go('comissoes'); }},
+   {roles:TODOS,ic:'spark',t:'Movimento mais suave',d:'Indicador deslizante no menu e nas abas, entrada mais leve das listas.'}
+ ]},
+ {v:21,data:'13/10/2026',titulo:'Cadastro único e KPIs por categoria',itens:[
+   {roles:ML,ic:'user',t:'Cadastro único',d:'Uma pessoa, um cadastro: lead, cliente e WhatsApp ligados por telefone, CPF ou e-mail, sem duplicidade.',tutorial:'cadastro',abrir:function(){ go('cadastro'); }},
+   {roles:ML,ic:'chart',t:'KPIs › base de clientes por categoria',d:'Distribuição por categoria do bem com visão de todo o período, por mês e histórico.',tutorial:'kpis',abrir:function(){ go('kpis'); }},
+   {roles:S3,ic:'user',t:'Clientes › cliente desde',d:'Cada cliente mostra desde quando está com a Agion e o aniversário de casa.',abrir:function(){ go('users'); }}
+ ]}
+];
+var ATUAL=VERSOES[0].v;
+
+var IC={
+  chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M8 17v-5M13 17V8M18 17v-9"/></svg>',
+  money:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg>',
+  doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h7M9 17h5"/></svg>',
+  map:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>',
+  spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>'
+};
+function $(s,r){ try{ return (r||D).querySelector(s); }catch(e){ return null; } }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function SB(){ try{ return W.supa||(typeof supa!=='undefined'?supa:null); }catch(e){ return null; } }
+function role(){ try{ return session.role; }catch(e){ return null; } }
+function uidLocal(){ try{ return session.userId||'anon'; }catch(e){ return 'anon'; } }
+function reduced(){ try{ return W.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } }
+function itensDe(ver){ var r=role(); return ver.itens.filter(function(i){ return i.roles.indexOf(r)>=0; }); }
+
+/* ---------- visto: cache local + servidor (tutorial_progresso, contexto 'novidades') ---------- */
+var KEY=function(){ return 'agion:novidades:'+uidLocal(); };
+function vistoLocal(){ try{ return +(localStorage.getItem(KEY())||0); }catch(e){ return 0; } }
+async function vistoServidor(){ try{ var u=(await SB().auth.getUser()).data.user; if(!u) return 0; var r=await SB().from('tutorial_progresso').select('dados').eq('user_id',u.id).eq('contexto','novidades').maybeSingle(); return r.data&&r.data.dados?(+r.data.dados.visto||0):0; }catch(e){ return 0; } }
+async function marcar(v){ try{ localStorage.setItem(KEY(),String(v)); }catch(e){}
+  try{ var u=(await SB().auth.getUser()).data.user; if(!u) return; await SB().from('tutorial_progresso').upsert({user_id:u.id,contexto:'novidades',dados:{visto:v},updated_at:new Date().toISOString()},{onConflict:'user_id,contexto'}); }catch(e){} }
+
+/* ---------- estilos ---------- */
+(function css(){ if($('#nvCss')) return; var st=D.createElement('style'); st.id='nvCss'; st.textContent=[
+'.nv-bg{position:fixed;inset:0;z-index:10050;background:var(--surface-overlay,rgba(4,12,14,.72));display:flex;align-items:center;justify-content:center;padding:16px;animation:overlay-in var(--dur-2,200ms) linear both}',
+'.nv-md{width:min(620px,100%);max-height:88vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#10303A,#0B222A);color:#E8F2F0;border:1px solid rgba(197,160,89,.38);border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,.55);animation:modal-in var(--dur-3,320ms) var(--ease-out,ease) both;font-family:"DM Sans",system-ui,sans-serif}',
+'.nv-hd{padding:20px 22px 12px;border-bottom:1px solid rgba(143,217,204,.12)}.nv-k{font:700 .66rem/1 "DM Sans",sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#E2C48A;display:flex;gap:8px;align-items:center}',
+'.nv-k .vb{background:linear-gradient(135deg,#C5A059,#B08A45);color:#06171B;border-radius:999px;padding:3px 8px;letter-spacing:.04em}',
+'.nv-hd h2{margin:8px 0 2px;font:600 1.3rem/1.25 Lora,Georgia,serif;color:#F4FAF8}.nv-hd p{margin:0;color:#9DB5B1;font-size:.84rem}',
+'.nv-bd{padding:12px 22px;overflow:auto}.nv-it{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid rgba(143,217,204,.08)}.nv-it:last-child{border-bottom:0}',
+'.nv-ic{flex:0 0 36px;height:36px;border-radius:11px;background:rgba(197,160,89,.1);border:1px solid rgba(197,160,89,.38);color:#E2C48A;display:flex;align-items:center;justify-content:center}.nv-ic svg{width:18px;height:18px}',
+'.nv-it h4{margin:0 0 3px;font:600 .98rem/1.3 Lora,Georgia,serif;color:#F4FAF8}.nv-it p{margin:0;font-size:.84rem;line-height:1.5;color:#C9DEDB}',
+'.nv-ac{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.nv-ac button{border:1px solid rgba(143,217,204,.2);background:rgba(255,255,255,.04);color:#DCE9E7;border-radius:10px;padding:6px 11px;font:600 .78rem/1 "DM Sans",sans-serif;cursor:pointer;min-height:32px}',
+'.nv-ac button.g{background:linear-gradient(135deg,#C5A059,#B08A45);color:#06171B;border-color:transparent}.nv-ac button:hover{filter:brightness(1.08)}',
+'.nv-ft{padding:12px 22px;border-top:1px solid rgba(143,217,204,.12);display:flex;gap:8px;align-items:center;flex-wrap:wrap}.nv-ft .sp{flex:1}',
+'.nv-ft button{border-radius:11px;padding:9px 14px;font:600 .84rem/1 "DM Sans",sans-serif;cursor:pointer;min-height:38px;border:1px solid rgba(143,217,204,.2);background:rgba(255,255,255,.04);color:#DCE9E7}.nv-ft button.g{background:linear-gradient(135deg,#C5A059,#B08A45);color:#06171B;border-color:transparent}',
+'.nv-old h3{margin:16px 0 4px;font:700 .7rem/1 "DM Sans",sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#9DB5B1}',
+'.nv-ver{display:block;width:100%;margin-top:8px;background:none;border:1px dashed rgba(143,217,204,.2);border-radius:10px;color:var(--soft,#9DB5B1);font:600 .74rem/1 "DM Sans",sans-serif;padding:8px;cursor:pointer;text-align:center}.nv-ver b{color:var(--gold2,#E2C48A)}.nv-ver:hover{border-color:rgba(197,160,89,.5)}',
+'.nv-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--bad,#E07A6A);margin-left:6px;vertical-align:1px}',
+'@media (max-width:640px){.nv-bg{align-items:flex-end;padding:8px}.nv-md{max-height:90vh;border-radius:20px 20px 16px 16px}.nv-hd,.nv-bd,.nv-ft{padding-left:16px;padding-right:16px}}',
+'@media (prefers-reduced-motion:reduce){.nv-bg,.nv-md{animation:none!important}}'
+].join('\n'); D.head.appendChild(st); })();
+
+/* ---------- pop-up ---------- */
+function itemHtml(i,k){ return '<div class="nv-it"><span class="nv-ic">'+(IC[i.ic]||IC.spark)+'</span><div><h4>'+esc(i.t)+'</h4><p>'+esc(i.d)+'</p>'+
+  ((i.tutorial||i.abrir)?'<div class="nv-ac">'+(i.tutorial?'<button class="g" data-tut="'+k+'">Ver como funciona</button>':'')+(i.abrir?'<button data-go="'+k+'">Abrir</button>':'')+'</div>':'')+'</div></div>'; }
+function abrir(opts){
+  opts=opts||{}; fechar(); var r=role(); if(!r) return;
+  var lista=VERSOES.filter(function(v){ return itensDe(v).length; }); if(!lista.length) return;
+  var atual=lista[0], idx=[], k=0;
+  var corpo=itensDe(atual).map(function(i){ idx.push(i); return itemHtml(i,k++); }).join('');
+  var antigas=lista.slice(1).map(function(v){ return '<h3>Versão '+v.v+' · '+esc(v.data)+'</h3>'+itensDe(v).map(function(i){ idx.push(i); return itemHtml(i,k++); }).join(''); }).join('');
+  var bg=D.createElement('div'); bg.className='nv-bg';
+  bg.innerHTML='<div class="nv-md" role="dialog" aria-modal="true" aria-labelledby="nvT"><div class="nv-hd"><div class="nv-k">Novidades <span class="vb">versão '+atual.v+'</span></div><h2 id="nvT">'+esc(atual.titulo)+'</h2><p>Atualizado em '+esc(atual.data)+'</p></div>'+
+    '<div class="nv-bd">'+corpo+(antigas?'<div class="nv-old" id="nvOld" hidden>'+antigas+'</div>':'')+'</div>'+
+    '<div class="nv-ft">'+(antigas?'<button type="button" id="nvMais">Versões anteriores</button>':'')+'<span class="sp"></span><button type="button" class="g" id="nvOk">Entendi</button></div></div>';
+  D.body.appendChild(bg);
+  var ok=function(){ marcar(ATUAL); fechar(); setTimeout(function(){ try{ W.AgionTour&&W.AgionTour.reinvite&&W.AgionTour.reinvite(); }catch(e){} },400); };
+  $('#nvOk',bg).onclick=ok;
+  var mais=$('#nvMais',bg); if(mais) mais.onclick=function(){ var o=$('#nvOld',bg); o.hidden=!o.hidden; mais.textContent=o.hidden?'Versões anteriores':'Esconder anteriores'; };
+  bg.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('button[data-tut],button[data-go]'); if(b){ var it=idx[+(b.getAttribute('data-tut')||b.getAttribute('data-go'))]; marcar(ATUAL); fechar();
+      if(b.hasAttribute('data-tut')&&W.AgionTour){ W.AgionTour.start(it.tutorial); } else if(it.abrir){ try{ it.abrir(); }catch(err){} } return; }
+    if(e.target===bg) ok(); });
+  D.addEventListener('keydown',esc_);
+  setTimeout(function(){ try{ $('#nvOk',bg).focus({preventScroll:true}); }catch(e){} },50);
+}
+function esc_(e){ if(e.key==='Escape'){ marcar(ATUAL); fechar(); } }
+function fechar(){ var b=$('.nv-bg'); if(b) b.remove(); D.removeEventListener('keydown',esc_); }
+
+/* ---------- selo de versão (menu lateral; no app, em Ajustes) ---------- */
+function selo(){
+  var f=$('aside.side .foot'); if(f&&!$('.nv-ver',f)){ var b=D.createElement('button'); b.type='button'; b.className='nv-ver'; b.onclick=function(){ abrir({manual:true}); }; f.insertBefore(b,f.firstChild); }
+  var bt=$('aside.side .nv-ver'); if(bt){ var novo=vistoLocal()<ATUAL; bt.innerHTML='Versão <b>'+ATUAL+'</b> · Novidades'+(novo?'<span class="nv-dot" aria-label="há novidades"></span>':''); }
+  try{ if(view.page==='config'){ var C=$('#content'); if(C&&!$('.nv-cfg',C)){ var p=D.createElement('div'); p.className='panel nv-cfg'; p.innerHTML='<h2>Versão da plataforma</h2><p class="note" style="margin:0 0 12px">Você está na versão <b>'+ATUAL+'</b>.</p><button class="btn btn-ghost btn-sm" type="button">Ver novidades</button>'; $('button',p).onclick=function(){ abrir({manual:true}); }; C.appendChild(p); } } }catch(e){}
+}
+
+/* ---------- ao entrar: mostra se houver versão nova para esta pessoa ---------- */
+var checado=false;
+async function talvezMostrar(){
+  if(checado) return; var r=role(); if(!r) return; try{ if(session.viewAs) return; }catch(e){}
+  checado=true;
+  var v=Math.max(vistoLocal(), await vistoServidor()); try{ localStorage.setItem(KEY(),String(v)); }catch(e){}
+  selo();
+  if(v>=ATUAL) return;
+  var temItem=VERSOES.some(function(ver){ return ver.v>v&&itensDe(ver).length; });
+  if(!temItem){ marcar(ATUAL); return; }
+  if(W.AgionTour&&W.AgionTour.running&&W.AgionTour.running()) return;
+  D.querySelectorAll('.tr-invite').forEach(function(e){ e.remove(); });
+  abrir();
+}
+
+function hook(){ var t=0; (function go_(){ if(typeof W.render!=='function'){ if(++t<200) setTimeout(go_,50); return; } if(W.render.__nv) return;
+  var _r=W.render; var f=function(){ var o=_r.apply(this,arguments); try{ selo(); setTimeout(talvezMostrar,900); }catch(e){} return o; }; f.__nv=1; W.render=f;
+  if(typeof W.sairVerComo==='function'&&!W.sairVerComo.__nv){ var _s=W.sairVerComo; var g=function(){ var o=_s.apply(this,arguments); setTimeout(selo,0); return o; }; g.__nv=1; W.sairVerComo=g; }
+})(); }
+W.AgionNovidades={abrir:function(){ abrir({manual:true}); },versao:ATUAL,versoes:VERSOES};
+hook();
+})();

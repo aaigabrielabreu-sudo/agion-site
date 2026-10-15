@@ -109,12 +109,21 @@ var CFG=[
    {t:q('#mktBody'),title:'Conteúdo da seção',text:'Aqui aparece o conteúdo da seção escolhida: na Visão geral, o funil e a origem dos leads; em Templates, as mensagens prontas do WhatsApp.'},
    {t:topBtn(),title:'Criar template',text:'Monta uma mensagem de WhatsApp para aprovação. Nada é enviado por aqui.',optional:true}
  ]},
- {id:'ferramentas',page:'ferramentas',roles:S3,v:2,g:'Marketing e comunicação',ic:'gear',title:'Ferramentas',desc:'Calculadoras para usar na frente do cliente e o gerador de propostas.',steps:[
+ {id:'ferramentas',page:'ferramentas',roles:S3,v:3,g:'Marketing e comunicação',ic:'gear',title:'Ferramentas',desc:'Calculadoras para usar na frente do cliente e o gerador de propostas.',steps:[
    {t:q('[data-tour-target="tool-0"]'),title:'Financiamento × Consórcio',text:'Compara custo real, CET e SAC/Price, e mostra quanto sobra para investir. Abre em uma nova aba.',optional:true,wait:6000},
    {t:q('[data-tour-target="tool-1"]'),title:'Escada Financeira',text:'Monta a escada de cartas que se paga sozinha.',optional:true},
    {t:q('[data-tour-target="tool-2"]'),title:'Alavancagem Patrimonial',text:'Simula vender a carta contemplada ou transformá-la em renda de imóvel.',optional:true},
    {t:q('[data-tour-target="tool-3"]'),title:'Gerador de Propostas',text:'Monta a proposta do cliente e gera o PDF.',optional:true},
    {t:q('[data-tour-target="tool-4"]'),title:'Assembleias',text:{master:'O resultado das assembleias de cada mês, por grupo: contemplações por sorteio e por lance (livre, fixo, 2º fixo, embutido), excluídos e o calendário. Você importa o PDF da administradora e a equipe consulta.',_:'O resultado das assembleias de cada mês, por grupo: contemplações por sorteio e por lance, excluídos e o calendário. Use para indicar ao cliente o grupo que mais contempla.'},optional:true}
+ ]},
+ {id:'assembleias',page:'ferramentas',sub:true,pre:function(){ return W.AgionImport&&W.AgionImport.assembleias(); },roles:S3,v:1,g:'Vendas e relacionamento',ic:'chart',title:'Assembleias',desc:'Resultado mensal dos grupos por administradora e categoria do bem: sorteio, lances, excluídas e calendário.',steps:[
+   {t:q('#asAdmTabs'),title:'Administradora',text:'Primeiro escolha a administradora: HS Consórcios ou Âncora Consórcios. Cada uma tem os próprios grupos e categorias.',demo:'click'},
+   {t:q('#asTipoTabs'),title:'Categoria do bem',text:'Depois a categoria: Imóvel, Automóvel, Serviços, Investimento ou Outros. O número ao lado é quantos grupos têm resultado importado.',demo:'click'},
+   {t:q('#asMes'),title:'Mês da assembleia',text:'Escolha o mês do resultado. Aparecem só os meses importados para esta administradora e categoria.'},
+   {t:q('#content .as-ctx'),title:'Onde você está',text:'Sempre mostra qual administradora, categoria e mês você está vendo — para não confundir imóvel com automóvel.'},
+   {t:q('#content .as-hl'),title:'Destaques',text:'Os grupos que mais contemplam: no total, no sorteio e em cada tipo de lance (fixo, 2º fixo, livre, limitado), e o lance fixo com menos parcelas. Use para indicar o grupo ao cliente.',optional:true},
+   {t:q('#content .as-tbl'),title:'Todos os grupos',text:'Clique no título de uma coluna para ordenar; clique numa linha para ver as cotas contempladas. O número entre colchetes é a parcela da cota.',optional:true},
+   {t:function(){ return $$('#topActions .btn-gold').filter(vis)[0]||null; },title:'Importar resultado',text:'Todo mês, importe o PDF “Resultado de Assembleia” da administradora. A plataforma reconhece grupo, sorteio e lances; você confere antes de gravar.',optional:true,roles:M}
  ]},
  {id:'conversas',page:'conversas',roles:S3,v:1,g:'Vendas e relacionamento',ic:'chat',title:'Conversas',desc:'As conversas de WhatsApp dos clientes e leads.',steps:[
    {t:q('#waSrch'),title:'Buscar conversa',text:'Encontre uma conversa pelo nome ou número.',demo:'type',typeText:'Ana'},
@@ -232,8 +241,9 @@ function stepsOf(t){ var r=role(); return t.steps.filter(function(st){ return !s
 function forRole(){ var r=role(); return CFG.filter(function(t){ return t.roles.indexOf(r)>=0; }); }
 function byId(id){ for(var i=0;i<CFG.length;i++) if(CFG[i].id===id) return CFG[i]; return null; }
 function forPage(page){ var r=role(); if(page==='editor') return byId('ficha-cliente');
+  if(page==='ferramentas'&&W.AgionImport&&W.AgionImport.isOpen&&W.AgionImport.isOpen()) return byId('assembleias');
   if(r==='cliente'&&page==='plan') return byId('c-plan');
-  return forRole().filter(function(t){ return t.page===page&&!t.ficha; })[0]||null; }
+  return forRole().filter(function(t){ return t.page===page&&!t.ficha&&!t.sub; })[0]||null; }
 
 /* ==========================================================================
    4) PROGRESSO — por conta + contexto. Cache local + tabela tutorial_progresso.
@@ -380,6 +390,7 @@ function scrollTo(el,force){ return new Promise(function(res){ if(!el) return re
 function scroller(el){ var p=el.parentElement; while(p&&p!==D.body){ var cs=getComputedStyle(p); if(/(auto|scroll)/.test(cs.overflowY)&&p.scrollHeight>p.clientHeight+2) return p; p=p.parentElement; } return W; }
 function navTo(page){ if(!page||view.page===page) return; RUN&&(RUN.nav=true); try{ go(page); }finally{ RUN&&(RUN.nav=false); } }
 async function prepare(t){
+  if(t.pre){ navTo(t.page); RUN.nav=true; try{ await t.pre(); }catch(e){} finally{ if(RUN) RUN.nav=false; } return true; }
   if(t.ficha==='lead'){ var m=$('#leadModal'); if(m&&m.classList.contains('hidden')){ if(view.page!=='crm') navTo('crm'); try{ openLead(); RUN.openedLead=true; }catch(e){} } return true; }
   if(t.ficha==='cliente'){
     if(role()==='cliente'){ navTo('plan'); return true; }
@@ -508,13 +519,14 @@ function closeAreaInvite(){ clearTimeout(ainvTimer); if(!AINV) return; var el=AI
 function areaInvite(){
   closeAreaInvite();
   if(!session||!session.role||session.viewAs||RUN||INV) return;
+  if(D.querySelector('.nv-bg')) return;
   if(view.page==='tutoriais'||view.page==='editor') return;
   var t=forPage(view.page); if(!t||t.ficha) return;
   var d=data(), r=d.items[t.id]; if(r&&(r.done||r.step>0||r.ask)) return;
   var first=role()==='cliente'?'c-dash':'dash'; if(t.id===first&&!(d.invite&&(d.invite.never||(d.invite.until||0)>Date.now()))) return; // o convite geral cuida do painel
   var page=view.page;
   ainvTimer=setTimeout(function(){
-    if(view.page!==page||RUN||INV||session.viewAs) return;
+    if(view.page!==page||RUN||INV||session.viewAs||D.querySelector('.nv-bg')) return;
     var el=D.createElement('div'); el.className='tr-invite tr-ainv'+(narrow()?' sheet':''); el.setAttribute('role','dialog'); el.setAttribute('aria-labelledby','trAinvT');
     el.innerHTML='<div class="k">Primeira vez aqui?</div><h4 id="trAinvT">Como usar '+esc(TX(t.title))+'</h4><p>'+esc(TX(t.desc))+' Um guia de '+stepsOf(t).length+' passos, direto nesta tela, sem alterar nada.</p>'+
       '<div class="r"><button class="gold" data-a="go">Iniciar</button><button data-a="skip">Agora não</button></div>';
@@ -529,8 +541,9 @@ function areaInvite(){
 var INV=null, invChecked=false;
 function closeInvite(){ if(!INV) return; var el=INV; INV=null; if(reduced()){ el.remove(); return; } el.classList.add('out'); setTimeout(function(){ el.remove(); },220); }
 function maybeInvite(){
-  if(invChecked||!session||!session.role||session.viewAs||RUN) return; invChecked=true;
+  if(invChecked||!session||!session.role||session.viewAs||RUN) return; if(D.querySelector('.nv-bg')) return; invChecked=true;
   setTimeout(function(){
+    if(D.querySelector('.nv-bg')){ invChecked=false; return; }
     if(!session||session.viewAs||RUN||view.page==='editor') return;
     var d=data(), list=forRole(); if(!list.length) return;
     if(list.some(function(t){ var r=d.items[t.id]; return r&&(r.done||r.step>0); })) return;
@@ -579,7 +592,7 @@ function boot(){ leadModalHelp(); try{ if(session&&session.role){ renderNav(); e
 // trocar de conta / sair do "Ver como": encerra tutorial e recarrega o progresso do contexto certo
 ['verComo','sairVerComo','verComoCliente'].forEach(function(fn){ var tryWrap=function(){ if(typeof W[fn]!=='function') return setTimeout(tryWrap,80); if(W[fn].__tr) return; var o=W[fn]; W[fn]=function(){ if(RUN) stop('switch'); closeInvite(); closeAreaInvite(); P.key=null; return o.apply(this,arguments); }; W[fn].__tr=1; }; tryWrap(); });
 
-W.AgionTour={start:start,stop:stop,list:function(){ return forRole().map(function(t){ return {id:t.id,title:t.title,status:status(t)}; }); },
+W.AgionTour={running:function(){ return !!RUN; },reinvite:function(){ invChecked=false; maybeInvite(); areaInvite(); },start:start,stop:stop,list:function(){ return forRole().map(function(t){ return {id:t.id,title:t.title,status:status(t)}; }); },
   reset:function(id){ var d=data(); if(id) delete d.items[id]; else { d.items={}; d.invite=null; } save(); if(view.page==='tutoriais') render(); },
   config:CFG,_place:place};
 hook();
