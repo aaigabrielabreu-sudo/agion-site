@@ -55,6 +55,7 @@ var TIPO_LBL={IMOVEL:'Imóvel',AUTOMOVEL:'Automóvel',SERVICOS:'Serviços',OUTRO
 '.as-hc ol{margin:0;padding-left:18px;font-size:.86rem}.as-hc li{margin:3px 0}.as-hc li b{color:var(--gold2)}.as-hc .v{float:right;color:var(--soft);font-variant-numeric:tabular-nums}',
 '.as-ag{display:flex;gap:8px;flex-wrap:wrap}.as-ag span{border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:.8rem}.as-ag span b{color:var(--gold2)}',
 '.as-tbl th{cursor:pointer;user-select:none}.as-tbl th.on{color:var(--gold2)}.as-tbl tr.top td:first-child{box-shadow:inset 3px 0 0 var(--gold)}',
+'.as-det td{background:rgba(143,217,204,.03)}.as-dg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 18px;padding:4px 2px}.as-dg b{font-size:.76rem;color:var(--head,#F2FAF8)}.as-dg .note{font-size:.76rem;line-height:1.5;margin-top:2px;word-break:break-word}',
 '@media (max-width:640px){.imp-md{max-height:96vh}.imp-hd,.imp-bd,.imp-ft{padding-left:14px;padding-right:14px}}'
 ].join('\n'); D.head.appendChild(st); })();
 
@@ -178,12 +179,13 @@ async function escolherImport(){
 /* ==========================================================================
    2) ASSEMBLEIAS
    ========================================================================== */
-var FIELDS=[['','— ignorar —'],['grupo','Grupo'],['sorteio','Sorteio'],['lance_livre','Lance livre'],['lance_fixo','Lance fixo'],['lance_fixo2','2º lance fixo'],['lance_embutido','Lance embutido'],['outros','Outras contemplações'],['contemplados','Total contemplados'],['excluidos','Excluídos'],['menor_lance_pct','Menor lance (%)'],['maior_lance_pct','Maior lance (%)'],['taxa_adm_pct','Taxa adm. (%)'],['prazo','Prazo'],['participantes','Participantes'],['credito_ref','Crédito de referência']];
-var NUMF={sorteio:1,lance_livre:1,lance_fixo:1,lance_fixo2:1,lance_embutido:1,outros:1,contemplados:1,excluidos:1,prazo:1,participantes:1};
+var FIELDS=[['','— ignorar —'],['grupo','Grupo'],['sorteio','Sorteio'],['lance_livre','Lance livre'],['lance_fixo','Lance fixo'],['lance_fixo2','2º lance fixo'],['lance_embutido','Lance embutido'],['lance_limitado','Lance limitado'],['outros','Outras contemplações'],['contemplados','Total contemplados'],['excluidos','Excluídos'],['menor_lance_pct','Menor lance (%)'],['maior_lance_pct','Maior lance (%)'],['taxa_adm_pct','Taxa adm. (%)'],['prazo','Prazo'],['participantes','Participantes'],['credito_ref','Crédito de referência']];
+var NUMF={lance_limitado:1,sorteio:1,lance_livre:1,lance_fixo:1,lance_fixo2:1,lance_embutido:1,outros:1,contemplados:1,excluidos:1,prazo:1,participantes:1};
 function guessField(h){ var t=norm(h); if(!t) return '';
   if(/grupo/.test(t)) return 'grupo';
   if(/(2|segundo|2o)\s*.*fix/.test(t)) return 'lance_fixo2';
   if(/embut/.test(t)) return 'lance_embutido';
+  if(/limitad/.test(t)) return 'lance_limitado';
   if(/livre/.test(t)) return 'lance_livre';
   if(/fix/.test(t)) return 'lance_fixo';
   if(/sorte/.test(t)) return 'sorteio';
@@ -209,6 +211,62 @@ function tabela(rows){
     return out; });
   return {cols:cols,grid:grid,headFound:!!head};
 }
+/* ---------- formato HS "Res. Assembleia - Resultado de Assembleia" ----------
+   Colunas: Grupo | Sorteio (Cota-Versão): Ativa, Excluída | Lance Cota[Parcelas]: Fixo, Seg. Fixo, Livre, Limitado.
+   Cada grupo ocupa várias linhas; cada "cota [parcelas]" é uma contemplação; várias cotas vêm separadas por "/". */
+var HS_COLS=[['ativa','ativa'],['excluida','exclu'],['fixo','^fixo'],['fixo2','seg'],['livre','livre'],['limitado','limitad']];
+function hsHeader(r){ var t=norm(r.text); return /ativa/.test(t)&&/exclu/.test(t)&&/livre/.test(t)&&/limitad/.test(t); }
+function hsParse(rows){
+  if(!rows.some(hsHeader)) return null;
+  var cols=null, grupoX=null, groups=[], cur=null;
+  rows.forEach(function(r){
+    if(hsHeader(r)){ cols=HS_COLS.map(function(c){ var cell=r.cells.filter(function(x){ return new RegExp(c[1]).test(norm(x.s)); })[0]; return {k:c[0],x:cell?cell.x:null}; }).filter(function(c){ return c.x!=null; }); return; }
+    if(r.cells.length===1&&/^grupo$/i.test(r.cells[0].s)){ grupoX=r.cells[0].x; return; }
+    if(!cols||!cols.length) return;
+    var x0=cols[0].x-4;
+    var first=r.cells[0];
+    if(first&&first.x<x0&&/^\d{2,6}$/.test(first.s.trim())){ cur={grupo:first.s.trim().replace(/^0+/,''),txt:{}}; groups.push(cur); }
+    if(!cur) return;
+    r.cells.forEach(function(c){ if(c.x<x0) return; var k=cols[0].k; cols.forEach(function(col){ if(c.x>=col.x-4) k=col.k; }); cur.txt[k]=(cur.txt[k]?cur.txt[k]+' ':'')+c.s; });
+  });
+  if(!groups.length) return null;
+  return groups.map(function(g){ return hsRec(g.grupo,g.txt); });
+}
+function hsLista(k,s){ s=String(s||'').replace(/(\d+)-\s+(\d+)/g,'$1-$2');
+  if(k==='excluida') return (s.match(/\d+-\d+/g)||[]);
+  if(k==='ativa') return (s.replace(/\[\d+\]/g,'').match(/\d+/g)||[]);
+  var out=[], re=/(\d+)\s*\[(\d+)\]/g, m; while((m=re.exec(s))) out.push(m[1]+' ['+m[2]+']'); return out; }
+function hsRec(grupo,txt){ var d={}; ['ativa','excluida','fixo','fixo2','livre','limitado'].forEach(function(k){ d[k]=hsLista(k,txt[k]); });
+  return hsContar({grupo:grupo,detalhes:d}); }
+function hsContar(o){ var d=o.detalhes; o.sorteio=d.ativa.length; o.excluidos=d.excluida.length; o.lance_fixo=d.fixo.length; o.lance_fixo2=d.fixo2.length; o.lance_livre=d.livre.length; o.lance_limitado=d.limitado.length; o.lance_embutido=0;
+  o.contemplados=o.sorteio+o.lance_fixo+o.lance_fixo2+o.lance_livre+o.lance_limitado;
+  var pf=d.fixo.concat(d.fixo2).map(function(e){ return +(e.match(/\[(\d+)\]/)||[])[1]; }).filter(function(n){ return n>0; });
+  o.lance_parcelas=pf.length?Math.min.apply(null,pf):null; return o; }
+function adivinhaArquivo(nome){ var n=norm(nome), tipo=/imovel|imov/.test(n)?'IMOVEL':(/auto|veic|carro/.test(n)?'AUTOMOVEL':(/servic/.test(n)?'SERVICOS':''));
+  var M=['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'], mi=-1; M.forEach(function(m,i){ if(n.indexOf(m)>=0) mi=i; });
+  var y=(n.match(/\b(20\d{2})\b/)||[])[1]||((n.match(/\b(\d{2})\b/)||[])[1]?'20'+(n.match(/\b(\d{2})\b/))[1]:''); 
+  return {tipo:tipo,mes:(mi>=0&&y)?(y+'-'+String(mi+1).padStart(2,'0')):''}; }
+var HS_LBL=[['ativa','Sorteio (ativa)'],['excluida','Sorteio (excluída)'],['fixo','Lance fixo'],['fixo2','2º lance fixo'],['livre','Lance livre'],['limitado','Lance limitado']];
+function hsRevisao(st){
+  var out=$('#iaOut'), L=st.HS;
+  var tot=function(f){ return L.reduce(function(m,x){ return m+(x[f]||0); },0); };
+  out.innerHTML='<p class="imp-note"><b>Resultado de Assembleia (HS)</b> reconhecido: '+L.length+' grupos · '+tot('sorteio')+' por sorteio · '+tot('lance_fixo')+' fixo · '+tot('lance_fixo2')+' 2º fixo · '+tot('lance_livre')+' livre · '+tot('lance_limitado')+' limitado · '+tot('excluidos')+' excluídas sorteadas. Cada cota vem separada por “/”; o número entre colchetes são as parcelas. Pode corrigir qualquer campo.</p>'+
+   '<div class="tbl-scroll"><table class="imp-tbl" id="hsTbl"><thead><tr><th>Grupo</th>'+HS_LBL.map(function(h){ return '<th>'+h[1]+'</th>'; }).join('')+'<th class="n">Total</th><th></th></tr></thead><tbody>'+
+   L.map(function(x,i){ return '<tr><td><input data-i="'+i+'" data-k="grupo" value="'+esc(x.grupo)+'" style="width:64px"></td>'+HS_LBL.map(function(h){ return '<td><input data-i="'+i+'" data-k="'+h[0]+'" value="'+esc(x.detalhes[h[0]].join(' / '))+'" style="min-width:120px"></td>'; }).join('')+'<td class="n">'+x.contemplados+'</td><td><button class="btn btn-ghost btn-sm hsDel" data-i="'+i+'" type="button" aria-label="Remover grupo">×</button></td></tr>'; }).join('')+
+   '</tbody></table></div>';
+  var sync=function(){ $$('#hsTbl input').forEach(function(inp){ var x=L[+inp.dataset.i], k=inp.dataset.k; if(k==='grupo') x.grupo=inp.value.replace(/\D/g,'').replace(/^0+/,''); else x.detalhes[k]=hsLista(k,inp.value); }); L.forEach(hsContar); };
+  $$('#hsTbl input').forEach(function(inp){ inp.onchange=function(){ sync(); var tr=inp.closest('tr'); var x=L[+inp.dataset.i]; tr.querySelector('td.n').textContent=x.contemplados; }; });
+  $$('.hsDel').forEach(function(b){ b.onclick=function(){ sync(); L.splice(+b.dataset.i,1); hsRevisao(st); }; });
+  var ok=$('#iaOk'); ok.disabled=!L.length; ok.onclick=function(){ sync(); gravarHS(st); };
+}
+async function gravarHS(st){
+  var adm=$('#iaAdm').value, tipo=$('#iaTipo').value, mes=$('#iaMes').value||mesAtual(), data=$('#iaData').value||null, ok=$('#iaOk');
+  var recs=st.HS.filter(function(x){ return x.grupo; }).map(function(x){ return {administradora:adm,tipo:tipo,mes_ref:mes,data_assembleia:data,grupo:x.grupo,sorteio:x.sorteio,excluidos:x.excluidos,lance_fixo:x.lance_fixo,lance_fixo2:x.lance_fixo2,lance_livre:x.lance_livre,lance_limitado:x.lance_limitado,lance_embutido:0,contemplados:x.contemplados,lance_parcelas:x.lance_parcelas,detalhes:x.detalhes,arquivo:st.file||null}; });
+  ok.disabled=true; ok.textContent='Gravando…';
+  var r=await SB().from('assembleias_resultado').upsert(recs,{onConflict:'administradora,mes_ref,grupo'});
+  if(!r.error&&data){ await SB().from('assembleias_agenda').upsert([{administradora:adm,tipo:tipo,data_assembleia:data,obs:'realizada'}],{onConflict:'administradora,tipo,data_assembleia'}); }
+  if(r.error){ ok.disabled=false; ok.textContent='Confirmar e gravar'; $('#iaOut').insertAdjacentHTML('afterbegin','<p class="imp-err">Não gravou: '+esc(r.error.message)+'</p>'); return; }
+  closeModal(); toast(recs.length+' grupos de '+mesLbl(mes)+' ('+(TIPO_LBL[tipo]||tipo)+') gravados'); if(AS.open) abrirAssembleias(); }
 function abrirAssembleiaImport(){
   if(!isM()) return;
   modal('Importar resultado das assembleias','PDF de resultado da administradora. Você confere as colunas e os números antes de gravar. Fica visível para a equipe (clientes não veem).',
@@ -222,6 +280,8 @@ function abrirAssembleiaImport(){
   var st={file:''};
   bindDrop('iaDrop',async function(f){ st.file=f.name; $('#iaOut').innerHTML='<p class="imp-note">Lendo '+esc(f.name)+'…</p>'; var rows;
     try{ rows=await pdfRows(f); }catch(e){ $('#iaOut').innerHTML='<p class="imp-err">'+esc(e.message||e)+'</p>'; return; }
+    var g=adivinhaArquivo(f.name); if(g.tipo) $('#iaTipo').value=g.tipo; if(g.mes) $('#iaMes').value=g.mes;
+    var HS=hsParse(rows); if(HS&&HS.length){ st.HS=HS; hsRevisao(st); return; }
     var T=tabela(rows); if(!T.grid.length){ $('#iaOut').innerHTML='<p class="imp-err">Não encontrei linhas de grupos neste PDF. Se for imagem escaneada, use “Digitar manualmente”.</p>'; return; }
     st.T=T; mapeamento(st); });
   $('#iaManual').onclick=function(){ st.T={cols:[{field:'grupo',label:'Grupo'},{field:'sorteio',label:'Sorteio'},{field:'lance_livre',label:'Lance livre'},{field:'lance_fixo',label:'Lance fixo'},{field:'lance_fixo2',label:'2º lance fixo'},{field:'lance_embutido',label:'Lance embutido'},{field:'excluidos',label:'Excluídos'},{field:'menor_lance_pct',label:'Menor lance (%)'}],grid:[['','','','','','','','']],headFound:true,manual:true}; mapeamento(st); };
@@ -244,7 +304,7 @@ async function gravarAssembleia(st){
   var recs=[]; T.grid.forEach(function(r){ var o={administradora:adm,tipo:tipo,mes_ref:mes,data_assembleia:data,arquivo:st.file||null};
     T.cols.forEach(function(c,j){ if(!c.field) return; var v=r[j]; if(c.field==='grupo') o.grupo=String(v||'').replace(/\D/g,'').replace(/^0+/,''); else if(NUMF[c.field]) o[c.field]=(o[c.field]||0)+int0(v); else o[c.field]=num(v); });
     if(!o.grupo) return;
-    if(!o.contemplados) o.contemplados=(o.sorteio||0)+(o.lance_livre||0)+(o.lance_fixo||0)+(o.lance_fixo2||0)+(o.lance_embutido||0)+(o.outros||0);
+    if(!o.contemplados) o.contemplados=(o.sorteio||0)+(o.lance_livre||0)+(o.lance_fixo||0)+(o.lance_fixo2||0)+(o.lance_embutido||0)+(o.lance_limitado||0)+(o.outros||0);
     recs.push(o); });
   if(!recs.length){ $('#iaOut').insertAdjacentHTML('afterbegin','<p class="imp-err">Nenhuma linha com grupo preenchido.</p>'); return; }
   ok.disabled=true; ok.textContent='Gravando…';
@@ -265,7 +325,7 @@ async function novaData(){
 
 /* ---------- tela Assembleias (dentro de Ferramentas) ---------- */
 var AS={open:false,adm:'',tipo:'',mes:'',sort:'contemplados',dir:-1,data:null,agenda:null};
-var COLS=[['grupo','Grupo'],['tipo','Tipo'],['contemplados','Contempl.'],['sorteio','Sorteio'],['lance_livre','Livre'],['lance_fixo','Fixo'],['lance_fixo2','2º fixo'],['lance_embutido','Embutido'],['excluidos','Excluídos'],['menor_lance_pct','Menor lance %'],['taxa_adm_pct','Taxa adm %'],['hist','Contempl. 6 meses']];
+var COLS_ALL=[['grupo','Grupo'],['tipo','Tipo'],['contemplados','Contempl.'],['sorteio','Sorteio'],['lance_fixo','Fixo'],['lance_fixo2','2º fixo'],['lance_livre','Livre'],['lance_limitado','Limitado'],['lance_embutido','Embutido'],['excluidos','Excluídas'],['lance_parcelas','Fixo (parc.)'],['menor_lance_pct','Menor lance %'],['taxa_adm_pct','Taxa adm %'],['hist','Contempl. 6 meses']];
 async function abrirAssembleias(){
   if(!isStaffEff()) return; AS.open=true;
   var C=$('#content'); if(!C) return;
@@ -303,19 +363,28 @@ function pintar(meses){
   if(!AS.data.length){
     html+='<div class="panel"><p class="note">Nenhum resultado de assembleia importado ainda.'+(isM()?' Use “⇪ Importar resultado” com o PDF da administradora (imóvel e automóvel, todo mês).':' Assim que o proprietário importar, os grupos aparecem aqui.')+'</p></div>';
     C.innerHTML=html; bindFiltros(meses); return; }
-  html+='<div class="kpis"><div class="kpi"><div class="lab">Grupos</div><b>'+L.length+'</b></div><div class="kpi"><div class="lab">Contemplações</div><b>'+tot('contemplados')+'</b></div><div class="kpi"><div class="lab">Sorteio</div><b>'+tot('sorteio')+'</b></div><div class="kpi"><div class="lab">Lances</div><b>'+(tot('lance_livre')+tot('lance_fixo')+tot('lance_fixo2')+tot('lance_embutido'))+'</b></div><div class="kpi"><div class="lab">Excluídos</div><b>'+tot('excluidos')+'</b></div></div>';
-  html+='<div class="as-hl">'+top('contemplados',false,'Mais contemplações')+top('lance_livre',false,'Mais lance livre')+top('lance_fixo',false,'Mais lance fixo')+top('lance_embutido',false,'Mais lance embutido')+top('excluidos',false,'Mais excluídos')+top('menor_lance_pct',true,'Menor lance vencedor',pct)+top('taxa_adm_pct',true,'Menor taxa de administração',pct)+top('hist',false,'Mais contemplações em 6 meses')+'</div>';
+  html+='<div class="kpis"><div class="kpi"><div class="lab">Grupos</div><b>'+L.length+'</b></div><div class="kpi"><div class="lab">Contemplações</div><b>'+tot('contemplados')+'</b></div><div class="kpi"><div class="lab">Sorteio</div><b>'+tot('sorteio')+'</b></div><div class="kpi"><div class="lab">Lances</div><b>'+(tot('lance_livre')+tot('lance_fixo')+tot('lance_fixo2')+tot('lance_embutido')+tot('lance_limitado'))+'</b></div><div class="kpi"><div class="lab">Excluídas sorteadas</div><b>'+tot('excluidos')+'</b></div></div>';
+  var tem=function(f){ return L.some(function(x){ return x[f]!=null&&+x[f]>0; }); };
+  html+='<div class="as-hl">'+top('contemplados',false,'Mais contemplações')+top('sorteio',false,'Mais cotas no sorteio')+top('lance_fixo',false,'Mais lance fixo')+top('lance_fixo2',false,'Mais 2º lance fixo')+top('lance_livre',false,'Mais lance livre')+top('lance_limitado',false,'Mais lance limitado')+(tem('lance_embutido')?top('lance_embutido',false,'Mais lance embutido'):'')+top('lance_parcelas',true,'Lance fixo com menos parcelas',function(v){ return v+' parc.'; })+top('excluidos',false,'Mais excluídas sorteadas')+(tem('menor_lance_pct')?top('menor_lance_pct',true,'Menor lance vencedor',pct):'')+(tem('taxa_adm_pct')?top('taxa_adm_pct',true,'Menor taxa de administração',pct):'')+top('hist',false,'Mais contemplações em 6 meses')+'</div>';
+  var COLS=COLS_ALL.filter(function(c){ return ['lance_embutido','menor_lance_pct','taxa_adm_pct'].indexOf(c[0])<0||tem(c[0]); });
   html+='<div class="panel"><h2>Grupos · '+esc(mesLbl(AS.mes))+'</h2><p class="note" style="margin-top:-4px">Clique no título de uma coluna para ordenar.</p><div class="tbl-scroll"><table class="imp-tbl as-tbl"><thead><tr>'+COLS.map(function(c){ return '<th data-k="'+c[0]+'" class="'+(c[0]!=='grupo'&&c[0]!=='tipo'?'n ':'')+(AS.sort===c[0]?'on':'')+'">'+c[1]+(AS.sort===c[0]?(AS.dir<0?' ↓':' ↑'):'')+'</th>'; }).join('')+'</tr></thead><tbody>'+
-   L.map(function(x,i){ return '<tr class="'+(i<3&&AS.sort!=='grupo'?'top':'')+'"><td><b>'+esc(x.grupo)+'</b> <span class="note">'+esc(x.administradora==='ANCORA'?'Âncora':'HS')+'</span></td><td>'+esc(TIPO_LBL[x.tipo]||x.tipo)+'</td>'+
-     ['contemplados','sorteio','lance_livre','lance_fixo','lance_fixo2','lance_embutido','excluidos'].map(function(f){ return '<td class="n">'+(x[f]||0)+'</td>'; }).join('')+
-     '<td class="n">'+(x.menor_lance_pct!=null?pct(x.menor_lance_pct):'—')+'</td><td class="n">'+(x.taxa_adm_pct!=null?pct(x.taxa_adm_pct):'—')+'</td><td class="n">'+x.hist+'</td></tr>'; }).join('')+
+   L.map(function(x,i){ return '<tr class="as-row'+(i<3&&AS.sort!=='grupo'?' top':'')+'" data-i="'+i+'" tabindex="0" style="cursor:pointer" title="Ver as cotas contempladas">'+COLS.map(function(c){ var f=c[0], v=x[f];
+       if(f==='grupo') return '<td><b>'+esc(x.grupo)+'</b> <span class="note">'+esc(x.administradora==='ANCORA'?'Âncora':'HS')+'</span></td>';
+       if(f==='tipo') return '<td>'+esc(TIPO_LBL[x.tipo]||x.tipo)+'</td>';
+       if(f==='menor_lance_pct'||f==='taxa_adm_pct') return '<td class="n">'+(v!=null?pct(v):'—')+'</td>';
+       if(f==='lance_parcelas') return '<td class="n">'+(v!=null?v:'—')+'</td>';
+       return '<td class="n">'+(v||0)+'</td>'; }).join('')+'</tr><tr class="as-det" data-d="'+i+'" hidden><td colspan="'+COLS.length+'">'+detalheHtml(x)+'</td></tr>'; }).join('')+
    '</tbody></table></div></div>';
   C.innerHTML=html; bindFiltros(meses);
-  $$('.as-tbl th').forEach(function(th){ th.onclick=function(){ var k=th.dataset.k; if(AS.sort===k) AS.dir=-AS.dir; else { AS.sort=k; AS.dir=(k==='grupo'||k==='tipo'||k==='menor_lance_pct'||k==='taxa_adm_pct')?1:-1; } pintar(meses); }; });
+  $$('.as-row').forEach(function(tr){ var tog=function(){ var d=$('.as-det[data-d="'+tr.dataset.i+'"]'); if(d) d.hidden=!d.hidden; }; tr.onclick=tog; tr.onkeydown=function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); tog(); } }; });
+  $$('.as-tbl th').forEach(function(th){ th.onclick=function(){ var k=th.dataset.k; if(AS.sort===k) AS.dir=-AS.dir; else { AS.sort=k; AS.dir=(k==='grupo'||k==='tipo'||k==='menor_lance_pct'||k==='taxa_adm_pct'||k==='lance_parcelas')?1:-1; } pintar(meses); }; });
 }
 function pintarCache(){ var meses=[]; (AS.data||[]).forEach(function(x){ if(meses.indexOf(x.mes_ref)<0) meses.push(x.mes_ref); }); meses.sort().reverse();
   try{ setTop('Assembleias','Resultado dos grupos e calendário',isM()?'<button class="btn btn-ghost btn-sm" onclick="AgionImport.novaData()">+ Data de assembleia</button><button class="btn btn-gold btn-sm" onclick="AgionImport.importarAssembleias()">⇪ Importar resultado</button>':''); }catch(e){}
   pintar(meses); }
+function detalheHtml(x){ var d=x.detalhes; if(!d) return '<span class="note">Sem detalhamento de cotas para este grupo.</span>';
+  var L=[['ativa','Sorteio (cota sorteada)'],['excluida','Sorteio (cota excluída - versão)'],['fixo','Lance fixo · cota [parcelas]'],['fixo2','2º lance fixo'],['livre','Lance livre'],['limitado','Lance limitado']];
+  return '<div class="as-dg">'+L.filter(function(l){ return d[l[0]]&&d[l[0]].length; }).map(function(l){ var arr=d[l[0]]; var mais=arr.length>40; return '<div><b>'+l[1]+' ('+arr.length+')</b><div class="note">'+esc(arr.slice(0,40).join(' / '))+(mais?' / … +'+(arr.length-40):'')+'</div></div>'; }).join('')+'</div>'; }
 function bindFiltros(meses){ var a=$('#asMes'),b=$('#asAdm'),c=$('#asTipo');
   if(a) a.onchange=function(){ AS.mes=a.value; pintar(meses); }; if(b) b.onchange=function(){ AS.adm=b.value; pintar(meses); }; if(c) c.onchange=function(){ AS.tipo=c.value; pintar(meses); }; }
 
