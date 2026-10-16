@@ -99,7 +99,7 @@ var CFG=[
    {t:q('#leadModal #le_obs'),title:'Observações',text:'Anotações livres sobre o lead.'},
    {t:function(){ return $$('#leadModal .modal-actions button').filter(vis).pop()||null; },title:'Salvar',text:'Só aqui os dados são gravados. Neste tutorial nada foi preenchido de verdade.'}
  ]},
- {id:'captacao',page:'captacao',roles:S3,v:2,g:'Vendas e relacionamento',ic:'spark',title:'Captação',desc:'A caixa de entrada dos leads que chegam pelos canais conectados.',steps:[
+ {id:'captacao',page:'captacao',roles:M,v:2,g:'Vendas e relacionamento',ic:'spark',title:'Captação',desc:'A caixa de entrada dos leads que chegam pelos canais conectados.',steps:[
    {t:q('#content .kpis'),title:'Resumo da captação',text:'Quantos leads chegaram pelos canais (site, anúncios, WhatsApp) e quantos ainda não foram importados.',optional:true},
    {t:panel('caixa de entrada'),title:'Caixa de entrada',text:{_:'Os leads chegam aqui antes de entrar no CRM. Importar um lead cria o card no funil — ação real.',especialista:'Os leads que chegaram para você. Importar um lead cria o card no seu funil — ação real.'},optional:true},
    {t:panel('simular'),title:'Simular chegada',text:'Cria um lead de teste para você ver o caminho completo. Só use quando quiser testar.',optional:true}

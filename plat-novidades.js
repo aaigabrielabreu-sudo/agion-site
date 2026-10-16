@@ -17,8 +17,8 @@ var VERSOES=[
    {roles:S3,ic:'bell',t:'Notificações de tarefas no celular',d:'Aviso quando alguém cria uma tarefa para você, na hora de cada tarefa e um resumo às 8h30. Toque em “Ativar notificações” na aba Tarefas, em cada aparelho.',abrir:function(){ go('tarefas'); }},
    {roles:S3,ic:'user',t:'Tarefas do robô de follow-up',d:'Ligações e toques no Instagram dos leads novos aparecem com o selo “Robô”, já com o telefone para ligar ou chamar no WhatsApp.',tutorial:'tarefas',abrir:function(){ go('tarefas'); }},
    {roles:S3,ic:'chat',t:'Você assumiu a conversa, a Alice espera',d:'Quando você responde um lead pela aba Conversas, a Alice e o follow-up daquele lead ficam em silêncio. 30 minutos depois da sua última mensagem ela volta, sabendo o que você disse.',abrir:function(){ go('conversas'); }},
-   {roles:['lider','especialista'],ic:'map',t:'Menu mais enxuto',d:'Tarefas agora fica logo acima do CRM. Marketing, Feed e Chat saíram do menu por enquanto e voltam numa próxima versão.'},
-   {roles:M,ic:'map',t:'Menu: Tarefas acima do CRM',d:'Marketing, Feed e Chat agora aparecem só para você; líderes, especialistas e novos usuários não veem essas abas até serem liberadas.'}
+   {roles:['lider','especialista'],ic:'map',t:'Menu mais enxuto',d:'Tarefas agora fica logo acima do CRM. Captação, Marketing, Feed e Chat saíram do menu por enquanto e voltam numa próxima versão.'},
+   {roles:M,ic:'map',t:'Menu: Tarefas acima do CRM',d:'Captação, Marketing, Feed e Chat agora aparecem só para você; líderes, especialistas e novos usuários não veem essas abas até serem liberadas.'}
  ]},
  {v:23,data:'14/10/2026',titulo:'Assembleias, importação de pagamentos e novidades',itens:[
    {roles:S3,ic:'chart',t:'Ferramentas › Assembleias',d:'Resultado mensal dos grupos separado por administradora (HS ou Âncora) e categoria do bem (Imóvel, Automóvel, Serviços…): cotas sorteadas, lance fixo, 2º fixo, livre e limitado, excluídas e o calendário. Clique num grupo para ver as cotas contempladas.',tutorial:'assembleias',abrir:function(){ go('ferramentas'); setTimeout(function(){ W.AgionImport&&W.AgionImport.assembleias(); },60); }},

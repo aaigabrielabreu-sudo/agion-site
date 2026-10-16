@@ -1906,9 +1906,9 @@ const client=id=>(typeof id==='object'?id:db.clients.find(c=>c.id===id));
 const plan=(c,p)=>client(c).plans.find(x=>x.id===p);
 const mainPlan=c=>client(c).plans.find(p=>p.main);
 
-/* ACESSO_16OUT: Marketing, Feed e Chat ficam só para o master por enquanto (líderes, especialistas e novos usuários não veem).
+/* ACESSO_16OUT: Captação, Marketing, Feed e Chat ficam só para o master por enquanto (líderes, especialistas e novos usuários não veem).
    Para liberar no futuro, basta tirar a aba desta lista. */
-const ABAS_SO_MASTER=['marketing','feed','chat'];
+const ABAS_SO_MASTER=['captacao','marketing','feed','chat'];
 function abaBloqueada(p){ try{ return ABAS_SO_MASTER.indexOf(p)>=0 && effRole()!=='master'; }catch(e){ return false; } }
 function navItems(){ return navItemsBase().filter(function(it){ return !abaBloqueada(it[0]); }); }
 function navItemsBase(){
@@ -4042,8 +4042,8 @@ function masterReportPDF(){
 <script src="/plat-motion-hook.js?v=1"></script>
 <script src="/plat-motion-2.js?v=4"></script>
 <script src="/plat-importar.js?v=5"></script>
-<script src="/plat-tour.js?v=6"></script>
-<script src="/plat-novidades.js?v=24"></script>
+<script src="/plat-tour.js?v=7"></script>
+<script src="/plat-novidades.js?v=25"></script>
 
 <!-- ===== Propostas (anexos por lead) — identidade Agion ===== -->
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
