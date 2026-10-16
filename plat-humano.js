@@ -26,7 +26,7 @@ function css(){ if(D.getElementById('huCss')) return; var s=D.createElement('sty
  '.hu-bt:hover{background:rgba(197,160,89,.12)}.hu-bt[disabled]{opacity:.5;cursor:default}'+
  '.hu-bt.alt{border-color:rgba(255,255,255,.18);color:var(--soft,#cfd8d7)}'+
  'body.light .hu-bar{background:rgba(14,124,123,.06)}body.light .hu-bar.on{background:rgba(197,160,89,.14)}'+
- '@media (max-width:640px){.hu-bar{padding:7px 12px;gap:8px}.hu-tx{flex-basis:100%}}';
+ '@media (max-width:640px){.hu-bar{padding:7px 12px;gap:8px}.hu-tx{flex:1 1 calc(100% - 26px)}}';
  D.head.appendChild(s); }
 
 function texto(s){
