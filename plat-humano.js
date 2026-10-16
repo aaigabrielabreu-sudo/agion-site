@@ -30,6 +30,7 @@ function nomeQuem(q){ if(!q) return ''; var a=conta(q); if(a) return primeiro(a.
 function meId_(){ try{ return meId(); }catch(e){ return null; } }
 function souEu(q){ if(!q) return false; if(q===meId_()) return true; var a=conta(meId_()); return !!(a&&a.nome&&String(q).toLowerCase()===String(a.nome).toLowerCase()); }
 function meuNome(){ var a=conta(meId_()); return primeiro(a&&a.nome); }
+function nomeDemo(){ var id=null; try{ id=effId(); }catch(e){} var a=conta(id||meId_()); return primeiro(a&&a.nome)||'Lisiane'; }
 function ck(p){ try{ return convKey(p); }catch(e){ return String(p||''); } }
 function papel(){ try{ return session.role; }catch(e){ return null; } }
 function verComo(){ try{ return !!session.viewAs; }catch(e){ return false; } }
@@ -164,12 +165,12 @@ async function abrirLink(){ if(abrindo) return; var p=null; try{ p=JSON.parse(se
 
 /* ---------- exemplo fictício (tutorial) ---------- */
 function demoLista(){ var el=D.getElementById('waItems'); if(!el||el.querySelector('.hu-demo')) return; css();
-  var me=meuNome()||'Lisiane'; var d=D.createElement('div'); d.className='wa-item hu-demo on';
+  var me=nomeDemo(); var d=D.createElement('div'); d.className='wa-item hu-demo on';
   d.innerHTML='<div class="wa-av" style="background:#7a5cc4">CS</div><div class="wa-it-main"><div class="wa-it-top"><span class="wa-it-nm">Carla Souza</span><span class="wa-it-tm">agora</span></div><div class="wa-it-top"><span class="wa-it-pv">Você é um robô? Quero falar com uma pessoa</span><span class="wa-dot"></span></div><div class="hu-tags"><span class="hu-tg nv">Novo lead</span><span class="hu-tg ow">'+esc(me)+'</span></div></div>';
   el.insertBefore(d,el.firstChild); }
 function bolha(dir,au,txt,hm,sig){ return '<div class="wa-b '+(dir==='in'?'wa-in':'wa-out')+'">'+(au?'<div class="wa-au">'+esc(au)+'</div>':'')+(sig?'<span class="hu-sigb">'+esc(sig)+'</span>':'')+esc(txt)+'<div class="wa-mt">'+hm+'</div></div>'; }
 function demoChat(){ var mn=D.getElementById('waMain'); if(!mn) return; css();
-  var me=meuNome()||'Lisiane'; var wr=D.getElementById('waRoot'); if(wr) wr.classList.add('showchat');
+  var me=nomeDemo(); var wr=D.getElementById('waRoot'); if(wr) wr.classList.add('showchat');
   mn.innerHTML='<div class="hu-demo-chat" style="display:flex;flex-direction:column;height:100%;min-height:0">'+
    '<div class="wa-chd"><button class="wa-back" onclick="AgionHumano.demoOff()">‹</button><div class="wa-av" style="background:#7a5cc4">CS</div><div style="flex:1;min-width:0"><div class="wa-chd-nm">Carla Souza</div><div class="wa-chd-ph">+55 (51) 90000-0000</div><div class="hu-tags"><span class="hu-tg nv">Novo lead</span><span class="hu-tg ow">'+esc(me)+'</span></div></div></div>'+
    '<div class="hu-bar al hu-demo-bar"><span class="hu-dot" aria-hidden="true"></span><span class="hu-tx"><b>A Carla pediu para falar com uma pessoa.</b> A Alice segura a conversa por 2 minutos — toque em Assumir.</span><button class="hu-bt pulse" disabled>Assumir</button></div>'+
