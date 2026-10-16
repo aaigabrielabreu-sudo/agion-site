@@ -144,6 +144,15 @@ var CFG=[
    {t:q('#content .ch'),title:'Canais',text:'Escolha o canal da conversa interna.'},
    {t:q('#chatInput'),title:'Mensagem',text:'Escreva e envie para o canal aberto.',demo:'type',typeText:'Alguém pode me ajudar?'}
  ]},
+ {id:'distribuicao',page:'marketing',sub:true,roles:M,v:1,g:'Gestão',ic:'users',title:'Distribuição de leads',desc:'Quem recebe cada lead novo e como a fila anda.',pre:function(){ try{ mktSub('dist'); }catch(e){} return new Promise(function(r){ setTimeout(r,400); }); },steps:[
+   {t:q('#mktNav [data-k="dist"]'),title:'Onde fica',text:'Marketing › Distribuição de leads. Só você altera a regra.'},
+   {t:q('#content .rz-sw'),title:'Ligar e desligar',text:'Desligada, o lead entra sem responsável e o aviso vai para todos, como antes.'},
+   {t:q('#content .rz-modos'),title:'Como distribuir',text:'Fila (1 para cada), por nível, por categoria ou manual. Toque num cartão para escolher.'},
+   {t:q('#content .rz-eq'),title:'Quem participa',text:'Recebe leads (liga e desliga), nível de 1 a 5, categorias que atende e limite por dia. Os números mostram quanto cada um recebeu.'},
+   {t:q('#content .rz-prox'),title:'Próximos da fila',text:'A prévia de quem recebe os próximos leads com as regras atuais.',optional:true},
+   {t:q('#content .rz-pend'),title:'Aguardando designação',text:'No modo manual, os leads novos esperam aqui. Escolha a pessoa e toque em Designar.',optional:true},
+   {t:q('#content .rz-save'),title:'Salvar',text:'Nada muda até você salvar a distribuição.',optional:true}
+ ]},
  {id:'tarefas',page:'tarefas',roles:S3,v:3,g:'Gestão',ic:'check',title:'Tarefas',desc:'Sua agenda: o que vence hoje, o que está atrasado e a resposta de cada contato.',steps:[
    {t:q('#content .tk2-kpis'),title:'Seu dia em números',text:'Atrasadas, para hoje, próximos 7 dias e feitas hoje. Toque num número para filtrar a lista; toque de novo para voltar às pendentes.',demo:'click'},
    {t:q('#content .tk2-tabs'),title:'Pendentes, feitas e não feitas',text:'Troque a visão da lista. “Não feitas” guarda o que não deu certo, com a resposta e a anotação.',demo:'click'},
@@ -257,6 +266,7 @@ function forRole(){ var r=role(); return CFG.filter(function(t){ return t.roles.
 function byId(id){ for(var i=0;i<CFG.length;i++) if(CFG[i].id===id) return CFG[i]; return null; }
 function forPage(page){ var r=role(); if(page==='editor') return byId('ficha-cliente');
   if(page==='ferramentas'&&W.AgionImport&&W.AgionImport.isOpen&&W.AgionImport.isOpen()) return byId('assembleias');
+  if(page==='marketing'&&W.__mktTab==='dist'&&r==='master') return byId('distribuicao');
   if(r==='cliente'&&page==='plan') return byId('c-plan');
   return forRole().filter(function(t){ return t.page===page&&!t.ficha&&!t.sub; })[0]||null; }
 
