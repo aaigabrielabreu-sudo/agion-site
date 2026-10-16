@@ -125,9 +125,10 @@ var CFG=[
    {t:q('#content .as-tbl'),title:'Todos os grupos',text:'Clique no título de uma coluna para ordenar; clique numa linha para ver as cotas contempladas. O número entre colchetes é a parcela da cota.',optional:true},
    {t:function(){ return $$('#topActions .btn-gold').filter(vis)[0]||null; },title:'Importar resultado',text:'Todo mês, importe o PDF “Resultado de Assembleia” da administradora. A plataforma reconhece grupo, sorteio e lances; você confere antes de gravar.',optional:true,roles:M}
  ]},
- {id:'conversas',page:'conversas',roles:S3,v:1,g:'Vendas e relacionamento',ic:'chat',title:'Conversas',desc:'As conversas de WhatsApp dos clientes e leads.',steps:[
+ {id:'conversas',page:'conversas',roles:S3,v:2,g:'Vendas e relacionamento',ic:'chat',title:'Conversas',desc:'As conversas de WhatsApp dos clientes e leads.',steps:[
    {t:q('#waSrch'),title:'Buscar conversa',text:'Encontre uma conversa pelo nome ou número.',demo:'type',typeText:'Ana'},
-   {t:q('#content .waPanel'),title:'Lista e conversa',text:'Escolha uma conversa à esquerda para ler e responder. Enviar mensagem é uma ação real.'}
+   {t:q('#content .waPanel'),title:'Lista e conversa',text:'Escolha uma conversa à esquerda para ler e responder. Enviar mensagem é uma ação real.'},
+   {t:q('#content .hu-bar'),title:'Você ou a Alice',text:'Mostra quem está atendendo. Quando você manda uma mensagem, a Alice e o follow-up pausam por 30 min. “Assumir” pausa sem prazo (para uma negociação longa); “Devolver para a Alice” faz ela voltar na hora.',optional:true}
  ]},
  {id:'feed',page:'feed',roles:M,v:1,g:'Marketing e comunicação',ic:'chat',title:'Feed',desc:'Mural de avisos da equipe.',steps:[
    {t:q('#feedTxt'),title:'Escreva um aviso',text:'O texto aparece para a equipe depois de publicar.',demo:'type',typeText:'Bom dia, time!'},

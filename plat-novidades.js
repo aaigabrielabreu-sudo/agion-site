@@ -12,6 +12,9 @@ var W=window, D=document;
 var S3=['master','lider','especialista'], ML=['master','lider'], M=['master'], TODOS=['master','lider','especialista','cliente'];
 
 var VERSOES=[
+ {v:25,data:'16/10/2026',titulo:'Conversas: assumir e devolver para a Alice',itens:[
+   {roles:S3,ic:'chat',t:'Assumir a conversa',d:'Em cada conversa, uma faixa embaixo do nome mostra quem está atendendo: você ou a Alice. “Assumir” pausa a Alice e o follow-up sem prazo, para negociações longas. “Devolver para a Alice” faz ela voltar na hora. Só de mandar uma mensagem ela já pausa por 30 minutos.',tutorial:'conversas',abrir:function(){ go('conversas'); }}
+ ]},
  {v:24,data:'16/10/2026',titulo:'Tarefas organizadas, notificações e menu mais enxuto',itens:[
    {roles:S3,ic:'check',t:'Nova aba Tarefas',d:'Agenda por dia (atrasadas, hoje, amanhã…), os números do dia no topo, filtros por tipo e responsável e busca. Abra a tarefa para marcar Feita ou Não feita, escolher a resposta (ex.: Atendeu, Não atendeu) e escrever a anotação.',tutorial:'tarefas',abrir:function(){ go('tarefas'); }},
    {roles:S3,ic:'bell',t:'Notificações de tarefas no celular',d:'Aviso quando alguém cria uma tarefa para você, na hora de cada tarefa e um resumo às 8h30. Toque em “Ativar notificações” na aba Tarefas, em cada aparelho.',abrir:function(){ go('tarefas'); }},
