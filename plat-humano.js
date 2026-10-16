@@ -103,7 +103,7 @@ function decorar(){ var el=D.getElementById('waItems'); if(!el) return; css();
 /* ---------- faixa "você ou a Alice" ---------- */
 function texto(s){
   if(!s) return {cls:'',html:'Carregando…'};
-  if(s.alerta&&!s.ativo){ var h0=hora(s.alerta_ate||s.ate); return {cls:'al',html:'<b>O cliente pediu para falar com uma pessoa.</b> A Alice aguarda'+(h0?' até '+h0:' 2 minutos')+' — toque em Assumir.'}; }
+  if(s.alerta&&!s.ativo){ var h0=hora(s.alerta_ate||s.ate); return {cls:'al',html:'<b>O cliente pediu para falar com uma pessoa.</b> A Alice aguarda'+(h0?' até '+h0:' 10 minutos')+' — toque em Assumir.'}; }
   if(s.ativo){
     var q=s.quem?nomeQuem(s.quem):''; var quem=souEu(s.quem)?'Você':(q||'Alguém da equipe');
     if(s.fixo) return {cls:'on',html:'<b>'+esc(quem)+' no comando</b> · a Alice está pausada até alguém devolver a conversa.'};
@@ -173,13 +173,14 @@ function demoChat(){ var mn=D.getElementById('waMain'); if(!mn) return; css();
   var me=nomeDemo(); var wr=D.getElementById('waRoot'); if(wr) wr.classList.add('showchat');
   mn.innerHTML='<div class="hu-demo-chat" style="display:flex;flex-direction:column;height:100%;min-height:0">'+
    '<div class="wa-chd"><button class="wa-back" onclick="AgionHumano.demoOff()">‹</button><div class="wa-av" style="background:#7a5cc4">CS</div><div style="flex:1;min-width:0"><div class="wa-chd-nm">Carla Souza</div><div class="wa-chd-ph">+55 (51) 90000-0000</div><div class="hu-tags"><span class="hu-tg nv">Novo lead</span><span class="hu-tg ow">'+esc(me)+'</span></div></div></div>'+
-   '<div class="hu-bar al hu-demo-bar"><span class="hu-dot" aria-hidden="true"></span><span class="hu-tx"><b>A Carla pediu para falar com uma pessoa.</b> A Alice segura a conversa por 2 minutos — toque em Assumir.</span><button class="hu-bt pulse" disabled>Assumir</button></div>'+
+   '<div class="hu-bar al hu-demo-bar"><span class="hu-dot" aria-hidden="true"></span><span class="hu-tx"><b>A Carla pediu para falar com uma pessoa.</b> A Alice segura a conversa por 10 minutos — toque em Assumir.</span><button class="hu-bt pulse" disabled>Assumir</button></div>'+
    '<div class="wa-msgs" id="waMsgs" style="flex:1;overflow:auto">'+
     '<div class="wa-day">Hoje</div>'+
     bolha('in','','Oi! Vi o anúncio do consórcio de imóvel. Como funciona?','09:12')+
     bolha('out','Alice','Oi, Carla! Aqui é a Alice, da Agion Consórcios 🍀 Recebi seu interesse em imóvel. Você pensa em comprar para morar ou para investir?','09:12')+
     bolha('out','Alice · follow-up','Carla, conseguiu pensar no valor do imóvel? Com isso eu já te mostro a simulação 😉','14:30')+
     bolha('in','','Você é um robô? Quero falar com uma pessoa, por favor','14:41')+
+    bolha('out','Alice','Sou a Alice, a assistente virtual da Agion 🙂 Já estou chamando '+me+', da nossa equipe, pra falar com você. Só um instante 🙂','14:41')+
     bolha('out','','Oi, Carla! Aqui é '+(me==='Lisiane'?'a Lisiane, especialista':me)+' da Agion. Posso te ligar agora para explicar?','14:42',me)+
    '</div>'+
    '<div class="wa-inp"><textarea rows="1" disabled placeholder="Exemplo — no tutorial nada é enviado"></textarea><button class="wa-send" disabled>➤</button></div></div>';
