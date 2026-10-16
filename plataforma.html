@@ -346,6 +346,46 @@ div[style*="height"]>canvas{height:100%!important}
 .task .tk-cb{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line-gold);flex-shrink:0;cursor:pointer;display:grid;place-items:center;color:var(--gold2);font-weight:800}
 .task .tk-t{flex:1;font-size:.9rem;color:var(--head)}
 .task .tk-d{font-size:.74rem;color:var(--soft)}
+/* ===== TAREFAS_V2 ===== */
+.tk2-kpis .tk2-k{cursor:pointer;transition:.18s} .tk2-kpis .tk2-k.sel{outline:2px solid var(--gold);outline-offset:-2px} .tk2-kpis .tk2-k.bad b{color:var(--bad)}
+.tk2-panel{padding-top:14px} .tk2-bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.tk2-tabs{margin-bottom:0;flex:1;min-width:280px} .tk2-tabs button i{font-style:normal;opacity:.75;font-size:.76rem;margin-left:2px}
+.tk2-filt{display:flex;gap:8px;flex-wrap:wrap} .tk2-q{min-width:200px}
+.tk2-in{background:rgba(10,28,34,.55);border:1px solid var(--line);border-radius:10px;color:var(--head);padding:9px 11px;font:inherit;font-size:.86rem;width:100%;box-sizing:border-box}
+.tk2-in:focus{outline:none;border-color:var(--gold)} select.tk2-in{cursor:pointer} .tk2-quem{width:auto;min-width:170px}
+.tk2-tipos{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 14px}
+.tk2-chip{font-size:.76rem;font-weight:600;padding:6px 11px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:transparent;cursor:pointer}
+.tk2-chip.on{background:rgba(197,160,89,.16);border-color:var(--gold);color:var(--gold2)}
+.tk2-gh{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--gold2);margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+.tk2-gh span{background:rgba(197,160,89,.14);border-radius:999px;padding:1px 8px;font-size:.7rem} .tk2-gh.bad{color:var(--bad)} .tk2-gh.bad span{background:rgba(248,113,113,.14)}
+.tk2{border:1px solid var(--line);border-radius:14px;margin-bottom:9px;background:linear-gradient(160deg,var(--card2),var(--card));transition:.18s}
+.tk2.late{border-color:rgba(248,113,113,.45)} .tk2.open{border-color:var(--line-gold);box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.tk2.st-feito .tk2-t{text-decoration:line-through;opacity:.6} .tk2.st-nao_feito .tk2-t{opacity:.6}
+.tk2-row{display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer}
+.tk2-ck{width:24px;height:24px;border-radius:7px;border:1.5px solid var(--line-gold);flex-shrink:0;background:transparent;cursor:pointer;color:var(--gold2);font-weight:800;display:grid;place-items:center;padding:0}
+.tk2-ck:hover{background:rgba(197,160,89,.16)} .tk2-ck.ok{background:rgba(52,211,153,.18);border-color:var(--ok);color:var(--ok)} .tk2-ck.no{background:rgba(248,113,113,.14);border-color:var(--bad);color:var(--bad)}
+.tk2-ic{width:34px;height:34px;border-radius:10px;background:rgba(143,217,204,.10);display:grid;place-items:center;font-size:1rem;flex-shrink:0}
+.tk2-main{flex:1;min-width:0} .tk2-t{color:var(--head);font-size:.92rem;font-weight:600;line-height:1.35;overflow-wrap:anywhere}
+.tk2-m{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.74rem;color:var(--soft);margin-top:4px}
+.tk2-when.bad{color:var(--bad);font-weight:700} .tk2-bdg{background:rgba(143,217,204,.12);color:var(--teal);border-radius:6px;padding:1px 6px;font-weight:700;font-size:.66rem;text-transform:uppercase;letter-spacing:.06em}
+.tk2-own{display:inline-flex;align-items:center;gap:4px} .tk2-own .av{display:inline-grid}
+.tk2-res{background:rgba(197,160,89,.14);color:var(--gold2);border-radius:6px;padding:1px 7px;font-weight:600} .tk2-res.no{background:rgba(248,113,113,.14);color:var(--bad)}
+.tk2-nota{font-size:.78rem;color:var(--muted);margin-top:6px;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tk2-act{display:flex;align-items:center;gap:4px;flex-shrink:0} .tk2-b{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;text-decoration:none;border:1px solid var(--line);font-size:.9rem}
+.tk2-b:hover{border-color:var(--gold)} .tk2-chev{color:var(--soft);width:18px;text-align:center;font-size:.8rem}
+.tk2-det{border-top:1px solid var(--line);padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px}
+.tk2-lab{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--soft);margin-top:6px}
+.tk2-chips{display:flex;flex-wrap:wrap;gap:6px} .tk2-g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tk2-btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px} .tk2-bno{border:1px solid rgba(248,113,113,.5)!important;color:var(--bad)!important;background:transparent!important}
+.tk2-del{margin-left:auto} .tk2-foot{font-size:.72rem;color:var(--soft);margin-top:4px}
+.tk2-vazio{text-align:center;padding:38px 10px;color:var(--muted);font-size:.95rem}
+.tk2-mbg{position:fixed;inset:0;background:rgba(4,14,16,.62);z-index:9999;display:grid;place-items:center;padding:16px}
+.tk2-modal{width:100%;max-width:520px;background:linear-gradient(160deg,var(--card2),var(--card));border:1px solid var(--line-gold);border-radius:18px;padding:20px 20px 16px;box-shadow:0 20px 60px rgba(0,0,0,.4);max-height:92vh;overflow:auto}
+.tk2-modal h3{margin:0 0 6px;color:var(--head);font-family:var(--serif)} .tk2-modal .tk2-g2{margin-top:2px}
+body.light .tk2-in{background:#fff;color:#16302B;border-color:rgba(14,74,65,.25)} body.light .tk2{background:#F1F8F4;border:1.5px solid rgba(14,74,65,.22)} body.light .tk2.late{border-color:rgba(220,38,38,.45)}
+body.light .tk2-ic{background:rgba(14,74,65,.08)} body.light .tk2-chip{border-color:rgba(14,74,65,.25)} body.light .tk2-modal{background:#F7FBF9}
+@media(max-width:640px){.tk2-g2{grid-template-columns:1fr} .tk2-q{min-width:0;flex:1} .tk2-filt{width:100%} .tk2-row{gap:9px;padding:11px 10px} .tk2-ic{display:none} .tk2-tabs{min-width:0;width:100%}}
+body.isApp .tk2-g2{grid-template-columns:1fr} body.isApp .tk2-ic{display:none} body.isApp .tk2-row{gap:9px;padding:11px 10px}
 /* ===== ORGANOGRAMA VERTICAL DE METAS ===== */
 .journey{position:relative;padding:6px 0 6px 4px}
 .j-node{position:relative;padding-left:48px;padding-bottom:30px}
@@ -640,8 +680,8 @@ body.light .logo-img,body.light .top-logo{filter:none}
     if(!sub){
       sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_b64(window.AGION_VAPID)});
     }
-    var u=(window.session&&session.userId)||'';
-    var papel=(window.session&&session.role)||'';
+    var u=(typeof session!=='undefined'&&session&&session.userId)||'';  /* TAREFAS_V2: session é let */
+    var papel=(typeof session!=='undefined'&&session&&session.role)||'';
     await fetch('https://bot.agionconsorcios.com.br/api/push_sub?key=agionlead2026',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({sub:sub.toJSON?sub.toJSON():sub,userId:u,papel:papel,ua:navigator.userAgent.slice(0,120)})
@@ -1399,7 +1439,7 @@ async function loadCloud(){
     } else { db.crm=[]; }
     /* ----- TAREFAS na nuvem ----- */
     if(tk.data && tk.data.length){
-      db.tasks = tk.data.map(t=>({id:t.id,titulo:t.titulo,quando:t.quando||'',feito:!!t.feito,ownerId:t.owner_id}));
+      db.tasks = tk.data.filter(t=>!t.arquivada).map(tkFromRow); /* TAREFAS_V2 */
     } else if(isMaster()){
       db.tasks.forEach(t=>{ if(!isUuid(t.id))t.id=uuid(); if(!isUuid(t.ownerId))t.ownerId=meId(); });
       for(const t of db.tasks){ await saveTaskCloud(t); }
@@ -1433,7 +1473,7 @@ async function loadCloud(){
   }catch(e){ console.warn('loadCloud',e); cloudReady=false; }
 }
 async function saveLeadCloud(l){ if(!supa||!isUuid(l.id))return; try{ await supa.from('leads').upsert({id:l.id,nome:l.nome,contato:l.contato||null,tipo:l.tipo||null,valor:l.valor||0,stage:l.stage||0,perdido:!!l.perdido,obs:l.obs||null,atividades:l.atividades||[],owner_id:l.ownerId||meId(),categoria:l.categoria||null,...(window._cadOn?{cpf:(window.cpfLimpo?cpfLimpo(l.cpf):'')||null}:{})}); }catch(e){} }
-async function saveTaskCloud(t){ if(!supa||!isUuid(t.id))return; try{ await supa.from('tarefas').upsert({id:t.id,titulo:t.titulo,quando:t.quando||null,feito:!!t.feito,owner_id:t.ownerId||meId()}); }catch(e){} }
+async function saveTaskCloud(t){ if(!supa||!isUuid(t.id))return; try{ tkNorm(t); const row={id:t.id,titulo:t.titulo,quando:t.quando||null,feito:t.status==='feito',owner_id:t.ownerId||meId(),tipo:t.tipo||'manual',status:t.status,prazo:t.prazo||null,lead_id:t.leadId||null,lead_nome:t.leadNome||null,telefone:t.telefone||null,origem:t.origem||'manual',resultado:t.resultado||null,anotacao:t.anotacao||null,concluida_em:t.concluidaEm||null,arquivada:!!t.arquivada,criado_por:t.criadoPor||null,atualizado_em:new Date().toISOString()}; if(t._resetLembrete){row.lembrete_em=null;delete t._resetLembrete;} if(t._renotificar){row.notificado_em=null;delete t._renotificar;} await supa.from('tarefas').upsert(row); }catch(e){} } /* TAREFAS_V2 */
 async function delLeadCloud(id){ if(!supa||!isUuid(id))return; try{ await supa.from('leads').delete().eq('id',id); }catch(e){} }
 async function delTaskCloud(id){ if(!supa||!isUuid(id))return; try{ await supa.from('tarefas').delete().eq('id',id); }catch(e){} }
 async function saveFeedCloud(p){ if(!supa||!isUuid(p.id))return; try{ await supa.from('posts').upsert({id:p.id,owner_id:p.autorId||meId(),texto:p.texto||'',quando:p.quando||Date.now(),likes:p.likes||[],coments:p.coments||[]}); }catch(e){} }
@@ -2010,7 +2050,7 @@ async function forgotPass(){
   if(error){el.style.color='var(--bad)';el.textContent='Não foi possível enviar agora. Tente novamente.';return;}
   el.style.color='var(--ok)';el.textContent='Enviamos um link de redefinição para o seu e-mail (confira o spam).';
 }
-function enterApp(page){document.getElementById('loginView').classList.add('hidden');document.getElementById('app').classList.add('show');var h=(location.hash||'').slice(1);var start=(h&&navItems().some(function(it){return it[0]===h}))?h:page;view={page:start};renderNav();render();try{if(location.hash.slice(1)!==start)location.hash=start;}catch(e){}}
+function enterApp(page){try{if(window.Notification&&Notification.permission==='granted')setTimeout(function(){try{window.agionAtivarPush&&window.agionAtivarPush(true);}catch(e){}},2500);}catch(e){} /* TAREFAS_V2 */ document.getElementById('loginView').classList.add('hidden');document.getElementById('app').classList.add('show');var h=(location.hash||'').slice(1);var start=(h&&navItems().some(function(it){return it[0]===h}))?h:page;view={page:start};renderNav();render();try{if(location.hash.slice(1)!==start)location.hash=start;}catch(e){}}
 async function logout(){ try{ stopRealtime(); }catch(e){} try{ if(supa) await supa.auth.signOut(); }catch(e){} session={role:null};document.getElementById('app').classList.remove('show');document.getElementById('loginView').classList.remove('hidden');destroyCharts(); const le=document.getElementById('logEmail'),lp=document.getElementById('logPass'); if(le)le.value=''; if(lp)lp.value=''; }
 /* restaura sessão existente (entra direto no painel) e trata o link de redefinição de senha */
 async function bootAuth(){
@@ -2651,17 +2691,124 @@ async function saveLead(){
   saveLeadCloud(_lead);save();closeLead();renderCRM(document.getElementById('content'));flash('Lead salvo');
 }
 /* ----- TAREFAS ----- */
+/* ===== TAREFAS_V2 (16/out/2026): agenda organizada, feito / não feito, resultado + anotação, push ===== */
+const TK_TIPOS={ligacao:{ic:'📞',lb:'Ligação'},whatsapp:{ic:'💬',lb:'WhatsApp'},instagram:{ic:'📱',lb:'Instagram'},reuniao:{ic:'🗓️',lb:'Reunião'},visita:{ic:'🚗',lb:'Visita'},proposta:{ic:'📄',lb:'Proposta'},retomada:{ic:'🔁',lb:'Retomar lead'},tarefa:{ic:'📋',lb:'Tarefa'},manual:{ic:'📋',lb:'Tarefa'}};
+const TK_RES={ligacao:['Atendeu','Não atendeu','Caixa postal','Número errado','Pediu retorno'],whatsapp:['Respondeu','Sem resposta','Pediu retorno'],instagram:['Interagi','Respondeu','Perfil não encontrado'],reuniao:['Aconteceu','Remarcada','Não compareceu'],visita:['Visitado','Remarcada','Cancelada'],proposta:['Enviada','Aceita','Recusada'],_:['Concluído','Remarcar','Cancelado']};
+let tkState={view:'pend',quem:'eu',tipo:'',q:'',open:null,res:{}};
+function tkFromRow(t){return tkNorm({id:t.id,titulo:t.titulo||'',quando:t.quando||'',ownerId:t.owner_id,status:t.status||(t.feito?'feito':'pendente'),tipo:t.tipo||'manual',prazo:t.prazo||null,leadId:t.lead_id||null,leadNome:t.lead_nome||'',telefone:t.telefone||'',origem:t.origem||'manual',resultado:t.resultado||'',anotacao:t.anotacao||'',concluidaEm:t.concluida_em||null,criadoPor:t.criado_por||null,criadoEm:t.criado_em||null,arquivada:!!t.arquivada});}
+function tkNorm(t){ if(!t.status) t.status=t.feito?'feito':'pendente'; t.feito=(t.status!=='pendente'); if(!t.tipo) t.tipo=/^Retomar lead/.test(t.titulo||'')?'retomada':'manual'; if(t.tipo==='manual'&&/^Retomar lead/.test(t.titulo||'')) t.tipo='retomada'; if(!t.origem) t.origem='manual'; return t; }
+function tkPrazo(t){ if(t.prazo){ const d=new Date(t.prazo); if(!isNaN(d)) return d; } const m=/^(\d{1,2})\/(\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?/.exec(t.quando||''); if(m){ const n=new Date(); return new Date(n.getFullYear(),+m[2]-1,+m[1],m[3]?+m[3]:9,m[4]?+m[4]:0); } if(/^hoje/i.test(t.quando||'')){ const d=new Date(); d.setHours(18,0,0,0); return d; } return null; }
+function tkTitulo(t){ return String(t.titulo||'').replace(/^(?:[\u2600-\u27BF]|[\uD83C-\uDBFF][\uDC00-\uDFFF])\uFE0F?\s*/,''); }
+function tkDia(d){ const x=new Date(d); x.setHours(0,0,0,0); return x.getTime(); }
+function tkHora(d){ return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function tkQuandoTxt(t){ const d=tkPrazo(t); if(!d) return t.quando||'Sem data'; const hoje=tkDia(new Date()), dd=tkDia(d), dif=Math.round((dd-hoje)/86400000); const h=(d.getHours()||d.getMinutes())?(' · '+tkHora(d)):''; if(dif===0) return 'Hoje'+h; if(dif===1) return 'Amanhã'+h; if(dif===-1) return 'Ontem'+h; return d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'}).replace('.','')+h; }
+function tkLate(t){ const d=tkPrazo(t); return t.status==='pendente'&&!!d&&d.getTime()<Date.now(); }
+function tkTel(t){ let n=String(t.telefone||'').replace(/\D/g,''); if(!n&&t.leadId){ const l=(db.crm||[]).find(x=>x.id===t.leadId); if(l) n=String(l.contato||'').split('·')[0].replace(/\D/g,''); } if(n&&n.length<=11) n='55'+n; return n; }
+function tkStaff(){ return (db.accounts||[]).filter(a=>['master','lider','especialista'].indexOf(a.role)>=0); }
+function tkGestor(){ return (typeof isMaster==='function'&&isMaster())||(typeof isLider==='function'&&isLider()); }
+function tkVisiveis(){ let T=(db.tasks||[]).filter(t=>!t.arquivada); T.forEach(tkNorm);
+  const me=meId(); if(!tkGestor()||tkState.quem==='eu') T=T.filter(t=>!t.ownerId||t.ownerId===me); else if(tkState.quem!=='todos') T=T.filter(t=>t.ownerId===tkState.quem);
+  return T; }
+function tkFiltrar(T){ if(tkState.tipo) T=T.filter(t=>(t.tipo==='manual'?'tarefa':t.tipo)===tkState.tipo); const q=(tkState.q||'').trim().toLowerCase(); if(q) T=T.filter(t=>((t.titulo||'')+' '+(t.leadNome||'')+' '+(t.anotacao||'')).toLowerCase().indexOf(q)>=0);
+  const v=tkState.view, ini=tkDia(new Date()), fim=ini+86400000;
+  if(v==='pend') return T.filter(t=>t.status==='pendente');
+  if(v==='hoje') return T.filter(t=>t.status==='pendente'&&!tkLate(t)&&tkPrazo(t)&&tkPrazo(t).getTime()>=ini&&tkPrazo(t).getTime()<fim);
+  if(v==='late') return T.filter(tkLate);
+  if(v==='prox') return T.filter(t=>t.status==='pendente'&&tkPrazo(t)&&tkPrazo(t).getTime()>=fim&&tkPrazo(t).getTime()<fim+6*86400000);
+  if(v==='feito') return T.filter(t=>t.status==='feito');
+  if(v==='nao') return T.filter(t=>t.status==='nao_feito');
+  return T; }
+function tkGrupos(T){ const g={}, ordem=[]; const hoje=tkDia(new Date()); const fechadas=(tkState.view==='feito'||tkState.view==='nao');
+  const add=(k,lb,t)=>{ if(!g[k]){g[k]={lb,itens:[]};ordem.push(k);} g[k].itens.push(t); };
+  T.slice().sort((a,b)=>{ if(fechadas) return new Date(b.concluidaEm||0)-new Date(a.concluidaEm||0); const pa=tkPrazo(a),pb=tkPrazo(b); if(!pa&&!pb)return 0; if(!pa)return 1; if(!pb)return -1; return pa-pb; }).forEach(t=>{
+    if(fechadas){ const c=t.concluidaEm?new Date(t.concluidaEm):null; const k=c?String(tkDia(c)):'z'; add(k,c?(tkDia(c)===hoje?'Hoje':c.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'})):'Sem data',t); return; }
+    const d=tkPrazo(t); if(!d){ add('z','Sem data',t); return; } const dd=tkDia(d);
+    if(tkLate(t)){ add('a','Atrasadas',t); return; }
+    const dif=Math.round((dd-hoje)/86400000); add(String(dd), dif===0?'Hoje':dif===1?'Amanhã':d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'}), t); });
+  return ordem.map(k=>g[k]); }
+function tkCard(t){ const ty=TK_TIPOS[t.tipo]||TK_TIPOS.tarefa; const late=tkLate(t); const tel=tkTel(t); const aberto=tkState.open===t.id; const own=(t.ownerId&&t.ownerId!==meId())?user(t.ownerId):null;
+  const st=t.status; const ck= st==='pendente'?`<button class="tk2-ck" title="Marcar como feita" onclick="event.stopPropagation();tkSet('${t.id}','feito')"></button>`:`<button class="tk2-ck ${st==='feito'?'ok':'no'}" title="Reabrir" onclick="event.stopPropagation();tkSet('${t.id}','pendente')">${st==='feito'?'✓':'✕'}</button>`;
+  return `<div class="tk2 st-${st}${late?' late':''}${aberto?' open':''}" id="tk_${t.id}">
+   <div class="tk2-row" onclick="tkAbrir('${t.id}')">${ck}<div class="tk2-ic">${ty.ic}</div>
+    <div class="tk2-main"><div class="tk2-t">${esc(tkTitulo(t))}</div>
+     <div class="tk2-m"><span class="tk2-when${late?' bad':''}">${late?'Atrasada · ':''}${esc(tkQuandoTxt(t))}</span>${t.leadNome?`<span>· ${esc(t.leadNome)}</span>`:''}${t.origem==='robo'?'<span class="tk2-bdg">Robô</span>':''}${own?`<span class="tk2-own">${avatar(t.ownerId,18)} ${esc((own.nome||'').split(' ')[0])}</span>`:''}${t.resultado?`<span class="tk2-res">${esc(t.resultado)}</span>`:''}${st==='nao_feito'?'<span class="tk2-res no">Não feita</span>':''}</div>
+     ${t.anotacao&&!aberto?`<div class="tk2-nota">📝 ${esc(t.anotacao)}</div>`:''}</div>
+    <div class="tk2-act">${tel?`<a class="tk2-b" title="Ligar" href="tel:+${tel}" onclick="event.stopPropagation()">📞</a><a class="tk2-b" title="WhatsApp" target="_blank" rel="noopener" href="https://wa.me/${tel}" onclick="event.stopPropagation()">💬</a>`:''}<span class="tk2-chev">${aberto?'▴':'▾'}</span></div>
+   </div>${aberto?tkDetalhe(t):''}</div>`; }
+function tkDetalhe(t){ const opts=TK_RES[t.tipo]||TK_RES._; const sel=(tkState.res[t.id]!==undefined)?tkState.res[t.id]:t.resultado; const d=tkPrazo(t); const dv=d?new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16):'';
+  const lead=t.leadId?(db.crm||[]).find(x=>x.id===t.leadId):null; const gest=tkGestor();
+  return `<div class="tk2-det" onclick="event.stopPropagation()">
+   <div class="tk2-lab">Resposta / resultado</div>
+   <div class="tk2-chips">${opts.map(o=>`<button class="tk2-chip${sel===o?' on':''}" data-v="${esc(o)}" onclick="tkRes('${t.id}',this.dataset.v)">${esc(o)}</button>`).join('')}</div>
+   <div class="tk2-lab">Anotação</div>
+   <textarea id="tkn_${t.id}" class="tk2-in" rows="3" placeholder="O que aconteceu, o que ficou combinado, próximo passo…">${esc(t.anotacao||'')}</textarea>
+   <div class="tk2-g2"><div><div class="tk2-lab">Prazo</div><input id="tkp_${t.id}" class="tk2-in" type="datetime-local" value="${dv}"></div>
+    ${gest?`<div><div class="tk2-lab">Responsável</div><select id="tko_${t.id}" class="tk2-in">${tkStaff().map(a=>`<option value="${a.id}"${a.id===t.ownerId?' selected':''}>${esc(a.nome)}</option>`).join('')}</select></div>`:''}</div>
+   <div class="tk2-btns">${t.status==='pendente'?`<button class="btn btn-gold btn-sm" onclick="tkSet('${t.id}','feito')">✓ Feita</button><button class="btn btn-sm tk2-bno" onclick="tkSet('${t.id}','nao_feito')">✕ Não feita</button>`:`<button class="btn btn-sm" onclick="tkSet('${t.id}','pendente')">↺ Reabrir</button>`}
+    <button class="btn btn-teal btn-sm" onclick="tkSalvar('${t.id}')">Salvar</button>${lead?`<button class="btn btn-sm" onclick="tkLead('${lead.id}')">Abrir lead</button>`:''}<button class="btn-ico tk2-del" title="Arquivar tarefa" onclick="tkArquivar('${t.id}')">🗑</button></div>
+   ${t.concluidaEm&&t.status!=='pendente'?`<div class="tk2-foot">${t.status==='feito'?'Concluída':'Marcada como não feita'} em ${new Date(t.concluidaEm).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>`:''}
+  </div>`; }
+function tkPushLbl(){ const st=(typeof agionPushStatus==='function')?agionPushStatus():'sem-suporte'; return st==='ativo'?'🔔 Notificações ativas':st==='bloqueado'?'🔕 Notificações bloqueadas':st==='sem-suporte'?'':'🔔 Ativar notificações'; }
 function renderTarefas(C){
-  setTop('Tarefas','Sua agenda de follow-ups','<button class="btn btn-gold btn-sm" onclick="taskAdd()">+ Nova tarefa</button>');
-  const T=db.tasks||[]; const pend=T.filter(t=>!t.feito), done=T.filter(t=>t.feito);
-  C.innerHTML=`<div class="kpis"> <div class="kpi grad"><div class="lab">${ICN.check}Pendentes</div><b>${pend.length}</b></div> <div class="kpi"><div class="lab">${ICN.check}Concluídas</div><b>${done.length}</b></div> </div> <div class="panel"><h2>${ICN.check} A fazer</h2>${pend.map(taskRow).join('')||'<p class="note">Nenhuma tarefa pendente </p>'}</div> ${done.length?`<div class="panel"><h2>${ICN.check} Concluídas</h2>${done.map(taskRow).join('')}</div>`:''}`;
+  const lbl=tkPushLbl();
+  setTop('Tarefas','Sua agenda de follow-ups',(lbl?`<button class="btn btn-teal btn-sm" onclick="tkPush()">${lbl}</button> `:'')+'<button class="btn btn-gold btn-sm" onclick="tkNova()">+ Nova tarefa</button>');
+  const base=tkVisiveis(); const ini=tkDia(new Date()), fim=ini+86400000;
+  const nLate=base.filter(tkLate).length, nHoje=base.filter(t=>t.status==='pendente'&&!tkLate(t)&&tkPrazo(t)&&tkPrazo(t).getTime()>=ini&&tkPrazo(t).getTime()<fim).length,
+        nProx=base.filter(t=>t.status==='pendente'&&tkPrazo(t)&&tkPrazo(t).getTime()>=fim&&tkPrazo(t).getTime()<fim+6*86400000).length,
+        nFeitasHoje=base.filter(t=>t.status==='feito'&&t.concluidaEm&&new Date(t.concluidaEm).getTime()>=ini).length;
+  const L=tkFiltrar(base); const grupos=tkGrupos(L);
+  const vbtn=(v,lb,n)=>`<button class="${tkState.view===v?'on':''}" onclick="tkView('${v}')">${lb}${n!=null?` <i>${n}</i>`:''}</button>`;
+  const tipos=[['','Todos'],['ligacao','📞 Ligação'],['whatsapp','💬 WhatsApp'],['instagram','📱 Instagram'],['reuniao','🗓️ Reunião'],['visita','🚗 Visita'],['retomada','🔁 Retomar'],['tarefa','📋 Outras']];
+  const quem=tkGestor()?`<select class="tk2-in tk2-quem" onchange="tkState.quem=this.value;renderTarefas(document.getElementById('content'))"><option value="eu"${tkState.quem==='eu'?' selected':''}>Minhas tarefas</option><option value="todos"${tkState.quem==='todos'?' selected':''}>Toda a equipe</option>${tkStaff().filter(a=>a.id!==meId()).map(a=>`<option value="${a.id}"${tkState.quem===a.id?' selected':''}>${esc(a.nome)}</option>`).join('')}</select>`:'';
+  C.innerHTML=`<div class="kpis tk2-kpis">
+     <div class="kpi tk2-k bad${tkState.view==='late'?' sel':''}" onclick="tkView('late')"><div class="lab">Atrasadas</div><b>${nLate}</b></div>
+     <div class="kpi grad tk2-k${tkState.view==='hoje'?' sel':''}" onclick="tkView('hoje')"><div class="lab">Para hoje</div><b>${nHoje}</b></div>
+     <div class="kpi tk2-k${tkState.view==='prox'?' sel':''}" onclick="tkView('prox')"><div class="lab">Próximos 7 dias</div><b>${nProx}</b></div>
+     <div class="kpi tk2-k${tkState.view==='feito'?' sel':''}" onclick="tkView('feito')"><div class="lab">Feitas hoje</div><b>${nFeitasHoje}</b></div></div>
+   <div class="panel tk2-panel">
+    <div class="tk2-bar"><div class="tabs tk2-tabs">${vbtn('pend','Pendentes',base.filter(t=>t.status==='pendente').length)}${vbtn('feito','Feitas')}${vbtn('nao','Não feitas')}${vbtn('todas','Todas')}</div>
+     <div class="tk2-filt">${quem}<input class="tk2-in tk2-q" placeholder="Buscar tarefa ou lead…" value="${esc(tkState.q)}" oninput="tkBusca(this.value)"></div></div>
+    <div class="tk2-tipos">${tipos.map(([k,lb])=>`<button class="tk2-chip${tkState.tipo===k?' on':''}" onclick="tkState.tipo='${k}';renderTarefas(document.getElementById('content'))">${lb}</button>`).join('')}</div>
+    ${grupos.length?grupos.map(g=>`<div class="tk2-gh${g.lb==='Atrasadas'?' bad':''}">${esc(g.lb)} <span>${g.itens.length}</span></div>${g.itens.map(tkCard).join('')}`).join(''):`<div class="tk2-vazio">${(tkState.view==='pend'||tkState.view==='hoje'||tkState.view==='late')?'🎉 Tudo em dia por aqui.':'Nenhuma tarefa neste filtro.'}</div>`}
+   </div>`;
+  if(!window._tkPushTry){ window._tkPushTry=1; try{ if(window.Notification&&Notification.permission==='granted'&&typeof agionAtivarPush==='function') agionAtivarPush(true); }catch(e){} }
 }
-function taskRow(t){return `<div class="task ${t.feito?'done':''}"><div class="tk-cb" onclick="taskToggle('${t.id}')">${t.feito?'✓':''}</div> <div class="tk-t">${esc(t.titulo)}</div><div class="tk-d">${esc(t.quando||'')}</div> <button class="btn-ico" onclick="taskDel('${t.id}')">✕</button></div>`;}
-async function taskAdd(){if(roGuard())return;const tt=await ask({title:'Nova tarefa',msg:'O que precisa ser feito?',input:true,ok:'Adicionar'});if(!tt||!tt.trim())return;
-   const q=await ask({title:'Quando?',msg:'Prazo (ex.: Hoje, Amanhã, Dia 20):',input:true,value:'Hoje',ok:'Salvar'});
-   const _t={id:uuid(),titulo:tt.trim(),quando:(q||'').trim(),feito:false,ownerId:meId()};db.tasks.push(_t);logEvt('tarefa_criar','tarefa','Criou a tarefa "'+tt.trim()+'"',{tarefa:tt.trim(),prazo:(q||'').trim()});saveTaskCloud(_t);save();renderTarefas(document.getElementById('content'));flash('Tarefa criada');}
-function taskToggle(id){if(roGuard())return;const t=(db.tasks).find(x=>x.id===id);t.feito=!t.feito;logEvt(t.feito?'tarefa_concluir':'tarefa_reabrir','tarefa',(t.feito?'Concluiu':'Reabriu')+' a tarefa "'+t.titulo+'"',{tarefa:t.titulo});saveTaskCloud(t);save();renderTarefas(document.getElementById('content'));}
-async function taskDel(id){delTaskCloud(id);db.tasks=db.tasks.filter(x=>x.id!==id);save();renderTarefas(document.getElementById('content'));}
+function tkBusca(v){ tkState.q=v; clearTimeout(window._tkq); window._tkq=setTimeout(()=>{ renderTarefas(document.getElementById('content')); const i=document.querySelector('.tk2-q'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } },250); }
+function tkView(v){ tkState.view=(tkState.view===v&&v!=='pend')?'pend':v; tkState.open=null; renderTarefas(document.getElementById('content')); }
+function tkAbrir(id){ tkState.open=(tkState.open===id)?null:id; renderTarefas(document.getElementById('content')); const el=document.getElementById('tk_'+id); if(el&&tkState.open) el.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+function tkRes(id,v){ tkState.res[id]=(tkState.res[id]===v)?'':v; const el=document.getElementById('tk_'+id); if(el) el.querySelectorAll('.tk2-chip').forEach(b=>b.classList.toggle('on',b.dataset.v===tkState.res[id])); }
+function tkColher(t){ const n=document.getElementById('tkn_'+t.id); if(n) t.anotacao=n.value.trim(); if(tkState.res[t.id]!==undefined){ t.resultado=tkState.res[t.id]; delete tkState.res[t.id]; }
+  const p=document.getElementById('tkp_'+t.id); if(p){ const nv=p.value?new Date(p.value).toISOString():null; const atual=t.prazo?new Date(t.prazo).toISOString():null; if(nv&&nv!==atual){ t.prazo=nv; t.quando=new Date(nv).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',',''); t._resetLembrete=true; } }
+  const o=document.getElementById('tko_'+t.id); if(o&&o.value&&o.value!==t.ownerId){ t.ownerId=o.value; t.criadoPor=meId(); t._renotificar=true; } }
+function tkSet(id,st){ if(roGuard())return; const t=(db.tasks||[]).find(x=>x.id===id); if(!t)return; tkColher(t); t.status=st; t.feito=(st!=='pendente'); t.concluidaEm=(st==='pendente')?null:new Date().toISOString();
+  logEvt(st==='feito'?'tarefa_concluir':st==='pendente'?'tarefa_reabrir':'tarefa_nao_feita','tarefa',(st==='feito'?'Concluiu':st==='pendente'?'Reabriu':'Marcou como não feita')+' a tarefa "'+t.titulo+'"',{tarefa:t.titulo,resultado:t.resultado||'',anotacao:t.anotacao||''});
+  saveTaskCloud(t); save(); if(st!=='pendente'&&tkState.open===id) tkState.open=null; renderTarefas(document.getElementById('content')); flash(st==='feito'?'Tarefa feita ✓':st==='pendente'?'Tarefa reaberta':'Marcada como não feita'); }
+function tkSalvar(id){ if(roGuard())return; const t=(db.tasks||[]).find(x=>x.id===id); if(!t)return; tkColher(t); saveTaskCloud(t); save(); tkState.open=null; renderTarefas(document.getElementById('content')); flash('Tarefa salva'); }
+async function tkArquivar(id){ if(roGuard())return; const t=(db.tasks||[]).find(x=>x.id===id); if(!t)return; if(!(await ask({title:'Arquivar tarefa?',msg:'Ela sai da lista (pode ser recuperada pelo administrador).',ok:'Arquivar'})))return; t.arquivada=true; saveTaskCloud(t); db.tasks=db.tasks.filter(x=>x.id!==id); save(); tkState.open=null; renderTarefas(document.getElementById('content')); flash('Tarefa arquivada'); }
+function tkLead(id){ go('crm'); setTimeout(()=>{ try{ openLead(id); }catch(e){} },350); }
+async function tkPush(){ const st=(typeof agionPushStatus==='function')?agionPushStatus():''; if(st==='ativo'){ flash('As notificações já estão ativas neste aparelho ✓'); return; } if(st==='bloqueado'){ await ask({title:'Notificações bloqueadas',msg:'O navegador bloqueou as notificações deste site. Libere nas configurações do navegador (ou do celular) e toque aqui de novo.',ok:'Ok'}); return; } if(typeof agionAtivarPush==='function') await agionAtivarPush(); renderTarefas(document.getElementById('content')); }
+function tkNova(){ if(roGuard())return; const prox=new Date(Date.now()+3600000); prox.setMinutes(0,0,0); const dv=new Date(prox.getTime()-prox.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  let m=document.getElementById('tk2Modal'); if(m) m.remove(); m=document.createElement('div'); m.id='tk2Modal'; m.className='tk2-mbg';
+  const gest=tkGestor();
+  m.innerHTML=`<div class="tk2-modal"><h3>Nova tarefa</h3>
+   <div class="tk2-lab">O que precisa ser feito?</div><input id="tkm_t" class="tk2-in" placeholder="Ex.: Ligar para o João sobre a carta de imóvel">
+   <div class="tk2-g2"><div><div class="tk2-lab">Tipo</div><select id="tkm_ty" class="tk2-in">${Object.entries(TK_TIPOS).filter(([k])=>k!=='manual'&&k!=='retomada').map(([k,v])=>`<option value="${k}"${k==='tarefa'?' selected':''}>${v.ic} ${v.lb}</option>`).join('')}</select></div>
+    <div><div class="tk2-lab">Quando</div><input id="tkm_p" class="tk2-in" type="datetime-local" value="${dv}"></div></div>
+   <div class="tk2-g2"><div><div class="tk2-lab">Lead (opcional)</div><input id="tkm_l" class="tk2-in" list="tkm_ll" placeholder="Nome do lead"><datalist id="tkm_ll">${(db.crm||[]).slice(0,600).map(l=>`<option value="${esc(l.nome)}">`).join('')}</datalist></div>
+    ${gest?`<div><div class="tk2-lab">Responsável</div><select id="tkm_o" class="tk2-in">${tkStaff().map(a=>`<option value="${a.id}"${a.id===meId()?' selected':''}>${esc(a.nome)}</option>`).join('')}</select></div>`:'<div></div>'}</div>
+   <div class="tk2-lab">Anotação (opcional)</div><textarea id="tkm_n" class="tk2-in" rows="2"></textarea>
+   <div class="tk2-btns" style="justify-content:flex-end"><button class="btn btn-sm" onclick="document.getElementById('tk2Modal').remove()">Cancelar</button><button class="btn btn-gold btn-sm" onclick="tkCriar()">Criar tarefa</button></div></div>`;
+  m.addEventListener('click',e=>{ if(e.target===m) m.remove(); }); document.body.appendChild(m); setTimeout(()=>{const i=document.getElementById('tkm_t'); if(i)i.focus();},50); }
+function tkCriar(){ const tt=(document.getElementById('tkm_t').value||'').trim(); if(!tt){ flash('Escreva o que precisa ser feito'); return; }
+  const pv=document.getElementById('tkm_p').value; const prazo=pv?new Date(pv).toISOString():null; const ln=(document.getElementById('tkm_l').value||'').trim();
+  const lead=ln?(db.crm||[]).find(l=>(l.nome||'').trim().toLowerCase()===ln.toLowerCase()):null; const o=document.getElementById('tkm_o'); const own=(o&&o.value)||meId();
+  const t=tkNorm({id:uuid(),titulo:tt,quando:prazo?new Date(prazo).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',',''):'',status:'pendente',tipo:document.getElementById('tkm_ty').value||'tarefa',prazo,ownerId:own,leadId:lead?lead.id:null,leadNome:lead?lead.nome:ln,telefone:'',origem:'manual',anotacao:(document.getElementById('tkm_n').value||'').trim(),criadoPor:meId(),criadoEm:new Date().toISOString()});
+  db.tasks.push(t); logEvt('tarefa_criar','tarefa','Criou a tarefa "'+tt+'"',{tarefa:tt,prazo:t.quando}); saveTaskCloud(t); save(); document.getElementById('tk2Modal').remove(); tkState.view='pend'; renderTarefas(document.getElementById('content')); flash(own!==meId()?'Tarefa criada e enviada ao responsável':'Tarefa criada'); }
+function taskRow(t){ tkNorm(t); return `<div class="task ${t.feito?'done':''}"><div class="tk-cb" onclick="taskToggle('${t.id}')">${t.feito?'✓':''}</div> <div class="tk-t">${esc(tkTitulo(t))}</div><div class="tk-d">${esc(tkQuandoTxt(t))}</div></div>`; }
+function taskAdd(){ tkNova(); }
+function taskToggle(id){ const t=(db.tasks||[]).find(x=>x.id===id); if(!t)return; tkNorm(t); if(view&&view.page==='tarefas') return tkSet(id,t.status==='pendente'?'feito':'pendente');
+  if(roGuard())return; t.status=(t.status==='pendente')?'feito':'pendente'; t.feito=t.status!=='pendente'; t.concluidaEm=t.feito?new Date().toISOString():null; logEvt(t.feito?'tarefa_concluir':'tarefa_reabrir','tarefa',(t.feito?'Concluiu':'Reabriu')+' a tarefa "'+t.titulo+'"',{tarefa:t.titulo}); saveTaskCloud(t); save(); }
+async function taskDel(id){ return tkArquivar(id); }
 
 /* ===================== FEED COLABORATIVO ===================== */
 function renderFeed(C){
@@ -2795,7 +2942,7 @@ function mktOnNewLead(l){ const A=_mktLS();
   if(A.a){ try{ const ids=[]; (db.clients||[]).forEach(function(c){ if(c.ownerId&&ids.indexOf(c.ownerId)<0)ids.push(c.ownerId); }); if(ids.length){ const i=(+localStorage.getItem('agion_rr')||0)%ids.length; l.ownerId=ids[i]; localStorage.setItem('agion_rr',String(i+1)); saveLeadCloud(l); } }catch(e){} }
   if(A.w){ try{ let fone=String(l.contato||'').replace(/\D/g,''); if(fone.length>=10){ if(fone.slice(0,2)!=='55')fone='55'+fone; apiFetch('/api/send_template',{method:'POST',body:JSON.stringify({phone:fone,template:'boas_vindas',params:[(l.nome||'').split(' ')[0]],nome:l.nome})}).then(function(r){ if(r&&r.ok&&r.data&&!r.data.error) flash('Boas-vindas enviada a '+l.nome+' ✓'); }); } }catch(e){} }
 }
-function mktScanStale(){ let done=[]; try{done=JSON.parse(localStorage.getItem('agion_stale')||'[]');}catch(e){} let n=0;
+function mktScanStale(){ flash('A retomada de leads parados agora é feita pelo robô de follow-up (WhatsApp e e-mail).'); return; /* TAREFAS_V2 */ let done=[]; try{done=JSON.parse(localStorage.getItem('agion_stale')||'[]');}catch(e){} let n=0;
   (db.crm||[]).forEach(function(l){ if(l.perdido||l.stage>=4)return; const acts=l.atividades||[]; const last=acts.length?(acts[acts.length-1].quando||0):(l.criadoEm||0); if(Date.now()-last>3*86400000&&done.indexOf(l.id)<0){ const t={id:uuid(),titulo:'Retomar lead: '+l.nome,quando:'',feito:false,ownerId:l.ownerId||meId()}; db.tasks.push(t); saveTaskCloud(t); done.push(l.id); n++; } });
   localStorage.setItem('agion_stale',JSON.stringify(done)); save(); flash(n?('Criadas '+n+' tarefa(s) de leads parados'):'Nenhum lead parado novo ✓');
 }
