@@ -1906,13 +1906,18 @@ const client=id=>(typeof id==='object'?id:db.clients.find(c=>c.id===id));
 const plan=(c,p)=>client(c).plans.find(x=>x.id===p);
 const mainPlan=c=>client(c).plans.find(p=>p.main);
 
-function navItems(){
+/* ACESSO_16OUT: Marketing, Feed e Chat ficam só para o master por enquanto (líderes, especialistas e novos usuários não veem).
+   Para liberar no futuro, basta tirar a aba desta lista. */
+const ABAS_SO_MASTER=['marketing','feed','chat'];
+function abaBloqueada(p){ try{ return ABAS_SO_MASTER.indexOf(p)>=0 && effRole()!=='master'; }catch(e){ return false; } }
+function navItems(){ return navItemsBase().filter(function(it){ return !abaBloqueada(it[0]); }); }
+function navItemsBase(){
   const R=effRole();
   const ICN_KPI='<svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-5"/><path d="M13 17V8"/><path d="M18 17v-9"/></svg>';
   const ICN_CFG='<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
-  if(R==='master') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['consultoria','Consultoria',ICN.wallet],['users','Clientes',ICN.users],['cadastro','Cadastro',ICN.users],['comissoes','Comissões',ICN.money],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check],['disparos','Disparos',ICN.bolt],['config','Ajustes',ICN_CFG]];
-  if(R==='lider') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['cadastro','Cadastro',ICN.users],['comissoes','Comissões',ICN.money],['contas','Equipe',ICN.users],['config','Ajustes',ICN_CFG]];
-  if(R==='especialista') return [['dash','Painel',ICN.dash],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['tarefas','Tarefas',ICN.check],['users','Clientes',ICN.users],['comissoes','Comissões',ICN.money],['config','Ajustes',ICN_CFG]];
+  if(R==='master') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['tarefas','Tarefas',ICN.check],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['consultoria','Consultoria',ICN.wallet],['users','Clientes',ICN.users],['cadastro','Cadastro',ICN.users],['comissoes','Comissões',ICN.money],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check],['disparos','Disparos',ICN.bolt],['config','Ajustes',ICN_CFG]];
+  if(R==='lider') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['tarefas','Tarefas',ICN.check],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['users','Clientes',ICN.users],['cadastro','Cadastro',ICN.users],['comissoes','Comissões',ICN.money],['contas','Equipe',ICN.users],['config','Ajustes',ICN_CFG]];
+  if(R==='especialista') return [['dash','Painel',ICN.dash],['tarefas','Tarefas',ICN.check],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['users','Clientes',ICN.users],['comissoes','Comissões',ICN.money],['config','Ajustes',ICN_CFG]];
   return [['dash','Início',ICN.dash],['plan','Planejamento',ICN.plan],['jornada','Jornada',ICN.target],['gastos','Gastos',ICN.money],['cota','Cota',ICN.cota],['config','Ajustes',ICN_CFG]];
 }
 function renderNav(){
@@ -1933,7 +1938,7 @@ function navBadge(k){ if(k!=='crm'&&k!=='captacao'&&k!=='users')return '';
   const n=leadsNovos(); if(!n)return '';
   return '<i class="navdot">'+(n>9?'9+':n)+'</i>'; }
 function marcarLeadsVistos(){ try{ localStorage.setItem('agion_leads_vistos', String(Date.now())); }catch(e){} }
-function routeGo(page){ view.page=page; if(page==='crm'||page==='captacao'||page==='users')marcarLeadsVistos(); renderNav(); window.scrollTo(0,0); render(); }
+function routeGo(page){ if(abaBloqueada(page)) page='dash'; view.page=page; if(page==='crm'||page==='captacao'||page==='users')marcarLeadsVistos(); renderNav(); window.scrollTo(0,0); render(); }
 function go(page){ routeGo(page); try{ if(page&&page!=='editor'&&page!=='compare'&&location.hash.slice(1)!==page) location.hash=page; }catch(e){} }
 addEventListener('hashchange',function(){ try{ if(!session.role) return; var p=location.hash.slice(1); if(!p) return; if(navItems().some(function(it){return it[0]===p}) && p!==view.page) routeGo(p); }catch(e){} });
 function skeleton(){return `<div class="skel"> <div class="sk" style="height:30px;width:40%"></div> <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin:18px 0"> ${'<div class="sk" style="height:92px"></div>'.repeat(4)}</div> <div class="sk" style="height:230px"></div> <div class="sk" style="height:160px"></div></div>`;}
@@ -2360,6 +2365,7 @@ async function convDoTpl(){
 }
 
 function render(){
+  try{ if(view&&abaBloqueada(view.page)) view.page='dash'; }catch(e){} /* ACESSO_16OUT */
   destroyCharts();
   updateBell();
   const C=document.getElementById('content');
@@ -4036,8 +4042,8 @@ function masterReportPDF(){
 <script src="/plat-motion-hook.js?v=1"></script>
 <script src="/plat-motion-2.js?v=4"></script>
 <script src="/plat-importar.js?v=5"></script>
-<script src="/plat-tour.js?v=5"></script>
-<script src="/plat-novidades.js?v=23"></script>
+<script src="/plat-tour.js?v=6"></script>
+<script src="/plat-novidades.js?v=24"></script>
 
 <!-- ===== Propostas (anexos por lead) — identidade Agion ===== -->
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">

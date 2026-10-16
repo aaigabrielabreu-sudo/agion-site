@@ -12,6 +12,14 @@ var W=window, D=document;
 var S3=['master','lider','especialista'], ML=['master','lider'], M=['master'], TODOS=['master','lider','especialista','cliente'];
 
 var VERSOES=[
+ {v:24,data:'16/10/2026',titulo:'Tarefas organizadas, notificações e menu mais enxuto',itens:[
+   {roles:S3,ic:'check',t:'Nova aba Tarefas',d:'Agenda por dia (atrasadas, hoje, amanhã…), os números do dia no topo, filtros por tipo e responsável e busca. Abra a tarefa para marcar Feita ou Não feita, escolher a resposta (ex.: Atendeu, Não atendeu) e escrever a anotação.',tutorial:'tarefas',abrir:function(){ go('tarefas'); }},
+   {roles:S3,ic:'bell',t:'Notificações de tarefas no celular',d:'Aviso quando alguém cria uma tarefa para você, na hora de cada tarefa e um resumo às 8h30. Toque em “Ativar notificações” na aba Tarefas, em cada aparelho.',abrir:function(){ go('tarefas'); }},
+   {roles:S3,ic:'user',t:'Tarefas do robô de follow-up',d:'Ligações e toques no Instagram dos leads novos aparecem com o selo “Robô”, já com o telefone para ligar ou chamar no WhatsApp.',tutorial:'tarefas',abrir:function(){ go('tarefas'); }},
+   {roles:S3,ic:'chat',t:'Você assumiu a conversa, a Alice espera',d:'Quando você responde um lead pela aba Conversas, a Alice e o follow-up daquele lead ficam em silêncio. 30 minutos depois da sua última mensagem ela volta, sabendo o que você disse.',abrir:function(){ go('conversas'); }},
+   {roles:['lider','especialista'],ic:'map',t:'Menu mais enxuto',d:'Tarefas agora fica logo acima do CRM. Marketing, Feed e Chat saíram do menu por enquanto e voltam numa próxima versão.'},
+   {roles:M,ic:'map',t:'Menu: Tarefas acima do CRM',d:'Marketing, Feed e Chat agora aparecem só para você; líderes, especialistas e novos usuários não veem essas abas até serem liberadas.'}
+ ]},
  {v:23,data:'14/10/2026',titulo:'Assembleias, importação de pagamentos e novidades',itens:[
    {roles:S3,ic:'chart',t:'Ferramentas › Assembleias',d:'Resultado mensal dos grupos separado por administradora (HS ou Âncora) e categoria do bem (Imóvel, Automóvel, Serviços…): cotas sorteadas, lance fixo, 2º fixo, livre e limitado, excluídas e o calendário. Clique num grupo para ver as cotas contempladas.',tutorial:'assembleias',abrir:function(){ go('ferramentas'); setTimeout(function(){ W.AgionImport&&W.AgionImport.assembleias(); },60); }},
    {roles:M,ic:'money',t:'Comissões › Importar pagamentos do mês',d:'Todo dia 11, envie o PDF da administradora com quem pagou e quem não pagou. A plataforma encontra cada cliente pelo grupo/cota ou nome e você confere antes de gravar.',tutorial:'comissoes',abrir:function(){ go('comissoes'); }},
@@ -34,6 +42,9 @@ var VERSOES=[
 var ATUAL=VERSOES[0].v;
 
 var IC={
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12l3 3 5-6"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
   chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M8 17v-5M13 17V8M18 17v-9"/></svg>',
   money:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg>',
   doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h7M9 17h5"/></svg>',

@@ -104,7 +104,7 @@ var CFG=[
    {t:panel('caixa de entrada'),title:'Caixa de entrada',text:{_:'Os leads chegam aqui antes de entrar no CRM. Importar um lead cria o card no funil — ação real.',especialista:'Os leads que chegaram para você. Importar um lead cria o card no seu funil — ação real.'},optional:true},
    {t:panel('simular'),title:'Simular chegada',text:'Cria um lead de teste para você ver o caminho completo. Só use quando quiser testar.',optional:true}
  ]},
- {id:'marketing',page:'marketing',roles:S3,v:2,g:'Marketing e comunicação',ic:'spark',title:'Marketing',desc:'Automações, pontuação de leads, templates, campanhas e integrações.',steps:[
+ {id:'marketing',page:'marketing',roles:M,v:2,g:'Marketing e comunicação',ic:'spark',title:'Marketing',desc:'Automações, pontuação de leads, templates, campanhas e integrações.',steps:[
    {t:q('#mktNav'),title:'Seções do marketing',text:'Visão geral, Automações, Leads & Scoring, Templates, Campanhas e Integrações. Trocar de seção só muda o que aparece abaixo.',demo:'click'},
    {t:q('#mktBody'),title:'Conteúdo da seção',text:'Aqui aparece o conteúdo da seção escolhida: na Visão geral, o funil e a origem dos leads; em Templates, as mensagens prontas do WhatsApp.'},
    {t:topBtn(),title:'Criar template',text:'Monta uma mensagem de WhatsApp para aprovação. Nada é enviado por aqui.',optional:true}
@@ -129,18 +129,26 @@ var CFG=[
    {t:q('#waSrch'),title:'Buscar conversa',text:'Encontre uma conversa pelo nome ou número.',demo:'type',typeText:'Ana'},
    {t:q('#content .waPanel'),title:'Lista e conversa',text:'Escolha uma conversa à esquerda para ler e responder. Enviar mensagem é uma ação real.'}
  ]},
- {id:'feed',page:'feed',roles:S3,v:1,g:'Marketing e comunicação',ic:'chat',title:'Feed',desc:'Mural de avisos da equipe.',steps:[
+ {id:'feed',page:'feed',roles:M,v:1,g:'Marketing e comunicação',ic:'chat',title:'Feed',desc:'Mural de avisos da equipe.',steps:[
    {t:q('#feedTxt'),title:'Escreva um aviso',text:'O texto aparece para a equipe depois de publicar.',demo:'type',typeText:'Bom dia, time!'},
    {t:btn('publicar','#content'),title:'Publicar',text:'Publica o aviso. No tutorial nada é publicado.',optional:true}
  ]},
- {id:'chat',page:'chat',roles:S3,v:1,g:'Marketing e comunicação',ic:'chat',title:'Chat',desc:'Canais de conversa interna da equipe.',steps:[
+ {id:'chat',page:'chat',roles:M,v:1,g:'Marketing e comunicação',ic:'chat',title:'Chat',desc:'Canais de conversa interna da equipe.',steps:[
    {t:q('#content .ch'),title:'Canais',text:'Escolha o canal da conversa interna.'},
    {t:q('#chatInput'),title:'Mensagem',text:'Escreva e envie para o canal aberto.',demo:'type',typeText:'Alguém pode me ajudar?'}
  ]},
- {id:'tarefas',page:'tarefas',roles:S3,v:2,g:'Gestão',ic:'check',title:'Tarefas',desc:'O que fazer, o que vence hoje e o que está atrasado.',steps:[
-   {t:q('#content .kpis'),title:'Resumo',text:'Quantas tarefas estão pendentes e quantas já foram concluídas.',optional:true},
-   {t:topBtn(),title:'Nova tarefa',text:'Cria uma tarefa com prazo. Tarefas de retomar lead são criadas sozinhas pelo CRM.',optional:true},
-   {t:panel('a fazer'),title:'A fazer',text:'A lista de pendências. A caixinha conclui a tarefa; o “×” remove — as duas são ações reais.',optional:true}
+ {id:'tarefas',page:'tarefas',roles:S3,v:3,g:'Gestão',ic:'check',title:'Tarefas',desc:'Sua agenda: o que vence hoje, o que está atrasado e a resposta de cada contato.',steps:[
+   {t:q('#content .tk2-kpis'),title:'Seu dia em números',text:'Atrasadas, para hoje, próximos 7 dias e feitas hoje. Toque num número para filtrar a lista; toque de novo para voltar às pendentes.',demo:'click'},
+   {t:q('#content .tk2-tabs'),title:'Pendentes, feitas e não feitas',text:'Troque a visão da lista. “Não feitas” guarda o que não deu certo, com a resposta e a anotação.',demo:'click'},
+   {t:q('#content .tk2-quem'),title:'De quem são',text:'Suas tarefas, a equipe inteira ou uma pessoa.',roles:['master','lider'],optional:true},
+   {t:q('#content .tk2-q'),title:'Buscar',text:'Procure pelo texto da tarefa, pelo nome do lead ou pela anotação (a digitação é só demonstração).',demo:'type',typeText:'Ligar',optional:true},
+   {t:q('#content .tk2-tipos'),title:'Filtrar por tipo',text:'Ligação, WhatsApp, Instagram, reunião, visita… As tarefas criadas pelo robô de follow-up aparecem com o selo “Robô”.',optional:true},
+   {t:q('#content .tk2-gh'),title:'Agenda por dia',text:'A lista vem separada em Atrasadas, Hoje, Amanhã e os próximos dias, na ordem do horário.',optional:true},
+   {t:q('#content .tk2-row'),title:'Abrir a tarefa',text:'Toque na tarefa para abrir o detalhe: a resposta do contato (ex.: Atendeu, Não atendeu), a anotação, o prazo e o responsável. Lá ficam os botões “Feita”, “Não feita”, “Salvar” e “Abrir lead”.',demo:'click',optional:true},
+   {t:q('#content .tk2-act .tk2-b'),title:'Ligar ou chamar no WhatsApp',text:'Quando a tarefa tem telefone, os atalhos ficam direto no cartão.',optional:true},
+   {t:q('#content .tk2-ck'),title:'Concluir rápido',text:'A caixinha marca como feita sem abrir a tarefa (é uma ação real; no tutorial só mostramos onde fica). Dá para reabrir depois.',optional:true},
+   {t:topBtn(),title:'Nova tarefa',text:'O que fazer, tipo, dia e hora, lead e responsável. Se for para outra pessoa, ela recebe uma notificação.'},
+   {t:q('#topActions .btn-teal'),title:'Notificações',text:'Ative em cada aparelho para receber o aviso na hora de cada tarefa, quando alguém criar uma tarefa para você e o resumo das 8h30.',optional:true}
  ]},
  {id:'consultoria',page:'consultoria',roles:M,v:1,g:'Gestão',ic:'money',title:'Consultoria',desc:'Clientes da consultoria e o acompanhamento de cada um.',steps:[
    {t:q('#content .c-b'),title:'Novo cliente',text:'Inclui um cliente de consultoria.',optional:true},
