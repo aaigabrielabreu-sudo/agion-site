@@ -1,5 +1,7 @@
 /* ==========================================================================
    Agion — plat-novidades.js · Versões da plataforma + pop-up "O que há de novo"
+   - Uma versão por dia: novidades do mesmo dia entram na versão do dia e sobem o rev
+     (rev:1, rev:2…), para quem já viu ver de novo.
    - VERSOES: a mais nova primeiro. Para publicar uma novidade: acrescente uma
      versão no topo (número seguinte) e suba o ?v= deste arquivo no plataforma.html.
    - Cada item pode ter: roles (quem vê), tutorial (id do tutorial) e abrir (aba).
@@ -11,15 +13,13 @@
 var W=window, D=document;
 var S3=['master','lider','especialista'], ML=['master','lider'], M=['master'], TODOS=['master','lider','especialista','cliente'];
 
+/* Próxima versão (25): começar já com rev:1 — no dia 16/10 um número 25 ficou no ar por alguns minutos. */
 var VERSOES=[
- {v:25,data:'16/10/2026',titulo:'Conversas: assumir e devolver para a Alice',itens:[
-   {roles:S3,ic:'chat',t:'Assumir a conversa',d:'Em cada conversa, uma faixa embaixo do nome mostra quem está atendendo: você ou a Alice. “Assumir” pausa a Alice e o follow-up sem prazo, para negociações longas. “Devolver para a Alice” faz ela voltar na hora. Só de mandar uma mensagem ela já pausa por 30 minutos.',tutorial:'conversas',abrir:function(){ go('conversas'); }}
- ]},
- {v:24,data:'16/10/2026',titulo:'Tarefas organizadas, notificações e menu mais enxuto',itens:[
+ {v:24,rev:1,data:'16/10/2026',titulo:'Tarefas organizadas, notificações e menu mais enxuto',itens:[
    {roles:S3,ic:'check',t:'Nova aba Tarefas',d:'Agenda por dia (atrasadas, hoje, amanhã…), os números do dia no topo, filtros por tipo e responsável e busca. Abra a tarefa para marcar Feita ou Não feita, escolher a resposta (ex.: Atendeu, Não atendeu) e escrever a anotação.',tutorial:'tarefas',abrir:function(){ go('tarefas'); }},
    {roles:S3,ic:'bell',t:'Notificações de tarefas no celular',d:'Aviso quando alguém cria uma tarefa para você, na hora de cada tarefa e um resumo às 8h30. Toque em “Ativar notificações” na aba Tarefas, em cada aparelho.',abrir:function(){ go('tarefas'); }},
    {roles:S3,ic:'user',t:'Tarefas do robô de follow-up',d:'Ligações e toques no Instagram dos leads novos aparecem com o selo “Robô”, já com o telefone para ligar ou chamar no WhatsApp.',tutorial:'tarefas',abrir:function(){ go('tarefas'); }},
-   {roles:S3,ic:'chat',t:'Você assumiu a conversa, a Alice espera',d:'Quando você responde um lead pela aba Conversas, a Alice e o follow-up daquele lead ficam em silêncio. 30 minutos depois da sua última mensagem ela volta, sabendo o que você disse.',abrir:function(){ go('conversas'); }},
+   {roles:S3,ic:'chat',t:'Conversas: assumir e devolver para a Alice',d:'Em cada conversa, uma faixa embaixo do nome mostra quem está atendendo: você ou a Alice. Quando você responde um lead, a Alice e o follow-up ficam em silêncio por 30 minutos e depois ela volta, sabendo o que você disse. “Assumir” pausa sem prazo (negociações longas); “Devolver para a Alice” faz ela voltar na hora.',tutorial:'conversas',abrir:function(){ go('conversas'); }},
    {roles:['lider','especialista'],ic:'map',t:'Menu mais enxuto',d:'Tarefas agora fica logo acima do CRM. Captação, Marketing, Feed e Chat saíram do menu por enquanto e voltam numa próxima versão.'},
    {roles:M,ic:'map',t:'Menu: Tarefas acima do CRM',d:'Captação, Marketing, Feed e Chat agora aparecem só para você; líderes, especialistas e novos usuários não veem essas abas até serem liberadas.'}
  ]},
@@ -43,6 +43,8 @@ var VERSOES=[
  ]}
 ];
 var ATUAL=VERSOES[0].v;
+var MARCA=ATUAL+((VERSOES[0].rev||0)/100); /* versão + revisão do mesmo dia */
+function chave(ver){ return ver.v+((ver.rev||0)/100); }
 
 var IC={
   check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12l3 3 5-6"/></svg>',
@@ -105,22 +107,22 @@ function abrir(opts){
     '<div class="nv-bd">'+corpo+(antigas?'<div class="nv-old" id="nvOld" hidden>'+antigas+'</div>':'')+'</div>'+
     '<div class="nv-ft">'+(antigas?'<button type="button" id="nvMais">Versões anteriores</button>':'')+'<span class="sp"></span><button type="button" class="g" id="nvOk">Entendi</button></div></div>';
   D.body.appendChild(bg);
-  var ok=function(){ marcar(ATUAL); fechar(); setTimeout(function(){ try{ W.AgionTour&&W.AgionTour.reinvite&&W.AgionTour.reinvite(); }catch(e){} },400); };
+  var ok=function(){ marcar(MARCA); fechar(); setTimeout(function(){ try{ W.AgionTour&&W.AgionTour.reinvite&&W.AgionTour.reinvite(); }catch(e){} },400); };
   $('#nvOk',bg).onclick=ok;
   var mais=$('#nvMais',bg); if(mais) mais.onclick=function(){ var o=$('#nvOld',bg); o.hidden=!o.hidden; mais.textContent=o.hidden?'Versões anteriores':'Esconder anteriores'; };
-  bg.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('button[data-tut],button[data-go]'); if(b){ var it=idx[+(b.getAttribute('data-tut')||b.getAttribute('data-go'))]; marcar(ATUAL); fechar();
+  bg.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('button[data-tut],button[data-go]'); if(b){ var it=idx[+(b.getAttribute('data-tut')||b.getAttribute('data-go'))]; marcar(MARCA); fechar();
       if(b.hasAttribute('data-tut')&&W.AgionTour){ W.AgionTour.start(it.tutorial); } else if(it.abrir){ try{ it.abrir(); }catch(err){} } return; }
     if(e.target===bg) ok(); });
   D.addEventListener('keydown',esc_);
   setTimeout(function(){ try{ $('#nvOk',bg).focus({preventScroll:true}); }catch(e){} },50);
 }
-function esc_(e){ if(e.key==='Escape'){ marcar(ATUAL); fechar(); } }
+function esc_(e){ if(e.key==='Escape'){ marcar(MARCA); fechar(); } }
 function fechar(){ var b=$('.nv-bg'); if(b) b.remove(); D.removeEventListener('keydown',esc_); }
 
 /* ---------- selo de versão (menu lateral; no app, em Ajustes) ---------- */
 function selo(){
   var f=$('aside.side .foot'); if(f&&!$('.nv-ver',f)){ var b=D.createElement('button'); b.type='button'; b.className='nv-ver'; b.onclick=function(){ abrir({manual:true}); }; f.insertBefore(b,f.firstChild); }
-  var bt=$('aside.side .nv-ver'); if(bt){ var novo=vistoLocal()<ATUAL; bt.innerHTML='Versão <b>'+ATUAL+'</b> · Novidades'+(novo?'<span class="nv-dot" aria-label="há novidades"></span>':''); }
+  var bt=$('aside.side .nv-ver'); if(bt){ var novo=vistoLocal()<MARCA; bt.innerHTML='Versão <b>'+ATUAL+'</b> · Novidades'+(novo?'<span class="nv-dot" aria-label="há novidades"></span>':''); }
   try{ if(view.page==='config'){ var C=$('#content'); if(C&&!$('.nv-cfg',C)){ var p=D.createElement('div'); p.className='panel nv-cfg'; p.innerHTML='<h2>Versão da plataforma</h2><p class="note" style="margin:0 0 12px">Você está na versão <b>'+ATUAL+'</b>.</p><button class="btn btn-ghost btn-sm" type="button">Ver novidades</button>'; $('button',p).onclick=function(){ abrir({manual:true}); }; C.appendChild(p); } } }catch(e){}
 }
 
@@ -129,11 +131,11 @@ var checado=false;
 async function talvezMostrar(){
   if(checado) return; var r=role(); if(!r) return; try{ if(session.viewAs) return; }catch(e){}
   checado=true;
-  var v=Math.max(vistoLocal(), await vistoServidor()); try{ localStorage.setItem(KEY(),String(v)); }catch(e){}
+  var v=Math.max(vistoLocal(), await vistoServidor()); if(v>MARCA) v=ATUAL; /* número acima do atual (ex.: 25 publicado por engano) volta para o do dia */ try{ localStorage.setItem(KEY(),String(v)); }catch(e){}
   selo();
-  if(v>=ATUAL) return;
-  var temItem=VERSOES.some(function(ver){ return ver.v>v&&itensDe(ver).length; });
-  if(!temItem){ marcar(ATUAL); return; }
+  if(v>=MARCA) return;
+  var temItem=VERSOES.some(function(ver){ return chave(ver)>v&&itensDe(ver).length; });
+  if(!temItem){ marcar(MARCA); return; }
   if(W.AgionTour&&W.AgionTour.running&&W.AgionTour.running()) return;
   D.querySelectorAll('.tr-invite').forEach(function(e){ e.remove(); });
   abrir();
