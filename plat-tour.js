@@ -202,12 +202,13 @@ var CFG=[
    {t:q('#topActions .imp-btn'),title:'Importar',text:'Todo dia 11, importe o PDF de pagamentos da administradora: a plataforma casa cada cliente pelo grupo/cota ou pelo nome, mostra quem pagou e quem não pagou, e só grava depois que você confere. Aqui também entra o resultado das assembleias.',optional:true,roles:M},
    {t:q('#content .imp-banner'),title:'Último retorno',text:'Mostra o mês do último retorno de pagamentos importado e quantos pagaram ou não por administradora.',optional:true,roles:M}
  ]},
- {id:'contas',page:'contas',roles:ML,v:2,g:'Gestão',ic:'user',title:{master:'Contas',lider:'Equipe'},desc:{master:'Contas da equipe e dos clientes, acesso e “Ver como”.',lider:'Os especialistas da sua equipe, acesso e “Ver como”.'},steps:[
+ {id:'contas',page:'contas',roles:M,v:3,g:'Gestão',ic:'user',title:{master:'Contas',lider:'Equipe'},desc:{master:'Contas da equipe e dos clientes, acesso e “Ver como”.',lider:'Os especialistas da sua equipe, acesso e “Ver como”.'},steps:[
    {t:q('#content .kpis'),title:'Resumo',text:{master:'Contas ativas por perfil: líderes, especialistas e clientes.',lider:'Os especialistas da sua equipe e as contas ativas.'},optional:true},
    {t:q('#contSearch'),title:'Buscar conta',text:'Encontre alguém pelo nome ou e-mail.',demo:'type',typeText:'Lu'},
    {t:topBtn(),title:'Nova conta',text:{master:'Cria um acesso de líder, especialista ou cliente.',lider:'Cria um acesso de especialista para a sua equipe.'},optional:true},
    {t:btn('ver como','#content'),title:'Ver como',text:'Mostra a plataforma do ponto de vista daquela pessoa, só para leitura. Nada do que você fizer ali é gravado — nem o progresso dos tutoriais.',optional:true},
-   {t:btn('resetar senha','#content'),title:'Resetar senha',text:'Envia um e-mail para a pessoa definir uma senha nova. Você nunca vê a senha dela.',optional:true}
+   {t:btn('resetar senha','#content'),title:'Resetar senha',text:'Envia um e-mail para a pessoa definir uma senha nova. Você nunca vê a senha dela.',optional:true},
+   {t:q('#content .cp-bt'),title:'Atribuição',text:'Troca a função da pessoa entre Líder e Especialista (colaborador) e escolhe o líder de cada especialista. Só você vê este botão; a mudança vale no próximo acesso dela.',optional:true}
  ]},
  {id:'atividades',page:'atividades',roles:M,v:1,g:'Gestão',ic:'chart',title:'Atividades',desc:'Registro do que cada pessoa fez na plataforma.',steps:[
    {t:q('#content .kpis'),title:'Resumo',text:'Volume de atividades no período.',optional:true},

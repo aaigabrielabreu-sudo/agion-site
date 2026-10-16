@@ -15,7 +15,7 @@ var S3=['master','lider','especialista'], ML=['master','lider'], M=['master'], T
 
 /* Próxima versão (25): começar já com rev:1 — no dia 16/10 um número 25 ficou no ar por alguns minutos. */
 var VERSOES=[
- {v:24,rev:3,data:'16/10/2026',titulo:'Tarefas organizadas, notificações e menu mais enxuto',itens:[
+ {v:24,rev:4,data:'16/10/2026',titulo:'Tarefas organizadas, notificações e menu mais enxuto',itens:[
    {roles:S3,ic:'check',t:'Nova aba Tarefas',d:'Agenda por dia (atrasadas, hoje, amanhã…), os números do dia no topo, filtros por tipo e responsável e busca. Abra a tarefa para marcar Feita ou Não feita, escolher a resposta (ex.: Atendeu, Não atendeu) e escrever a anotação.',tutorial:'tarefas',abrir:function(){ go('tarefas'); }},
    {roles:S3,ic:'bell',t:'Notificações de tarefas no celular',d:'Aviso quando alguém cria uma tarefa para você, na hora de cada tarefa e um resumo às 8h30. Toque em “Ativar notificações” na aba Tarefas, em cada aparelho.',abrir:function(){ go('tarefas'); }},
    {roles:S3,ic:'user',t:'Tarefas do robô de follow-up',d:'Ligações e toques no Instagram dos leads novos aparecem com o selo “Robô”, já com o telefone para ligar ou chamar no WhatsApp.',tutorial:'tarefas',abrir:function(){ go('tarefas'); }},
@@ -27,8 +27,9 @@ var VERSOES=[
    {roles:['lider','especialista'],ic:'user',t:'Lead entra no seu CRM depois do follow-up',d:'Enquanto a Alice faz o follow-up, o lead aparece só nas suas Conversas (você acompanha tudo). Quando ele pede para falar com você ou avança, entra no seu CRM.',abrir:function(){ go('crm'); }},
    {roles:M,ic:'users',t:'Nova aba Marketing › Distribuição de leads',d:'Escolha como os leads novos são divididos: rodízio em fila (1 para cada), por nível (quem tem nível maior recebe mais), por categoria (imóvel, carro, pesados…) ou manual. Ligue e desligue quem participa, ponha limite por dia e mande os leads de alto valor só para quem você escolher.',tutorial:'distribuicao',abrir:function(){ go('marketing'); setTimeout(function(){ try{ mktSub('dist'); }catch(e){} },300); }},
    {roles:M,ic:'user',t:'CRM: leads com a Alice',d:'Leads que a Alice ainda está acompanhando no follow-up ficam fora do CRM de especialistas e líderes. Você vê todos, com a etiqueta “🤖 Com a Alice”.',abrir:function(){ go('crm'); }},
-   {roles:['lider','especialista'],ic:'map',t:'Menu mais enxuto',d:'Tarefas agora fica logo acima do CRM. Captação, Marketing, Feed e Chat saíram do menu por enquanto e voltam numa próxima versão.'},
-   {roles:M,ic:'map',t:'Menu: Tarefas acima do CRM',d:'Captação, Marketing, Feed e Chat agora aparecem só para você; líderes, especialistas e novos usuários não veem essas abas até serem liberadas.'}
+   {roles:M,ic:'users',t:'Contas: atribuição de cada pessoa',d:'Na aba Contas, o botão “Atribuição” troca a função entre Líder e Especialista (colaborador) e escolhe o líder de cada especialista. A aba Contas agora é só sua.',tutorial:'contas',abrir:function(){ go('contas'); }},
+   {roles:['lider','especialista'],ic:'map',t:'Menu mais enxuto',d:'Tarefas agora fica logo acima do CRM. Captação, Marketing, Feed, Chat e Contas saíram do menu por enquanto.'},
+   {roles:M,ic:'map',t:'Menu: Tarefas acima do CRM',d:'Captação, Marketing, Feed, Chat e Contas agora aparecem só para você; líderes, especialistas e novos usuários não veem essas abas até serem liberadas.'}
  ]},
  {v:23,data:'14/10/2026',titulo:'Assembleias, importação de pagamentos e novidades',itens:[
    {roles:S3,ic:'chart',t:'Ferramentas › Assembleias',d:'Resultado mensal dos grupos separado por administradora (HS ou Âncora) e categoria do bem (Imóvel, Automóvel, Serviços…): cotas sorteadas, lance fixo, 2º fixo, livre e limitado, excluídas e o calendário. Clique num grupo para ver as cotas contempladas.',tutorial:'assembleias',abrir:function(){ go('ferramentas'); setTimeout(function(){ W.AgionImport&&W.AgionImport.assembleias(); },60); }},
