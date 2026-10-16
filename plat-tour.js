@@ -125,10 +125,15 @@ var CFG=[
    {t:q('#content .as-tbl'),title:'Todos os grupos',text:'Clique no título de uma coluna para ordenar; clique numa linha para ver as cotas contempladas. O número entre colchetes é a parcela da cota.',optional:true},
    {t:function(){ return $$('#topActions .btn-gold').filter(vis)[0]||null; },title:'Importar resultado',text:'Todo mês, importe o PDF “Resultado de Assembleia” da administradora. A plataforma reconhece grupo, sorteio e lances; você confere antes de gravar.',optional:true,roles:M}
  ]},
- {id:'conversas',page:'conversas',roles:S3,v:2,g:'Vendas e relacionamento',ic:'chat',title:'Conversas',desc:'As conversas de WhatsApp dos clientes e leads.',steps:[
-   {t:q('#waSrch'),title:'Buscar conversa',text:'Encontre uma conversa pelo nome ou número.',demo:'type',typeText:'Ana'},
-   {t:q('#content .waPanel'),title:'Lista e conversa',text:'Escolha uma conversa à esquerda para ler e responder. Enviar mensagem é uma ação real.'},
-   {t:q('#content .hu-bar'),title:'Você ou a Alice',text:'Mostra quem está atendendo. Quando você manda uma mensagem, a Alice e o follow-up pausam por 30 min. “Assumir” pausa sem prazo (para uma negociação longa); “Devolver para a Alice” faz ela voltar na hora.',optional:true}
+ {id:'conversas',page:'conversas',roles:S3,v:3,pre:function(){ return W.AgionHumano&&W.AgionHumano.demo(); },post:function(){ try{ W.AgionHumano&&W.AgionHumano.demoOff(); }catch(e){} },g:'Vendas e relacionamento',ic:'chat',title:'Conversas',desc:'O WhatsApp dos seus leads e clientes: a Alice atende e faz o follow-up, você acompanha e assume quando precisar.',steps:[
+   {t:q('#content .wa-list .hu-demo, #content .hu-demo-chat .wa-chd'),title:'Cada lead cai na conversa de quem vai atender',text:{master:'Quando um lead novo chega, ele já é designado para um especialista (ou para você) e aparece nas Conversas dele. Você vê todas as conversas da equipe. Este é um exemplo fictício; nada aqui é real.',_:'Quando um lead novo chega, ele já é designado para você e aparece aqui. Você vê só as conversas dos seus leads e clientes. Este é um exemplo fictício; nada aqui é real.'}},
+   {t:q('#content .hu-demo .hu-tags, #content .hu-demo-chat .hu-tags'),title:'Etiquetas',text:'“Novo lead” (verde), o nome de quem atende e “Cliente” (dourada) quando a pessoa já é cliente da Agion.'},
+   {t:q('#content .hu-demo-chat .wa-msgs'),title:'A Alice atende e faz o follow-up',text:'Antes de o lead entrar no seu CRM, a Alice conversa com ele e faz o follow-up. Você acompanha tudo por aqui, em tempo real.'},
+   {t:q('#content .hu-demo-bar'),title:'O lead pediu uma pessoa',text:'Se o lead pedir um atendente, desconfiar do robô ou a conversa travar, quem atende recebe uma notificação no celular e no computador. A Alice segura a conversa por 2 minutos esperando você.'},
+   {t:q('#content .hu-demo-bar .hu-bt'),title:'Assumir',text:'Toque em “Assumir”: a Alice e o follow-up ficam em silêncio até você devolver. Tocando na notificação, a plataforma já abre nesta conversa, com o botão em destaque.',demo:'click'},
+   {t:q('#content .hu-demo-chat .wa-b .hu-sigb'),title:'Seu nome em cada mensagem',text:{master:'Tudo o que a equipe escreve chega ao cliente com o nome de quem escreveu em negrito, em cima. Você pode ligar ou desligar o seu nome em “Assinar com meu nome”, na faixa de cada conversa.',_:'Tudo o que você escreve chega ao cliente com o seu nome em negrito, em cima, para ele saber quem está falando.'}},
+   {t:q('#content .hu-demo-chat .wa-inp'),title:'Responder',text:'Escreva e envie. Só de mandar uma mensagem, a Alice pausa por 30 minutos e depois volta sabendo o que você disse. No tutorial nada é enviado.'},
+   {t:q('#waSrch'),title:'Buscar conversa',text:'Encontre uma conversa pelo nome ou número.',demo:'type',typeText:'Carla',optional:true}
  ]},
  {id:'feed',page:'feed',roles:M,v:1,g:'Marketing e comunicação',ic:'chat',title:'Feed',desc:'Mural de avisos da equipe.',steps:[
    {t:q('#feedTxt'),title:'Escreva um aviso',text:'O texto aparece para a equipe depois de publicar.',demo:'type',typeText:'Bom dia, time!'},
@@ -455,7 +460,7 @@ function paintPlay(){ if(!UI||!RUN) return; UI.play.innerHTML=(RUN.auto?IC.pause
 function setAuto(on){ if(!RUN) return; RUN.auto=!!on; paintPlay(); clearTimeout(RUN.timer); if(on) schedAuto(); }
 function schedAuto(){ clearTimeout(RUN.timer); var st=stepsOf(RUN.t)[RUN.i]||{text:''}; var ms=Math.max(3800,Math.min(9000,1800+(TX(st.text).length+(st.typeText||'').length*3)*45));
   RUN.timer=setTimeout(function(){ if(!RUN||!RUN.auto) return; if(RUN.i>=stepsOf(RUN.t).length-1){ setAuto(false); return; } next(); },ms); }
-function cleanup(){ if(!RUN) return; if(RUN.openedLead){ try{ closeLead(); }catch(e){} } }
+function cleanup(){ if(!RUN) return; if(RUN.openedLead){ try{ closeLead(); }catch(e){} } if(RUN.t&&RUN.t.post){ try{ RUN.t.post(); }catch(e){} } }
 function stop(why){
   if(!RUN) return; clearTimeout(RUN.timer); cleanup(); var t=RUN.t; RUN=null; TOK++; clearDemo(); destroyUI();
   if(why==='nav') try{ flash('Tutorial pausado — continue quando quiser em Tutoriais'); }catch(e){}
