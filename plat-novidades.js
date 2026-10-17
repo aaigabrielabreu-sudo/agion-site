@@ -13,8 +13,12 @@
 var W=window, D=document;
 var S3=['master','lider','especialista'], ML=['master','lider'], M=['master'], TODOS=['master','lider','especialista','cliente'];
 
-/* Próxima versão (25): começar já com rev:1 — no dia 16/10 um número 25 ficou no ar por alguns minutos. */
+/* v25 começou com rev:1 — no dia 16/10 um número 25 ficou no ar por alguns minutos. Próxima: 26. */
 var VERSOES=[
+ {v:25,rev:1,data:'17/10/2026',titulo:'Calculadora com carta nova e tutoriais das ferramentas',itens:[
+   {roles:S3,ic:'money',t:'Financiamento × Consórcio: carta contemplada ou carta nova',d:'Escolha o tipo de carta. Contemplada: a entrada vai para quem vende a carta e a parcela é integral até o fim. Nova: meia parcela até a contemplação; aí somam-se as parcelas do período que o grupo já andou e as metades não pagas, com reajuste, diluídas no prazo restante. O PDF agora sai pela impressão do navegador (“Salvar como PDF”), com texto nítido e sem erro de espaçamento.',tutorial:'t-financ',abrir:function(){ try{ window.open('/calc-financiamento','_blank'); }catch(e){} }},
+   {roles:S3,ic:'doc',t:'Tutorial em cada ferramenta',d:'Financiamento × Consórcio, Escada Financeira, Alavancagem Patrimonial, Gerador de Propostas e Assembleias têm tutorial próprio: toque em “? Tutorial” no cartão da ferramenta ou em “Como usar esta ferramenta” dentro dela. Em Tutoriais, todos ficam na seção Ferramentas.',tutorial:'ferramentas',abrir:function(){ go('ferramentas'); }}
+ ]},
  {v:24,rev:4,data:'16/10/2026',titulo:'Tarefas organizadas, notificações e menu mais enxuto',itens:[
    {roles:S3,ic:'check',t:'Nova aba Tarefas',d:'Agenda por dia (atrasadas, hoje, amanhã…), os números do dia no topo, filtros por tipo e responsável e busca. Abra a tarefa para marcar Feita ou Não feita, escolher a resposta (ex.: Atendeu, Não atendeu) e escrever a anotação.',tutorial:'tarefas',abrir:function(){ go('tarefas'); }},
    {roles:S3,ic:'bell',t:'Notificações de tarefas no celular',d:'Aviso quando alguém cria uma tarefa para você, na hora de cada tarefa e um resumo às 8h30. Toque em “Ativar notificações” na aba Tarefas, em cada aparelho.',abrir:function(){ go('tarefas'); }},

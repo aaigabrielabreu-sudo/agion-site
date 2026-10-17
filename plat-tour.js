@@ -55,6 +55,7 @@ var IC={
    Ao mudar o conteúdo de um tutorial, suba "v" — quem já concluiu vê "Atualizado".
    ========================================================================== */
 var S3=['master','lider','especialista'], ML=['master','lider'], M=['master'], CL=['cliente'];
+function STEPS(n){ var a=[]; for(var i=0;i<n;i++) a.push({}); return a; }
 var CFG=[
  /* ---------------- EQUIPE ----------------
     text pode ser string ou objeto por perfil {master:..., lider:..., especialista:..., _:padrão}.
@@ -109,14 +110,20 @@ var CFG=[
    {t:q('#mktBody'),title:'Conteúdo da seção',text:'Aqui aparece o conteúdo da seção escolhida: na Visão geral, o funil e a origem dos leads; em Templates, as mensagens prontas do WhatsApp.'},
    {t:topBtn(),title:'Criar template',text:'Monta uma mensagem de WhatsApp para aprovação. Nada é enviado por aqui.',optional:true}
  ]},
- {id:'ferramentas',page:'ferramentas',roles:S3,v:3,g:'Marketing e comunicação',ic:'gear',title:'Ferramentas',desc:'Calculadoras para usar na frente do cliente e o gerador de propostas.',steps:[
+ {id:'ferramentas',page:'ferramentas',roles:S3,v:4,g:'Ferramentas',ic:'gear',title:'Ferramentas',desc:'Calculadoras para usar na frente do cliente e o gerador de propostas.',steps:[
    {t:q('[data-tour-target="tool-0"]'),title:'Financiamento × Consórcio',text:'Compara custo real, CET e SAC/Price, e mostra quanto sobra para investir. Abre em uma nova aba.',optional:true,wait:6000},
    {t:q('[data-tour-target="tool-1"]'),title:'Escada Financeira',text:'Monta a escada de cartas que se paga sozinha.',optional:true},
    {t:q('[data-tour-target="tool-2"]'),title:'Alavancagem Patrimonial',text:'Simula vender a carta contemplada ou transformá-la em renda de imóvel.',optional:true},
    {t:q('[data-tour-target="tool-3"]'),title:'Gerador de Propostas',text:'Monta a proposta do cliente e gera o PDF.',optional:true},
-   {t:q('[data-tour-target="tool-4"]'),title:'Assembleias',text:{master:'O resultado das assembleias de cada mês, por grupo: contemplações por sorteio e por lance (livre, fixo, 2º fixo, embutido), excluídos e o calendário. Você importa o PDF da administradora e a equipe consulta.',_:'O resultado das assembleias de cada mês, por grupo: contemplações por sorteio e por lance, excluídos e o calendário. Use para indicar ao cliente o grupo que mais contempla.'},optional:true}
+   {t:q('[data-tour-target="tool-4"]'),title:'Assembleias',text:{master:'O resultado das assembleias de cada mês, por grupo: contemplações por sorteio e por lance (livre, fixo, 2º fixo, embutido), excluídos e o calendário. Você importa o PDF da administradora e a equipe consulta.',_:'O resultado das assembleias de cada mês, por grupo: contemplações por sorteio e por lance, excluídos e o calendário. Use para indicar ao cliente o grupo que mais contempla.'},optional:true},
+   {t:q('[data-tour-target="tool-0"] .tut-tool'),title:'Cada ferramenta tem o seu tutorial',text:'Toque em “Tutorial” no cartão para aprender a usar aquela ferramenta passo a passo. Dentro de cada uma também há o botão “Como usar esta ferramenta”. Todos ficam em Tutoriais › Ferramentas.',optional:true}
  ]},
- {id:'assembleias',page:'ferramentas',sub:true,pre:function(){ return W.AgionImport&&W.AgionImport.assembleias(); },roles:S3,v:1,g:'Vendas e relacionamento',ic:'chart',title:'Assembleias',desc:'Resultado mensal dos grupos por administradora e categoria do bem: sorteio, lances, excluídas e calendário.',steps:[
+ /* ---- ferramentas que abrem em nova aba: o guia roda na própria página (tool-tour.js); ext = endereço ---- */
+ {id:'t-financ',ext:'/calc-financiamento',roles:S3,v:1,g:'Ferramentas',ic:'money',title:'Financiamento × Consórcio',desc:'Carta contemplada ou carta nova contra o financiamento: parcelas, custo efetivo, a sobra investida e o PDF.',steps:STEPS(17)},
+ {id:'t-escada',ext:'/escada-financeira',roles:S3,v:1,g:'Ferramentas',ic:'chart',title:'Escada Financeira',desc:'Premissas, degraus e o documento da escada de cartas que se paga sozinha.',steps:STEPS(8)},
+ {id:'t-alav',ext:'/calc-alavancagem',roles:S3,v:1,g:'Ferramentas',ic:'target',title:'Alavancagem Patrimonial',desc:'Vender a carta contemplada ou comprar imóvel de renda: os dois cenários, campo a campo.',steps:STEPS(13)},
+ {id:'t-prop',ext:'/propostas',roles:S3,v:1,g:'Ferramentas',ic:'doc',title:'Gerador de Propostas',desc:'Proposta resumida e completa: tabela, estratégias, cartas, páginas do deck e o download.',steps:STEPS(14)},
+ {id:'assembleias',page:'ferramentas',sub:true,pre:function(){ return W.AgionImport&&W.AgionImport.assembleias(); },roles:S3,v:1,g:'Ferramentas',ic:'chart',title:'Assembleias',desc:'Resultado mensal dos grupos por administradora e categoria do bem: sorteio, lances, excluídas e calendário.',steps:[
    {t:q('#asAdmTabs'),title:'Administradora',text:'Primeiro escolha a administradora: HS Consórcios ou Âncora Consórcios. Cada uma tem os próprios grupos e categorias.',demo:'click'},
    {t:q('#asTipoTabs'),title:'Categoria do bem',text:'Depois a categoria: Imóvel, Automóvel, Serviços, Investimento ou Outros. O número ao lado é quantos grupos têm resultado importado.',demo:'click'},
    {t:q('#asMes'),title:'Mês da assembleia',text:'Escolha o mês do resultado. Aparecem só os meses importados para esta administradora e categoria.'},
@@ -260,7 +267,7 @@ var CFG=[
    {t:btn('sair da conta','#content'),title:'Sair',text:'Encerra a sessão neste aparelho.',optional:true}
  ]}
 ];
-var GROUP_ORDER=['Comece por aqui','Vendas e relacionamento','Gestão','Marketing e comunicação','Seu painel','Seu plano','Seu dinheiro'];
+var GROUP_ORDER=['Comece por aqui','Vendas e relacionamento','Ferramentas','Gestão','Marketing e comunicação','Seu painel','Seu plano','Seu dinheiro'];
 function TX(v){ if(v==null) return ''; if(typeof v==='string') return v; var r=role(); return v[r]!=null?v[r]:(v._!=null?v._:(v.master||v.lider||v.especialista||'')); }
 function stepsOf(t){ var r=role(); return t.steps.filter(function(st){ return !st.roles||st.roles.indexOf(r)>=0; }); }
 function forRole(){ var r=role(); return CFG.filter(function(t){ return t.roles.indexOf(r)>=0; }); }
@@ -279,7 +286,9 @@ function SB(){ try{ return W.supa||(typeof supa!=="undefined"?supa:null); }catch
 function ctx(){ return (session&&session.viewAs)?'view:'+session.viewAs.id:'self'; }
 function stor(){ return (session&&session.viewAs)?W.sessionStorage:W.localStorage; }
 function pkey(){ var id=null; try{ id=meId(); }catch(e){} return 'agion:tutorial:v1:'+(id||'anon')+':'+ctx(); }
-function data(){ var k=pkey(); if(P.key!==k||!P.data){ P.key=k; P.data=null; try{ P.data=JSON.parse(stor().getItem(k)||'null'); }catch(e){} if(!P.data||typeof P.data!=='object') P.data={items:{},invite:null,upd:0}; if(!P.data.items) P.data.items={}; pull(); } return P.data; }
+function data(){ var k=pkey(); if(P.key!==k||!P.data){ P.key=k; P.data=null; try{ P.data=JSON.parse(stor().getItem(k)||'null'); }catch(e){} if(!P.data||typeof P.data!=='object') P.data={items:{},invite:null,upd:0}; if(!P.data.items) P.data.items={}; pull(); if(extMerge(P.data)){ P.data.upd=Date.now(); try{ stor().setItem(k,JSON.stringify(P.data)); }catch(e){} push(); } } return P.data; }
+function extMerge(d){ if(ctx()!=='self') return false; var x=null; try{ x=JSON.parse(localStorage.getItem('agion:tooltour:done')||'null'); }catch(e){} if(!x) return false; var ch=false;
+  CFG.forEach(function(t){ if(!t.ext||!x[t.id]) return; var it=d.items[t.id]||(d.items[t.id]={step:0,done:null}); var dv=it.done&&it.done.v||0; if((x[t.id].v||0)>dv){ it.done={v:x[t.id].v,ts:x[t.id].ts||Date.now()}; it.step=0; ch=true; } }); return ch; }
 function rec(id){ var d=data(); return d.items[id]||(d.items[id]={step:0,done:null}); }
 function save(){ var d=data(); d.upd=Date.now(); try{ stor().setItem(P.key,JSON.stringify(d)); }catch(e){} push(); }
 function status(t){ var r=data().items[t.id]; if(!r) return 'new'; if(r.done&&r.done.v===t.v) return 'done'; if(r.done) return 'upd'; return r.step>0?'prog':'new'; }
@@ -431,6 +440,7 @@ async function prepare(t){
 }
 async function start(id,mode){
   var t=byId(id); if(!t||t.roles.indexOf(role())<0) return;
+  if(t.ext){ var re=rec(t.id); re.ask='no'; if(!re.done) re.step=Math.max(re.step||0,1); save(); try{ W.open(t.ext+'?tour=1','_blank'); }catch(e){ location.href=t.ext+'?tour=1'; } if(view.page==='tutoriais') renderCenter(D.getElementById('content')); return; }
   if(RUN) stop('switch');
   closeInvite(); closeAreaInvite();
   TOK++; RUN={t:t,i:0,tok:TOK,stepTok:0,auto:false,timer:null,el:null,from:view.page};
@@ -611,7 +621,16 @@ function afterRender(){
   if(RUN&&!RUN.nav){ var st=stepsOf(RUN.t)[RUN.i]||{}; var pg=st.page||(RUN.t.ficha==='cliente'?(role()==='cliente'?'plan':'editor'):RUN.t.page); if(pg&&view.page!==pg&&!(RUN.t.ficha==='lead')) stop('nav'); }
   if(view.page==='config'&&role()==='cliente'&&isAppUI()) cfgLink();
   leadModalHelp(); maybeInvite(); areaInvite();
+  if(view.page==='ferramentas') setTimeout(toolBtns,30);
 }
+function toolBtns(){ var map=['t-financ','t-escada','t-alav','t-prop','assembleias'];
+  map.forEach(function(id,i){ var c=$('[data-tour-target="tool-'+i+'"]'); if(!c||$('.tut-tool',c)||!byId(id)) return;
+    var b=D.createElement('button'); b.type='button'; b.className='tut-tool'; b.textContent='? Tutorial'; b.setAttribute('aria-label','Tutorial: '+TX(byId(id).title));
+    b.style.cssText='margin-top:10px;margin-left:10px;border:1px solid #e7dec9;background:#faf6ec;color:#0b2a26;border-radius:999px;padding:5px 11px;font-weight:600;font-size:12px;font-family:inherit;cursor:pointer';
+    b.addEventListener('click',function(e){ e.stopPropagation(); e.preventDefault(); start(id); });
+    var last=c.lastElementChild; if(last){ last.style.display='inline-block'; } c.appendChild(b); }); }
+W.addEventListener('storage',function(e){ if(e.key==='agion:tooltour:done'){ P.key=null; try{ if(view.page==='tutoriais'&&!RUN) renderCenter(D.getElementById('content')); }catch(_){ } } });
+W.addEventListener('focus',function(){ try{ if(view.page==='tutoriais'&&!RUN){ P.key=null; renderCenter(D.getElementById('content')); } }catch(_){ } });
 function cfgLink(){ var C=D.getElementById('content'); if(!C||$('.tut-cfg',C)) return; var p=D.createElement('div'); p.className='panel tut-cfg';
   p.innerHTML='<h2>Tutoriais</h2><p class="note" style="margin:0 0 12px">Reveja como usar cada área do aplicativo.</p><button class="btn btn-gold btn-sm" onclick="go(\'tutoriais\')">Abrir tutoriais</button>'; C.appendChild(p); }
 function boot(){ leadModalHelp(); try{ if(session&&session.role){ renderNav(); ensureHelp(); } }catch(e){} }
