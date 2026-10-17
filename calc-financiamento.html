@@ -23,8 +23,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
  --ink:#0a2721;--ink2:#0f3a31;--paper:#fbf8f1;--paper2:#f4eee1;--card:#ffffff;
@@ -67,6 +65,10 @@ input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 
 .seg.sm{padding:2px;flex:none}
 .seg.sm button{padding:4px 9px;font-size:11px}
 .f .seg{flex:none}
+.tipo-hint{grid-column:1/-1;font-size:12.5px;color:var(--mut);margin:-2px 0 2px;line-height:1.5}
+.only-nova{display:none !important}
+body.nova .only-nova{display:flex !important}
+body.nova .only-cont{display:none !important}
 .verdict{background:linear-gradient(155deg,#0f3a31,#0a2721);color:#fff;border-radius:22px;padding:26px 28px;margin:18px 0;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .verdict:before{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(closest-side,rgba(200,168,96,.22),transparent)}
 .verdict .vk{color:var(--goldl);font-size:12px;letter-spacing:.14em;font-weight:600;text-transform:uppercase}
@@ -90,6 +92,7 @@ input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 
 .line .k{font-size:12.5px;color:var(--mut)} .pane.win .line .k{color:#9fb8b0}
 .line .v{font-family:'Fraunces',serif;font-weight:600;font-size:17px}
 .line .v.tot{font-size:22px}
+.line .v{white-space:nowrap;padding-left:10px}
 .pane.win .line .v{color:#fff}
 .chead{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px;flex-wrap:wrap;gap:6px}
 .chead h3{margin:0}
@@ -112,7 +115,32 @@ input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 
 .scn .ss{font-size:12px;color:var(--mut);line-height:1.5}
 @media(max-width:680px){.grid3{grid-template-columns:1fr}.cmp{grid-template-columns:1fr}.vstats{grid-template-columns:1fr}.cmp3{grid-template-columns:1fr}}
 @media print{
- @page{margin:11mm}
+ @page{size:A4;margin:0}
+ body{padding:12mm 12mm 10mm !important;font-size:12px}
+ .top{padding:0 0 6px}
+ .hero p{font-size:12.5px}
+ .hero h1{font-size:30px}
+ .card{padding:14px 16px;margin:10px 0}
+ .grid3{gap:0 18px}
+ .f{padding:5px 0}
+ .f label{font-size:11.5px}
+ .f label small{font-size:9.5px}
+ input{width:92px;padding:5px 7px;font-size:12px;border-color:#e3d9c3;background:#fff}
+ input::placeholder{color:var(--ink)}
+ .seg button{font-size:10px;padding:4px 9px}
+ .seg.sm button{padding:3px 7px;font-size:9.5px}
+ .seg button:not(.on){display:none}
+ .tipo-hint{font-size:10.5px}
+ .vstat .v{font-size:19px}
+ .verdict{padding:18px 20px}
+ .pane{padding:14px 16px}
+ .line{padding:5px 0}
+ .line .v{font-size:14.5px}.line .v.tot{font-size:17px}
+ .scn .sv{font-size:20px}
+ .win-note{font-size:12px;line-height:1.5;padding:12px 14px}
+ .chimg{display:block;width:100%;height:100%;object-fit:contain}
+ .card,.cmp,.cmp3,.big-cta{break-inside:avoid;page-break-inside:avoid}
+ .foot{font-size:10px}
  html,body{background:#fff !important}
  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
  .btn{display:none !important}
@@ -149,10 +177,17 @@ input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 
    <div class="f"><label>Crédito / valor do bem</label><input id="cred" value="500000"></div>
    <div class="f"><label>Investir a sobra <small>rendimento mensal</small></label><input id="rinv" value="1"></div>
    <div class="f"><label>CDI <small>referência ao ano</small></label><input id="cdi" value="10.5"></div>
-   <div class="sec">Consórcio · carta contemplada</div>
-   <div class="f"><label>Entrada · lance</label><span class="seg sm" id="segCEnt"><button data-m="PCT" class="on">%</button><button data-m="VAL">R$</button></span><input id="c_ent" value="25"></div>
+   <div class="sec">Consórcio
+     <span class="seg" id="segTipo"><button data-t="CONT" class="on">Carta contemplada</button><button data-t="NOVA">Carta nova</button></span>
+   </div>
+   <div class="tipo-hint" id="tipo_hint">Carta contemplada: o cliente paga a entrada ao vendedor da carta e assume o crédito com a parcela integral até o fim (corrigida pelo reajuste).</div>
+   <div class="f"><label id="c_ent_l">Entrada ao vendedor <small id="c_ent_h">percentual do crédito</small></label><span class="seg sm" id="segCEnt"><button data-m="PCT" class="on">%</button><button data-m="VAL">R$</button></span><input id="c_ent" value="25"></div>
+   <div class="f"><label>Parcela integral <small id="c_parc_h">R$ · a parcela da carta (vazio = calcula pela taxa)</small></label><input id="c_parc" value="" placeholder="auto"></div>
    <div class="f"><label>Taxa total <small>adm + fundo de reserva (%)</small></label><input id="c_taxa" value="25"></div>
-   <div class="f"><label>Prazo (meses)</label><input id="c_prazo" value="180"></div>
+   <div class="f only-cont"><label>Prazo <small>parcelas restantes (meses)</small></label><input id="c_prazo" value="180"></div>
+   <div class="f only-nova"><label>Prazo total do grupo <small>meses</small></label><input id="c_ptot" value="200"></div>
+   <div class="f only-nova"><label>Prazo já decorrido <small>meses que o grupo já andou · somados na contemplação</small></label><input id="c_pdec" value="100"></div>
+   <div class="f only-nova"><label>Contemplação prevista <small>mês da cota (meia parcela até lá)</small></label><input id="c_cont" value="24"></div>
    <div class="f"><label>Reajuste <small>%/ano · corrige a parcela</small></label><input id="c_reaj" value="6"></div>
    <div class="sec">Financiamento
      <span class="seg" id="segSys"><button data-s="PRICE" class="on">Price</button><button data-s="SAC">SAC</button></span>
@@ -176,10 +211,12 @@ input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 
 
  <div class="cmp">
   <div class="pane win">
-   <h4>Consórcio <span class="tag">SEM JUROS</span></h4>
-   <div class="cet">Custo efetivo (CET) <b id="c_cet">—</b> ao ano</div>
-   <div class="line"><span class="k">Entrada (lance)</span><span class="v" id="o_c_ent">—</span></div>
-   <div class="line"><span class="k">Parcela inicial → final</span><span class="v" id="o_c_parc">—</span></div>
+   <h4>Consórcio <span class="tag" id="c_tipo_tag">CONTEMPLADA</span></h4>
+   <div class="cet">Custo efetivo (CET) <b id="c_cet">—</b> ao ano · sem juros</div>
+   <div class="line"><span class="k" id="o_c_ent_k">Entrada</span><span class="v" id="o_c_ent">—</span></div>
+   <div class="line only-nova"><span class="k" id="o_c_meia_k">Meia parcela</span><span class="v" id="o_c_meia">—</span></div>
+   <div class="line only-nova"><span class="k" id="o_c_soma_k">Somado na contemplação</span><span class="v" id="o_c_soma">—</span></div>
+   <div class="line"><span class="k" id="o_c_parc_k">Parcela integral inicial → final</span><span class="v" id="o_c_parc">—</span></div>
    <div class="line"><span class="k">Custo além do crédito</span><span class="v" id="o_c_extra">—</span></div>
    <div class="line"><span class="k">Total desembolsado</span><span class="v tot" id="o_c_tot">—</span></div>
   </div>
@@ -233,11 +270,11 @@ input:focus{outline:none;border-color:var(--pet);background:#fff;box-shadow:0 0 
 <script>
 const $=id=>document.getElementById(id);
 const num=id=>{let r=($(id).value+'').trim();let v=r.indexOf(',')>-1?parseFloat(r.replace(/\./g,'').replace(',','.')):parseFloat(r);return isNaN(v)?0:v;};
-const money=v=>'R$ '+Math.round(v).toLocaleString('pt-BR');
+const money=v=>'R$\u00a0'+Math.round(v).toLocaleString('pt-BR');
 const moneyK=v=>Math.abs(v)>=1e6?('R$ '+(v/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+' mi'):('R$ '+Math.round(v/1e3)+' mil');
 const pct=(v,d=1)=>v.toLocaleString('pt-BR',{maximumFractionDigits:d})+'%';
 const parcC=(p0,rA,m)=>p0*Math.pow(1+rA,Math.floor(m/12));
-let SYS='PRICE', CENT_MODE='PCT', FENT_MODE='PCT', FRATE_MODE='JM';
+let SYS='PRICE', CENT_MODE='PCT', FENT_MODE='PCT', FRATE_MODE='JM', TIPO='CONT';
 function voltar(){ try{window.close();}catch(e){} setTimeout(function(){ try{location.href='/plataforma';}catch(_){ } },150); }
 function finSchedule(fin,i,n){
  let arr=[],juros=0;
@@ -245,23 +282,49 @@ function finSchedule(fin,i,n){
  else{let pmt=i>0?fin*i/(1-Math.pow(1+i,-n)):fin/n;for(let m=0;m<n;m++)arr.push(pmt);juros=pmt*n-fin;}
  return {arr,juros};
 }
-function cetMensal(C,ent,pmts){
- const f=x=>{let s=ent;for(let m=0;m<pmts.length;m++)s+=pmts[m]/Math.pow(1+x,m+1);return s-C;};
- let lo=0,hi=.5; if(f(0)<=0)return 0;
+function cetMensal(C,ent,pmts,k){
+ k=k||0; // mês em que o crédito é liberado (0 = já contemplada)
+ const f=x=>{let s=ent;for(let m=0;m<pmts.length;m++)s+=pmts[m]/Math.pow(1+x,m+1);return s-C/Math.pow(1+x,k);};
+ if(f(0)<=0)return 0;
+ let lo=0,hi=0; for(let x=.0005;x<=.5;x+=.0005){ if(f(x)<=0){hi=x;break;} lo=x; } // 1ª troca de sinal (fluxo com crédito no meio do prazo)
+ if(!hi)return 0;
  for(let it=0;it<80;it++){let mid=(lo+hi)/2;if(f(mid)>0)lo=mid;else hi=mid;}
  return (lo+hi)/2;
 }
 let CH1,CH2;
 function calc(){
  const C=num('cred'), rInv=num('rinv')/100, cdiA=num('cdi')/100, rCdi=Math.pow(1+cdiA,1/12)-1;
- const taxa=num('c_taxa')/100, nC=Math.max(1,Math.round(num('c_prazo'))), rA=num('c_reaj')/100;
- const cEnt=CENT_MODE==='VAL'?num('c_ent'):C*num('c_ent')/100;        // lance em R$
- const cExtra=C*taxa, cTot=C+cExtra;                                  // total REAL = crédito + taxa (lance já incluso, abate parcelas)
- const parcBase=Math.max(0,(cTot-cEnt))/nC;                           // parcela real após o lance abater
- let cPmts=[],cPf=parcBase;
- for(let m=0;m<nC;m++){const p=parcBase*Math.pow(1+rA,Math.floor(m/12));cPmts.push(p);cPf=p;}  // nominal (reajuste) p/ parcela mês a mês
+ const taxa=num('c_taxa')/100, rA=num('c_reaj')/100, NOVA=TIPO==='NOVA';
+ const cLance=CENT_MODE==='VAL'?num('c_ent'):C*num('c_ent')/100;      // entrada (contemplada) ou lance na contemplação (nova), em R$
+ const parcIn=num('c_parc');                                          // parcela integral informada (0 = calcula pela taxa)
+ let nC, kC=0, cEnt, parcBase, parcPos=0, cBase=[], nGrp=0, nMeia=0, cSomaK=0, nDecV=0;                   // cBase = fluxo real (sem reajuste) p/ CET e custo
+ if(!NOVA){
+   // CARTA CONTEMPLADA — compra de carta já contemplada: entrada paga ao vendedor (mês 0) e o cliente assume as parcelas integrais
+   nC=Math.max(1,Math.round(num('c_prazo')));
+   cEnt=cLance;
+   parcBase=parcIn>0?parcIn:C*(1+taxa)/nC;                            // parcela integral (a entrada vai para o vendedor e não abate o saldo)
+   for(let m=0;m<nC;m++)cBase.push(parcBase);
+ } else {
+   // CARTA NOVA — meia parcela até a contemplação; depois parcela cheia + a metade não paga, diluída no prazo que resta
+   const nTot=Math.max(2,Math.round(num('c_ptot'))), nDec=Math.min(nTot-2,Math.max(0,Math.round(num('c_pdec')))); nDecV=nDec;
+   nC=Math.max(2,nTot-nDec);                                          // parcelas da cota = prazo total − o que o grupo já andou
+   kC=Math.min(nC-1,Math.max(1,Math.round(num('c_cont'))));           // mês da contemplação (da cota)
+   cEnt=0;                                                            // nada sai no mês 0
+   parcBase=parcIn>0?parcIn:C*(1+taxa)/nTot;                          // parcela integral (plano do grupo inteiro)
+   const meia=parcBase/2, fK=Math.pow(1+rA,Math.floor((kC-1)/12));   // fK = reajuste acumulado até a contemplação
+   nGrp=nDec*parcBase; nMeia=kC*meia;                                 // parcelas do período em que a cota não participou + metades não pagas
+   cSomaK=(nGrp+nMeia)*fK;                                            // valor somado na contemplação, já reajustado
+   parcPos=Math.max(0,(nC-kC)*parcBase+nGrp+nMeia-cLance/fK)/(nC-kC); // cheia + atrasadas + metades, diluídas no prazo restante, abatido o lance
+   for(let m=0;m<nC;m++) cBase.push(m<kC?meia:parcPos);
+ }
+ const lanceIdx=NOVA?kC-1:-1, cLanceN=NOVA?cLance:0;                // lance da carta nova sai no mês da contemplação, sem reajuste
+ const cFlow=cBase.map((p,m)=>p+(m===lanceIdx?cLanceN:0));
+ const cTot=cEnt+cFlow.reduce((x,y)=>x+y,0), cExtra=Math.max(0,cTot-C);
+ let cPmts=[],cPf=0;
+ const cParc=[];
+ for(let m=0;m<nC;m++){const p=cBase[m]*Math.pow(1+rA,Math.floor(m/12));cParc.push(p);cPmts.push(p+(m===lanceIdx?cLanceN:0));cPf=p;}  // nominal (reajuste) p/ parcela mês a mês
  const nF=Math.max(1,Math.round(num('f_prazo')));
- const cCet=cetMensal(C,cEnt,new Array(nC).fill(parcBase));           // CET real do consórcio
+ const cCet=cetMensal(C,cEnt,cFlow,kC);                               // CET real do consórcio (crédito liberado na contemplação)
  const fEnt=FENT_MODE==='VAL'?num('f_ent'):C*num('f_ent')/100;
  const fin=Math.max(0,C-fEnt);
  const iF=FRATE_MODE==='CET'?(Math.pow(1+num('f_juro')/100,1/12)-1):num('f_juro')/100;
@@ -276,7 +339,7 @@ function calc(){
  for(let m=0;m<H;m++){
    const pc=m<nC?cPmts[m]:0, pf=m<nF?fArr[m]:0;
    const d=Math.max(0,pf-pc), dF=Math.max(0,pc-pf);
-   arrPc.push(pc);arrPf.push(pf);arrDiff.push(d);
+   arrPc.push(m<nC?cParc[m]:0);arrPf.push(pf);arrDiff.push(Math.max(0,pf-(m<nC?cParc[m]:0))); // gráfico: só parcelas (o lance aparece no texto)
    a=a*(1+rInv)+d;
    cdi=cdi*(1+rCdi)+d;
    { const yC=cpl*rInv, usedC=Math.min(yC,pc); cYield+=usedC; cpl=cpl+d+(yC-usedC); } // resgata só o que abate parcela; sem parcela, o rendimento fica investido
@@ -294,7 +357,14 @@ function calc(){
  }
  const fvA=a, fvB=b, fvC=cpl, fvCdi=cdi, fvFin=fpl, net=fvA-fvFin;
  const bkAfterEnd = bkMonth!==null && bkMonth>=nC; // meta só depois da última parcela
- $('o_c_ent').textContent=money(cEnt); $('o_c_parc').textContent=money(parcBase)+' → '+money(cPf);
+ document.body.classList.toggle('nova',NOVA); $('c_tipo_tag').textContent=NOVA?'CARTA NOVA':'CONTEMPLADA';
+ $('o_c_ent_k').textContent=NOVA?('Lance na contemplação (mês '+kC+')'):'Entrada ao vendedor';
+ $('o_c_ent').textContent=money(NOVA?cLance:cEnt);
+ if(NOVA){ $('o_c_meia_k').textContent='Meia parcela · meses 1 a '+kC; $('o_c_meia').textContent=money(parcBase/2);
+   $('o_c_soma_k').innerHTML='Somado na contemplação<br><small style="opacity:.75">'+nDecV+' parcelas do grupo + metades, reajustadas</small>'; $('o_c_soma').textContent=money(cSomaK);
+   $('o_c_parc_k').textContent='Após contemplar · mês '+(kC+1)+' a '+nC; $('o_c_parc').textContent=money(parcPos)+(rA>0?(' → '+money(cPf)):''); }
+ else { $('o_c_parc_k').textContent='Parcela integral'+(rA>0?' inicial → final':''); $('o_c_parc').textContent=money(parcBase)+(rA>0?(' → '+money(cPf)):''); }
+ $('c_parc').placeholder=money(NOVA?C*(1+taxa)/Math.max(2,Math.round(num('c_ptot'))):C*(1+taxa)/nC).replace('R$ ','');
  $('o_c_extra').textContent=money(cExtra); $('o_c_tot').textContent=money(cTot);
  $('o_f_ent').textContent=money(fEnt);
  $('f_sys_tag').textContent=SYS;
@@ -311,7 +381,7 @@ function calc(){
  $('v_head').textContent = net>=0 ? ('No fim, o consórcio deixa '+money(net)+' a mais no bolso.') : ('Nesta config o financiamento ainda fica '+money(-net)+' à frente.');
  $('v_sub').textContent='CET de '+pct(cCetA)+' a.a. no consórcio contra '+pct(fCetA)+' a.a. no financiamento ('+SYS+'). Somando a diferença investida, o consórcio '+(net>=0?'sai na frente':'quase empata')+' — e você escolhe como usar o que sobra todo mês.';
  // 3 cenários
- const difM=Math.max(0,fArr[0]-parcBase);
+ const difM=Math.max(0,fArr[0]-cPmts[0]);
  $('sa_v').textContent=money(fvA); $('sa_s').textContent='Acumula a diferença a '+pct(num('rinv'))+' a.m. e não mexe. Maior patrimônio no fim.';
  $('sb_v').textContent=money(fvB); $('sb_s').textContent=!bkMonth?('Sem atingir 100% da carta no prazo — se comporta como o cenário A.'):(bkAfterEnd?('Meta atingida no mês '+bkMonth+', após o encerramento das parcelas (mês '+nC+'); nenhum pagamento realizado com rendimentos nessa fase — o rendimento segue todo no investimento.'):('Rende até o mês '+bkMonth+'; daí até o mês '+nC+' o rendimento paga a parcela ('+money(bYield)+' em parcelas pagas com rendimento) sem tocar no principal, e a sobra continua sendo investida. Depois do fim das parcelas, o rendimento fica todo no investimento.'));
  $('sc_v').textContent=money(fvC); $('sc_s').textContent='Resgata o rendimento todo mês pra abater a parcela até o mês '+nC+' ('+money(cYield)+' em parcelas pagas com rendimento). Depois do fim das parcelas, o rendimento fica no investimento.';
@@ -319,7 +389,7 @@ function calc(){
    $('cta_s').textContent='Investindo a diferença a '+pct(num('rinv'))+' ao mês, em '+bkMonth+' meses ('+(bkMonth/12).toFixed(1)+' anos) o valor guardado atinge '+money(C)+' — o crédito inteiro, só com o que sobrou.';}
  else{$('cta_v').textContent='No fim do prazo, a sobra investida chega a '+money(fvA)+'.';
    $('cta_s').textContent='Nesta configuração a sobra investida acumula '+money(fvA)+' a '+pct(num('rinv'))+' ao mês, sem atingir 100% da carta ('+money(C)+') no prazo.';}
- $('note').innerHTML='A parcela do consórcio começa <b>'+money(difM)+'</b> menor por mês. Investindo essa diferença a '+pct(num('rinv'))+' ao mês, no cenário A você acumula <b>'+money(fvA)+'</b> (a '+pct(num('cdi'))+' de CDI seriam '+money(fvCdi)+'). '+(bkMonth?('E já no mês <b>'+bkMonth+'</b> esse dinheiro guardado paga 100% da carta de '+money(C)+'.'):'')+' No consórcio não há juros: o custo além do crédito é <b>'+money(cExtra)+'</b>, contra <b>'+money(fJuros)+'</b> de juros no financiamento ('+SYS+').';
+ $('note').innerHTML=(NOVA?('Na carta nova, o cliente paga <b>meia parcela ('+money(parcBase/2)+')</b> até a contemplação no mês '+kC+'; depois a parcela passa a <b>'+money(parcPos)+'</b> (a parcela cheia mais <b>'+money(cSomaK)+'</b> somados na contemplação: as '+nDecV+' parcelas do período em que o grupo já andava e as metades não pagas, com o reajuste até lá, diluídos nos '+(nC-kC)+' meses restantes'+(cLance>0?', já abatido o lance de '+money(cLance):'')+'). '):'')+'A parcela do consórcio começa <b>'+money(difM)+'</b> menor por mês. Investindo essa diferença a '+pct(num('rinv'))+' ao mês, no cenário A você acumula <b>'+money(fvA)+'</b> (a '+pct(num('cdi'))+' de CDI seriam '+money(fvCdi)+'). '+(bkMonth?('E já no mês <b>'+bkMonth+'</b> esse dinheiro guardado paga 100% da carta de '+money(C)+'.'):'')+' No consórcio não há juros: o custo além do crédito é <b>'+money(cExtra)+'</b>, contra <b>'+money(fJuros)+'</b> de juros no financiamento ('+SYS+').';
  $('resumo').innerHTML='<b>Resumo.</b> A diferença que sobra pode ser usada de 3 jeitos: <b>A)</b> acumular tudo e terminar com <b>'+money(fvA)+'</b>; <b>B)</b> '+(bkAfterEnd?('deixar render — a meta só é atingida no mês '+bkMonth+', depois do fim das parcelas, então nenhuma parcela é paga com rendimento e o investimento termina com <b>'+money(fvB)+'</b>;'):('deixar render até o ponto de virada'+(bkMonth?(' (mês '+bkMonth+')'):'')+' e então usar só o rendimento pra pagar a parcela, terminando com <b>'+money(fvB)+'</b>;'))+' ou <b>C)</b> resgatar o rendimento desde o 1º mês pra aliviar a parcela, terminando com <b>'+money(fvC)+'</b>. Nos três, somando o que você investe, o consórcio '+(net>=0?('termina <b>'+money(net)+'</b> na frente do financiamento'):'fica lado a lado com o financiamento')+' — mesmo quando a parcela do financiamento parece menor no papel.';
  try{ if(window.Chart) draw(arrPc,arrPf,arrDiff,arrA,arrB,arrC,C,H); }catch(e){}
 }
@@ -344,11 +414,15 @@ function draw(pc,pf,diff,aA,aB,aC,C,H){
    {label:'Valor da carta',data:new Array(H+1).fill(C),borderColor:'#7c8a82',borderWidth:1.4,borderDash:[6,5],fill:false,pointRadius:0}
  ]},options:baseOpts(fmt,grid,tick)});
 }
-function baseOpts(fmt,grid,tick){return {responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+function baseOpts(fmt,grid,tick){return {responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
  plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+money(c.parsed.y)},
    backgroundColor:'#0a2721',titleColor:'#ecd9a6',bodyColor:'#fff',padding:10,cornerRadius:10}},
  scales:{x:{grid:{display:false},ticks:{...tick,maxTicksLimit:7,callback:function(v){return 'm'+this.getLabelForValue(v)}}},
    y:{grid,ticks:{...tick,callback:fmt},beginAtZero:true}}};}
+document.querySelectorAll('#segTipo button').forEach(b=>b.onclick=()=>{TIPO=b.dataset.t;document.querySelectorAll('#segTipo button').forEach(x=>x.classList.toggle('on',x===b));
+  $('tipo_hint').textContent=TIPO==='NOVA'?'Carta nova (grupo em andamento): meia parcela até a contemplação. Na contemplação somam-se as parcelas do período que o grupo já andou e as metades não pagas, com reajuste, diluídas no prazo restante. O lance (se houver) sai no mês da contemplação.':'Carta contemplada: o cliente paga a entrada ao vendedor da carta e assume o crédito com a parcela integral até o fim (corrigida pelo reajuste).';
+  $('c_ent_l').firstChild.nodeValue=TIPO==='NOVA'?'Lance na contemplação ':'Entrada ao vendedor ';
+  if(TIPO==='NOVA'&&CENT_MODE==='PCT'&&num('c_ent')===25)$('c_ent').value=0; calc();});
 document.querySelectorAll('#segSys button').forEach(b=>b.onclick=()=>{SYS=b.dataset.s;document.querySelectorAll('#segSys button').forEach(x=>x.classList.toggle('on',x===b));calc();});
 function modeSeg(segId,onPick){document.querySelectorAll('#'+segId+' button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#'+segId+' button').forEach(x=>x.classList.toggle('on',x===b));onPick(b.dataset.m);calc();});}
 modeSeg('segCEnt',m=>{ if(m===CENT_MODE)return; const C=num('cred'); if(m==='VAL'){$('c_ent').value=Math.round(C*num('c_ent')/100);} else {$('c_ent').value=C>0?(+ (num('c_ent')/C*100).toFixed(1)):0;} CENT_MODE=m; $('c_ent_h')&&($('c_ent_h').textContent=m==='VAL'?'em reais (R$)':'percentual do crédito'); });
@@ -357,35 +431,27 @@ modeSeg('segFRate',m=>{ if(m===FRATE_MODE)return; const v=num('f_juro'); if(m===
 document.querySelectorAll('input').forEach(el=>el.addEventListener('input',calc));
 window.addEventListener('resize',()=>{if(CH1)CH1.resize();if(CH2)CH2.resize();});
 window.addEventListener('load',calc); calc();
+if(/nova/.test(location.hash)){var _bn=document.querySelector('#segTipo button[data-t=NOVA]'); _bn&&_bn.click();}
 </script>
 <script>
-async function baixarPDF(btn){
- var old=btn.innerHTML; btn.innerHTML="Gerando…"; btn.style.opacity=".6"; btn.disabled=true;
- var swaps=[];
- try{
-  var ids=["ch1","ch2"];
-  for(var i=0;i<ids.length;i++){
-    var cv=document.getElementById(ids[i]);
-    var ch=(window.Chart&&Chart.getChart)?Chart.getChart(ids[i]):null;
-    if(cv&&ch){
-      try{ch.options.animation=false;ch.update("none");ch.draw();}catch(e){}
-      var data=ch.toBase64Image("image/png",1.0);
-      var im=document.createElement("img");
-      im.style.cssText="position:absolute;inset:0;width:100%;height:100%;object-fit:contain";
-      await new Promise(function(res){im.onload=res;im.onerror=res;im.src=data;});
-      cv.style.visibility="hidden"; cv.parentNode.appendChild(im); swaps.push({cv:cv,im:im});
-    }
-  }
-  var el=document.querySelector('.wrap');
-  var canvas=await html2canvas(el,{scale:2,backgroundColor:"#fbf8f1",useCORS:true,logging:false,windowWidth:el.scrollWidth,
-    onclone:function(doc){doc.querySelectorAll(".btn").forEach(function(b){b.style.display="none";});}});
-  var img=canvas.toDataURL("image/jpeg",0.95);
-  var pdfW=595.28, pdfH=pdfW*canvas.height/canvas.width;
-  var pdf=new window.jspdf.jsPDF({unit:"pt",format:[pdfW,pdfH],compress:true});
-  pdf.addImage(img,"JPEG",0,0,pdfW,pdfH,undefined,"FAST");
-  pdf.save("Agion-Financiamento-x-Consorcio.pdf");
- }catch(e){ alert("Não consegui gerar o PDF: "+e.message); }
- swaps.forEach(function(s){ s.im.remove(); s.cv.style.visibility=""; });
- btn.innerHTML=old; btn.style.opacity=""; btn.disabled=false;
+/* PDF: usa a impressão do navegador (texto vetorial, espaçamento exato). Os gráficos viram imagem durante a impressão. */
+var __swaps=[];
+function __prepPrint(){
+ if(__swaps.length)return;
+ ["ch1","ch2"].forEach(function(id){
+  var cv=document.getElementById(id), ch=(window.Chart&&Chart.getChart)?Chart.getChart(id):null;
+  if(!cv||!ch)return;
+  try{ch.options.animation=false;ch.update("none");}catch(e){}
+  var im=new Image(); im.src=ch.toBase64Image("image/png",1.0); im.className="chimg";
+  cv.style.display="none"; cv.parentNode.appendChild(im); __swaps.push({cv:cv,im:im});
+ });
+}
+function __endPrint(){ __swaps.forEach(function(s){s.im.remove();s.cv.style.display="";}); __swaps=[]; }
+window.addEventListener("beforeprint",__prepPrint);
+window.addEventListener("afterprint",__endPrint);
+function baixarPDF(btn){
+ var t=document.title; document.title="Agion-Financiamento-x-Consorcio";
+ __prepPrint();
+ setTimeout(function(){ window.print(); setTimeout(function(){document.title=t;},500); },150);
 }
 </script>
