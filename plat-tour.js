@@ -505,15 +505,23 @@ function complete(){
 var JUST=null, QRY='';
 function cardHtml(t,i){
   var s=status(t), r=data().items[t.id]||{}, n=stepsOf(t).length, mins=Math.max(1,Math.round(n*12/60));
-  var chip=s==='upd'?'<span class="chip upd">Atualizado</span>':(s==='prog'?'<span class="chip">Em andamento</span>':'');
+  var chip=s==='upd'?'<span class="chip upd">Atualizado</span>':''; progCss();
   var act=s==='prog'?'Continuar':(s==='upd'?'Ver novidades':'Iniciar');
-  var bar=s==='prog'?'<div class="bar" aria-hidden="true"><i style="width:'+Math.round(((r.step||0)+1)/n*100)+'%"></i></div>':'';
+  var bar=s==='prog'?'<div class="tut-pl"><span>Em andamento</span>'+(t.ext?'':'<em>Passo '+Math.min(n,(r.step||0)+1)+' de '+n+'</em>')+'</div><div class="bar tut-pbar" aria-hidden="true"><i style="width:'+Math.max(8,Math.round(((r.step||0)+1)/n*100))+'%"></i></div>':'';
   var done=s==='done'?'<div class="done"><div class="ck">'+IC.check+'</div><strong>Concluído</strong><small>'+new Date(r.done.ts).toLocaleDateString('pt-BR')+'</small><button class="btn btn-ghost btn-sm" onclick="AgionTour.start(\''+t.id+'\')">Rever tutorial</button></div>':'';
   return '<div class="tut-card'+(JUST===t.id?' justdone':'')+'" data-tut="'+t.id+'" data-q="'+esc((TX(t.title)+' '+TX(t.desc)+' '+t.g).toLowerCase())+'" style="--i:'+i+'">'+
     '<div class="hd"><span class="ico">'+(IC[t.ic]||IC.map)+'</span><h4>'+esc(TX(t.title))+'</h4>'+chip+'</div><p>'+esc(TX(t.desc))+'</p>'+bar+
     '<div class="ft"><span class="meta">'+n+' passos · ~'+mins+' min</span>'+
-    '<button class="btn btn-gold btn-sm"'+(s==='done'?' tabindex="-1" aria-hidden="true"':'')+' onclick="AgionTour.start(\''+t.id+'\',\'resume\')">'+act+'</button></div>'+done+'</div>';
+    '<button class="btn btn-gold btn-sm'+(s==='prog'?' tut-cont':'')+'"'+(s==='done'?' tabindex="-1" aria-hidden="true"':'')+' onclick="AgionTour.start(\''+t.id+'\',\'resume\')">'+act+'</button></div>'+done+'</div>';
 }
+/* tutorial em andamento: rótulo pequeno em cima da barra, barra e "Continuar" em azul */
+function progCss(){ if(D.getElementById('tutProgCss')) return; var st=D.createElement('style'); st.id='tutProgCss';
+  st.textContent='.tut-card .tut-pl{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:12px 0 6px;font:700 .6rem/1 \'DM Sans\',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#7FB8EA}'+
+   '.tut-card .tut-pl em{font-style:normal;font-weight:600;letter-spacing:.02em;text-transform:none;color:#9DB3C7;font-size:.66rem}'+
+   '.tut-card .bar.tut-pbar{height:4px;background:rgba(127,184,234,.16)}.tut-card .bar.tut-pbar i{background:linear-gradient(90deg,#2F7BC4,#6AAEE8)}'+
+   '.tut-card .btn.tut-cont{background:linear-gradient(135deg,#2F7BC4,#4F98DA)!important;color:#fff!important;border-color:transparent!important;box-shadow:none}'+
+   '.tut-card .btn.tut-cont:hover{filter:brightness(1.08)}';
+  D.head.appendChild(st); }
 function renderCenter(C){
   if(!C) return;
   try{ setTop('Tutoriais','Aprenda cada área no lugar onde ela acontece',''); }catch(e){}
