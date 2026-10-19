@@ -967,5 +967,70 @@ try{parent.postMessage({type:'agion-ready'},'*');}catch(e){}
 </script>
 
 <script src="/tool-tour.js?v=1" defer></script>
+
+<script src="/calc-link.js?v=1"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js" async></script>
+<script id="ag-prop-calc-link">/* Chat B 19/out: link temporário da calculadora dentro do Gerador de propostas + página “Simule você mesmo” no deck */
+(function(){
+ var INC='ag_link_prop_inc';
+ function inc(){try{return localStorage.getItem(INC)!=='0';}catch(e){return true;}}
+ function sel(){var s=window.AgCalcLink&&AgCalcLink.selecionado();return (s&&s.expira>Date.now()/1000)?s:null;}
+ function info(){var el=document.getElementById('aglInfo');if(!el)return;var s=window.AgCalcLink&&AgCalcLink.selecionado();
+  if(!s){el.innerHTML='Nenhum link escolhido. Gere um link e clique em <b>Usar na proposta</b>.';return;}
+  if(s.expira<=Date.now()/1000){el.innerHTML='<span style="color:#b0503f">O link escolhido expirou — gere outro para a proposta.</span>';return;}
+  el.innerHTML='Na proposta: <b>'+(AgCalcLink.FERR[s.pagina]||'calculadora')+(s.cliente?' · '+s.cliente:'')+'</b> — válido até '+AgCalcLink.quando(s.expira)+'.';}
+ function montar(){var gb=document.getElementById('btnGerar');if(!gb||document.getElementById('aglBox')||!window.AgCalcLink)return;var row=gb.closest('.btnrow');
+  var box=document.createElement('div');box.id='aglBox';box.style.cssText='border:1px solid #e0d6bf;background:#fbf8f1;border-radius:16px;padding:16px 18px;margin:16px 0';
+  box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px"><div><div style="font:700 15px Poppins,system-ui;color:#0a2823">🔗 Link temporário da calculadora</div><div style="font-size:12.5px;color:#586b62;margin-top:2px">O cliente abre a calculadora sem login até o prazo acabar. Pode gerar vários, cada um com o seu tempo.</div></div>'+
+   '<label style="display:flex;gap:7px;align-items:center;font:600 13px Poppins,system-ui;color:#0a2823;cursor:pointer;white-space:nowrap;width:auto;margin:0"><input type="checkbox" id="aglInc" style="width:auto;margin:0"'+(inc()?' checked':'')+'> Incluir na proposta</label></div>'+
+   '<div id="aglInfo" style="font-size:12.5px;color:#586b62;margin-bottom:12px"></div><div id="aglMount"></div>';
+  row.parentNode.insertBefore(box,row);
+  document.getElementById('aglInc').onchange=function(){try{localStorage.setItem(INC,this.checked?'1':'0');}catch(e){}if(typeof liveUpdate==='function')liveUpdate();};
+  AgCalcLink.mount(document.getElementById('aglMount'),{pagina:'calc-alavancagem',escolher:true,selecionavel:true,onSel:function(){info();if(typeof liveUpdate==='function')liveUpdate();}});info();
+  setInterval(info,30000);}
+ /* ---------- página “Simule você mesmo” ---------- */
+ function rrp(x,x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}
+ function linhas(x,t,mw){var ws=String(t).split(' '),out=[],cur='';ws.forEach(function(w){var tt=cur?cur+' '+w:w;if(x.measureText(tt).width<=mw)cur=tt;else{if(cur)out.push(cur);cur=w;}});if(cur)out.push(cur);return out;}
+ function pagina(ref,s){var PW=ref.width,PH=ref.height,c=document.createElement('canvas');c.width=PW;c.height=PH;var x=c.getContext('2d');
+  var land=PW>PH,LW=land?1920:1080,LH=LW*PH/PW,u=PW/LW;x.setTransform(u,0,0,u,0,0);
+  x.fillStyle=((typeof C!=='undefined'&&C.bg))||'#FAF8F2';x.fillRect(0,0,LW,LH);
+  var ink='#0a2823',gold='#c5a059',goldd='#9a7a34',mut='#586b62',M=land?120:80;
+  var qrS=land?520:440, colW=land?(LW-2*M-qrS-90):(LW-2*M);
+  var y0=land?Math.max(150,(LH-760)/2):Math.max(150,(LH-1500)/2);
+  var logo=window.__logoImg;if(logo){var lw=land?110:96,lh=logo.height*lw/logo.width;x.drawImage(logo,M,y0-lh-50,lw,lh);}
+  x.textBaseline='alphabetic';x.fillStyle=goldd;x.font='700 '+(land?24:22)+'px Poppins, sans-serif';x.fillText('S I M U L E   V O C Ê   M E S M O',M,y0+20);
+  x.fillStyle=gold;x.fillRect(M,y0+44,70,5);
+  var fT=land?78:64,y=y0+44+fT+40;x.fillStyle=ink;x.font='700 '+fT+'px Lora, serif';
+  linhas(x,'Teste os seus números na calculadora da Agion',colW).forEach(function(l){x.fillText(l,M,y);y+=fT*1.14;});
+  y+=14;var fB=land?30:28;x.font='400 '+fB+'px Poppins, sans-serif';x.fillStyle=mut;
+  linhas(x,(s.pagina==='calc-financiamento'?'Abra a calculadora Financiamento × Consórcio e mude o valor do bem, a entrada, os juros e o prazo. Ela mostra o custo real de cada opção e quanto sobra no seu bolso, com um texto explicando o resultado.':'Abra a calculadora de alavancagem e mude o crédito, o lance, o mês da contemplação e o ágio. O resultado aparece na hora, com um texto explicando o que cada número significa.'),colW).forEach(function(l){x.fillText(l,M,y);y+=fB*1.5;});
+  y+=36;var bw=Math.min(colW,land?640:700),bh=land?108:100;
+  x.save();x.shadowColor='rgba(10,40,35,.28)';x.shadowBlur=30;x.shadowOffsetY=12;rrp(x,M,y,bw,bh,bh/2);x.fillStyle=ink;x.fill();x.restore();
+  x.fillStyle='#e8cc8b';x.font='700 '+(land?36:34)+'px Poppins, sans-serif';var bt='Abrir a calculadora  →';x.fillText(bt,M+(bw-x.measureText(bt).width)/2,y+bh/2+13);
+  var link={x:M*u,y:y*u,w:bw*u,h:bh*u,url:s.url};
+  y+=bh+44;x.font='600 '+(land?24:23)+'px Poppins, sans-serif';x.fillStyle=ink;x.fillText('Link pessoal · válido até '+AgCalcLink.quando(s.expira),M,y);
+  y+=36;x.font='400 '+(land?21:20)+'px ui-monospace, Menlo, monospace';x.fillStyle=mut;x.fillText(s.url,M,y);
+  y+=38;x.font='italic 400 '+(land?22:21)+'px Lora, serif';x.fillStyle=mut;linhas(x,'Depois do prazo o link deixa de abrir. Se precisar de mais tempo, peça um novo ao seu consultor.',colW).forEach(function(l){x.fillText(l,M,y);y+=32;});
+  var qx=land?LW-M-qrS:(LW-qrS)/2,qy=land?y0-10:y+50;
+  x.save();x.shadowColor='rgba(120,95,40,.16)';x.shadowBlur=40;x.shadowOffsetY=14;rrp(x,qx,qy,qrS,qrS+90,36);x.fillStyle='#fff';x.fill();x.restore();
+  x.strokeStyle='#e0d6bf';x.lineWidth=2;rrp(x,qx,qy,qrS,qrS+90,36);x.stroke();
+  var pad=46,qs=qrS-2*pad;
+  if(window.QRious){try{var qc=document.createElement('canvas');new QRious({element:qc,value:s.url,size:Math.round(qs*u),level:'M',foreground:ink,background:'#ffffff'});x.imageSmoothingEnabled=false;x.drawImage(qc,qx+pad,qy+pad,qs,qs);x.imageSmoothingEnabled=true;}catch(e){}}
+  else{x.fillStyle='#f3ebd9';x.fillRect(qx+pad,qy+pad,qs,qs);}
+  x.fillStyle=ink;x.font='600 '+(land?24:23)+'px Poppins, sans-serif';var qt='Aponte a câmera do celular';x.fillText(qt,qx+(qrS-x.measureText(qt).width)/2,qy+qrS+40);
+  return {cv:c,label:'Simule você mesmo',link:link};}
+ function addPg(arr){try{var s=sel();if(!inc()||!s||!arr||!arr.length)return arr;var ref=arr[arr.length-1].cv;var pg=pagina(ref,s);
+  var i=arr.length;if(/^Contato/.test(arr[arr.length-1].label||''))i=arr.length-1;arr.splice(i,0,pg);}catch(e){console.error(e);}return arr;}
+ function ganchos(){if(window.__aglHook)return;window.__aglHook=1;
+  if(typeof window.renderCompleto==='function'){var rc=window.renderCompleto;window.renderCompleto=function(){return addPg(rc.apply(this,arguments));};}
+  if(typeof window.renderResumido==='function'){var rs=window.renderResumido;window.renderResumido=function(){return addPg(rs.apply(this,arguments));};}
+  if(typeof window._montaPDF==='function'){var mp=window._montaPDF;window._montaPDF=async function(){var pdf=await mp.apply(this,arguments);
+   try{((typeof CANVASES!=='undefined'&&CANVASES)||[]).forEach(function(it,i){if(it.link&&pdf){var k=190/it.cv.width;pdf.setPage(i+1);pdf.link(it.link.x*k,it.link.y*k,it.link.w*k,it.link.h*k,{url:it.link.url});}});}catch(e){console.error(e);}return pdf;};}}
+ ganchos();
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',montar);else montar();
+ window.addEventListener('load',function(){montar();if(window.QRious===undefined)setTimeout(function(){if(typeof liveUpdate==='function'&&sel())liveUpdate();},1500);});
+})();
+</script>
+
 </body>
 </html>

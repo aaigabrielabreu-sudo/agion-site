@@ -14,8 +14,15 @@
         if(v && (v.refresh_token || v.access_token || (v.currentSession&&(v.currentSession.refresh_token||v.currentSession.access_token)))){ ok=true; break; }
       }
     }
+    /* Chat B 19/out: link temporário para o cliente (?acesso=TOKEN) — abre sem login até expirar */
+    var qs=new URLSearchParams(location.search), ac=qs.get('acesso');
+    if(ac){ window.__agLinkTemp=1; fetch('https://bot.agionconsorcios.com.br/api/link_ok?p=calc-financiamento&t='+encodeURIComponent(ac)).then(function(r){return r.json();}).then(function(j){
+        if(j&&j.ok){ window.__agLinkExp=j.expira; show(); return; }
+        expirou(j&&j.motivo); }).catch(function(){ expirou('rede'); });
+      return; }
     ok ? show() : deny();
   }catch(e){ deny(); }
+  function expirou(m){ try{ document.open(); document.write('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Agion · Link expirado</title><body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#faf8f2;font-family:system-ui,sans-serif;color:#0a2823;padding:24px"><div style="max-width:440px;text-align:center"><div style="font:600 13px system-ui;letter-spacing:.14em;color:#9a7a34">AGION CONSÓRCIOS</div><h1 style="font:600 28px Georgia,serif;margin:14px 0 10px">'+(m==='rede'?'Não foi possível abrir':'Este link expirou')+'</h1><p style="color:#586b62;line-height:1.6">'+(m==='rede'?'Verifique a conexão e tente de novo.':'Por segurança, os links da Agion valem por um tempo limitado. Fale com o seu especialista para receber um link novo.')+'</p><a href="https://wa.me/5551982034245" style="display:inline-block;margin-top:14px;background:#0a2823;color:#e8cc8b;text-decoration:none;padding:12px 20px;border-radius:999px;font-weight:600">Falar com a Agion no WhatsApp</a></div>'); document.close(); }catch(e){} }
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -153,6 +160,15 @@ body.nova .only-cont{display:none !important}
 }
 </style>
 
+<style id="ag-calc-fmt">
+@media(max-width:600px){#agLinkBtn .agt{display:none}#agLinkBtn{padding:10px 13px!important}.brand,.top{flex-wrap:wrap;gap:10px}.brand>.l,.top>div:first-child{min-width:0}}
+.expl{display:none;margin-top:18px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:16px;padding:16px 20px;font-size:14px;line-height:1.65;color:var(--ink2)}
+.expl .ek{font-size:11px;letter-spacing:.14em;color:var(--goldd);font-weight:700;text-transform:uppercase;margin-bottom:6px}
+.expl b{color:var(--ink)}
+body.simulou .expl{display:block;animation:explIn .35s ease}
+@keyframes explIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media print{#agLinkBtn,#agLinkPill{display:none!important}}
+</style>
 <div class="wrap">
  <div class="top">
   <div style="display:flex;align-items:center;gap:12px">
@@ -262,7 +278,8 @@ body.nova .only-cont{display:none !important}
   <div class="s" id="cta_s">—</div>
  </div>
 
- <div class="win-note" id="note">—</div>
+ <div class="expl" id="ex1"><div class="ek">O que esse resultado quer dizer</div><div id="ex1t"></div></div>
+  <div class="win-note" id="note">—</div>
  <div class="win-note" id="resumo" style="border-left-color:var(--pet);margin-top:10px">—</div>
  <div class="foot">Simulação para fins de apresentação. CET calculada pelo fluxo de caixa de cada opção (entrada + parcelas vs crédito). Os cenários A/B/C são formas de usar a diferença investida; rendimento, reajuste, juros e CDI reais dependem do grupo, da instituição e do mercado.</div>
 </div>
@@ -456,4 +473,24 @@ function baixarPDF(btn){
 }
 </script>
 
+<script src="/calc-link.js?v=1"></script>
+<script id="ag-calc-explica">/* Chat B 19/out: resumo do resultado (só depois de simular) + link temporário */
+(function(){
+ var g=function(i){var e=document.getElementById(i);return e?e.textContent.trim():'';};
+ function explica(){var el=document.getElementById('ex1t');if(!el)return;var nova=document.body.classList.contains('nova');
+  el.innerHTML='Para um bem de <b>R$\u00a0'+Math.round(num('cred')).toLocaleString('pt-BR')+'</b>, o consórcio ('+(nova?'carta nova':'carta contemplada')+') custa no total <b>'+g('o_c_tot')+'</b>, com custo efetivo de '+g('c_cet')+' ao ano e sem juros. '+
+   'O financiamento ('+g('f_sys_tag')+') custa <b>'+g('o_f_tot')+'</b>, dos quais <b>'+g('o_f_extra')+'</b> são só juros (CET de '+g('f_cet')+' ao ano). '+
+   'Como a parcela do consórcio é menor, a diferença que sobra todo mês pode ser investida: a '+(num('rinv')).toLocaleString('pt-BR')+'% ao mês ela vira <b>'+g('v_pot')+'</b>'+(g('v_bk')&&g('v_bk')!=='—'?' e, em '+g('v_bk')+', já vale a carta inteira':'')+'. '+
+   'Resultado: '+g('v_head').replace(/\.$/,'')+'.';}
+ function marca(){document.body.classList.add('simulou');setTimeout(explica,30);}
+ document.addEventListener('input',function(e){if(e.target.closest('.card'))marca();});
+ document.addEventListener('click',function(e){if(e.target.closest('.seg button'))marca();});
+ window.addEventListener('load',function(){setTimeout(explica,60);});
+ if(window.__agLinkTemp){document.addEventListener('DOMContentLoaded',function(){var t=document.createElement('div');t.id='agLinkPill';t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:9999;background:#0a2721;color:#ecd9a6;font:600 12.5px Inter,system-ui;padding:9px 16px;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.25);white-space:nowrap';document.body.appendChild(t);
+  var b=document.querySelector('.btn.back');if(b)b.style.display='none';
+  function upd(){var e=window.__agLinkExp;if(!e){t.textContent='Link da Agion';return;}if(e<=Date.now()/1000){location.reload();return;}t.textContent='Link da Agion · disponível por mais '+(window.AgCalcLink?AgCalcLink.falta(e):'');}upd();setInterval(upd,1000);});return;}
+ document.addEventListener('DOMContentLoaded',function(){var b=document.createElement('button');b.id='agLinkBtn';b.innerHTML='🔗<span class="agt"> Link para o cliente</span>';b.setAttribute('aria-label','Link para o cliente');b.style.cssText='border:0;background:#0a2823;color:#e8cc8b;font:700 13px Poppins,Inter,system-ui;padding:10px 16px;border-radius:10px;cursor:pointer;white-space:nowrap';
+  b.onclick=function(){if(window.AgCalcLink)AgCalcLink.modal({pagina:'calc-financiamento'});};var pb=document.getElementById('pdfbtn');if(pb&&pb.parentNode){var w=document.createElement('span');w.style.cssText='display:inline-flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-left:auto';pb.parentNode.insertBefore(w,pb);w.appendChild(b);w.appendChild(pb);}else document.body.appendChild(b);});
+})();
+</script>
 <script src="/tool-tour.js?v=1" defer></script>
