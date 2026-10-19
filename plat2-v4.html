@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Agion">
 <meta name="application-name" content="Agion Wealth">
-<link rel="apple-touch-icon" sizes="180x180" href="/agion-app-180.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/agion-app-180.png?v=2">
 <link rel="icon" type="image/png" sizes="192x192" href="/plat2-v4/icon-192.png">
 <title>Agion · Wealth Plataforma — protótipo do novo visual</title>
 <style>@font-face{font-family:"DM Sans";src:url(/plat2-v4/DM-Sans-Variable.ttf) format("truetype");font-weight:100 1000}
@@ -1674,7 +1674,12 @@ html.emapp body.pwa .tbar,html.emapp .tbar{padding-top:8px!important}
 }
 
 #mkb .g21>div,#mkb .g21>div>.panel{min-width:0}.dtw{max-width:100%}
-</style></head><body>
+</style><style id="b-mtab-dock">/* Chat B 19/out (pedido do Gabriel): barra de menus do celular encostada no fim da tela, sem sobra embaixo */
+@media (max-width:860px){
+ .mtab{left:0!important;right:0!important;bottom:0!important;height:calc(var(--tabh) + max(8px,env(safe-area-inset-bottom,0px)))!important;padding:6px 8px max(8px,env(safe-area-inset-bottom,0px))!important;border-radius:22px 22px 0 0!important;box-shadow:0 -12px 30px -14px rgba(0,0,0,.45),inset 0 1px 0 rgba(232,204,139,.16)!important}
+}
+</style>
+</head><body>
 <div class="app" id="app">
  <aside class="sb" id="sb">
   <div class="brand"><img src="/plat2-v4/logo-ag.png" alt="Agion"><div><b>AGION</b><small>Wealth Plataforma</small></div></div>
@@ -3251,7 +3256,7 @@ function instalar(){var ob=$('#ibnr');if(ob){ob.remove();try{sessionStorage.setI
  body(tab);bindSeg('insp',body);if($('#iagora',s))$('#iagora',s).onclick=function(){DEFER.prompt();DEFER.userChoice.then(function(r){if(r.outcome==='accepted')toast('Instalando a Agion…','dl');DEFER=null;});};
  s.classList.add('inss');}
 function bannerInstalar(){if(!isMob()||isStandalone()||$('#ibnr'))return;try{if(sessionStorage.getItem('agp-ib'))return;}catch(e){}
- var b=document.createElement('div');b.className='ibnr';b.id='ibnr';b.innerHTML='<img src="/agion-app-180.png" alt=""><div><b>Instale a Agion</b><small>Acesso direto da tela inicial, em tela cheia</small></div><button class="btn sm gd" id="ibg">Instalar</button><button class="ibx" id="ibx">'+I('x',15)+'</button>';
+ var b=document.createElement('div');b.className='ibnr';b.id='ibnr';b.innerHTML='<img src="/agion-app-180.png?v=2" alt=""><div><b>Instale a Agion</b><small>Acesso direto da tela inicial, em tela cheia</small></div><button class="btn sm gd" id="ibg">Instalar</button><button class="ibx" id="ibx">'+I('x',15)+'</button>';
  document.body.appendChild(b);requestAnimationFrame(function(){requestAnimationFrame(function(){b.classList.add('on');});});
  $('#ibg').onclick=function(){fecha();instalar();};$('#ibx').onclick=fecha;
  function fecha(){b.classList.remove('on');setTimeout(function(){b.remove();},400);try{sessionStorage.setItem('agp-ib','1');}catch(e){}}}

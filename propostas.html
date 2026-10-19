@@ -58,6 +58,7 @@ textarea{resize:vertical;min-height:44px}
 .btn:disabled{opacity:.5;cursor:default}
 .addrow{background:#eef4f2;color:var(--petd);border:1px dashed #b7cfc9;border-radius:9px;padding:8px 12px;cursor:pointer;font-weight:600;font-size:13px}
 .previewWrap{overflow:auto;background:#dfe4e0;border-radius:14px;padding:18px;text-align:center}
+.previewWrap canvas.pvc{width:auto;height:auto;max-width:100%;box-shadow:0 8px 30px rgba(0,0,0,.18);border-radius:6px;display:inline-block}
 .previewWrap img{max-width:100%;box-shadow:0 8px 30px rgba(0,0,0,.18);border-radius:6px;display:inline-block}
 .hint{font-size:12px;color:var(--mut)}
 .hidden{display:none}
@@ -865,7 +866,9 @@ function build(s,pg,DEN,D,cartas,cw,first){
 /* ============================================================ gerar / exportar ============================================================ */
 function loadImg(src,key){return new Promise(r=>{if(window[key])return r();const im=new Image();im.onload=()=>{window[key]=im;r();};im.onerror=()=>r();im.src=src;});}
 async function ensureLogo(){await Promise.all([loadImg(LOGO,'__logoImg'),loadImg(FUNNEL,'__funnelImg')]);}
-async function gerar(){
+var _gerando=null,_gerarDeNovo=false;
+async function gerar(){if(_gerando){_gerarDeNovo=true;return _gerando;}_gerando=_gerarReal();try{await _gerando;}finally{_gerando=null;}if(_gerarDeNovo){_gerarDeNovo=false;return gerar();}}
+async function _gerarReal(){
  setStatus('Carregando fontes…');
  try{await document.fonts.load(fPop(40,'700'));await document.fonts.load(fLora(58,'700'));await document.fonts.load('italic 500 27px Lora');await document.fonts.ready;}catch(e){}
  await ensureLogo();setStatus('Renderizando…');await new Promise(r=>setTimeout(r,60));
@@ -873,22 +876,52 @@ async function gerar(){
  const pv=document.getElementById('preview');pv.innerHTML='';
  CANVASES.forEach(it=>{const wrap=document.createElement('div');wrap.style.marginBottom='18px';
   const cap=document.createElement('div');cap.textContent=it.label;cap.style.cssText='font-size:12px;color:#6E8078;margin-bottom:6px;font-weight:600;text-align:left;max-width:1080px;margin-left:auto;margin-right:auto';
-  const img=new Image();img.src=it.cv.toDataURL('image/png');wrap.appendChild(cap);wrap.appendChild(img);pv.appendChild(wrap);});
+  const img=it.cv;img.className='pvc';wrap.appendChild(cap);wrap.appendChild(img);pv.appendChild(wrap);});
  document.getElementById('btnPng').disabled=false;document.getElementById('btnPdf').disabled=false;
  setStatus('Pronto ✓  '+CANVASES.length+(CANVASES.length>1?' páginas':' página'));
 }
-var _lu;function liveUpdate(){clearTimeout(_lu);_lu=setTimeout(gerar,380);}
+var _lu;function liveUpdate(){clearTimeout(_lu);_lu=setTimeout(gerar,650);}
 document.addEventListener('input',e=>{if(e.target.closest('#form-resumido,#form-completo'))liveUpdate();});
 window.addEventListener('load',()=>setTimeout(gerar,350));
 function setStatus(t){document.getElementById('status').textContent=t;}
 function fileBase(){const nm=(TIPO==='resumido'?document.getElementById('r_cliente').value:document.getElementById('c_cliente').value).trim();
  return 'Proposta-Agion'+(nm?('-'+nm.replace(/\s+/g,'')):'')+'-'+(TIPO==='resumido'?'Resumida':'Completa');}
-async function baixarPNG(){if(!CANVASES.length){await gerar();}if(!CANVASES.length)return;CANVASES.forEach((it,i)=>{const a=document.createElement('a');a.download=fileBase()+(CANVASES.length>1?('-p'+(i+1)):'')+'.png';a.href=it.cv.toDataURL('image/png');a.click();});}
-async function baixarPDF(){if(!CANVASES.length){await gerar();}if(!CANVASES.length)return;
- if(!window.jspdf||!window.jspdf.jsPDF){setStatus('PDF indisponível: a biblioteca não carregou (verifique a conexão e recarregue).');return;}
+function _pausa(ms){return new Promise(r=>setTimeout(r,ms||0));}
+function _cvBlob(cv,type,q){return new Promise(r=>{try{cv.toBlob(b=>r(b),type,q);}catch(e){r(null);}});}
+function _ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
+async function _entregar(blob,nome){
+ /* iPhone/iPad (principalmente no app instalado): abre o "Compartilhar" para salvar em Arquivos/Fotos ou mandar no WhatsApp */
+ if(_ios()&&navigator.canShare){try{const f=new File([blob],nome,{type:blob.type});if(navigator.canShare({files:[f]})){await navigator.share({files:[f],title:nome});return true;}}catch(e){if(e&&e.name==='AbortError')return true;}}
+ const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=nome;a.rel='noopener';a.style.display='none';document.body.appendChild(a);a.click();
+ setTimeout(()=>{try{URL.revokeObjectURL(u);a.remove();}catch(e){}},60000);return true;}
+var _baixando=false;
+function _trava(on){_baixando=on;['btnPng','btnPdf','btnSalvarCliente'].forEach(id=>{const b=document.getElementById(id);if(b){b.disabled=on;b.style.opacity=on?'.6':'';}});}
+async function _prontas(){if(_gerando)await _gerando;if(!CANVASES.length)await gerar();return CANVASES.length>0;}
+async function _montaPDF(){
  const {jsPDF}=window.jspdf;let pdf=null;
- CANVASES.forEach((it,i)=>{const cv=it.cv,wmm=190,hmm=wmm*cv.height/cv.width;if(i===0)pdf=new jsPDF({unit:'mm',format:[wmm,hmm],orientation:hmm>=wmm?'portrait':'landscape'});else pdf.addPage([wmm,hmm]);pdf.addImage(cv.toDataURL('image/png'),'PNG',0,0,wmm,hmm);});
- pdf.save(fileBase()+'.pdf');setStatus('PDF baixado ✓');}
+ for(let i=0;i<CANVASES.length;i++){
+  setStatus('Montando PDF… página '+(i+1)+' de '+CANVASES.length);await _pausa(16);
+  const cv=CANVASES[i].cv,wmm=190,hmm=wmm*cv.height/cv.width;
+  if(i===0)pdf=new jsPDF({unit:'mm',format:[wmm,hmm],orientation:hmm>=wmm?'portrait':'landscape',compress:true});else pdf.addPage([wmm,hmm],hmm>=wmm?'portrait':'landscape');
+  pdf.addImage(cv.toDataURL('image/jpeg',0.9),'JPEG',0,0,wmm,hmm,undefined,'FAST');
+ }
+ return pdf;}
+async function baixarPNG(){if(_baixando)return;_trava(true);
+ try{if(!(await _prontas()))return;
+  const n=CANVASES.length;if(n>1)setStatus('Baixando '+n+' imagens… se o navegador perguntar, clique em “Permitir” para baixar vários arquivos.');
+  for(let i=0;i<n;i++){if(n>1)setStatus('Baixando imagem '+(i+1)+' de '+n+'…');await _pausa(16);
+   const b=await _cvBlob(CANVASES[i].cv,'image/png');if(!b)throw new Error('não consegui gerar a imagem');
+   await _entregar(b,fileBase()+(n>1?('-p'+(i+1)):'')+'.png');if(i<n-1)await _pausa(450);}
+  setStatus(n>1?(n+' imagens baixadas ✓'):'Imagem baixada ✓');
+ }catch(e){setStatus('Não consegui baixar: '+(e&&e.message||e));console.error(e);}
+ finally{_trava(false);}}
+async function baixarPDF(){if(_baixando)return;_trava(true);
+ try{if(!(await _prontas()))return;
+  if(!window.jspdf||!window.jspdf.jsPDF){setStatus('PDF indisponível: a biblioteca não carregou (verifique a conexão e recarregue).');return;}
+  const pdf=await _montaPDF();setStatus('Salvando PDF…');await _pausa(16);
+  await _entregar(pdf.output('blob'),fileBase()+'.pdf');setStatus('PDF baixado ✓');
+ }catch(e){setStatus('Não consegui gerar o PDF: '+(e&&e.message||e));console.error(e);}
+ finally{_trava(false);}}
 
 /* ===== Ponte CRM (embutido na plataforma) ===== */
 window.__CRM=false;
@@ -900,8 +933,8 @@ async function emitProposta(){
     setStatus('Preparando arquivos…');
     var jsP=window.jspdf&&window.jspdf.jsPDF;
     if(!jsP){setStatus('PDF indisponível (biblioteca não carregou).');return;}
-    var pdf=null;
-    CANVASES.forEach(function(it,i){var cv=it.cv,wmm=190,hmm=wmm*cv.height/cv.width;if(i===0)pdf=new jsP({unit:'mm',format:[wmm,hmm],orientation:hmm>=wmm?'portrait':'landscape'});else pdf.addPage([wmm,hmm]);pdf.addImage(cv.toDataURL('image/png'),'PNG',0,0,wmm,hmm);});
+    if(_gerando)await _gerando;
+    var pdf=await _montaPDF();
     var pdfB64=await _blobB64(pdf.output('blob'));
     var pngB64=CANVASES[0].cv.toDataURL('image/png').split(',')[1];
     var base=(typeof fileBase==='function'?fileBase():'proposta');

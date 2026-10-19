@@ -20,7 +20,7 @@ SAIDAS = [os.path.join(RAIZ, 'plataforma.html'), os.path.join(RAIZ, 'plataformav
 # versões dos arquivos da casca (subir a cada mudança)
 SHELL_CSS = '/plat2-shell.css?v=1'
 SHELL_JS = '/plat2-shell.js?v=4'
-V4_JS = '/plat2-v4.js?v=3'   # visual v4 (Chat A) por cima da v1; ?v1=1 na URL desliga
+V4_JS = '/plat2-v4.js?v=4'   # visual v4 (Chat A) por cima da v1; ?v1=1 na URL desliga
 
 src = open(V1, encoding='utf-8').read()
 
@@ -43,7 +43,7 @@ out = unico(out, '</body>', '<script src="%s"></script>\n<script src="%s"></scri
 
 # 4) ícone do app (fundo branco com a logo, 19/out)
 out = unico(out, '<link rel="apple-touch-icon" sizes="180x180" href="/agion-icon-180.png">',
-            '<link rel="apple-touch-icon" sizes="180x180" href="/agion-app-180.png">\n<link rel="icon" type="image/png" sizes="192x192" href="/agion-app-192.png">')
+            '<link rel="apple-touch-icon" sizes="180x180" href="/agion-app-180.png?v=2">\n<link rel="icon" type="image/png" sizes="192x192" href="/agion-app-192.png?v=2">')
 
 # 5) VERSÃO DO BUILD (atualização automática do app, 19/out): hash de tudo o que compõe a plataforma.
 #    O plat2-shell.js compara a versão carregada com /plataforma-versao.json e recarrega sozinho quando muda.
