@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Agion">
 <meta name="application-name" content="Agion Wealth">
-<link rel="apple-touch-icon" sizes="180x180" href="/plat2-v4/icon-180.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/agion-app-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/plat2-v4/icon-192.png">
 <title>Agion · Wealth Plataforma — protótipo do novo visual</title>
 <style>@font-face{font-family:"DM Sans";src:url(/plat2-v4/DM-Sans-Variable.ttf) format("truetype");font-weight:100 1000}
@@ -3226,13 +3226,13 @@ function mais(){var me=U[ME()],ks=MTABS[ROLE].map(function(x){return x[0];});
 var SHARE='<svg viewBox="0 0 24 24" class="i" style="width:20px;height:20px"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
 var ADDH='<svg viewBox="0 0 24 24" class="i" style="width:20px;height:20px"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
 var DOTS='<svg viewBox="0 0 24 24" class="i" style="width:20px;height:20px"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>';
-function instalar(){var ob=$('#ibnr');if(ob){ob.remove();try{sessionStorage.setItem('agp-ib','1');}catch(e){}}var p=plat(),tab=p==='android'?'and':'ios',ic='data:image/png;base64,'+(window.AGICON||{}).i180;
+function instalar(){var ob=$('#ibnr');if(ob){ob.remove();try{sessionStorage.setItem('agp-ib','1');}catch(e){}}var p=plat(),tab=p==='android'?'and':'ios',ic='/agion-app-180.png';
  var s=sheet('<div class="ins"><div class="insh"><div class="phone"><div class="scr"><div class="apps">'+['#6C9682','#2E6A8A','#C2724A','#DDBB68','#8E5A7A','#C5A059','#5FA3A0'].map(function(c){return '<i style="background:'+c+'"></i>';}).join('')+'<span class="me"><img src="'+ic+'"><em>Agion</em></span></div></div></div>'+
   '<div><div class="lbl" style="color:var(--gold)">App da Agion</div><h2>Coloque a Agion na tela inicial</h2><p>Abre em tela cheia como um aplicativo, sem a barra do navegador, direto no seu CRM — e com aviso de lead novo no celular.</p></div></div>'+
   (DEFER?'<button class="btn gd big" id="iagora">'+I('dl',18)+'Instalar agora</button><div class="or">ou faça pelo menu do navegador</div>':'')+
   seg('insp',[['ios','iPhone · Safari'],['and','Android · Chrome']],tab,'gd')+'<div id="insb"></div>'+
   '<div class="insf">'+I('shield',15)+'<span>É a mesma plataforma, com o mesmo login. Não ocupa espaço como um app da loja e atualiza sozinha.</span></div></div>',560);
- function body(k){var st=k==='ios'?[[SHARE,'Toque em <b>Compartilhar</b>','o quadrado com a seta, na barra de baixo do Safari'],[ADDH,'Toque em <b>Adicionar à Tela de Início</b>','role a lista para baixo se não aparecer'],['<img src="'+ic+'">','Toque em <b>Adicionar</b>','o ícone da Agion aparece junto dos seus apps']]
+ function body(k){var st=k==='ios'?[[SHARE,'Toque em <b>Compartilhar</b>','o quadrado com a seta na barra do Safari · no iOS 26, toque antes nos <b>···</b> (três pontinhos)'],[ADDH,'Toque em <b>Adicionar à Tela de Início</b>','role a lista para baixo (ou toque em <b>Ver mais</b>) se não aparecer'],['<img src="'+ic+'">','Toque em <b>Adicionar</b>','o ícone da Agion aparece junto dos seus apps']]
    :[[DOTS,'Toque no menu <b>⋮</b>','no canto de cima do Chrome'],[ADDH,'Toque em <b>Instalar app</b>','ou “Adicionar à tela inicial”'],['<img src="'+ic+'">','Confirme em <b>Instalar</b>','o ícone da Agion aparece na tela inicial']];
   $('#insb',s).innerHTML='<div class="steps">'+st.map(function(x,i){return '<div class="stp" style="animation-delay:'+(i*90)+'ms"><span class="n">'+(i+1)+'</span><span class="ico">'+x[0]+'</span><div><b>'+x[1]+'</b><small>'+x[2]+'</small></div></div>';}).join('')+'</div>'+(k==='ios'&&p!=='ios'?'<div class="insn">No iPhone, use o <b>Safari</b> — é o único navegador que adiciona à tela inicial.</div>':'');}
  body(tab);bindSeg('insp',body);if($('#iagora',s))$('#iagora',s).onclick=function(){DEFER.prompt();DEFER.userChoice.then(function(r){if(r.outcome==='accepted')toast('Instalando a Agion…','dl');DEFER=null;});};

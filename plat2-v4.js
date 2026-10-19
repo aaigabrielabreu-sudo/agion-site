@@ -8,7 +8,7 @@
 (function(){
 'use strict';
 var W=window, D=document;
-if(!/\/plataformav2(\.html)?$/.test(location.pathname)) return;
+if(!/^\/plataforma(v2)?(\.html)?$/.test(location.pathname)) return;   /* 19/out (Chat B): /plataforma também é a v2; /plataforma-v1 não */
 if(/[?&]v1=1/.test(location.search)) return;
 
 /* ---------- ponte: o iframe enxerga as variáveis "let/const" da v1 por aqui ---------- */
@@ -43,7 +43,7 @@ function montar(){
   D.head.appendChild(st);
   wrap=D.createElement('div'); wrap.id='v4wrap';
   fr=D.createElement('iframe'); fr.title='Agion Wealth'; fr.setAttribute('allow','clipboard-read; clipboard-write; notifications');
-  var src=W.__V4SRC||('/plat2-v4.html?v=1');
+  var src=W.__V4SRC||('/plat2-v4.html?v=2');
   if(W.__V4SRCDOC) fr.srcdoc=W.__V4SRCDOC; else fr.src=src;
   wrap.appendChild(fr); D.body.appendChild(wrap); D.body.classList.add('v4on');
   var b=D.createElement('button'); b.id='v4volta'; b.textContent='← Voltar ao novo visual'; b.onclick=mostrar; D.body.appendChild(b);

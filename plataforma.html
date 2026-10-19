@@ -1,9 +1,11 @@
 <!DOCTYPE html>
+<!-- GERADO por tools/build-v2.py a partir de plataforma-v1.html — NÃO EDITAR À MÃO (edite plataforma-v1.html ou os plat2-*) -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agion — Plataforma de Planejamento Financeiro</title>
+<title>Agion Wealth — Plataforma</title>
+<meta name="robots" content="noindex,nofollow">
 <!-- ================== AUTO-ATUALIZACAO (NAO REMOVER) ==================
      REGRA: toda atualizacao publicada da plataforma DEVE chegar a TODOS os
      participantes (master, especialistas e clientes) automaticamente.
@@ -634,7 +636,8 @@ body.light .logo-img,body.light .top-logo{filter:none}
 <meta name="apple-mobile-web-app-capable" content="yes">
 <!-- 07/out: SEM apple-mobile-web-app-status-bar-style de proposito: no iOS 26+ o black-translucent faz o sistema desfocar o cabecalho; sem a tag a barra do relogio fica solida na cor do theme-color -->
 <meta name="apple-mobile-web-app-title" content="Agion Wealth">
-<link rel="apple-touch-icon" sizes="180x180" href="/agion-icon-180.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/agion-app-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/agion-app-192.png">
 <link rel="manifest" href="/agion-plataforma.webmanifest">
 
 <!-- ================== MODO APP (Agion Wealth) — bloco isolado, NAO REMOVER ==================
@@ -1377,6 +1380,7 @@ html.capNative body.isApp #viewbar,html.capNative body.isApp .topbar,html.capNat
 <link rel="stylesheet" href="/plat-tour.css?v=3">
 <link rel="stylesheet" href="/plat-theme.css?v=15">
 <link rel="stylesheet" href="/plat-crm.css?v=5">
+<link rel="stylesheet" href="/plat2-shell.css?v=1">
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
 <div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" type="email" inputmode="email" placeholder="seu@email.com" value="" autocomplete="username" aria-label="E-mail"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="" autocomplete="current-password" aria-label="Senha" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> </div>
@@ -4219,5 +4223,7 @@ function masterReportPDF(){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go); else go();
 }catch(e){}})();
 </script>
+<script src="/plat2-shell.js?v=3"></script>
+<script src="/plat2-v4.js?v=2"></script>
 </body>
 </html>

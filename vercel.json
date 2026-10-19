@@ -9,7 +9,7 @@
   ],
   "headers": [
     {
-      "source": "/:page(plataforma|app|calculadoras|calc-alavancagem|calc-financiamento|escada-financeira|propostas|lp|ig|wpp|gmb|oferta-flyer|oferta-flyer-mobile|plataforma_backup_2026-07-05|plataforma_backup_2026-07-09|plataforma_backup_2026-07-09b)",
+      "source": "/:page(plataforma|plataforma-v1|plataformav2|plat2-v4|app|calculadoras|calc-alavancagem|calc-financiamento|escada-financeira|propostas|lp|ig|wpp|gmb|oferta-flyer|oferta-flyer-mobile|plataforma_backup_2026-07-05|plataforma_backup_2026-07-09|plataforma_backup_2026-07-09b)",
       "headers": [
         {
           "key": "X-Robots-Tag",
@@ -18,7 +18,7 @@
       ]
     },
     {
-      "source": "/:page(plataforma|app|calculadoras|calc-alavancagem|calc-financiamento|escada-financeira|propostas|lp|ig|wpp|gmb|oferta-flyer|oferta-flyer-mobile|plataforma_backup_2026-07-05|plataforma_backup_2026-07-09|plataforma_backup_2026-07-09b).html",
+      "source": "/:page(plataforma|plataforma-v1|plataformav2|plat2-v4|app|calculadoras|calc-alavancagem|calc-financiamento|escada-financeira|propostas|lp|ig|wpp|gmb|oferta-flyer|oferta-flyer-mobile|plataforma_backup_2026-07-05|plataforma_backup_2026-07-09|plataforma_backup_2026-07-09b).html",
       "headers": [
         {
           "key": "X-Robots-Tag",

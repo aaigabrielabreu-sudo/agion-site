@@ -21,7 +21,7 @@
 (function(){
 'use strict';
 var W=window, D=document;
-if(!/\/plataformav2(\.html)?$/.test(location.pathname)) return;   /* nunca roda na v1 */
+if(!/^\/plataforma(v2)?(\.html)?$/.test(location.pathname)) return;   /* /plataforma e /plataformav2; nunca roda na /plataforma-v1 */
 D.documentElement.classList.add('v2'); D.body&&D.body.classList.add('v2');
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
@@ -68,7 +68,7 @@ function maisSheet(){
     h+='<button class="'+(view.page===k?'on':'')+'" onclick="AgionV2._fecharMais();go(\''+k+'\')">'+(it[2]||'')+'<span>'+esc(ROTULO[k]||it[1])+'</span></button>'; });
   if(g0) h+='</div>';
   var bg=D.createElement('div'); bg.className='v2-sheet-bg'; bg.id='v2Mais';
-  bg.innerHTML='<div class="v2-sheet" role="dialog" aria-label="Todas as abas"><div class="v2-grab"></div><div class="v2-sheet-hd"><b>Todas as abas</b><a href="/plataforma" class="v2-volta">Voltar à versão atual</a></div>'+h+'</div>';
+  bg.innerHTML='<div class="v2-sheet" role="dialog" aria-label="Todas as abas"><div class="v2-grab"></div><div class="v2-sheet-hd"><b>Todas as abas</b><a href="/plataforma-v1" class="v2-volta">Versão anterior</a></div>'+h+'</div>';
   bg.addEventListener('click',function(e){ if(e.target===bg) fecharMais(); });
   D.body.appendChild(bg); requestAnimationFrame(function(){ bg.classList.add('on'); });
 }
@@ -81,7 +81,7 @@ function botaoMais(){
 }
 function seloPrevia(){
   var f=D.querySelector('aside.side .foot'); if(!f||f.querySelector('.v2-selo')) return;
-  var s=D.createElement('div'); s.className='v2-selo'; s.innerHTML='<b>Prévia · Plataforma v2</b><a href="/plataforma">Voltar à versão atual</a>';
+  var s=D.createElement('div'); s.className='v2-selo'; s.innerHTML='<b>Plataforma v2</b><a href="/plataforma-v1">Abrir a versão anterior</a>';
   f.insertBefore(s,f.firstChild);
 }
 
@@ -116,6 +116,14 @@ function falha(C,a,err){ try{ console.error('[v2] aba '+a.titulo,err); C.innerHT
 
 /* ---------- abre sempre no Painel (exceto link de notificação) ---------- */
 (function(){ try{ var temLink=!!sessionStorage.getItem('agion:conv'); if(!temLink&&!/[?&]conv=/.test(location.search)) history.replaceState(null,'',location.pathname+location.search+'#dash'); }catch(e){} })();
+
+/* ---------- "Versão anterior" em Ajustes do visual novo (até o v4 ter o botão nativo) ---------- */
+function anteriorV4(){ try{ var fr=D.querySelector('#v4wrap iframe'); if(!fr) return; var w=fr.contentWindow, d=fr.contentDocument; if(!d||w.cur!=='ajustes') return;
+  var v=d.getElementById('view'); if(!v||d.getElementById('v2ant')||d.querySelector('[href="/plataforma-v1"]')) return;
+  var p=d.createElement('div'); p.id='v2ant'; p.className='panel mb'; p.style.marginTop='16px';
+  p.innerHTML='<div class="ph"><h3>Versão anterior</h3></div><div class="set" style="border:0"><div class="t"><b>Abrir a versão anterior da plataforma</b><small>O visual antigo, com os mesmos dados. Para voltar ao visual novo, abra a plataforma normalmente.</small></div><a class="btn sm dk" href="/plataforma-v1" target="_top">Abrir</a></div>';
+  v.appendChild(p); }catch(e){} }
+setInterval(anteriorV4,1200);
 
 W.AgionV2={
   versao:'casca-1',
