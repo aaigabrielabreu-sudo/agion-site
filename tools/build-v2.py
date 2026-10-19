@@ -11,7 +11,7 @@ TROCA FINAL (OK do Gabriel, 19/out/2026): /plataforma passou a ser a v2.
 Rodar sempre que a v1 ou os plat2-* mudarem, antes de publicar:
     python3 tools/build-v2.py
 """
-import os, sys
+import os, sys, json, hashlib, datetime
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 V1 = os.path.join(RAIZ, 'plataforma-v1.html')
@@ -19,7 +19,7 @@ SAIDAS = [os.path.join(RAIZ, 'plataforma.html'), os.path.join(RAIZ, 'plataformav
 
 # versões dos arquivos da casca (subir a cada mudança)
 SHELL_CSS = '/plat2-shell.css?v=1'
-SHELL_JS = '/plat2-shell.js?v=3'
+SHELL_JS = '/plat2-shell.js?v=4'
 V4_JS = '/plat2-v4.js?v=3'   # visual v4 (Chat A) por cima da v1; ?v1=1 na URL desliga
 
 src = open(V1, encoding='utf-8').read()
@@ -44,6 +44,25 @@ out = unico(out, '</body>', '<script src="%s"></script>\n<script src="%s"></scri
 # 4) ícone do app (fundo branco com a logo, 19/out)
 out = unico(out, '<link rel="apple-touch-icon" sizes="180x180" href="/agion-icon-180.png">',
             '<link rel="apple-touch-icon" sizes="180x180" href="/agion-app-180.png">\n<link rel="icon" type="image/png" sizes="192x192" href="/agion-app-192.png">')
+
+# 5) VERSÃO DO BUILD (atualização automática do app, 19/out): hash de tudo o que compõe a plataforma.
+#    O plat2-shell.js compara a versão carregada com /plataforma-versao.json e recarrega sozinho quando muda.
+h = hashlib.sha1(out.encode('utf-8'))
+for f in ['plat2-v4.html', 'plat2-v4.js', 'plat2-shell.js', 'plat2-shell.css']:
+    fp = os.path.join(RAIZ, f)
+    if os.path.exists(fp):
+        h.update(open(fp, 'rb').read())
+_pasta = os.path.join(RAIZ, 'plat2-v4')
+if os.path.isdir(_pasta):
+    for _r, _ds, _fs in sorted(os.walk(_pasta)):
+        _ds.sort()
+        for _f in sorted(_fs):
+            h.update(_f.encode()); h.update(open(os.path.join(_r, _f), 'rb').read())
+VERSAO = h.hexdigest()[:12]
+out = unico(out, '</head>', '<meta name="agion-build" content="%s">\n</head>' % VERSAO)
+open(os.path.join(RAIZ, 'plataforma-versao.json'), 'w', encoding='utf-8').write(
+    json.dumps({'v': VERSAO, 'em': datetime.datetime.now().isoformat(timespec='seconds')}) + '\n')
+print('versão do build:', VERSAO)
 
 for dst in SAIDAS:
     open(dst, 'w', encoding='utf-8').write(out)

@@ -125,6 +125,35 @@ function anteriorV4(){ try{ var fr=D.querySelector('#v4wrap iframe'); if(!fr) re
   v.appendChild(p); }catch(e){} }
 setInterval(anteriorV4,1200);
 
+/* ---------- ATUALIZAÇÃO AUTOMÁTICA (19/out, pedido do Gabriel) ----------
+   O app instalado (iPhone/Android) e o computador pegam a versão nova sozinhos, sem reinstalar:
+   compara a versão carregada (<meta name="agion-build">) com /plataforma-versao.json ao voltar
+   para o app e a cada 5 min. Se mudou: recarrega na hora; se a pessoa estiver digitando, mostra
+   "Nova versão · Atualizar" e recarrega quando ela sair do app. Ícone e nome do app na tela
+   de início continuam exigindo reinstalar (limite do iPhone). */
+(function(){
+  var meta=D.querySelector('meta[name="agion-build"]'); var MEU=meta&&meta.content; if(!MEU) return;
+  var ult=0, pend=false;
+  function digitando(){ try{ var a=D.activeElement; var fr=D.querySelector('#v4wrap iframe');
+      if(a&&fr&&a===fr){ try{ a=fr.contentDocument.activeElement; }catch(e){} }
+      return !!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&String(a.value||'').length>0) || !!D.querySelector('.modal:not(.hidden), #leadModal:not(.hidden)');
+    }catch(e){ return false; } }
+  function recarrega(novo){ try{ var k='agion:upd:'+novo; var n=+(sessionStorage.getItem(k)||0); if(n>=2) return; sessionStorage.setItem(k,String(n+1)); }catch(e){} location.reload(); }
+  function aviso(novo){ if(D.getElementById('v2upd')) return; var b=D.createElement('button'); b.id='v2upd'; b.type='button';
+    b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:100000;border:0;border-radius:999px;padding:11px 18px;font:700 13px system-ui,sans-serif;background:#0B2A26;color:#E8CC8B;box-shadow:0 10px 30px rgba(0,0,0,.3);cursor:pointer';
+    b.textContent='Nova versão da plataforma · Atualizar'; b.onclick=function(){ recarrega(novo); }; D.body.appendChild(b); }
+  function checa(forcar){ if(!forcar&&Date.now()-ult<60000) return; ult=Date.now();
+    try{ fetch('/plataforma-versao.json?_='+Date.now(),{cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).then(function(j){
+      if(!j||!j.v||j.v===MEU) return;
+      if(D.hidden||!digitando()) recarrega(j.v); else { pend=j.v; aviso(j.v); }
+    }).catch(function(){}); }catch(e){} }
+  D.addEventListener('visibilitychange',function(){ if(D.hidden){ if(pend) recarrega(pend); } else checa(true); });
+  W.addEventListener('pageshow',function(e){ if(e.persisted) checa(true); });
+  W.addEventListener('focus',function(){ checa(false); });
+  setInterval(function(){ checa(false); },5*60*1000);
+  setTimeout(function(){ checa(true); },20000);
+})();
+
 W.AgionV2={
   versao:'casca-1',
   aba:function(id,o){ if(!id||!o||typeof o.render!=='function'){ console.warn('[v2] aba inválida',id); return; } ABAS[id]=o; if(o.grupo) GRUPO_DE[id]=GRUPO_DE[id]||o.grupo; try{ if(W.__agionV2) renderNav(); if(view&&view.page===id) render(); }catch(e){} },
