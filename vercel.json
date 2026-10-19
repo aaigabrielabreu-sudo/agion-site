@@ -1,10 +1,11 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
-  "rewrites": [
+  "redirects": [
     {
       "source": "/app",
-      "destination": "/plataforma.html"
+      "destination": "/plataforma",
+      "permanent": false
     }
   ],
   "headers": [
