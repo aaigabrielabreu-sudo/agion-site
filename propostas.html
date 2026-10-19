@@ -906,13 +906,19 @@ async function _montaPDF(){
   pdf.addImage(cv.toDataURL('image/jpeg',0.9),'JPEG',0,0,wmm,hmm,undefined,'FAST');
  }
  return pdf;}
+function _dataBlob(du){const i=du.indexOf(','),mime=du.slice(5,du.indexOf(';')),bin=atob(du.slice(i+1)),n=bin.length,u8=new Uint8Array(n);for(let k=0;k<n;k++)u8[k]=bin.charCodeAt(k);return new Blob([u8],{type:mime});}
+function _jszip(){return window.JSZip?Promise.resolve(window.JSZip):new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';sc.onload=()=>ok(window.JSZip);sc.onerror=()=>no(new Error('não carregou o compactador (verifique a conexão)'));document.head.appendChild(sc);});}
 async function baixarPNG(){if(_baixando)return;_trava(true);
  try{if(!(await _prontas()))return;
-  const n=CANVASES.length;if(n>1)setStatus('Baixando '+n+' imagens… se o navegador perguntar, clique em “Permitir” para baixar vários arquivos.');
-  for(let i=0;i<n;i++){if(n>1)setStatus('Baixando imagem '+(i+1)+' de '+n+'…');await _pausa(16);
-   const b=await _cvBlob(CANVASES[i].cv,'image/png');if(!b)throw new Error('não consegui gerar a imagem');
-   await _entregar(b,fileBase()+(n>1?('-p'+(i+1)):'')+'.png');if(i<n-1)await _pausa(450);}
-  setStatus(n>1?(n+' imagens baixadas ✓'):'Imagem baixada ✓');
+  const n=CANVASES.length;
+  if(n===1){setStatus('Preparando imagem…');await _pausa(16);await _entregar(_dataBlob(CANVASES[0].cv.toDataURL('image/png')),fileBase()+'.png');setStatus('Imagem baixada ✓');return;}
+  /* várias páginas = 1 arquivo .zip com todas as imagens (o navegador bloqueia vários downloads seguidos) */
+  const JSZip=await _jszip();const zip=new JSZip();
+  for(let i=0;i<n;i++){setStatus('Preparando imagem '+(i+1)+' de '+n+'…');await _pausa(16);
+   zip.file(fileBase()+'-p'+String(i+1).padStart(2,'0')+'.png',_dataBlob(CANVASES[i].cv.toDataURL('image/png')));}
+  setStatus('Compactando…');await _pausa(16);
+  const z=await zip.generateAsync({type:'blob',compression:'STORE'});
+  await _entregar(z,fileBase()+'-imagens.zip');setStatus(n+' imagens baixadas (arquivo .zip) ✓');
  }catch(e){setStatus('Não consegui baixar: '+(e&&e.message||e));console.error(e);}
  finally{_trava(false);}}
 async function baixarPDF(){if(_baixando)return;_trava(true);
