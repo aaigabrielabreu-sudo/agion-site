@@ -180,6 +180,18 @@ body{padding-bottom:110px}
 .exr{margin-top:16px;display:flex;gap:12px;align-items:flex-start;background:rgba(62,142,156,.08);border-radius:14px;padding:14px 16px;font-size:13.5px;line-height:1.6;color:var(--ink2)}
 .exr b{color:var(--ink)}
 .exr .i{flex:none;width:24px;height:24px;border-radius:50%;background:var(--petd);color:#fff;font:700 13px Georgia,serif;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.exc{display:flex;gap:12px;align-items:flex-start;background:rgba(197,160,89,.12);border:1px solid rgba(197,160,89,.45);border-radius:14px;padding:13px 16px;font-size:13.5px;line-height:1.6;color:var(--ink2);margin-bottom:16px}
+.exc .i{flex:none;width:24px;height:24px;border-radius:50%;background:var(--goldd);color:#fff;font:700 13px Georgia,serif;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.exs .st .n{width:auto!important;height:auto!important;border-radius:999px!important;padding:4px 10px!important;display:inline-flex!important;font-size:11px!important;letter-spacing:.02em}
+.exs .st.hl b{color:var(--goldl)}
+.ek2{margin:20px 0 8px;font-size:11.5px;letter-spacing:.14em;color:var(--goldd);font-weight:700;text-transform:uppercase}
+.ext{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+.ext table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+.ext th{text-align:left;font-weight:600;color:var(--mut);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:11px 14px;background:var(--cream);border-bottom:1px solid var(--line)}
+.ext td{padding:10px 14px;border-bottom:1px solid var(--line2);font-variant-numeric:tabular-nums;color:var(--ink2)}
+.ext tr:last-child td{border-bottom:0}
+.ext tr.on td{background:rgba(197,160,89,.16);color:var(--ink);font-weight:700}
+.exa{margin:14px 0 0;padding-left:18px;font-size:12.5px;line-height:1.7;color:var(--mut)}
 @media(max-width:900px){.exs{grid-template-columns:1fr 1fr}}
 @media(max-width:540px){.exs{grid-template-columns:1fr}.expl,.fullrow .box{padding:20px!important}}
 </style>
@@ -416,22 +428,32 @@ async function baixarPDF(btn){
   var FC=prazo>0?cred/prazo:0,taxaM=prazo>0?cred*taxa/prazo:0,parc=red*FC+taxaM,aport=mes*parc,cf=Math.pow(1+corr,mes/12),credC=cred*cf,contrato=credC*(1+taxa),lance=emb*contrato,lib=credC-lance,venda=agio*lib,lucro=venda-aport,lp=aport>0?lucro/aport*100:0,
    pos=(prazo-mes)>0?(contrato-aport-lance)/(prazo-mes):0,apl=(Math.pow(1+rend,mes/12)-1)*100,am=mes>0?lp/mes:0;
   function st(n,tit,val,txt,hl){return '<div class="st'+(hl?' hl':'')+'"><div class="n">'+n+'</div><div class="t">'+tit+'</div><div class="v">'+val+'</div><p>'+txt+'</p></div>';}
-  var M=Math.round(mes), h1='<div class="exs">'+
-   st(1,'Você paga',R(parc)+'/mês','por '+M+' meses'+(red<1?' (parcela reduzida a '+P(red*100,0)+' do fundo comum)':'')+'. Total: <b>'+R(aport)+'</b>.')+
-   st(2,'Contempla no mês '+M,R(lib),emb>0?('com lance embutido de '+P(emb*100,0)+': '+R(lance)+' saem da própria carta, sem dinheiro do bolso.'):'crédito liberado, sem lance.')+
-   st(3,'Vende com ágio',R(venda),P(agio*100,0)+' sobre o crédito liberado. Quem compra assume as parcelas restantes (≈ '+R(pos)+'/mês).')+
-   st(4,lucro>0?'Seu lucro':'Resultado',R(lucro),lucro>0?(P(lp)+' sobre o que pagou — cerca de '+P(am,2)+' ao mês.'):'com esse ágio a venda não compensa: tente um ágio maior ou contemplar antes.',lucro>0)+'</div>';
-  h1+='<div class="exr"><span class="i">i</span><div>'+(lucro>0?('Para comparar: o mesmo dinheiro numa aplicação a '+P(rend*100,0)+' ao ano renderia <b>'+P(apl)+'</b> no mesmo período. O consórcio rendeu <b>'+P(lp)+'</b>'+(apl>0&&lp>apl?' — cerca de <b>'+(lp/apl).toLocaleString('pt-BR',{maximumFractionDigits:1})+' vezes mais</b>':'')+'.'):('Nesta simulação a aplicação a '+P(rend*100,0)+' ao ano (<b>'+P(apl)+'</b> no período) rende mais que a venda da carta.'))+'</div></div>';
+  var M=Math.round(mes);
+  function meses(){var L=[12,24,36,48,60],o=[];L.concat([M]).forEach(function(x){if(x>0&&x<prazo&&o.indexOf(x)<0)o.push(x);});return o.sort(function(a,b){return a-b;});}
+  function c1(m){var cf=Math.pow(1+corr,m/12),cc=cred*cf,ct=cc*(1+taxa),ln=emb*ct,lb=cc-ln,vd=agio*lb,ap=m*parc;return {ap:ap,vd:vd,lu:vd-ap,lp:ap>0?(vd-ap)/ap*100:0,ct:ct};}
+  var cond='<div class="exc"><span class="i">!</span><div>Esta simulação considera que a carta seja contemplada no <b>mês '+M+'</b>. A contemplação não tem data garantida: pode vir antes ou depois, por sorteio ou lance. Mude o “Mês da contemplação” acima e todo o texto se ajusta.</div></div>';
+  var h1=cond+'<div class="exs">'+
+   st('1 · Enquanto não contempla','Você paga',R(parc)+'/mês','É a parcela '+(red<1?'reduzida ('+P(red*100,0)+' do fundo comum + taxa)':'da carta')+'. Se a contemplação vier no mês '+M+', até lá você terá pago <b>'+R(aport)+'</b>.')+
+   st('2 · Caso contemple no mês '+M,'Crédito liberado',R(lib),(corr>0?'A carta, já corrigida, vale '+R(credC)+'. ':'A carta vale '+R(credC)+'. ')+(emb>0?'Com lance embutido de '+P(emb*100,0)+', '+R(lance)+' saem da própria carta — sem dinheiro do bolso — e o restante fica liberado.':'Sem lance embutido, o crédito inteiro fica liberado.'))+
+   st('3 · Se vender a carta contemplada','Venda com ágio',R(venda),'Quem precisa do crédito agora paga '+P(agio*100,0)+' de ágio sobre o crédito liberado e assume as parcelas que faltam (≈ '+R(pos)+'/mês). Você não paga mais nada dessa carta.')+
+   st('4 · Resultado',lucro>0?'Seu lucro':'Resultado',R(lucro),lucro>0?('O ágio menos o que você pagou: '+P(lp,0)+' sobre o aporte, cerca de '+P(am,1)+' ao mês no período.'):'Com esses números a venda não compensa: o ágio fica abaixo do que você pagou. Tente um ágio maior ou uma contemplação mais cedo.',lucro>0)+'</div>';
+  h1+='<div class="ek2">E se a contemplação vier em outro mês?</div><div class="ext"><table><tr><th>Contempla no</th><th>Você pagou</th><th>Recebe na venda</th><th>Lucro</th><th>Sobre o pago</th></tr>'+
+   meses().map(function(m){var r=c1(m);return '<tr'+(m===M?' class="on"':'')+'><td>mês '+m+(m===M?' · simulado':'')+'</td><td>'+R(r.ap)+'</td><td>'+R(r.vd)+'</td><td>'+R(r.lu)+'</td><td>'+P(r.lp,0)+'</td></tr>';}).join('')+'</table></div>';
+  h1+='<div class="exr"><span class="i">i</span><div>'+(lucro>0?('Para comparar: as mesmas parcelas numa aplicação a '+P(rend*100,0)+' ao ano renderiam <b>'+P(apl)+'</b> até o mês '+M+'. Contemplando no mês '+M+', o consórcio rendeu <b>'+P(lp,0)+'</b>'+(apl>0&&lp>apl?' — cerca de <b>'+(lp/apl).toLocaleString('pt-BR',{maximumFractionDigits:1})+' vezes mais</b>':'')+'. Quanto antes a contemplação, maior a vantagem.'):('Nesta simulação, contemplando no mês '+M+', a aplicação a '+P(rend*100,0)+' ao ano (<b>'+P(apl)+'</b> no período) rende mais que a venda da carta.'))+'</div></div>';
+  h1+='<ul class="exa"><li>A data da contemplação depende de sorteio e de lances; nenhum mês é garantido.</li><li>O ágio de '+P(agio*100,0)+' é referência de mercado e pode variar na hora da venda.</li><li>Valores antes da taxa de transferência da carta e do imposto sobre o ganho.</li></ul>';
   $('ex1t').innerHTML=h1;
-  var imovel=n('p_imovel'),val=n('p_val')/100,alug=n('p_alug')/100,reaj=n('p_reaj')/100,imp=n('p_imp')/100,prR=Math.max(0,prazo-mes),aIni=alug*imovel,brt=0;
-  for(var m=0;m<prR;m++)brt+=aIni*Math.pow(1+reaj,Math.floor(m/12));
-  var liq=brt*(1-imp),pat=imovel*Math.pow(1+val,prR/12),bolso=contrato-liq,dbp=pat>0?bolso/pat*100:0;
-  var h2='<div class="exs">'+
-   st(1,'Compra o imóvel',R(imovel),'com a carta contemplada no mês '+M+'.')+
-   st(2,'Aluga',R(aIni)+'/mês',P(alug*100,2)+' ao mês. Em '+Math.round(prR)+' meses o aluguel soma <b>'+R(liq)+'</b> já sem o imposto de '+P(imp*100,1)+'.')+
-   st(3,'Sai do seu bolso',R(bolso),'o consórcio inteiro custa '+R(contrato)+'; o aluguel paga o resto.')+
-   st(4,'Patrimônio no fim',R(pat),'com valorização de '+P(val*100,2)+' ao ano. Do bolso: <b>'+P(dbp)+'</b> do patrimônio.',true)+'</div>';
-  h2+='<div class="exr"><span class="i">i</span><div>'+(dbp<25?'Abaixo de 25% do patrimônio saindo do bolso, a operação é considerada <b>excelente</b>.':dbp<40?'Entre 25% e 40% do patrimônio saindo do bolso, a operação é <b>boa</b>.':'Acima de 40% do patrimônio saindo do bolso, vale <b>reavaliar</b> os números: aluguel, valorização ou mês da contemplação.')+'</div></div>';
+  var imovel=n('p_imovel'),val=n('p_val')/100,alug=n('p_alug')/100,reaj=n('p_reaj')/100,imp=n('p_imp')/100;
+  function c2(m){var pr=Math.max(0,prazo-m),ai=alug*imovel,b=0;for(var k=0;k<pr;k++)b+=ai*Math.pow(1+reaj,Math.floor(k/12));var lq=b*(1-imp),pt=imovel*Math.pow(1+val,pr/12),ct=c1(m).ct,bo=ct-lq;return {pr:pr,ai:ai,lq:lq,pt:pt,ct:ct,bo:bo,db:pt>0?bo/pt*100:0};}
+  var s2=c2(M);
+  var h2='<div class="exc"><span class="i">!</span><div>Esta simulação considera que a carta seja contemplada no <b>mês '+M+'</b> e que o imóvel seja comprado e alugado logo em seguida. A data da contemplação não é garantida — mude o mês no Cenário 1 e o texto se ajusta.</div></div><div class="exs">'+
+   st('1 · Caso contemple no mês '+M,'Compra o imóvel',R(imovel),'Com a carta contemplada, você compra um imóvel de '+R(imovel)+' para alugar.')+
+   st('2 · Enquanto o grupo não termina','Aluguel',R(s2.ai)+'/mês','A '+P(alug*100,2)+' ao mês'+(reaj>0?', reajustado '+P(reaj*100,1)+' ao ano':'')+'. Nos '+Math.round(s2.pr)+' meses que faltam, soma <b>'+R(s2.lq)+'</b> já sem o imposto de '+P(imp*100,1)+'.')+
+   st('3 · O que sai do seu bolso','Do bolso',R(s2.bo),'O consórcio inteiro custa '+R(s2.ct)+'. O aluguel paga '+R(s2.lq)+' disso; o restante é o seu esforço de verdade.')+
+   st('4 · No fim do grupo','Patrimônio',R(s2.pt),'Com valorização de '+P(val*100,2)+' ao ano, o imóvel quitado fica com você. Do bolso: <b>'+P(s2.db)+'</b> do patrimônio.',true)+'</div>';
+  h2+='<div class="ek2">E se a contemplação vier em outro mês?</div><div class="ext"><table><tr><th>Contempla no</th><th>Aluguel até o fim</th><th>Sai do bolso</th><th>Patrimônio no fim</th><th>Bolso ÷ patrimônio</th></tr>'+
+   meses().map(function(m){var r=c2(m);return '<tr'+(m===M?' class="on"':'')+'><td>mês '+m+(m===M?' · simulado':'')+'</td><td>'+R(r.lq)+'</td><td>'+R(r.bo)+'</td><td>'+R(r.pt)+'</td><td>'+P(r.db)+'</td></tr>';}).join('')+'</table></div>';
+  h2+='<div class="exr"><span class="i">i</span><div>'+(s2.db<25?'Abaixo de 25% do patrimônio saindo do bolso, a operação é considerada <b>excelente</b>.':s2.db<40?'Entre 25% e 40% do patrimônio saindo do bolso, a operação é <b>boa</b>.':'Acima de 40% do patrimônio saindo do bolso, vale <b>reavaliar</b> os números: aluguel, valorização ou mês da contemplação.')+' Contemplar antes dá mais meses de aluguel pagando a carta.</div></div>';
+  h2+='<ul class="exa"><li>A data da contemplação depende de sorteio e de lances; nenhum mês é garantido.</li><li>Aluguel e valorização são estimativas: meses sem inquilino, condomínio e manutenção reduzem o resultado.</li><li>Valores antes de custos de compra do imóvel (ITBI, escritura) e da administração do aluguel.</li></ul>';
   $('ex2t').innerHTML=h2;}
  function fmtR(el){var v=num(el.id);if(v>0)el.value=Math.round(v).toLocaleString('pt-BR');}
  document.addEventListener('DOMContentLoaded',function(){
