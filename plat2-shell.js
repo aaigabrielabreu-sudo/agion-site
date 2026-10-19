@@ -102,6 +102,7 @@ function hook(){
       seloPrevia(); botaoMais();
     }catch(e){} return o; };
   var _r=W.render; var rf=function(){ try{
+      if(view&&ABAS[view.page]&&!registrada(view.page)) view.page='dash';  /* aba registrada sem permissão → Painel */
       var a=view&&registrada(view.page);
       if(a){ try{ destroyCharts(); }catch(e){} try{ updateBell(); }catch(e){} var C=D.getElementById('content');
         try{ setTop(a.titulo,a.sub||a.grupo||'',''); }catch(e){}

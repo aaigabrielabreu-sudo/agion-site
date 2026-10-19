@@ -17,7 +17,7 @@ V2 = os.path.join(RAIZ, 'plataformav2.html')
 
 # versões dos arquivos da casca (subir a cada mudança)
 SHELL_CSS = '/plat2-shell.css?v=1'
-SHELL_JS = '/plat2-shell.js?v=1'
+SHELL_JS = '/plat2-shell.js?v=2'
 
 src = open(V1, encoding='utf-8').read()
 
