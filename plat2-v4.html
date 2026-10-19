@@ -4708,4 +4708,30 @@ window.AG.setRole=setRole;
  if(ok())window.stagger=novo;else document.addEventListener('DOMContentLoaded',function(){window.stagger=novo;});})();
 </script>
 <script src="/plat2-tour.js?v=2"></script>
+<script id="b-tab-estavel">/* Chat B 19/out: abas do celular respondem no 1º toque.
+ Causa: a barra era REFEITA (innerHTML) a cada atualização de números/badges (CRM, conversas, recarga a cada poucos segundos);
+ se isso acontecia entre o dedo encostar e soltar, o toque se perdia — e a rolagem da barra voltava para o meio.
+ Agora: (1) se as abas são as mesmas, só os números (badges) mudam, sem recriar os botões; (2) o toque abre a aba ao soltar o dedo,
+ mesmo se a barra ainda estava deslizando (no iPhone o 1º toque só parava a rolagem). */
+(function(){
+ if(typeof buildTab!=='function')return;
+ var _bt=buildTab, SIG='';
+ function sig(){try{return navList().map(function(x){return x[0]+'|'+x[1];}).join(',');}catch(e){return Math.random()+'';}}
+ buildTab=function(){var t=$('#mtab'),mts=t&&$('#mts',t),s=sig();
+  if(mts&&s===SIG&&$$('#mts button',t).length){
+   $$('#mts button',t).forEach(function(b){var bd=null;try{bd=badge(b.dataset.k);}catch(e){}var i=$('.mbd',b);
+    if(bd){if(!i){i=document.createElement('i');b.appendChild(i);}i.className='mbd '+bd[0];if(i.textContent!==String(bd[1]))i.textContent=bd[1];}else if(i)i.remove();});
+   try{tabOn();}catch(e){}return;}
+  SIG=s;return _bt.apply(this,arguments);};
+ /* toque: dispara ao soltar se o dedo quase não andou */
+ var T=null,ign=0;
+ document.addEventListener('touchstart',function(e){var b=e.target.closest&&e.target.closest('#mtab button');if(!b){T=null;return;}var p=e.touches[0];T={b:b,x:p.clientX,y:p.clientY,t:Date.now()};},{passive:true,capture:true});
+ document.addEventListener('touchmove',function(e){if(!T)return;var p=e.touches[0];if(Math.abs(p.clientX-T.x)>10||Math.abs(p.clientY-T.y)>10)T=null;},{passive:true,capture:true});
+ document.addEventListener('touchend',function(e){if(!T)return;var b=T.b,dt=Date.now()-T.t;T=null;if(dt>700)return;
+  var k=b.dataset.k;var vivo=$$('#mtab button').filter(function(x){return x.dataset.k===k;})[0]||b;
+  e.preventDefault();ign=Date.now();try{if(navigator.vibrate)navigator.vibrate(6);}catch(_){}
+  if(k==='__mais'){mais();return;}go(k);},{passive:false,capture:true});
+ document.addEventListener('click',function(e){if(Date.now()-ign<600&&e.target.closest&&e.target.closest('#mtab button')){e.stopPropagation();e.preventDefault();}},true);
+})();
+</script>
 </body></html>
