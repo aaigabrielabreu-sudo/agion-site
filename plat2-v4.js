@@ -49,7 +49,7 @@ function corApp(){ try{
 function montar(){
   if(wrap) return mostrar();
   var st=D.createElement('style');
-  st.textContent='#v4wrap{position:fixed;inset:0;z-index:400;background:#F4F1EA;transition:opacity .35s}#v4wrap.off{opacity:0;pointer-events:none}#v4wrap{overflow:hidden;width:100%;max-width:100vw}#v4wrap iframe{width:1px;min-width:100%;max-width:100%;height:100%;border:0;display:block}html.v4on,html.v4on body{overflow:hidden!important;overscroll-behavior:none}html.isApp.v4on #v4wrap{top:max(12px,env(safe-area-inset-top,0px))}'+
+  st.textContent='#v4wrap{position:fixed;inset:0;z-index:400;background:#F4F1EA;transition:opacity .35s}#v4wrap.off{opacity:0;pointer-events:none}#v4wrap{overflow:hidden;width:100%;max-width:100vw}#v4wrap iframe{width:1px;min-width:100%;max-width:100%;height:100%;border:0;display:block}html.v4on,html.v4on body{overflow:hidden!important;overscroll-behavior:none}@media (max-width:860px){html.isApp.v4on #v4wrap{top:max(12px,env(safe-area-inset-top,0px))}}'+
     'body.v4on{overflow:hidden}body.v4on>*:not(#v4wrap):not(#app):not(#loginView):not(#v2MaisBt):not(.v2-sheet-bg){z-index:950!important}body.v4on #v2MaisBt{display:none!important}#v4volta{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:450;display:none;border:0;border-radius:999px;padding:11px 16px;font:700 13px system-ui;background:#0B2A26;color:#E8CC8B;box-shadow:0 8px 24px rgba(0,0,0,.25)}body.v4fb #v4volta{display:block}';
   D.head.appendChild(st);
   wrap=D.createElement('div'); wrap.id='v4wrap';

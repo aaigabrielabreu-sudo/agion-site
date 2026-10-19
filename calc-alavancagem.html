@@ -14,8 +14,15 @@
         if(v && (v.refresh_token || v.access_token || (v.currentSession&&(v.currentSession.refresh_token||v.currentSession.access_token)))){ ok=true; break; }
       }
     }
+    /* Chat B 19/out: link temporário para o cliente (?acesso=TOKEN) — abre sem login até expirar */
+    var qs=new URLSearchParams(location.search), ac=qs.get('acesso');
+    if(ac){ window.__agLinkTemp=1; fetch('https://bot.agionconsorcios.com.br/api/link_ok?p=calc-alavancagem&t='+encodeURIComponent(ac)).then(function(r){return r.json();}).then(function(j){
+        if(j&&j.ok){ window.__agLinkExp=j.expira; show(); return; }
+        expirou(j&&j.motivo); }).catch(function(){ expirou('rede'); });
+      return; }
     ok ? show() : deny();
   }catch(e){ deny(); }
+  function expirou(m){ try{ document.open(); document.write('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Agion · Link expirado</title><body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#faf8f2;font-family:system-ui,sans-serif;color:#0a2823;padding:24px"><div style="max-width:440px;text-align:center"><div style="font:600 13px system-ui;letter-spacing:.14em;color:#9a7a34">AGION CONSÓRCIOS</div><h1 style="font:600 28px Georgia,serif;margin:14px 0 10px">'+(m==='rede'?'Não foi possível abrir':'Este link expirou')+'</h1><p style="color:#586b62;line-height:1.6">'+(m==='rede'?'Verifique a conexão e tente de novo.':'Por segurança, os links da Agion valem por um tempo limitado. Fale com o seu especialista para receber um link novo.')+'</p><a href="https://wa.me/5551982034245" style="display:inline-block;margin-top:14px;background:#0a2823;color:#e8cc8b;text-decoration:none;padding:12px 20px;border-radius:999px;font-weight:600">Falar com a Agion no WhatsApp</a></div>'); document.close(); }catch(e){} }
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -329,3 +336,20 @@ async function baixarPDF(btn){
 </script>
 
 <script src="/tool-tour.js?v=1" defer></script>
+<script id="ag-link-temp">/* Chat B 19/out: botão para a equipe gerar link temporário desta ferramenta para o cliente */
+(function(){ if(window.__agLinkTemp){ var t=document.createElement('div'); t.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:9999;background:#0a2823;color:#e8cc8b;font:600 12px system-ui;padding:8px 14px;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.25)';
+  var e=window.__agLinkExp?new Date(window.__agLinkExp*1000):null; t.textContent='Link da Agion'+(e?' · válido até '+e.toLocaleDateString('pt-BR')+' '+e.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):''); document.addEventListener('DOMContentLoaded',function(){document.body.appendChild(t);}); return; }
+ function tok(){ try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(k&&k.indexOf('sb-')===0&&k.indexOf('auth-token')>-1){ var v=JSON.parse(localStorage.getItem(k)); return v&&(v.access_token||(v.currentSession&&v.currentSession.access_token)); } } }catch(e){} return null; }
+ function abrir(){ var bg=document.createElement('div'); bg.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(4,20,18,.55);display:flex;align-items:flex-end;justify-content:center;padding:12px';
+  bg.innerHTML='<div style="background:#fff;border-radius:22px;max-width:440px;width:100%;padding:22px;font-family:Poppins,system-ui,sans-serif;color:#0a2823"><div style="font:700 11px system-ui;letter-spacing:.12em;color:#9a7a34">LINK PARA O CLIENTE</div><h3 style="font:600 22px Lora,Georgia,serif;margin:6px 0 6px">Enviar esta calculadora</h3><p style="color:#586b62;font-size:13.5px;margin:0 0 14px">O cliente abre sem login. Depois do prazo, o link expira sozinho.</p><div id="agh" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div><div id="agr" style="margin-top:14px"></div><button id="agx" style="margin-top:12px;width:100%;border:1px solid #e0d6bf;background:#fff;border-radius:12px;padding:11px;font:600 13px system-ui;cursor:pointer">Fechar</button></div>';
+  document.body.appendChild(bg); bg.querySelector('#agx').onclick=function(){bg.remove();}; bg.onclick=function(e){if(e.target===bg)bg.remove();};
+  [['1 hora',1],['2 horas',2],['1 dia',24],['2 dias',48]].forEach(function(o){ var b=document.createElement('button'); b.textContent=o[0]; b.style.cssText='border:1.5px solid #c5a059;background:#f8f2e6;color:#0a2823;border-radius:12px;padding:12px 4px;font:700 13px system-ui;cursor:pointer';
+   b.onclick=function(){ var r=bg.querySelector('#agr'); r.innerHTML='Gerando…'; fetch('https://bot.agionconsorcios.com.br/api/link_temp',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok()},body:JSON.stringify({pagina:'calc-alavancagem',horas:o[1]})}).then(function(x){return x.json();}).then(function(j){
+     if(!j||!j.ok){ r.innerHTML='<span style="color:#b0503f">Não gerou: '+((j&&j.error)||'erro')+'</span>'; return; }
+     var e=new Date(j.expira*1000); r.innerHTML='<input readonly value="'+j.url+'" style="width:100%;border:1px solid #e0d6bf;border-radius:10px;padding:10px;font:13px monospace"><div style="font-size:12px;color:#586b62;margin-top:6px">Válido até '+e.toLocaleDateString('pt-BR')+' às '+e.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+' · copiado ✓</div><a target="_blank" href="https://wa.me/?text='+encodeURIComponent('Segue a simulação da Agion Consórcios: '+j.url)+'" style="display:block;text-align:center;margin-top:10px;background:#25D366;color:#fff;text-decoration:none;border-radius:12px;padding:11px;font:700 13px system-ui">Enviar no WhatsApp</a>';
+     try{ navigator.clipboard.writeText(j.url); }catch(e){} }).catch(function(){ r.innerHTML='<span style="color:#b0503f">Sem conexão com o servidor.</span>'; }); };
+   bg.querySelector('#agh').appendChild(b); }); }
+ document.addEventListener('DOMContentLoaded',function(){ var b=document.createElement('button'); b.textContent='🔗 Link para o cliente'; b.title='Gerar link temporário desta ferramenta';
+  b.style.cssText='position:fixed;right:14px;bottom:14px;z-index:9998;border:0;background:#0a2823;color:#e8cc8b;font:700 13px system-ui;padding:11px 16px;border-radius:999px;box-shadow:0 10px 26px rgba(0,0,0,.25);cursor:pointer'; b.onclick=abrir; document.body.appendChild(b); });
+})();
+</script>
