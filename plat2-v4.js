@@ -43,6 +43,8 @@ function corApp(){ try{
   if(mt&&COR0===null) COR0=mt.getAttribute('content');
   var c=null; if(on){ try{ c=fr.contentWindow.getComputedStyle(fr.contentDocument.body).backgroundColor; }catch(e){} if(!c||c==='rgba(0, 0, 0, 0)') c='#F4EFE4'; }
   if(band) band.style.background = on? c : '#0B2A26';
+  /* 19/out: no computador (app do Mac) a faixa do relógio não existe — ela cobria o topo dos botões */
+  if(band) band.style.display=(on&&W.innerWidth>860)?'none':'';
   if(mt) mt.setAttribute('content', on? c : (COR0||'#0B2A26'));
   if(wrap&&on) wrap.style.background=c;
   /* 19/out: fundo da página por trás também na cor do visual novo (sem faixa escura sobrando no canto do relógio) */
@@ -56,7 +58,7 @@ function montar(){
   D.head.appendChild(st);
   wrap=D.createElement('div'); wrap.id='v4wrap';
   fr=D.createElement('iframe'); fr.title='Agion Wealth'; fr.setAttribute('allow','clipboard-read; clipboard-write; notifications');
-  var src=W.__V4SRC||('/plat2-v4.html?v=13');
+  var src=W.__V4SRC||('/plat2-v4.html?v=14');
   if(W.__V4SRCDOC) fr.srcdoc=W.__V4SRCDOC; else fr.src=src;
   wrap.appendChild(fr); D.body.appendChild(wrap); D.body.classList.add('v4on'); D.documentElement.classList.add('v4on');
   fr.addEventListener('load',function(){ try{ if(D.documentElement.classList.contains('isApp')) fr.contentDocument.documentElement.classList.add('emapp'); }catch(e){} corApp(); });
