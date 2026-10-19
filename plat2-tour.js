@@ -371,7 +371,7 @@ function place(){
   if(!UI||!RUN) return;
   if(RUN.el&&!RUN.el.isConnected){ var st0=stepsOf(RUN.t)[RUN.i]||{}; try{ var ne=typeof st0.t==='function'?st0.t():(st0.t?$$(st0.t).filter(vis)[0]:null); RUN.el=ne||null; if(ne&&UI.ro){ UI.ro.observe(ne); } }catch(e){ RUN.el=null; } }
   var el=RUN.el, vw=W.innerWidth, vh=W.innerHeight, sheet=narrow();
-  UI.root.classList.toggle('sheet',sheet);
+  UI.root.classList.toggle('tr-sh',sheet);
   var r=el&&el.isConnected?el.getBoundingClientRect():null;
   var pad=6, ob0=obstacles(), off=!r||r.bottom<40||r.top>vh-ob0.bottom-40||r.right<4||r.left>vw-4;
   UI.root.classList.toggle('offscreen',!!(r&&off));
@@ -514,7 +514,7 @@ function areaInvite(){
     if(curPage()!==pg||RUN||RO()) return;
     if(novidadesAbertas()||$('.sheet.on')||$('.dm')){ ainvTimer=setTimeout(arguments.callee,1500); return; }
     var d=data(), r=d.items[t.id]; if(r&&(r.done||r.step>0||r.ask)) return;
-    var el=D.createElement('div'); el.className='tr-invite tr-ainv b-ainv'+(narrow()?' sheet':''); el.setAttribute('role','dialog'); el.setAttribute('aria-labelledby','trAinvT');
+    var el=D.createElement('div'); el.className='tr-invite tr-ainv b-ainv'+(narrow()?' tr-sh':''); el.setAttribute('role','dialog'); el.setAttribute('aria-labelledby','trAinvT');
     el.innerHTML='<div class="k">Primeira vez aqui?</div><h4 id="trAinvT">Como usar '+esc(TX(t.title))+'</h4><p>'+esc(TX(t.desc))+' Um guia de '+stepsOf(t).length+' passos, direto nesta tela, sem alterar nada.</p>'+
       '<div class="r"><button class="gold" data-a="go">Iniciar</button><button data-a="skip">Agora não</button></div>';
     el.addEventListener('click',function(e){ var a=e.target&&e.target.getAttribute('data-a'); if(!a) return;
@@ -543,7 +543,19 @@ function refreshCenter(){ try{ if(curPage()==='tutoriais'){ var v=$('#view'); v.
 function css(){ if($('#b2TourCss')) return; var st=D.createElement('style'); st.id='b2TourCss';
   st.textContent='.b-help{display:none}.b-help b{font:800 16px "DM Sans",sans-serif;color:var(--goldd,#8a6d2f)}'+
   '@media (max-width:860px){.b-help{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;flex:none}}'+
-  '.tr-invite.b-ainv.sheet,body .tr-invite.b-ainv.sheet{bottom:calc(var(--tabh,66px) + 18px + max(6px,env(safe-area-inset-bottom,0px)*.5))}'+
+  '.tr-invite.tr-sh{left:10px;right:10px;width:auto}'+
+  '.tr-invite.b-ainv.tr-sh,body .tr-invite.b-ainv.tr-sh{bottom:calc(var(--tabh,66px) + 18px + max(6px,env(safe-area-inset-bottom,0px)*.5))}'+
+  /* 19/out: no celular o cartão do tutorial vira uma folha (a classe .sheet do visual novo empurrava o cartão para fora da tela) */
+  '#trRoot.tr-sh .tr-card{left:10px!important;right:10px;width:auto;border-radius:20px;padding:14px 16px 14px;box-shadow:0 18px 50px rgba(0,0,0,.42)}'+
+  '#trRoot.tr-sh .tr-col{display:inline-flex}'+
+  '#trRoot.tr-sh .tr-card h4{font-size:1.02rem;line-height:1.3;margin-bottom:6px}'+
+  '#trRoot.tr-sh .tr-card p{font-size:.88rem;line-height:1.5}'+
+  '#trRoot.tr-sh .tr-acts{gap:8px;margin-top:12px}'+
+  '#trRoot.tr-sh .tr-btn{min-height:40px;padding:9px 14px;font-size:.84rem}'+
+  '#trRoot.tr-sh .tr-btn.gold{padding:9px 18px}'+
+  '#trRoot.tr-sh.collapsed .tr-card p,#trRoot.tr-sh.collapsed .tr-miss,#trRoot.tr-sh.collapsed .tr-acts .tr-play,#trRoot.tr-sh.collapsed .tr-acts .see{display:none!important}'+
+  '#trRoot.tr-sh.collapsed .tr-card h4{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
+  '#trRoot.tr-sh.collapsed .tr-acts{margin-top:8px}'+
   '#trRoot .tr-ghost{z-index:2}';
   D.head.appendChild(st); }
 function hook(){

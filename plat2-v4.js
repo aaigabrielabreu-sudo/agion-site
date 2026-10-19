@@ -45,6 +45,8 @@ function corApp(){ try{
   if(band) band.style.background = on? c : '#0B2A26';
   if(mt) mt.setAttribute('content', on? c : (COR0||'#0B2A26'));
   if(wrap&&on) wrap.style.background=c;
+  /* 19/out: fundo da página por trás também na cor do visual novo (sem faixa escura sobrando no canto do relógio) */
+  if(D.documentElement.classList.contains('isApp')){ D.documentElement.style.backgroundColor=on?c:''; D.body.style.backgroundColor=on?c:''; if(band){ band.style.left='-2px'; band.style.right='-2px'; band.style.width='calc(100vw + 4px)'; } }
 }catch(e){} }
 function montar(){
   if(wrap) return mostrar();
@@ -54,7 +56,7 @@ function montar(){
   D.head.appendChild(st);
   wrap=D.createElement('div'); wrap.id='v4wrap';
   fr=D.createElement('iframe'); fr.title='Agion Wealth'; fr.setAttribute('allow','clipboard-read; clipboard-write; notifications');
-  var src=W.__V4SRC||('/plat2-v4.html?v=11');
+  var src=W.__V4SRC||('/plat2-v4.html?v=12');
   if(W.__V4SRCDOC) fr.srcdoc=W.__V4SRCDOC; else fr.src=src;
   wrap.appendChild(fr); D.body.appendChild(wrap); D.body.classList.add('v4on'); D.documentElement.classList.add('v4on');
   fr.addEventListener('load',function(){ try{ if(D.documentElement.classList.contains('isApp')) fr.contentDocument.documentElement.classList.add('emapp'); }catch(e){} corApp(); });
