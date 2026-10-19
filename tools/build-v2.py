@@ -18,6 +18,7 @@ V2 = os.path.join(RAIZ, 'plataformav2.html')
 # versões dos arquivos da casca (subir a cada mudança)
 SHELL_CSS = '/plat2-shell.css?v=1'
 SHELL_JS = '/plat2-shell.js?v=2'
+V4_JS = '/plat2-v4.js?v=1'   # visual v4 (Chat A) por cima da v1; ?v1=1 na URL desliga
 
 src = open(V1, encoding='utf-8').read()
 
@@ -36,7 +37,7 @@ out = unico(out, '<title>Agion — Plataforma de Planejamento Financeiro</title>
 # 2) CSS da casca: antes do PRIMEIRO </head> (o do documento; há outro dentro de uma string JS mais abaixo)
 out = unico(out, '</head>', '<link rel="stylesheet" href="%s">\n</head>' % SHELL_CSS)
 # 3) JS da casca: antes do ÚLTIMO </body> (o do documento)
-out = unico(out, '</body>', '<script src="%s"></script>\n</body>' % SHELL_JS, primeira=False)
+out = unico(out, '</body>', '<script src="%s"></script>\n<script src="%s"></script>\n</body>' % (SHELL_JS, V4_JS), primeira=False)
 
 open(V2, 'w', encoding='utf-8').write(out)
 print('ok: plataformav2.html', len(out) // 1024, 'KB')
