@@ -1674,9 +1674,17 @@ html.emapp body.pwa .tbar,html.emapp .tbar{padding-top:8px!important}
 }
 
 #mkb .g21>div,#mkb .g21>div>.panel{min-width:0}.dtw{max-width:100%}
-</style><style id="b-mtab-dock">/* Chat B 19/out (pedido do Gabriel): barra de menus do celular encostada no fim da tela, sem sobra embaixo */
+</style><style id="b-mtab-dock">/* Chat B 19/out (pedidos do Gabriel): barra de menus do celular no fim da tela + toque e deslize melhores */
 @media (max-width:860px){
- .mtab{left:0!important;right:0!important;bottom:0!important;height:calc(var(--tabh) + max(8px,env(safe-area-inset-bottom,0px)))!important;padding:6px 8px max(8px,env(safe-area-inset-bottom,0px))!important;border-radius:22px 22px 0 0!important;box-shadow:0 -12px 30px -14px rgba(0,0,0,.45),inset 0 1px 0 rgba(232,204,139,.16)!important}
+ /* barra encostada embaixo; a faixa verde abaixo dos ícones = metade da área do iPhone */
+ .mtab{left:0!important;right:0!important;bottom:0!important;height:calc(var(--tabh) + max(6px,env(safe-area-inset-bottom,0px)*.5))!important;padding:6px 8px max(6px,env(safe-area-inset-bottom,0px)*.5)!important;border-radius:22px 22px 0 0!important;box-shadow:0 -12px 30px -14px rgba(0,0,0,.45),inset 0 1px 0 rgba(232,204,139,.16)!important}
+ /* deslize livre (sem travar item a item): um gesto anda várias abas */
+ .mts{scroll-snap-type:none!important;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+ .mtab .mts button{scroll-snap-align:none!important}
+ /* toque: sem atraso de duplo toque; cartões do CRM não bloqueiam a rolagem (arrastar cartão é só no computador) */
+ html,body{touch-action:manipulation}
+ .deal{touch-action:manipulation!important}
+ button,a,[data-k],[data-a]{touch-action:manipulation}
 }
 </style>
 </head><body>
@@ -2017,8 +2025,8 @@ function go(k,arg,nohist){
  cur=k;curArg=arg||null;var nk=k==='cliente'?(arg&&arg.lead?'crm':'clientes'):(PARENT[k]!==undefined?PARENT[k]:k);moveInd(nk);
  var t=navList().filter(function(x){return x[0]===nk;})[0];$('#crumb').innerHTML=(t?t[3]+' <span>· '+t[1]+'</span>':'Plataforma <span>· Novidades</span>');
  if(!nohist)try{history.replaceState(null,'','#'+k);}catch(e){}
- var v=$('#view');v.style.transition='opacity .22s,transform .22s';v.style.opacity=0;v.style.transform='translateY(8px)';closeDrawer();closePop();closeSheet(true);$$('.dm').forEach(function(m){m.remove();});$('#ov').classList.remove('on');
- setTimeout(function(){v.innerHTML='';(R[k]||R.vazio)(v,arg);$('#main').scrollTop=0;v.style.opacity=1;v.style.transform='none';reveal(v);counts(v);},200);}
+ var v=$('#view');v.style.transition='opacity .14s,transform .14s';v.style.opacity=0;v.style.transform='translateY(8px)';closeDrawer();closePop();closeSheet(true);$$('.dm').forEach(function(m){m.remove();});$('#ov').classList.remove('on');
+ setTimeout(function(){v.innerHTML='';(R[k]||R.vazio)(v,arg);$('#main').scrollTop=0;v.style.opacity=1;v.style.transform='none';reveal(v);counts(v);},110);}
 function setRole(r){ROLE=r;$('#app').classList.add('swap');buildNav();var me=U[ME()];
  $('#uc').innerHTML=av(me.n)+'<div><b>'+me.n+'</b><small>'+me.p+'</small></div>';
  $$('#vc button').forEach(function(b){b.classList.toggle('on',b.dataset.r===r);});slide($('#vc'));
