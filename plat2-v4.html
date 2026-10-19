@@ -1687,6 +1687,13 @@ html.emapp body.pwa .tbar,html.emapp .tbar{padding-top:8px!important}
  button,a,[data-k],[data-a]{touch-action:manipulation}
 }
 </style>
+<style id="b-sticky-fundo">/* Chat B 19/out (pedido do Gabriel): ao rolar, faixas fixas (Quadro/Lista/Perdidos e etapas do CRM) com o fundo padrão e sem vão entre elas */
+@media (max-width:860px){
+ .tbar{background:var(--bg)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+ .snw{top:var(--b-tbh,calc(60px + env(safe-area-inset-top,0px)))!important;background:var(--bg);margin:-2px -14px 4px!important;padding:4px 14px 4px!important;pointer-events:auto!important}
+ .kbs{top:var(--b-kbt,calc(108px + env(safe-area-inset-top,0px)))!important;background:var(--bg);padding:0 14px 8px!important;margin-bottom:6px!important}
+}
+</style>
 </head><body>
 <div class="app" id="app">
  <aside class="sb" id="sb">
@@ -4666,4 +4673,13 @@ window.AG.setRole=setRole;
  setTimeout(linkConversa,500);
  setTimeout(function(){if(cur!=='conversas')cvCarregaLista().then(function(){buildNavKeep();});},2500);
 })();
-</script></body></html>
+</script><script id="b-sticky-medida">/* Chat B 19/out: mede o cabeçalho e a faixa Quadro/Lista para as etapas do CRM grudarem logo abaixo, sem vão */
+(function(){function med(){try{if(innerWidth>860)return;var r=document.documentElement,t=document.querySelector('.tbar'),s=document.querySelector('#view .snw');
+ var th=t?Math.round(t.getBoundingClientRect().height):0;if(th>0)r.style.setProperty('--b-tbh',th+'px');
+ if(s&&th>0){var sh=Math.round(s.getBoundingClientRect().height);if(sh>0)r.style.setProperty('--b-kbt',(th+sh)+'px');}}catch(e){}}
+ var tm;function agenda(){clearTimeout(tm);tm=setTimeout(med,60);}
+ window.addEventListener('resize',agenda);window.addEventListener('load',agenda);
+ document.addEventListener('DOMContentLoaded',function(){var v=document.getElementById('view');if(v)new MutationObserver(agenda).observe(v,{childList:true});agenda();});
+ setInterval(med,2500);})();
+</script>
+</body></html>
