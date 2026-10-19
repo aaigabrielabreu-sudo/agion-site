@@ -70,3 +70,6 @@ html.v2 body.isApp #mobnav{padding-right:74px!important}
 .v2-mg button .icon{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
 .v2-mg button.on{background:linear-gradient(115deg,#A8853E,#E8CC8B 52%,#C5A059 92%);color:#0B2A26;border-color:transparent}
 @media (prefers-reduced-motion:reduce){.v2-sheet,.v2-sheet-bg{transition:none}}
+
+/* Chat B 19/out: com o visual novo aberto, os tutoriais da versão anterior ficam escondidos (o visual novo tem os seus) */
+html.v4on #trRoot, html.v4on .tr-invite{display:none!important}

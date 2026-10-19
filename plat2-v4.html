@@ -1694,6 +1694,7 @@ html.emapp body.pwa .tbar,html.emapp .tbar{padding-top:8px!important}
  .kbs{top:var(--b-kbt,calc(108px + env(safe-area-inset-top,0px)))!important;background:var(--bg);padding:0 14px 8px!important;margin-bottom:6px!important}
 }
 </style>
+<link rel="stylesheet" href="/plat-tour.css?v=b2">
 </head><body>
 <div class="app" id="app">
  <aside class="sb" id="sb">
@@ -4682,4 +4683,11 @@ window.AG.setRole=setRole;
  document.addEventListener('DOMContentLoaded',function(){var v=document.getElementById('view');if(v)new MutationObserver(agenda).observe(v,{childList:true});agenda();});
  setInterval(med,2500);})();
 </script>
+<script id="b-rapido">/* Chat B 19/out: CRM e listas aparecem rápido — só os primeiros itens animam (antes 218 cartões levavam ~10 s) */
+(function(){function ok(){return typeof window.stagger==='function';}
+ var novo=function(els,base){(els||[]).forEach(function(e,i){if(i>=8){e.style.opacity='';e.style.transform='';e.style.transition='';return;}
+  e.style.opacity=0;e.style.transform='translateY(14px) scale(.985)';setTimeout(function(){e.style.transition='opacity .38s var(--ez),transform .45s var(--ez)';e.style.opacity=1;e.style.transform='none';setTimeout(function(){e.style.transition='';e.style.transform='';},480);},Math.min(base==null?60:base,90)+i*32);});};
+ if(ok())window.stagger=novo;else document.addEventListener('DOMContentLoaded',function(){window.stagger=novo;});})();
+</script>
+<script src="/plat2-tour.js?v=1"></script>
 </body></html>

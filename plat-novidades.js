@@ -13,8 +13,22 @@
 var W=window, D=document;
 var S3=['master','lider','especialista'], ML=['master','lider'], M=['master'], TODOS=['master','lider','especialista','cliente'];
 
-/* v25 começou com rev:1 — no dia 16/10 um número 25 ficou no ar por alguns minutos. Próxima: 26. */
+/* v25 começou com rev:1 — no dia 16/10 um número 25 ficou no ar por alguns minutos. v26 = 19/10 (visual novo). Próxima: 27. */
+/* itens com v2tut abrem o tutorial guiado do visual novo (plat2-tour.js) */
+function v4w(){ try{ var f=D.querySelector('#v4wrap iframe'); if(f&&D.documentElement.classList.contains('v4on')&&f.contentWindow&&f.contentWindow.AgionTour2) return f.contentWindow; }catch(e){} return null; }
+function irV2(tab,tut){ var w=v4w(); if(w){ try{ if(tut) w.AgionTour2.start(tut); else w.go(tab); }catch(e){} return; } try{ go({painel:'dash',clientes:'users',ajustes:'config'}[tab]||tab); }catch(e){} }
 var VERSOES=[
+ {v:26,rev:1,data:'19/10/2026',titulo:'Plataforma com visual novo',itens:[
+   {roles:S3,ic:'spark',t:'Visual novo, mesmos dados',d:'A plataforma ganhou um visual novo, mais rápido e organizado. Seus leads, clientes, tarefas e comissões são os mesmos. A versão anterior continua em Ajustes › Versão anterior.',v2tut:'painel'},
+   {roles:S3,ic:'map',t:'Tutorial guiado em todas as abas',d:'Na primeira vez em cada aba aparece “Primeira vez aqui?” com um guia passo a passo, direto na tela, passando por todas as sub-abas. O botão “?” do topo abre o tutorial da aba a qualquer hora, e o progresso vale no celular e no computador.',abrir:function(){ irV2('tutoriais'); }},
+   {roles:S3,ic:'funnel',t:'CRM mais rápido',d:'Os cartões aparecem na hora. No celular, a faixa Quadro/Lista/Perdidos e as etapas ficam presas no topo enquanto você rola.',v2tut:'crm'},
+   {roles:S3,ic:'check',t:'Tarefas no visual novo',d:'Atrasadas, hoje e próximos 7 dias em cartões no topo; abra a tarefa para marcar Feita ou Não feita com a resposta e a anotação.',v2tut:'tarefas'},
+   {roles:S3,ic:'user',t:'App do celular atualiza sozinho',d:'Não precisa mais baixar o app de novo: ele pega a versão nova sozinho ao abrir. A barra de menus fica embaixo e desliza com o dedo. Para ver o ícone novo (fundo branco com a logo), apague e adicione o app de novo uma única vez.'},
+   {roles:S3,ic:'doc',t:'Gerador de propostas: PDF que baixa de verdade',d:'O PDF ficou leve e baixa na hora; o PNG de várias páginas vem num arquivo .zip. No iPhone, abre o Compartilhar para salvar ou mandar no WhatsApp.',abrir:function(){ irV2('ferramentas'); }},
+   {roles:S3,ic:'user',t:'Ficha cadastral lida sozinha',d:'Na ficha do lead ou do cliente, cole a ficha da administradora: RG, endereço, renda e os demais campos são preenchidos para você conferir e salvar.',v2tut:'ficha-lead'},
+   {roles:M,ic:'users',t:'Distribuição manual por pessoa',d:'Em Captação › Distribuição de leads dá para escolher pessoa por pessoa quem recebe, com limite por dia.',v2tut:'captacao'},
+   {roles:M,ic:'chat',t:'Templates com o texto e Disparos por e-mail',d:'Marketing › Templates mostra o texto de cada mensagem aprovada. Disparos ganhou a visão dos e-mails do follow-up.',v2tut:'marketing'}
+ ]},
  {v:25,rev:1,data:'17/10/2026',titulo:'Calculadora com carta nova e tutoriais das ferramentas',itens:[
    {roles:S3,ic:'money',t:'Financiamento × Consórcio: carta contemplada ou carta nova',d:'Escolha o tipo de carta. Contemplada: a entrada vai para quem vende a carta e a parcela é integral até o fim. Nova: meia parcela até a contemplação; aí somam-se as parcelas do período que o grupo já andou e as metades não pagas, com reajuste, diluídas no prazo restante. O PDF agora sai pela impressão do navegador (“Salvar como PDF”), com texto nítido e sem erro de espaçamento.',tutorial:'t-financ',abrir:function(){ try{ window.open('/calc-financiamento','_blank'); }catch(e){} }},
    {roles:S3,ic:'doc',t:'Tutorial em cada ferramenta',d:'Financiamento × Consórcio, Escada Financeira, Alavancagem Patrimonial, Gerador de Propostas e Assembleias têm tutorial próprio: toque em “? Tutorial” no cartão da ferramenta ou em “Como usar esta ferramenta” dentro dela. Em Tutoriais, todos ficam na seção Ferramentas.',tutorial:'ferramentas',abrir:function(){ go('ferramentas'); }}
@@ -108,7 +122,7 @@ async function marcar(v){ try{ localStorage.setItem(KEY(),String(v)); }catch(e){
 
 /* ---------- pop-up ---------- */
 function itemHtml(i,k){ return '<div class="nv-it"><span class="nv-ic">'+(IC[i.ic]||IC.spark)+'</span><div><h4>'+esc(i.t)+'</h4><p>'+esc(i.d)+'</p>'+
-  ((i.tutorial||i.abrir)?'<div class="nv-ac">'+(i.tutorial?'<button class="g" data-tut="'+k+'">Ver como funciona</button>':'')+(i.abrir?'<button data-go="'+k+'">Abrir</button>':'')+'</div>':'')+'</div></div>'; }
+  ((i.tutorial||i.abrir||i.v2tut)?'<div class="nv-ac">'+((i.tutorial||i.v2tut)?'<button class="g" data-tut="'+k+'">Ver como funciona</button>':'')+(i.abrir?'<button data-go="'+k+'">Abrir</button>':'')+'</div>':'')+'</div></div>'; }
 function abrir(opts){
   opts=opts||{}; fechar(); var r=role(); if(!r) return;
   var lista=VERSOES.filter(function(v){ return itensDe(v).length; }); if(!lista.length) return;
@@ -120,11 +134,11 @@ function abrir(opts){
     '<div class="nv-bd">'+corpo+(antigas?'<div class="nv-old" id="nvOld" hidden>'+antigas+'</div>':'')+'</div>'+
     '<div class="nv-ft">'+(antigas?'<button type="button" id="nvMais">Versões anteriores</button>':'')+'<span class="sp"></span><button type="button" class="g" id="nvOk">Entendi</button></div></div>';
   D.body.appendChild(bg);
-  var ok=function(){ marcar(MARCA); fechar(); setTimeout(function(){ try{ W.AgionTour&&W.AgionTour.reinvite&&W.AgionTour.reinvite(); }catch(e){} },400); };
+  var ok=function(){ marcar(MARCA); fechar(); setTimeout(function(){ try{ var w=v4w(); if(w) w.AgionTour2.reinvite(); else W.AgionTour&&W.AgionTour.reinvite&&W.AgionTour.reinvite(); }catch(e){} },400); };
   $('#nvOk',bg).onclick=ok;
   var mais=$('#nvMais',bg); if(mais) mais.onclick=function(){ var o=$('#nvOld',bg); o.hidden=!o.hidden; mais.textContent=o.hidden?'Versões anteriores':'Esconder anteriores'; };
   bg.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('button[data-tut],button[data-go]'); if(b){ var it=idx[+(b.getAttribute('data-tut')||b.getAttribute('data-go'))]; marcar(MARCA); fechar();
-      if(b.hasAttribute('data-tut')&&W.AgionTour){ W.AgionTour.start(it.tutorial); } else if(it.abrir){ try{ it.abrir(); }catch(err){} } return; }
+      if(b.hasAttribute('data-tut')&&it.v2tut){ irV2(null,it.v2tut); } else if(b.hasAttribute('data-tut')&&v4w()&&it.tutorial){ irV2(null,it.tutorial); } else if(b.hasAttribute('data-tut')&&W.AgionTour){ W.AgionTour.start(it.tutorial); } else if(it.abrir){ try{ it.abrir(); }catch(err){} } return; }
     if(e.target===bg) ok(); });
   D.addEventListener('keydown',esc_);
   setTimeout(function(){ try{ $('#nvOk',bg).focus({preventScroll:true}); }catch(e){} },50);
