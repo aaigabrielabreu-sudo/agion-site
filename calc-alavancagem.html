@@ -141,8 +141,7 @@ h1 .g{color:var(--goldd)}
 
 <style id="ag-calc-fmt">
 @media(max-width:600px){#agLinkBtn .agt{display:none}#agLinkBtn{padding:10px 13px!important}.brand,.top{flex-wrap:wrap;gap:10px}.brand>.l,.top>div:first-child{min-width:0}}
-.grid{align-items:start}
-@media(min-width:901px){.grid>.box:first-child{position:sticky;top:16px}}
+.grid{align-items:stretch}
 .flds{align-items:end}
 .fld label{min-height:18px}
 .inp input{font-variant-numeric:tabular-nums}
@@ -157,6 +156,32 @@ body.simulou .expl{display:block;animation:explIn .35s ease}
 @keyframes explIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 body{padding-bottom:110px}
 @media print{.expl{break-inside:avoid}#agLinkBtn,#agLinkPill{display:none!important}}
+</style>
+<style id="ag-calc-layout2">
+/* 19/out: colunas proporcionais + faixa inteira embaixo (comparativo e explicação) */
+.grid>.box{display:flex;flex-direction:column}
+.grid>.box:first-child .flds{row-gap:calc(16px + var(--gx,0px))}.grid>.box:first-child .sec.mt{margin-top:calc(28px + var(--gx,0px))}.grid>.box:first-child .derv{margin-top:calc(20px + var(--gx,0px))!important}
+.grid>.box:first-child .flds:last-of-type{margin-bottom:0}
+.fullrow{margin-top:22px;display:grid;grid-template-columns:1fr;gap:18px}
+.fullrow .box{padding:24px 26px}
+.fullrow .panel{margin-bottom:0}
+.fullrow .rate{margin:0}
+.expl{margin-top:0!important;border-left:0!important;background:var(--card)!important;border:1px solid var(--line)!important;border-radius:22px!important;padding:24px 26px!important;box-shadow:0 4px 26px rgba(120,95,40,.06)}
+.expl .ek{display:flex;align-items:center;gap:9px;font-size:11.5px!important;letter-spacing:.16em!important;margin-bottom:16px!important}
+.expl .ek::before{content:"";width:16px;height:2px;background:var(--gold);border-radius:2px}
+.exs{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.exs .st{background:var(--cream);border:1px solid var(--line);border-radius:16px;padding:16px 16px 15px;position:relative}
+.exs .st .n{width:26px;height:26px;border-radius:50%;background:var(--inkbg);color:var(--goldl);font:700 12px Poppins,sans-serif;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.exs .st .t{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--goldd);font-weight:600;margin-bottom:6px}
+.exs .st .v{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--ink);line-height:1.15;margin-bottom:6px;font-variant-numeric:tabular-nums}
+.exs .st p{margin:0;font-size:12.8px;line-height:1.55;color:var(--mut)}
+.exs .st.hl{background:linear-gradient(150deg,var(--inkbg),var(--inkbg2));border-color:transparent}
+.exs .st.hl .t{color:var(--goldl)}.exs .st.hl .v{color:#fff}.exs .st.hl p{color:#c7d6cf}.exs .st.hl .n{background:var(--gold);color:var(--inkbg)}
+.exr{margin-top:16px;display:flex;gap:12px;align-items:flex-start;background:rgba(62,142,156,.08);border-radius:14px;padding:14px 16px;font-size:13.5px;line-height:1.6;color:var(--ink2)}
+.exr b{color:var(--ink)}
+.exr .i{flex:none;width:24px;height:24px;border-radius:50%;background:var(--petd);color:#fff;font:700 13px Georgia,serif;display:flex;align-items:center;justify-content:center;margin-top:1px}
+@media(max-width:900px){.exs{grid-template-columns:1fr 1fr}}
+@media(max-width:540px){.exs{grid-template-columns:1fr}.expl,.fullrow .box{padding:20px!important}}
 </style>
 <div class="wrap">
  <div class="brand">
@@ -356,6 +381,30 @@ async function baixarPDF(btn){
 }
 </script>
 
+<script id="ag-calc-layout2-js">
+(function(){
+ function mv(){
+  var scns=document.querySelectorAll('.scn');
+  scns.forEach(function(s,i){
+   if(s.querySelector('.fullrow'))return; var g=s.querySelector('.grid'); if(!g)return;
+   var fr=document.createElement('div'); fr.className='fullrow'; g.parentNode.insertBefore(fr,g.nextSibling);
+   if(i===0){ var bars=s.querySelector('.panel.bars'); if(bars){ var sec=bars.previousElementSibling; var bx=document.createElement('div'); bx.className='box';
+      if(sec&&sec.classList.contains('sec'))bx.appendChild(sec); bx.appendChild(bars); fr.appendChild(bx);} }
+   var ex=s.querySelector('.expl'); if(ex)fr.appendChild(ex);
+  });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mv);else mv();
+})();
+</script>
+<script id="ag-calc-balance">
+(function(){
+ function bal(){document.querySelectorAll('.grid').forEach(function(g){var L=g.children[0],R=g.children[1];if(!L||!R)return;L.style.setProperty('--gx','0px');
+  if(innerWidth<901)return;var u=0;L.querySelectorAll('.flds').forEach(function(f){var n=0,w=0;[].forEach.call(f.children,function(c){if(c.style.gridColumn){if(w){n++;w=0;}n++;}else{w++;if(w==2){n++;w=0;}}});if(w)n++;u+=Math.max(0,n-1);});
+  u+=L.querySelectorAll('.sec.mt').length+L.querySelectorAll('.derv').length;if(!u)return;
+  var lc=L.lastElementChild,free=R.getBoundingClientRect().height-(lc.getBoundingClientRect().bottom-L.getBoundingClientRect().top+26);if(free<=0)return;L.style.setProperty("--gx",Math.min(free/u,64)+'px');});}
+ window.addEventListener('load',bal);window.addEventListener('resize',bal);document.addEventListener('input',function(){setTimeout(bal,30);});setTimeout(bal,300);
+})();
+</script>
 <script id="ag-calc-explica">/* Chat B 19/out: texto explicando o resultado — só aparece depois que a pessoa simula */
 (function(){
  var $=function(i){return document.getElementById(i);};
@@ -366,22 +415,24 @@ async function baixarPDF(btn){
   var cred=n('c_cred'),corr=n('c_corr')/100,red=n('c_red')/100,prazo=n('c_prazo'),taxa=n('c_taxa')/100,emb=n('c_emb')/100,mes=n('c_mes'),agio=n('c_agio')/100,rend=n('c_rend')/100;
   var FC=prazo>0?cred/prazo:0,taxaM=prazo>0?cred*taxa/prazo:0,parc=red*FC+taxaM,aport=mes*parc,cf=Math.pow(1+corr,mes/12),credC=cred*cf,contrato=credC*(1+taxa),lance=emb*contrato,lib=credC-lance,venda=agio*lib,lucro=venda-aport,lp=aport>0?lucro/aport*100:0,
    pos=(prazo-mes)>0?(contrato-aport-lance)/(prazo-mes):0,apl=(Math.pow(1+rend,mes/12)-1)*100,am=mes>0?lp/mes:0;
-  var t1='Você paga <b>'+R(parc)+' por mês</b>'+(red<1?' (parcela reduzida a '+P(red*100,0)+' do fundo comum)':'')+' durante <b>'+Math.round(mes)+' meses</b>, somando <b>'+R(aport)+'</b>. '+
-   'No mês '+Math.round(mes)+' a carta é contemplada'+(emb>0?' com lance embutido de '+P(emb*100,0)+': '+R(lance)+' saem da própria carta como lance e ficam liberados <b>'+R(lib)+'</b>':' e o crédito de <b>'+R(lib)+'</b> fica liberado')+'. ';
-  if(lucro>0)t1+='Vendendo essa carta com '+P(agio*100,0)+' de ágio, você recebe <b>'+R(venda)+'</b> — um lucro de <b>'+R(lucro)+'</b>, ou '+P(lp)+' sobre o que pagou (cerca de '+P(am,2)+' ao mês). '+
-   'Para comparar: uma aplicação a '+P(rend*100,0)+' ao ano renderia '+P(apl)+' no mesmo período'+(lp>apl?', ou seja, o consórcio rendeu <b>'+(apl>0?(lp/apl).toLocaleString('pt-BR',{maximumFractionDigits:1})+' vezes mais':'mais')+'</b>':'')+'. ';
-  else t1+='Com esse ágio a venda <b>não compensa</b>: você receberia '+R(venda)+', menos do que pagou ('+R(aport)+'). Tente um ágio maior ou uma contemplação mais cedo. ';
-  t1+='Quem compra a sua carta assume as parcelas restantes de cerca de '+R(pos)+' por mês.';
-  $('ex1t').innerHTML=t1;
+  function st(n,tit,val,txt,hl){return '<div class="st'+(hl?' hl':'')+'"><div class="n">'+n+'</div><div class="t">'+tit+'</div><div class="v">'+val+'</div><p>'+txt+'</p></div>';}
+  var M=Math.round(mes), h1='<div class="exs">'+
+   st(1,'Você paga',R(parc)+'/mês','por '+M+' meses'+(red<1?' (parcela reduzida a '+P(red*100,0)+' do fundo comum)':'')+'. Total: <b>'+R(aport)+'</b>.')+
+   st(2,'Contempla no mês '+M,R(lib),emb>0?('com lance embutido de '+P(emb*100,0)+': '+R(lance)+' saem da própria carta, sem dinheiro do bolso.'):'crédito liberado, sem lance.')+
+   st(3,'Vende com ágio',R(venda),P(agio*100,0)+' sobre o crédito liberado. Quem compra assume as parcelas restantes (≈ '+R(pos)+'/mês).')+
+   st(4,lucro>0?'Seu lucro':'Resultado',R(lucro),lucro>0?(P(lp)+' sobre o que pagou — cerca de '+P(am,2)+' ao mês.'):'com esse ágio a venda não compensa: tente um ágio maior ou contemplar antes.',lucro>0)+'</div>';
+  h1+='<div class="exr"><span class="i">i</span><div>'+(lucro>0?('Para comparar: o mesmo dinheiro numa aplicação a '+P(rend*100,0)+' ao ano renderia <b>'+P(apl)+'</b> no mesmo período. O consórcio rendeu <b>'+P(lp)+'</b>'+(apl>0&&lp>apl?' — cerca de <b>'+(lp/apl).toLocaleString('pt-BR',{maximumFractionDigits:1})+' vezes mais</b>':'')+'.'):('Nesta simulação a aplicação a '+P(rend*100,0)+' ao ano (<b>'+P(apl)+'</b> no período) rende mais que a venda da carta.'))+'</div></div>';
+  $('ex1t').innerHTML=h1;
   var imovel=n('p_imovel'),val=n('p_val')/100,alug=n('p_alug')/100,reaj=n('p_reaj')/100,imp=n('p_imp')/100,prR=Math.max(0,prazo-mes),aIni=alug*imovel,brt=0;
   for(var m=0;m<prR;m++)brt+=aIni*Math.pow(1+reaj,Math.floor(m/12));
   var liq=brt*(1-imp),pat=imovel*Math.pow(1+val,prR/12),bolso=contrato-liq,dbp=pat>0?bolso/pat*100:0;
-  var t2='Com a carta contemplada no mês '+Math.round(mes)+', você compra um imóvel de <b>'+R(imovel)+'</b> e coloca para alugar a '+P(alug*100,2)+' ao mês (<b>'+R(aIni)+'/mês</b> no início). '+
-   'Nos <b>'+Math.round(prR)+' meses</b> que faltam do plano, o aluguel soma '+R(brt)+'; tirando o imposto de '+P(imp*100,1)+', sobram <b>'+R(liq)+'</b>, que ajudam a pagar o consórcio. '+
-   'O consórcio inteiro custa '+R(contrato)+', então do seu bolso sai, de verdade, cerca de <b>'+R(bolso)+'</b>. '+
-   'No fim, com valorização de '+P(val*100,2)+' ao ano, o imóvel vale <b>'+R(pat)+'</b>: você pagou do bolso só <b>'+P(dbp)+'</b> do patrimônio que fica com você. '+
-   (dbp<25?'Abaixo de 25% a operação é considerada <b>excelente</b>.':dbp<40?'Entre 25% e 40% a operação é <b>boa</b>.':'Acima de 40% vale <b>reavaliar</b> os números (aluguel, valorização ou mês da contemplação).');
-  $('ex2t').innerHTML=t2;}
+  var h2='<div class="exs">'+
+   st(1,'Compra o imóvel',R(imovel),'com a carta contemplada no mês '+M+'.')+
+   st(2,'Aluga',R(aIni)+'/mês',P(alug*100,2)+' ao mês. Em '+Math.round(prR)+' meses o aluguel soma <b>'+R(liq)+'</b> já sem o imposto de '+P(imp*100,1)+'.')+
+   st(3,'Sai do seu bolso',R(bolso),'o consórcio inteiro custa '+R(contrato)+'; o aluguel paga o resto.')+
+   st(4,'Patrimônio no fim',R(pat),'com valorização de '+P(val*100,2)+' ao ano. Do bolso: <b>'+P(dbp)+'</b> do patrimônio.',true)+'</div>';
+  h2+='<div class="exr"><span class="i">i</span><div>'+(dbp<25?'Abaixo de 25% do patrimônio saindo do bolso, a operação é considerada <b>excelente</b>.':dbp<40?'Entre 25% e 40% do patrimônio saindo do bolso, a operação é <b>boa</b>.':'Acima de 40% do patrimônio saindo do bolso, vale <b>reavaliar</b> os números: aluguel, valorização ou mês da contemplação.')+'</div></div>';
+  $('ex2t').innerHTML=h2;}
  function fmtR(el){var v=num(el.id);if(v>0)el.value=Math.round(v).toLocaleString('pt-BR');}
  document.addEventListener('DOMContentLoaded',function(){
   ['c_cred','p_imovel'].forEach(function(id){var el=$(id);if(!el)return;el.setAttribute('inputmode','numeric');fmtR(el);el.addEventListener('blur',function(){fmtR(el);all();});});

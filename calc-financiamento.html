@@ -169,6 +169,20 @@ body.simulou .expl{display:block;animation:explIn .35s ease}
 @keyframes explIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media print{#agLinkBtn,#agLinkPill{display:none!important}}
 </style>
+<style id="ag-fin-exs">
+.expl{border-left:0!important;border:1px solid var(--line)!important;border-radius:20px!important;padding:24px 26px!important;box-shadow:0 4px 22px rgba(120,95,40,.06)}
+.expl .ek{display:flex;align-items:center;gap:9px;margin-bottom:16px!important}
+.expl .ek::before{content:"";width:16px;height:2px;background:var(--gold);border-radius:2px}
+.exs{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.exs .st{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px}
+.exs .st .n{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--goldl);font:700 12px Inter,sans-serif;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.exs .st .t{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--goldd);font-weight:700;margin-bottom:6px}
+.exs .st .v{font-family:Fraunces,Georgia,serif;font-size:22px;font-weight:700;color:var(--ink);line-height:1.15;margin-bottom:6px}
+.exs .st p{margin:0;font-size:12.8px;line-height:1.55;color:var(--mut)}
+.exs .st.hl{background:var(--ink);border-color:transparent}.exs .st.hl .t{color:var(--goldl)}.exs .st.hl .v{color:#fff}.exs .st.hl p{color:#c7d6cf}.exs .st.hl .n{background:var(--gold);color:var(--ink)}
+.exr{margin-top:16px;background:rgba(63,143,157,.08);border-radius:14px;padding:14px 16px;font-size:13.5px;line-height:1.6;color:var(--ink2)}
+@media(max-width:900px){.exs{grid-template-columns:1fr 1fr}}@media(max-width:540px){.exs{grid-template-columns:1fr}}
+</style>
 <div class="wrap">
  <div class="top">
   <div style="display:flex;align-items:center;gap:12px">
@@ -478,10 +492,11 @@ function baixarPDF(btn){
 (function(){
  var g=function(i){var e=document.getElementById(i);return e?e.textContent.trim():'';};
  function explica(){var el=document.getElementById('ex1t');if(!el)return;var nova=document.body.classList.contains('nova');
-  el.innerHTML='Para um bem de <b>R$\u00a0'+Math.round(num('cred')).toLocaleString('pt-BR')+'</b>, o consórcio ('+(nova?'carta nova':'carta contemplada')+') custa no total <b>'+g('o_c_tot')+'</b>, com custo efetivo de '+g('c_cet')+' ao ano e sem juros. '+
-   'O financiamento ('+g('f_sys_tag')+') custa <b>'+g('o_f_tot')+'</b>, dos quais <b>'+g('o_f_extra')+'</b> são só juros (CET de '+g('f_cet')+' ao ano). '+
-   'Como a parcela do consórcio é menor, a diferença que sobra todo mês pode ser investida: a '+(num('rinv')).toLocaleString('pt-BR')+'% ao mês ela vira <b>'+g('v_pot')+'</b>'+(g('v_bk')&&g('v_bk')!=='—'?' e, em '+g('v_bk')+', já vale a carta inteira':'')+'. '+
-   'Resultado: '+g('v_head').replace(/\.$/,'')+'.';}
+  var st=function(n,ti,v,p,hl){return '<div class="st'+(hl?' hl':'')+'"><div class="n">'+n+'</div><div class="t">'+ti+'</div><div class="v">'+v+'</div><p>'+p+'</p></div>';};
+  el.innerHTML='<div class="exs">'+st(1,'Consórcio',g('o_c_tot'),'custo total '+(nova?'da carta nova':'da carta contemplada')+', sem juros. Custo efetivo de '+g('c_cet')+' ao ano.')+
+   st(2,'Financiamento ('+g('f_sys_tag')+')',g('o_f_tot'),'custo total, dos quais <b>'+g('o_f_extra')+'</b> são só juros (CET de '+g('f_cet')+' ao ano).')+
+   st(3,'A diferença investida',g('v_pot'),'a parcela do consórcio é menor: investindo a sobra a '+(num('rinv')).toLocaleString('pt-BR')+'% ao mês'+(g('v_bk')&&g('v_bk')!=='—'?', em '+g('v_bk')+' ela já vale a carta inteira':'')+'.')+
+   st(4,'Resultado',g('v_eco'),g('v_head'),true)+'</div><div class="exr">Para um bem de <b>R$\u00a0'+Math.round(num('cred')).toLocaleString('pt-BR')+'</b>: '+g('v_sub')+'</div>';}
  function marca(){document.body.classList.add('simulou');setTimeout(explica,30);}
  document.addEventListener('input',function(e){if(e.target.closest('.card'))marca();});
  document.addEventListener('click',function(e){if(e.target.closest('.seg button'))marca();});
