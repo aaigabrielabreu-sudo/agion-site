@@ -35,21 +35,34 @@ var LINK=null; try{ LINK=JSON.parse(sessionStorage.getItem('agion:conv')||'null'
 var wrap=null, fr=null, pronto=false, tAvisa=null;
 var V1_SO=['editor','compare'];   /* telas que só existem na v1 (abrem por cima, com “Voltar ao novo visual”) */
 function logado(){ try{ var a=D.getElementById('app'); return !!(a&&a.classList.contains('show')&&session&&session.role&&session.role!=='cliente'&&db&&(db.accounts||[]).some(function(x){return x.real;})); }catch(e){ return false; } }
+/* 19/out · app instalado: a faixa do relógio (#agStatusBand, que evita o desfoque do iOS 26) e a barra
+   do sistema ficam da MESMA cor do fundo do visual novo (dia/noite), e o v4 começa logo abaixo dela. */
+var COR0=null;
+function corApp(){ try{
+  var band=D.getElementById('agStatusBand'), mt=D.querySelector('meta[name="theme-color"]'), on=!!(wrap&&!wrap.classList.contains('off'));
+  if(mt&&COR0===null) COR0=mt.getAttribute('content');
+  var c=null; if(on){ try{ c=fr.contentWindow.getComputedStyle(fr.contentDocument.body).backgroundColor; }catch(e){} if(!c||c==='rgba(0, 0, 0, 0)') c='#F4EFE4'; }
+  if(band) band.style.background = on? c : '#0B2A26';
+  if(mt) mt.setAttribute('content', on? c : (COR0||'#0B2A26'));
+  if(wrap&&on) wrap.style.background=c;
+}catch(e){} }
 function montar(){
   if(wrap) return mostrar();
   var st=D.createElement('style');
-  st.textContent='#v4wrap{position:fixed;inset:0;z-index:400;background:#F4F1EA;transition:opacity .35s}#v4wrap.off{opacity:0;pointer-events:none}#v4wrap iframe{width:100%;height:100%;border:0;display:block}'+
+  st.textContent='#v4wrap{position:fixed;inset:0;z-index:400;background:#F4F1EA;transition:opacity .35s}#v4wrap.off{opacity:0;pointer-events:none}#v4wrap{overflow:hidden;width:100%;max-width:100vw}#v4wrap iframe{width:1px;min-width:100%;max-width:100%;height:100%;border:0;display:block}html.v4on,html.v4on body{overflow:hidden!important;overscroll-behavior:none}html.isApp.v4on #v4wrap{top:max(12px,env(safe-area-inset-top,0px))}'+
     'body.v4on{overflow:hidden}body.v4on>*:not(#v4wrap):not(#app):not(#loginView):not(#v2MaisBt):not(.v2-sheet-bg){z-index:950!important}body.v4on #v2MaisBt{display:none!important}#v4volta{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:450;display:none;border:0;border-radius:999px;padding:11px 16px;font:700 13px system-ui;background:#0B2A26;color:#E8CC8B;box-shadow:0 8px 24px rgba(0,0,0,.25)}body.v4fb #v4volta{display:block}';
   D.head.appendChild(st);
   wrap=D.createElement('div'); wrap.id='v4wrap';
   fr=D.createElement('iframe'); fr.title='Agion Wealth'; fr.setAttribute('allow','clipboard-read; clipboard-write; notifications');
-  var src=W.__V4SRC||('/plat2-v4.html?v=2');
+  var src=W.__V4SRC||('/plat2-v4.html?v=3');
   if(W.__V4SRCDOC) fr.srcdoc=W.__V4SRCDOC; else fr.src=src;
-  wrap.appendChild(fr); D.body.appendChild(wrap); D.body.classList.add('v4on');
+  wrap.appendChild(fr); D.body.appendChild(wrap); D.body.classList.add('v4on'); D.documentElement.classList.add('v4on');
+  fr.addEventListener('load',function(){ try{ if(D.documentElement.classList.contains('isApp')) fr.contentDocument.documentElement.classList.add('emapp'); }catch(e){} corApp(); });
+  if(!W.__v4cor) W.__v4cor=setInterval(corApp,1200);
   var b=D.createElement('button'); b.id='v4volta'; b.textContent='← Voltar ao novo visual'; b.onclick=mostrar; D.body.appendChild(b);
 }
-function mostrar(){ if(!wrap) return montar(); wrap.classList.remove('off'); D.body.classList.add('v4on'); D.body.classList.remove('v4fb'); avisa(); }
-function esconder(total){ if(!wrap) return; wrap.classList.add('off'); D.body.classList.remove('v4on'); if(!total) D.body.classList.add('v4fb'); else D.body.classList.remove('v4fb'); }
+function mostrar(){ if(!wrap) return montar(); wrap.classList.remove('off'); D.body.classList.add('v4on'); D.documentElement.classList.add('v4on'); D.body.classList.remove('v4fb'); avisa(); corApp(); }
+function esconder(total){ if(!wrap) return; wrap.classList.add('off'); D.body.classList.remove('v4on'); D.documentElement.classList.remove('v4on'); if(!total) D.body.classList.add('v4fb'); else D.body.classList.remove('v4fb'); corApp(); }
 function avisa(){ clearTimeout(tAvisa); tAvisa=setTimeout(function(){ try{ fr&&fr.contentWindow&&fr.contentWindow.postMessage({v4:'dados'},location.origin); }catch(e){} },350); }
 
 /* ---------- sempre que a v1 redesenhar (realtime, loadCloud, ações), avisa o v4 ---------- */

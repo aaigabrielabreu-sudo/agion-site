@@ -1274,6 +1274,19 @@ button.kmr:hover{box-shadow:0 0 0 1px var(--gold3);transform:translateY(-1px)}
 .insf{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:var(--mut);line-height:1.45}.insf .i{color:var(--goldd);flex:none}
 .dark .mtile.ok{background:rgba(64,200,110,.17);color:#A6E9BB}
 
+/* 19/out · iPhone/Android: nada pode alargar a página (o iOS estica o iframe até o conteúdo mais largo) */
+html,body{max-width:100%;overflow-x:hidden}
+@supports (overflow:clip){html,body{overflow-x:clip}}
+@media (max-width:860px){
+ .drawer:not(.on){visibility:hidden;transition:transform .6s var(--ez),visibility 0s .6s}
+ .drawer.on{visibility:visible;transition:transform .6s var(--ez),visibility 0s}
+ .mtab{left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px))}
+ .view,.tbar{padding-left:max(14px,env(safe-area-inset-left,0px))!important;padding-right:max(14px,env(safe-area-inset-right,0px))!important}
+ .ibnr img{width:46px;height:46px;border-radius:12px;object-fit:cover;flex:none;background:#fff}
+}
+/* app instalado: o v4 já começa abaixo da faixa do relógio (pintada pela página-mãe na cor do fundo) */
+html.emapp body.pwa .tbar,html.emapp .tbar{padding-top:8px!important}
+
 /* ================= MOBILE v4.5 · gravação 18/10 15h23 =================
    iPhone 15 (393) · 15 Pro Max (430) · 17 Pro Max (440) */
 .robo.f{margin:0 6px 0 0}
@@ -3226,19 +3239,19 @@ function mais(){var me=U[ME()],ks=MTABS[ROLE].map(function(x){return x[0];});
 var SHARE='<svg viewBox="0 0 24 24" class="i" style="width:20px;height:20px"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
 var ADDH='<svg viewBox="0 0 24 24" class="i" style="width:20px;height:20px"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
 var DOTS='<svg viewBox="0 0 24 24" class="i" style="width:20px;height:20px"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>';
-function instalar(){var ob=$('#ibnr');if(ob){ob.remove();try{sessionStorage.setItem('agp-ib','1');}catch(e){}}var p=plat(),tab=p==='android'?'and':'ios',ic='/agion-app-180.png';
+function instalar(){var ob=$('#ibnr');if(ob){ob.remove();try{sessionStorage.setItem('agp-ib','1');}catch(e){}}var p=plat(),tab=p==='android'?'and':'ios',ic='/agion-app-180.png';   /* 19/out: ícone branco com a logo dourada (o AGICON vazio virava “?”) */
  var s=sheet('<div class="ins"><div class="insh"><div class="phone"><div class="scr"><div class="apps">'+['#6C9682','#2E6A8A','#C2724A','#DDBB68','#8E5A7A','#C5A059','#5FA3A0'].map(function(c){return '<i style="background:'+c+'"></i>';}).join('')+'<span class="me"><img src="'+ic+'"><em>Agion</em></span></div></div></div>'+
   '<div><div class="lbl" style="color:var(--gold)">App da Agion</div><h2>Coloque a Agion na tela inicial</h2><p>Abre em tela cheia como um aplicativo, sem a barra do navegador, direto no seu CRM — e com aviso de lead novo no celular.</p></div></div>'+
   (DEFER?'<button class="btn gd big" id="iagora">'+I('dl',18)+'Instalar agora</button><div class="or">ou faça pelo menu do navegador</div>':'')+
   seg('insp',[['ios','iPhone · Safari'],['and','Android · Chrome']],tab,'gd')+'<div id="insb"></div>'+
   '<div class="insf">'+I('shield',15)+'<span>É a mesma plataforma, com o mesmo login. Não ocupa espaço como um app da loja e atualiza sozinha.</span></div></div>',560);
- function body(k){var st=k==='ios'?[[SHARE,'Toque em <b>Compartilhar</b>','o quadrado com a seta na barra do Safari · no iOS 26, toque antes nos <b>···</b> (três pontinhos)'],[ADDH,'Toque em <b>Adicionar à Tela de Início</b>','role a lista para baixo (ou toque em <b>Ver mais</b>) se não aparecer'],['<img src="'+ic+'">','Toque em <b>Adicionar</b>','o ícone da Agion aparece junto dos seus apps']]
+ function body(k){var st=k==='ios'?[[DOTS,'Toque nos <b>três pontinhos (···)</b>','na barra de baixo do Safari (iOS 26)'],[SHARE,'Toque em <b>Compartilhar</b>','e depois em <b>Ver mais</b>'],[ADDH,'Toque em <b>Adicionar à Tela de Início</b>','role a lista para baixo se não aparecer'],['<img src="'+ic+'">','Toque em <b>Adicionar</b>','o ícone da Agion aparece junto dos seus apps · se já tinha o app, apague e adicione de novo para pegar o ícone novo']]
    :[[DOTS,'Toque no menu <b>⋮</b>','no canto de cima do Chrome'],[ADDH,'Toque em <b>Instalar app</b>','ou “Adicionar à tela inicial”'],['<img src="'+ic+'">','Confirme em <b>Instalar</b>','o ícone da Agion aparece na tela inicial']];
   $('#insb',s).innerHTML='<div class="steps">'+st.map(function(x,i){return '<div class="stp" style="animation-delay:'+(i*90)+'ms"><span class="n">'+(i+1)+'</span><span class="ico">'+x[0]+'</span><div><b>'+x[1]+'</b><small>'+x[2]+'</small></div></div>';}).join('')+'</div>'+(k==='ios'&&p!=='ios'?'<div class="insn">No iPhone, use o <b>Safari</b> — é o único navegador que adiciona à tela inicial.</div>':'');}
  body(tab);bindSeg('insp',body);if($('#iagora',s))$('#iagora',s).onclick=function(){DEFER.prompt();DEFER.userChoice.then(function(r){if(r.outcome==='accepted')toast('Instalando a Agion…','dl');DEFER=null;});};
  s.classList.add('inss');}
 function bannerInstalar(){if(!isMob()||isStandalone()||$('#ibnr'))return;try{if(sessionStorage.getItem('agp-ib'))return;}catch(e){}
- var b=document.createElement('div');b.className='ibnr';b.id='ibnr';b.innerHTML='<img src="data:image/png;base64,'+(window.AGICON||{}).i180+'"><div><b>Instale a Agion</b><small>Acesso direto da tela inicial, em tela cheia</small></div><button class="btn sm gd" id="ibg">Instalar</button><button class="ibx" id="ibx">'+I('x',15)+'</button>';
+ var b=document.createElement('div');b.className='ibnr';b.id='ibnr';b.innerHTML='<img src="/agion-app-180.png" alt=""><div><b>Instale a Agion</b><small>Acesso direto da tela inicial, em tela cheia</small></div><button class="btn sm gd" id="ibg">Instalar</button><button class="ibx" id="ibx">'+I('x',15)+'</button>';
  document.body.appendChild(b);requestAnimationFrame(function(){requestAnimationFrame(function(){b.classList.add('on');});});
  $('#ibg').onclick=function(){fecha();instalar();};$('#ibx').onclick=fecha;
  function fecha(){b.classList.remove('on');setTimeout(function(){b.remove();},400);try{sessionStorage.setItem('agp-ib','1');}catch(e){}}}
@@ -3898,6 +3911,121 @@ function fichaPessoa(k){if(!k)return;var cli=(pdb().clients||[]).filter(function
  $$('[data-ld]',d).forEach(function(b){b.onclick=function(){closeDrawer();go('cliente',{lead:leadById(b.dataset.ld)});};});
  var acao=function(fn2){if(!roOk())return;closeDrawer();Promise.resolve(pcall(fn2,k.id)).then(function(){setTimeout(function(){carregar().then(function(){if(cur==='cadastro')go('cadastro',null,1);});},1200);});};
  if($('#fpe',d))$('#fpe',d).onclick=function(){acao('cadEditar');};if($('#fpo',d))$('#fpo',d).onclick=function(){acao('cadOrigem');};if($('#fpu',d))$('#fpu',d).onclick=function(){acao('cadUnificarCom');};}
+
+/* ===== v_zr5b_parse.js ===== */
+/* ================= "Colar dados" da ficha: reconhece TODOS os campos =================
+   Aceita rótulo com ou sem ":" (ex.: "RG 12345678901", "endereço Rua X, 10", "renda 15 mil"),
+   vários campos na mesma linha, variações de rótulo (com/sem acento, abreviações) e
+   reconhece sozinho CPF, CNPJ, e-mail, CEP, celular e data de nascimento. */
+var FSYN={
+ nome:['nome completo','nome do proponente','nome do cliente','nome do consorciado','nome do titular','proponente','consorciado','titular','cliente','nome'],
+ cpf:['numero do cpf','n do cpf','cpf','c.p.f.','c.p.f'],
+ rg:['carteira de identidade','numero do rg','n do rg','nº do rg','registro geral','identidade','r.g.','r.g','rg'],
+ orgao:['orgao emissor','orgao expedidor','orgao exp','org emissor','emissor','expedidor','orgao'],
+ nasc:['data de nascimento','data nascimento','data de nasc','data nasc','dt de nascimento','dt nascimento','dt nasc','dt. nasc','nascido em','nascida em','nascimento','aniversario','nasc'],
+ sexo:['sexo','genero'],
+ civil:['estado civil','est civil','est. civil','civil'],
+ regime:['regime de casamento','regime de bens','regime'],
+ conjuge:['nome do conjuge','nome da esposa','nome do esposo','nome do marido','conjuge','esposa','esposo','marido','companheiro','companheira'],
+ mae:['nome da mae','filiacao materna','filiacao mae','mae'],
+ pai:['nome do pai','filiacao paterna','filiacao pai','pai'],
+ nacionalidade:['nacionalidade'],
+ naturalidade:['naturalidade','natural de','cidade natal','local de nascimento'],
+ pep:['pessoa politicamente exposta','politicamente exposta','politicamente exposto','pep'],
+ cel:['telefone celular','tel celular','celular','whatsapp','whats','zap','fone','telefone','tel','contato','cel'],
+ email:['endereco de e-mail','endereco de email','e-mail','email','e mail','correio eletronico'],
+ tel2:['telefone alternativo','telefone para recado','telefone comercial','telefone fixo','telefone 2','outro telefone','tel comercial','tel fixo','tel 2','recado','fixo'],
+ cep:['cep','c.e.p.','c.e.p'],
+ rua:['endereco residencial','endereco completo','endereco','logradouro','mora em','mora na','mora no','reside em','reside na','reside no','avenida','rua','end'],
+ num:['numero','num','nº','n°','no'],
+ comp:['complemento','compl','apartamento','apto','ap'],
+ bairro:['bairro'],
+ cidadeuf:['cidade/uf','cidade / uf','cidade-uf','cidade - uf','municipio/uf','cidade/estado'],
+ cidade:['cidade','municipio'],
+ uf:['uf','estado'],
+ resid:['tipo de residencia','tipo de moradia','residencia','moradia','imovel onde reside'],
+ prof:['profissao','ocupacao','cargo','funcao','atividade profissional','atividade'],
+ empresa:['empresa onde trabalha','local de trabalho','nome da empresa','razao social','empregador','trabalha em','trabalha na','empresa'],
+ cnpj:['cnpj da empresa','cnpj'],
+ renda:['renda mensal','renda bruta','renda liquida','renda familiar','renda comprovada','rendimento mensal','rendimentos','rendimento','faturamento mensal','faturamento','salario','renda','ganha'],
+ patr:['patrimonio declarado','patrimonio total','patrimonio','bens declarados'],
+ admissao:['tempo de empresa','tempo de servico','data de admissao','admitido em','admissao','trabalha ha'],
+ banco:['nome do banco','instituicao financeira','banco'],
+ ag:['numero da agencia','agencia','ag'],
+ conta:['conta corrente','conta poupanca','numero da conta','c/c','conta'],
+ pix:['chave pix','chave-pix','pix'],
+ debito:['debito automatico','debito em conta','debito'],
+ adm:['administradora','adm'],
+ grupo:['grupo'],
+ cota:['cota'],
+ bem:['tipo de bem','tipo do bem','categoria do bem','bem','produto','objeto'],
+ credito:['valor do credito','valor da carta de credito','valor da carta','carta de credito','valor do bem','credito','carta'],
+ prazo:['prazo do plano','numero de parcelas','qtd de parcelas','prazo'],
+ parcela:['valor da parcela','valor das parcelas','parcela mensal','mensalidade','parcela'],
+ plano:['tipo de plano','tipo de parcela','plano'],
+ contrato:['numero do contrato','nº do contrato','n do contrato','numero da proposta','contrato','proposta'],
+ venc:['dia de vencimento','dia do vencimento','data de vencimento','vencimento','venc'],
+ docid:['documento de identidade','doc de identidade','doc identidade'],
+ compres:['comprovante de residencia','comprovante de endereco','comp de residencia'],
+ comprenda:['comprovante de renda','comp de renda','holerite'],
+ assin:['assinatura do contrato','assinatura']
+};
+/* palavras comuns que só valem como rótulo no começo do trecho ou seguidas de ":" (senão aparecem dentro de valores) */
+var FFRACO={nome:1,cliente:1,titular:1,orgao:1,emissor:1,expedidor:1,sexo:1,genero:1,civil:1,regime:1,esposa:1,esposo:1,marido:1,companheiro:1,companheira:1,mae:1,pai:1,fone:1,telefone:1,tel:1,contato:1,cel:1,whats:1,zap:1,fixo:1,recado:1,end:1,rua:1,avenida:1,numero:1,num:1,'nº':1,'n°':1,no:1,complemento:1,compl:1,apartamento:1,apto:1,ap:1,bairro:1,cidade:1,municipio:1,uf:1,estado:1,residencia:1,moradia:1,cargo:1,funcao:1,atividade:1,empresa:1,'trabalha em':1,'trabalha na':1,ganha:1,patrimonio:1,banco:1,ag:1,conta:1,debito:1,adm:1,grupo:1,cota:1,bem:1,produto:1,objeto:1,carta:1,credito:1,prazo:1,parcela:1,mensalidade:1,plano:1,contrato:1,proposta:1,venc:1,vencimento:1,assinatura:1,holerite:1,'mora em':1,'mora na':1,'mora no':1,'reside em':1,'reside na':1,'reside no':1,'natural de':1,nascimento:1,nasc:1,aniversario:1,salario:1,faturamento:1,rendimento:1,rendimentos:1,renda:0};
+var FMEIO={uf:1,conta:1,cota:1,grupo:1,prazo:1,parcela:1,banco:1,cidade:1,bairro:1,estado:1,agencia:1};
+function fNorm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+var FLAB=(function(){var L=[];Object.keys(FSYN).forEach(function(k){FSYN[k].forEach(function(s){L.push([fNorm(s),k]);});});L.sort(function(a,b){return b[0].length-a[0].length;});return L;})();
+function fEsc(s){return s.replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&');}
+var FRE=new RegExp('(^|[^a-z0-9@._-])('+FLAB.map(function(x){return fEsc(x[0]);}).join('|')+')(?=$|[^a-z0-9@_-])','g');
+function fDig(s){return String(s||'').replace(/\D/g,'');}
+function fBRL(v){var s=String(v||'').trim(),n=null,m;if(!s)return s;var t=fNorm(s);
+ if((m=t.match(/([\d.,]+)\s*(mil|k)\b/)))n=parseFloat(m[1].replace(/\./g,'').replace(',','.'))*1e3;
+ else if((m=t.match(/([\d.,]+)\s*(mi|milhao|milhoes|mm)\b/)))n=parseFloat(m[1].replace(/\./g,'').replace(',','.'))*1e6;
+ else if((m=s.match(/(?:R\$\s*)?(\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:,\d{1,2})?|\d+(?:\.\d{1,2})?)/))){var x=m[1];if(/,\d{1,2}$/.test(x)||/\.\d{3}/.test(x))x=x.replace(/\./g,'').replace(',','.');n=parseFloat(x);}
+ if(n==null||isNaN(n))return s;return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fFone(s){var d=fDig(s).replace(/^55(?=\d{10,11}$)/,'');if(d.length===11)return '('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7);if(d.length===10)return '('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6);return String(s).trim();}
+var FUFS='AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ');
+function fLimpa(v){return String(v||'').replace(/^[\s:=\-–—>.,;|]+/,'').replace(/[\s,;|]+$/,'').replace(/\.$/,'').trim();}
+function parse(txt){var out={},src=String(txt||'');
+ src.split(/\r?\n/).forEach(function(linha){if(!linha.trim())return;var ln=fNorm(linha),ms=[],m;FRE.lastIndex=0;
+  while((m=FRE.exec(ln))){var ini=m.index+m[1].length,lab=m[2],fim=ini+lab.length,depois=ln.slice(fim),antes=ln.slice(0,ini);
+   var doisp=/^\s*[:=\-–—]/.test(depois)&&!/^\s*-\s*\d/.test(depois),comeco=/(^|[|;\t]|\s{2,}|[.,]\s|^\s*[-•*]\s*)$/.test(antes)||!antes.trim();
+   if(FFRACO[lab]&&!doisp&&!comeco&&!(FMEIO[lab]&&/\s$/.test(antes)&&/^\s+\S/.test(depois)))continue;
+   if(!doisp&&!comeco&&antes.trim()&&!/\s$/.test(antes))continue;
+   ms.push({i:ini,f:fim,k:FLAB.filter(function(x){return x[0]===lab;})[0][1]});}
+  /* tira sobreposições (fica o mais longo/primeiro) */
+  ms=ms.filter(function(a,i){return !ms.some(function(b,j){return j!==i&&b.i<=a.i&&b.f>=a.f&&(b.f-b.i)>(a.f-a.i);});});
+  ms.forEach(function(a,i){var b=ms[i+1],val=fLimpa(linha.slice(a.f,b?b.i:linha.length));if(!val||out[a.k])return;out[a.k]=val;});});
+ /* endereço: "Rua X, 123 - apto 4 - Bairro, Cidade/UF, CEP" */
+ if(out.cidadeuf){var p=out.cidadeuf.split(/\s*[\/\-–]\s*/);if(!out.cidade)out.cidade=p[0];if(p[1]&&!out.uf)out.uf=p[1];delete out.cidadeuf;}
+ if(out.rua){var r=out.rua,z=r.match(/\b\d{5}-?\d{3}\b/);if(z){if(!out.cep)out.cep=z[0];r=r.replace(/,?\s*(cep:?\s*)?\d{5}-?\d{3}\b/i,'');}
+  var cu=r.match(/[,\-–]\s*([A-Za-zÀ-ú .']{2,40})\s*[\/\-–]\s*([A-Za-z]{2})\s*$/);if(cu&&FUFS.indexOf(cu[2].toUpperCase())>=0){if(!out.cidade)out.cidade=cu[1].trim();if(!out.uf)out.uf=cu[2].toUpperCase();r=r.slice(0,cu.index);}
+  var mm=r.match(/^(.+?)[,\s]+(?:n[º°o.]?\s*)?(\d+[A-Za-z]?|s\/n)\b\s*(?:[-,–]\s*(.+))?$/i);
+  if(mm&&!/^\d+$/.test(mm[1].trim())){out.rua=mm[1].replace(/[,\s]+$/,'');if(!out.num)out.num=mm[2];if(mm[3]){var resto=mm[3].split(/\s*[,\-–]\s*/).filter(Boolean);resto.forEach(function(x){var nx=fNorm(x);if(/^(apto|ap|apartamento|bloco|casa|sala|fundos|lote|conj)/.test(nx)){if(!out.comp)out.comp=x;}else if(!out.bairro&&!/\d{5}/.test(x))out.bairro=x.replace(/^bairro\s*/i,'');});}}
+  else out.rua=r.trim();}
+ /* reconhecimento sem rótulo */
+ var t=src;
+ if(!out.cpf){var c=t.match(/\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/);if(c)out.cpf=c[0];}
+ if(!out.cnpj){var cj=t.match(/\b\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}\b/);if(cj)out.cnpj=cj[0];}
+ if(!out.email){var e=t.match(/[\w.+-]+@[\w-]+\.[\w.]+/);if(e)out.email=e[0].replace(/\.$/,'');}
+ if(!out.cep){var zz=t.match(/\b\d{5}-\d{3}\b/);if(zz)out.cep=zz[0];}
+ if(!out.cel){var f=t.match(/(?:\+?55\s?)?\(?\d{2}\)?\s?9\s?\d{4}[-\s]?\d{4}/);if(f)out.cel=f[0];}
+ if(!out.nasc){var ds=t.match(/\b\d{2}\/\d{2}\/(19[2-9]\d|20[01]\d)\b/g);if(ds&&ds.length===1)out.nasc=ds[0];}
+ if(!out.pix&&out.email&&/pix/i.test(t)){}
+ /* formatos */
+ if(out.cpf){var d=fDig(out.cpf);if(d.length===11)out.cpf=d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);}
+ if(out.cnpj){var dj=fDig(out.cnpj);if(dj.length===14)out.cnpj=dj.slice(0,2)+'.'+dj.slice(2,5)+'.'+dj.slice(5,8)+'/'+dj.slice(8,12)+'-'+dj.slice(12);}
+ if(out.rg){var rgm=out.rg.match(/^([\d.\-xX]+)\s*(?:[-\/,]?\s*(?:(?:org[aã]o\s*)?(?:emissor|expedidor)?\s*:?\s*)([A-Za-z]{2,6}\s*[\/\-]\s*[A-Za-z]{2}))?/);if(rgm){if(rgm[2]&&!out.orgao)out.orgao=rgm[2].replace(/\s+/g,'').toUpperCase();out.rg=rgm[1].replace(/[.\-]$/,'');}}
+ if(out.cep){var dc=fDig(out.cep);if(dc.length===8)out.cep=dc.slice(0,5)+'-'+dc.slice(5);}
+ ['cel','tel2'].forEach(function(k){if(out[k])out[k]=fFone(out[k]);});
+ ['renda','patr','credito','parcela'].forEach(function(k){if(out[k])out[k]=fBRL(out[k]);});
+ if(out.uf){var u=out.uf.trim().toUpperCase().slice(0,2);if(FUFS.indexOf(u)>=0)out.uf=u;}
+ if(out.prazo){var pz=out.prazo.match(/\d+/);if(pz)out.prazo=pz[0]+' meses';}
+ if(out.venc){var vc=out.venc.match(/\d{1,2}/);if(vc&&!/\//.test(out.venc))out.venc='Dia '+vc[0];}
+ if(out.sexo){var sx=fNorm(out.sexo);if(/^f/.test(sx))out.sexo='Feminino';else if(/^m/.test(sx))out.sexo='Masculino';}
+ if(out.pep){var pp=fNorm(out.pep);if(/^n/.test(pp))out.pep='Não';else if(/^s/.test(pp))out.pep='Sim';}
+ Object.keys(out).forEach(function(k){if(!out[k])delete out[k];});
+ return out;}
 
 /* ===== v_zr6_ferramentas.js ===== */
 /* ================= FERRAMENTAS + ASSEMBLEIAS — visual do v4, links e dados reais ================= */
