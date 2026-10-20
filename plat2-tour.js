@@ -263,15 +263,17 @@ var CFG=[
    {t:q('.tc .how'),title:'Tutorial de cada ferramenta',text:'Cada ferramenta tem o seu tutorial: toque em “Tutorial” no cartão ou em “Como usar esta ferramenta” dentro dela.',optional:true}
  ]},
  /* ---------------- CONTAS ---------------- */
- {id:'contas',page:'contas',v:1,g:'Gestão',title:'Contas',desc:'Pessoas, funções, permissões e acesso.',steps:[
-   {t:q('#view .banner'),title:'Hierarquia',text:'Master › Líder › Especialista › Cliente. Cada um vê só o que é seu.',optional:true},
-   {t:q('#view .kpis'),title:'Quantas contas',text:'Líderes, especialistas e clientes com acesso.',optional:true},
-   {t:q('#ctsn'),title:'Filtros',text:'Todos, Master, Líderes, Especialistas e Clientes.',demo:'click'},
-   {t:q('#ctq'),title:'Busca',text:'Procure uma pessoa.',optional:true},
-   {t:btn('ver como','#ctl'),title:'Ver como',text:'Mostra a plataforma exatamente como aquela pessoa vê — só leitura, sem mexer em nada.',optional:true},
-   {t:btn('atribuição','#ctl'),title:'Atribuição',text:'Troca a função (Líder ou Especialista) e escolhe o líder de cada especialista.',optional:true},
-   {t:btn('resetar','#ctl'),title:'Resetar senha e desativar',text:'Envia a redefinição de senha ou tira o acesso da pessoa.',optional:true},
-   {t:q('#ncta'),title:'Nova conta',text:'Cria o acesso de uma pessoa nova.',optional:true}
+ {id:'contas',page:'contas',v:1,g:'Gestão',title:'Contas',desc:{master:'Pessoas, funções, permissões e acesso.',_:'Quem é quem na equipe: o nome e a função de cada pessoa.'},steps:[
+   {t:q('#view .banner'),title:'Hierarquia',text:{master:'Master › Líder › Especialista › Cliente. Cada um vê só o que é seu.',_:'Aqui você vê o nome e a função de cada pessoa da equipe. Os dados de cada um ficam só com ela.'},optional:true},
+   {t:q('#orgp'),title:'Organograma',text:{master:'Quem fica abaixo de quem. Toque numa pessoa para editar os dados; “Adicionar pessoa” inclui alguém que não tem login.',_:'Quem fica abaixo de quem na Agion. Toque no seu cartão para trocar sua foto, nome e WhatsApp.'},optional:true},
+   {t:q('#view .kpis'),title:'Quantas contas',text:'Líderes, especialistas e clientes com acesso.',roles:M,optional:true},
+   {t:q('#ctsn'),title:'Filtros',text:'Todos, Master, Líderes, Especialistas e Clientes.',demo:'click',roles:M},
+   {t:q('#ctq'),title:'Busca',text:'Procure uma pessoa.',roles:M,optional:true},
+   {t:btn('ver como','#ctl'),title:'Ver como',text:'Mostra a plataforma exatamente como aquela pessoa vê — só leitura, sem mexer em nada.',roles:M,optional:true},
+   {t:btn('atribuição','#ctl'),title:'Atribuição',text:'Troca a função (Líder ou Especialista) e escolhe o líder de cada especialista.',roles:M,optional:true},
+   {t:btn('resetar','#ctl'),title:'Resetar senha e desativar',text:'Envia a redefinição de senha ou tira o acesso da pessoa.',roles:M,optional:true},
+   {t:q('#ncta'),title:'Nova conta',text:'Cria o acesso de uma pessoa nova.',roles:M,optional:true},
+   {t:btn('editar meus dados','#ctl'),title:'Seus dados',text:'Troque sua foto, seu nome e seu WhatsApp. A função quem define é o master.',roles:['lider','especialista'],optional:true}
  ]},
  /* ---------------- ATIVIDADES ---------------- */
  {id:'atividades',page:'atividades',v:1,g:'Gestão',title:'Atividades',desc:'O histórico auditável de tudo o que acontece na plataforma.',steps:[

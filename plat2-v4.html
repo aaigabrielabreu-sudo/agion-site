@@ -4967,6 +4967,7 @@ if(typeof cur!=='undefined'&&cur==='crm'&&$('#kb'))renderBoard(true);
 .opil small{display:block;font-size:11px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .otag{display:inline-block;margin:2px 0 5px;font:800 8.5px "DM Sans";letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--oc);color:#fff}
 .onode.off{opacity:.45}
+.onode.ro{cursor:default}.onode.ro:hover{transform:none}
 .orgft{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:8px}
 .oleg{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--mut)}.oleg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;background:var(--oc)}
 @media (max-width:860px){
@@ -5022,15 +5023,29 @@ function arvore(A){var mk=A.filter(ehMk),ms=A.filter(function(a){return a.role==
  if(ms.length)return ms.map(function(m,i){return no(m,i===0?lid.concat(sol):[]);}).concat(mkt);
  return lid.concat(sol).concat(mkt);}
 function desc(n){return n.k.reduce(function(t,x){return t+1+desc(x);},0);}
+var COLEGA=false;
+function funcaoDe(a,r){var p=(a.papel||'').trim();if(p&&p.toLowerCase()!==String(OL[r]||'').toLowerCase()&&!(r==='lider'&&/^l[ií]der$/i.test(p)))return p;return r==='master'?'Proprietário':'';}
 function noHTML(n,_i,_a,pc){var a=n.a,ex=!!a.extra,r=ex?'extra':rl(a),cor=ex?(pc||OC.lider):OC[r],d=desc(n),
- sub=ex?(d?'Sem login · '+d+' na equipe':'Sem login na plataforma'):r==='master'?'Proprietário · '+contasR().filter(function(x){return x.role!=='master'&&!ehMk(x);}).length+' na equipe':r==='marketing'?(d?d+' na equipe de marketing':'Acompanha leads e tráfego'):contaLeads(a.id),tag=ex?(a.papel||'Equipe'):OL[r];
- return '<li><button class="onode '+(r==='master'?'m':'')+(ex?' x':'')+(a.ativo===false?' off':'')+'" '+(ex?'data-ex':'data-ed')+'="'+esc4(a.id)+'" style="--oc:'+cor+'"><span class="oph">'+avA(a)+'</span><span class="opil"><span class="otag">'+esc4(tag)+'</span><b>'+esc4(a.nome||'—')+'</b><small>'+esc4(sub)+'</small></span></button>'+(n.k.length?'<ul>'+n.k.map(function(x){return noHTML(x,0,0,cor);}).join('')+'</ul>':'')+'</li>';}
+ sub=COLEGA?(ex?'':funcaoDe(a,r)):ex?(d?'Sem login · '+d+' na equipe':'Sem login na plataforma'):r==='master'?'Proprietário · '+contasR().filter(function(x){return x.role!=='master'&&!ehMk(x);}).length+' na equipe':r==='marketing'?(d?d+' na equipe de marketing':'Acompanha leads e tráfego'):contaLeads(a.id),tag=ex?(a.papel||'Equipe'):OL[r];
+ var abre=!COLEGA||(!ex&&a.id===realId());
+ return '<li><button class="onode '+(r==='master'?'m':'')+(ex?' x':'')+(a.ativo===false?' off':'')+(abre?'':' ro')+'" '+(abre?(ex?'data-ex':'data-ed')+'="'+esc4(a.id)+'"':'tabindex="-1"')+' style="--oc:'+cor+'"><span class="oph">'+avA(a)+'</span><span class="opil"><span class="otag">'+esc4(tag)+'</span><b>'+esc4(a.nome||'—')+'</b><small>'+(sub?esc4(sub):'&nbsp;')+'</small></span></button>'+(n.k.length?'<ul>'+n.k.map(function(x){return noHTML(x,0,0,cor);}).join('')+'</ul>':'')+'</li>';}
 /* ORG_20261020: pessoas do organograma sem login (ex.: equipe do MAAV), guardadas no robô em /api/organograma */
 var EXT=null,EXTP=null,EXTS='';
 function oapi(path,opt){try{if(typeof pfn==='function'&&pfn('apiFetch'))return Promise.resolve(pcall('apiFetch',path,opt||{}));}catch(e){}return Promise.resolve({ok:false,data:{}});}
 function extAss(L){return (L||[]).map(function(m){return [m.id,m.nome,m.cargo,m.pai,(m.foto||'').length].join('|');}).join(';');}
 function extUsa(L){EXT=Array.isArray(L)?L:[];EXT.forEach(function(m){if(m&&m.nome&&m.foto)setPhoto(m.nome,m.foto);});var a=extAss(EXT),mud=a!==EXTS;EXTS=a;return mud;}
-function extras(){if(!EXTP)EXTP=oapi('/api/organograma').then(function(r){var L=r&&r.ok&&r.data&&r.data.membros;EXTP=null;return Array.isArray(L)?extUsa(L):false;}).catch(function(){EXTP=null;return false;});return EXTP;}
+var ACC=null;try{ACC=JSON.parse(localStorage.getItem('agp-acc-contas')||'null');}catch(e){}
+function ehMkV(){try{return typeof window.MKT==='function'&&window.MKT();}catch(e){return false;}}
+function veContas(){var r=effRoleR();if(r==='master')return true;if(r==='cliente'||ehMkV())return false;return Array.isArray(ACC)&&ACC.indexOf(effIdR())>=0;}
+function accUsa(L){var a=(ACC||[]).slice().sort().join(','),b=L.slice().sort().join(',');ACC=L.slice();try{localStorage.setItem('agp-acc-contas',JSON.stringify(ACC));}catch(e){}
+ if(a!==b){try{buildNavKeep();}catch(e){}try{if((location.hash||'')==='#contas'&&cur!=='contas'&&veContas())go('contas');}catch(e){}}}
+function extras(){if(!EXTP)EXTP=oapi('/api/organograma').then(function(r){var d=(r&&r.ok&&r.data)||{};EXTP=null;if(Array.isArray(d.acesso_contas))accUsa(d.acesso_contas);return Array.isArray(d.membros)?extUsa(d.membros):false;}).catch(function(){EXTP=null;return false;});return EXTP;}
+var _ngC=navGrupos;navGrupos=function(){var g=_ngC.apply(this,arguments);
+ try{if(effRoleR()==='master'||!veContas())return g;if(g.some(function(x){return x[1].some(function(t){return t[0]==='contas';});}))return g;
+  g=g.slice();var k=-1;g.forEach(function(x,i){if(x[0]==='Ajuda')k=i;});var ng=['Gestão',[['contas','Contas','shield']]];if(k>=0)g.splice(k,0,ng);else g.push(ng);}catch(e){}
+ return g;};
+setTimeout(function(){try{if(veContas())buildNavKeep();}catch(e){}try{extras();}catch(e){}},1500);
+function acessoContas(id,on){return oapi('/api/organograma',{method:'POST',body:JSON.stringify({acao:'acesso_contas',id:id,on:!!on})}).then(function(r){var d=(r&&r.data)||{};if(!r||!r.ok||d.ok===false){toast('Não mudou o acesso à aba Contas: '+(d.erro||d.error||'sem conexão com o robô'),'x');return false;}if(Array.isArray(d.acesso_contas))accUsa(d.acesso_contas);return true;});}
 function anexa(nodes){var L=EXT||[];if(!L.length)return nodes;var mapa={};(function idx(ns){ns.forEach(function(n){mapa[n.a.id]=n;idx(n.k);});})(nodes);
  var pend=L.map(function(m){return {id:m.id,nome:m.nome,papel:m.cargo||'',avatar_url:m.foto||null,role:'extra',extra:true,pai:m.pai};}),prog=true;
  while(pend.length&&prog){prog=false;pend=pend.filter(function(e){var p=mapa[e.pai];if(!p)return true;var n={a:e,k:[]};p.k.push(n);mapa[e.id]=n;prog=true;return false;});}
@@ -5038,7 +5053,7 @@ function anexa(nodes){var L=EXT||[];if(!L.length)return nodes;var mapa={};(funct
  return nodes;}
 function extDesc(id){var b={};b[id]=1;var mud=true;while(mud){mud=false;(EXT||[]).forEach(function(m){if(b[m.pai]&&!b[m.id]){b[m.id]=1;mud=true;}});}return b;}
 function repintaOrg(){var p=$('#orgp');if(p&&p._A)pintaOrg(p,p._A);}
-function editarExtra(id,paiPre){if(RO()||!isM()){toast('Só o master edita o organograma','lock');return;}
+function editarExtra(id,paiPre){if(!isM())return;if(RO()){toast('Só o master edita o organograma','lock');return;}
  var m=id?(EXT||[]).filter(function(x){return x.id===id;})[0]:null;if(id&&!m)return;m=m||{nome:'',cargo:'',pai:paiPre||'',foto:null};
  var foto=m.foto||null,bloq=id?extDesc(id):{},nmA=m.nome;
  var ops=contasR().map(function(a){return {id:a.id,nome:a.nome||'—',t:ehMk(a)?'Marketing':(OL[a.role]||'')};}).concat((EXT||[]).map(function(x){return {id:x.id,nome:x.nome,t:x.cargo||'Equipe'};})).filter(function(o){return !bloq[o.id];});
@@ -5070,27 +5085,41 @@ function editar(id){var a=contasR().filter(function(x){return x.id===id;})[0];if
  var s=sheet('<div class="edf"><div class="lbl" style="color:var(--gold)">Contas</div><h2>Dados de '+esc4((a.nome||'').split(' ')[0])+'</h2>'+
   '<div class="fot"><div id="edav">'+avA({nome:a.nome,cor:cor},foto?'background-image:url('+foto+');background-size:cover;background-position:center;color:transparent':'')+'</div><div style="display:flex;gap:8px;flex-wrap:wrap"><label class="btn sm ol" style="cursor:pointer">'+I('up',13)+'Trocar foto<input type="file" accept="image/*" id="edf" style="display:none"></label>'+(foto?'<button class="btn sm ol" id="edrm" style="color:var(--badt)">Remover foto</button>':'')+'</div></div>'+
   '<div class="g2" style="gap:12px"><div class="fi"><label>Nome completo</label><input id="edn" value="'+esc4(a.nome||'')+'"></div><div class="fi"><label>WhatsApp / celular</label><input id="edc" inputmode="tel" value="'+esc4(a.celular||'')+'" placeholder="51 99999-9999"></div></div>'+
-  '<div class="fi"><label>Cargo (aparece no organograma)</label><input id="edp" value="'+esc4(a.papel||OL[a.role]||'')+'" placeholder="Ex.: Consultor de Alavancagem Patrimonial"></div>'+
+  '<div class="fi"><label>Cargo (aparece no organograma)</label><input id="edp" value="'+esc4(a.papel||OL[a.role]||'')+'" placeholder="Ex.: Consultor de Alavancagem Patrimonial"'+(isM()?'':' readonly style="opacity:.6" title="Quem define a função é o master"')+'></div>'+
   '<div class="lbl" style="margin-top:4px">Cor das iniciais (quando não tem foto)</div><div class="cores" id="edcr">'+CORES.map(function(c){return '<button data-c="'+c+'" class="'+(c===cor?'on':'')+'" style="background:'+c+'" aria-label="cor"></button>';}).join('')+'</div>'+
-  (isM()&&a.role!=='master'?'<label class="row" style="gap:10px;margin-top:14px;font-size:13px;cursor:pointer"><button type="button" class="tg gd'+(ehMk(a)?' on':'')+'" id="edmk"></button><span><b>Perfil Marketing</b><br><small style="color:var(--mut)">Acompanha o CRM inteiro, Marketing (e MAAV), Distribuição, Conversas e KPIs de marketing. Não vê clientes, comissões nem contas.</small></span></label>':'')+'<div style="display:flex;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap">'+(isM()&&a.role!=='master'?'<button class="btn ol" id="edat">Função e líder</button>':'<span></span>')+'<div style="display:flex;gap:10px"><button class="btn ol" onclick="closeSheet()">Cancelar</button><button class="btn gd" id="edok">'+I('ok',15)+'Salvar</button></div></div></div>',560);
+  (isM()&&a.role!=='master'?'<label class="row" style="gap:10px;margin-top:14px;font-size:13px;cursor:pointer"><button type="button" class="tg gd'+(ehMk(a)?' on':'')+'" id="edmk"></button><span><b>Perfil Marketing</b><br><small style="color:var(--mut)">Acompanha o CRM inteiro, Marketing (e MAAV), Distribuição, Conversas e KPIs de marketing. Não vê clientes, comissões nem contas.</small></span></label>':'')+
+  (isM()&&a.role!=='master'&&!ehMk(a)?'<label class="row" style="gap:10px;margin-top:12px;font-size:13px;cursor:pointer"><button type="button" class="tg gd'+((ACC||[]).indexOf(id)>=0?' on':'')+'" id="edac"></button><span><b>Acesso à aba Contas</b><br><small style="color:var(--mut)">Vê o organograma e a lista da equipe — só o nome e a função de cada pessoa. Não abre os dados dos colegas.</small></span></label>':'')+'<div style="display:flex;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap">'+(isM()&&a.role!=='master'?'<button class="btn ol" id="edat">Função e líder</button>':'<span></span>')+'<div style="display:flex;gap:10px"><button class="btn ol" onclick="closeSheet()">Cancelar</button><button class="btn gd" id="edok">'+I('ok',15)+'Salvar</button></div></div></div>',560);
  function pinta(){var el=$('#edav',s);el.innerHTML=avA({nome:$('#edn',s).value||a.nome,cor:cor},foto?'background-image:url('+foto+');background-size:cover;background-position:center;color:transparent':'');}
  $('#edf',s).onchange=function(){var f=this.files[0];if(!f)return;fotoReduz(f).then(function(u){foto=u;pinta();}).catch(function(){toast('Não consegui ler essa imagem','x');});};
  if($('#edrm',s))$('#edrm',s).onclick=function(){foto=null;pinta();this.remove();};
  $$('#edcr button',s).forEach(function(b){b.onclick=function(){cor=b.dataset.c;$$('#edcr button',s).forEach(function(x){x.classList.toggle('on',x===b);});pinta();};});
  $('#edn',s).oninput=pinta;
  var mkOn=ehMk(a);if($('#edmk',s))$('#edmk',s).onclick=function(){mkOn=!mkOn;this.classList.toggle('on',mkOn);var p=$('#edp',s);if(mkOn)p.value='Marketing';else if(/^\s*marketing/i.test(p.value))p.value=OL[a.role==='lider'?'lider':a.role]||'';};
+ var acOrig=(ACC||[]).indexOf(id)>=0,acOn=acOrig;if($('#edac',s))$('#edac',s).onclick=function(){acOn=!acOn;this.classList.toggle('on',acOn);};
  if($('#edat',s))$('#edat',s).onclick=function(){closeSheet();try{PW().AgionContasPapel.abrir(id);}catch(e){toast('Não abriu','x');}};
  $('#edok',s).onclick=async function(){var nm=$('#edn',s).value.trim();if(!nm){toast('Informe o nome','x');return;}var b=this;b.disabled=true;
-  var up={nome:nm,celular:$('#edc',s).value.trim()||null,papel:$('#edp',s).value.trim()||null,cor:cor,avatar_url:foto};
+  var up={nome:nm,celular:$('#edc',s).value.trim()||null,papel:isM()?($('#edp',s).value.trim()||null):(a.papel||null),cor:cor,avatar_url:foto};
   if(isM()&&a.role!=='master'){if(mkOn){up.role='lider';if(!/^\s*marketing/i.test(up.papel||''))up.papel='Marketing';}else if(/^\s*marketing/i.test(up.papel||'')){up.papel=null;}}
   var r;try{r=await psb().from('profiles').update(up).eq('id',id).select('id');}catch(e){r={error:e};}
   if(r.error||!(r.data&&r.data.length)){b.disabled=false;toast('Não salvou: '+((r.error&&r.error.message)||'sem permissão'),'x');return;}
   var velho=a.nome;Object.assign(a,{nome:nm,celular:up.celular,papel:up.papel||(up.role?'Líder':a.papel),cor:cor,avatar_url:foto,inicial:ini(nm)});if(up.role){a.role=up.role;if(U[id])U[id].role=up.role;}
   if(U[id]){U[id].n=nm;U[id].cel=up.celular;U[id].cor=cor;U[id].avatar=foto;if(up.papel)U[id].p=up.papel;}
   if(velho&&velho!==nm)setPhoto(velho,null);setPhoto(nm,foto);try{pcall('save');}catch(e){}
-  plog('conta_editar','profiles','Editou os dados de "'+nm+'"',{conta:nm});closeSheet();toast('Dados de '+nm.split(' ')[0]+' salvos','ok');if(cur==='contas')go('contas',null,1);};}
+  plog('conta_editar','profiles','Editou os dados de "'+nm+'"',{conta:nm});if(isM()&&acOn!==acOrig){acessoContas(id,acOn).then(function(ok){if(ok){plog('conta_acesso','contas',(acOn?'Liberou':'Tirou')+' a aba Contas de "'+nm+'"',{conta:nm});toast((acOn?'Aba Contas liberada para ':'Aba Contas tirada de ')+nm.split(' ')[0],'ok');}});}closeSheet();toast('Dados de '+nm.split(' ')[0]+' salvos','ok');if(cur==='contas')go('contas',null,1);};}
 window.AG_editarConta=editar;
-var _rc=R.contas;R.contas=function(v,arg){_rc(v,arg);
+function cardColega(a){var r=a.extra?'extra':rl(a),sou=!a.extra&&a.id===realId(),f=a.extra?(a.papel||''):funcaoDe(a,r),
+  pill=a.extra?'':'<span class="pill '+(r==='master'?'gd':r==='lider'?'dk':'')+'"'+(r==='marketing'?' style="background:'+OC.marketing+';color:#fff"':'')+'>'+OL[r]+'</span>';
+ return '<div class="ucard" data-q="'+esc4((a.nome||'').toLowerCase())+'">'+avA(a,'width:46px;height:46px;font-size:15px;flex-shrink:0')+'<div class="t"><b>'+esc4(a.nome||'—')+' '+pill+'</b><small>'+esc4(f||'Equipe Agion')+'</small></div>'+(sou&&podeEditar(a.id)?'<div class="acts3"><button class="btn sm ol" data-me="'+a.id+'">'+I('edit',13)+'Editar meus dados</button></div>':'')+'</div>';}
+function contasColega(v){var A=contasR().filter(function(a){return a.ativo!==false;}),ord={master:0,lider:1,marketing:2,especialista:3};
+ v.innerHTML='<div class="hx rv"><div><h1 class="h1">Nossa <em>equipe</em></h1><div class="sub">Quem é quem na Agion</div></div></div>'+
+  '<div class="banner rv">'+I('shield',17)+'<span>Aqui você vê o nome e a função de cada pessoa da equipe. Os dados de cada um ficam só com ela — os seus (foto, nome e WhatsApp) você edita tocando no seu cartão.</span></div>'+
+  '<div class="panel rv mb" id="orgp"><div class="ph"><h3>'+I('team',18)+'Organograma</h3><span class="sp"></span><div class="oleg"><span style="--oc:'+OC.master+'"><i></i>Master</span><span style="--oc:'+OC.lider+'"><i></i>Líder</span><span style="--oc:'+OC.especialista+'"><i></i>Especialista</span><span style="--oc:'+OC.marketing+'"><i></i>Marketing</span></div></div><div class="orgw"></div></div><div id="ctl"></div>';
+ function pinta(){COLEGA=true;try{pintaOrg($('#orgp',v),A);}finally{COLEGA=false;}
+  var L=A.slice().sort(function(x,y){return (ord[rl(x)]-ord[rl(y)])||String(x.nome||'').localeCompare(String(y.nome||''));}).concat((EXT||[]).map(function(m){return {id:m.id,nome:m.nome,papel:m.cargo||'',avatar_url:m.foto||null,extra:true};}));
+  $('#ctl',v).innerHTML='<div class="ph rv" style="margin-top:8px"><h3>Equipe</h3><span class="pill">'+L.length+'</span></div><div class="g2 mb">'+L.map(cardColega).join('')+'</div>';
+  $$('[data-me]',v).forEach(function(b){b.onclick=function(){editar(b.dataset.me);};});}
+ pinta();extras().then(function(mud){if(mud&&document.body.contains(v)&&$('#orgp',v))pinta();});}
+var _rc=R.contas;R.contas=function(v,arg){if(!isM())return contasColega(v);_rc(v,arg);
  var A=contasR(),me=effIdR(),lid=effRoleR()==='lider';if(lid)A=A.filter(function(a){return a.id===me||a.leaderId===me;});
  var snw=$('#ctsn',v);snw=snw&&snw.closest('.snw');var p=document.createElement('div');p.className='panel rv mb';p.id='orgp';
  p.innerHTML='<div class="ph"><h3>'+I('team',18)+'Organograma</h3><span class="sp"></span><div class="oleg"><span style="--oc:'+OC.master+'"><i></i>Master</span><span style="--oc:'+OC.lider+'"><i></i>Líder</span><span style="--oc:'+OC.especialista+'"><i></i>Especialista</span><span style="--oc:'+OC.marketing+'"><i></i>Marketing</span></div></div>'+
@@ -5158,7 +5187,7 @@ var _ca=carregar;carregar=function(){var p=_ca.apply(this,arguments);try{return 
 setTimeout(function(){try{if(MKT()){rotulo();buildNavKeep();if(!OKMKT[cur])go('painel');}}catch(e){}},1200);
 })();
 </script>
-<script src="/plat2-tour.js?v=2"></script>
+<script src="/plat2-tour.js?v=3"></script>
 <script src="/plat2-maav.js?v=3"></script>
 <script id="b-tab-estavel">/* Chat B 19/out: abas do celular respondem no 1º toque.
  Causa: a barra era REFEITA (innerHTML) a cada atualização de números/badges (CRM, conversas, recarga a cada poucos segundos);
