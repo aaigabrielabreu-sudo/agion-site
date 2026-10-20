@@ -226,13 +226,13 @@ var CFG=[
    {act:sub('ctab','hist'),t:q('#tabc'),title:'Histórico',text:'Tudo o que aconteceu com o cliente.',optional:true}
  ]},
  /* ---------------- CADASTRO ---------------- */
- {id:'cadastro',page:'cadastro',v:1,g:'Carteira',title:'Cadastro único',desc:'Uma pessoa, um cadastro: leads, clientes e WhatsApp ligados.',steps:[
+ {id:'cadastro',page:'cadastro',v:1,g:'Carteira',title:'Cadastro único',desc:{master:'Uma pessoa, um cadastro: leads, clientes e WhatsApp ligados.',_:'Os cadastros dos seus clientes e dos seus leads, cada pessoa uma vez só.'},steps:[
    {t:q('#view .banner'),title:'Cadastro único',text:'Cada pessoa aparece uma vez só. Quando ela volta (novo lead, nova carta), a plataforma liga ao mesmo cadastro pelo telefone, CPF ou e-mail.',optional:true},
    {t:q('#cads'),title:'Filtros',text:'Todos, Clientes, Leads em andamento, Próprios de colaboradores e Origem Agion.',demo:'click'},
-   {t:q('#view .kpis'),title:'Números',text:'Pessoas no cadastro, clientes, leads, origem e os casos que precisam de atenção (possíveis duplicados).',optional:true},
+   {t:q('#view .kpis'),title:'Números',text:{master:'Pessoas no cadastro, clientes, leads, origem e os casos que precisam de atenção (possíveis duplicados).',_:'Quantas pessoas ligadas a você, quantas já são clientes e quantas estão em negociação.'},optional:true},
    {t:q('#cdq'),title:'Busca',text:'Nome, telefone, CPF ou e-mail.',demo:'type',typeText:'Josiane',optional:true},
    {t:q('#pl'),title:'Pessoas',text:'Cada linha é uma pessoa, com a situação e a origem. “Abrir ficha” mostra tudo dela.',optional:true},
-   {t:q('#cdx'),title:'Exportar CSV',text:'Baixa o cadastro completo.',optional:true}
+   {t:q('#cdx'),title:'Exportar CSV',text:'Baixa o cadastro completo.',roles:['master'],optional:true}
  ]},
  /* ---------------- CONSULTORIA ---------------- */
  {id:'consultoria',page:'consultoria',v:1,g:'Carteira',title:'Consultoria',desc:'Visão geral, estratégias, receita por faixa e carteiras.',post:function(){ sub('cosn','vg')(); },steps:[

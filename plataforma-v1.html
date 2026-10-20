@@ -1918,7 +1918,7 @@ function navItemsBase(){
   const ICN_CFG='<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
   if(R==='master') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['tarefas','Tarefas',ICN.check],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['consultoria','Consultoria',ICN.wallet],['users','Clientes',ICN.users],['cadastro','Cadastro',ICN.users],['comissoes','Comissões',ICN.money],['contas','Contas',ICN.users],['atividades','Atividades',ICN.check],['disparos','Disparos',ICN.bolt],['config','Ajustes',ICN_CFG]];
   if(R==='lider') return [['dash','Painel',ICN.dash],['kpis','KPIs',ICN_KPI],['tarefas','Tarefas',ICN.check],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['users','Clientes',ICN.users],['cadastro','Cadastro',ICN.users],['comissoes','Comissões',ICN.money],['contas','Equipe',ICN.users],['config','Ajustes',ICN_CFG]];
-  if(R==='especialista') return [['dash','Painel',ICN.dash],['tarefas','Tarefas',ICN.check],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['users','Clientes',ICN.users],['comissoes','Comissões',ICN.money],['config','Ajustes',ICN_CFG]];
+  if(R==='especialista') return [['dash','Painel',ICN.dash],['tarefas','Tarefas',ICN.check],['crm','CRM',ICN.funnel],['captacao','Captação',ICN.bolt],['marketing','Marketing',ICN.spark],['ferramentas','Ferramentas',ICN.spark],['conversas','Conversas',ICN.chat],['feed','Feed',ICN.feed],['chat','Chat',ICN.chat],['users','Clientes',ICN.users],['cadastro','Cadastro',ICN.users],['comissoes','Comissões',ICN.money],['config','Ajustes',ICN_CFG]];
   return [['dash','Início',ICN.dash],['plan','Planejamento',ICN.plan],['jornada','Jornada',ICN.target],['gastos','Gastos',ICN.money],['cota','Cota',ICN.cota],['config','Ajustes',ICN_CFG]];
 }
 function renderNav(){
@@ -2386,7 +2386,7 @@ function render(){
     if(view.page==='consultoria') return (typeof renderConsultoria==='function')?renderConsultoria(C):(C.innerHTML='<p class="note" style="padding:24px;text-align:center">Modulo de consultoria indisponivel. Recarregue a pagina.</p>');
       if(view.page==='users') return renderClients(C);
     if(view.page==='comissoes') return (typeof renderComissoes==='function')?renderComissoes(C):(C.innerHTML='<p class="note" style="padding:24px;text-align:center">Módulo de comissões indisponível. Recarregue a página.</p>');
-    if(view.page==='cadastro'&&(isMaster()||isLider())) return (typeof renderCadastro==='function')?renderCadastro(C):(C.innerHTML='<p class="note" style="padding:24px;text-align:center">Módulo de cadastro indisponível. Recarregue a página.</p>');
+    if(view.page==='cadastro'&&isStaff()) return (typeof renderCadastro==='function')?renderCadastro(C):(C.innerHTML='<p class="note" style="padding:24px;text-align:center">Módulo de cadastro indisponível. Recarregue a página.</p>');
     if(view.page==='contas'&&(isMaster()||isLider())) return renderContas(C);
     if(view.page==='atividades'&&isMaster()) return renderAtividades(C);
     if(view.page==='conversas') return renderConversas(C);
@@ -4049,7 +4049,7 @@ function masterReportPDF(){
 <script src="/plat-contas-papel.js?v=1"></script>
 <script src="/plat-mkt.js?v=1"></script>
 <script src="/plat-tour.js?v=14"></script>
-<script src="/plat-novidades.js?v=45"></script>
+<script src="/plat-novidades.js?v=46"></script>
 
 <!-- ===== Propostas (anexos por lead) — identidade Agion ===== -->
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
