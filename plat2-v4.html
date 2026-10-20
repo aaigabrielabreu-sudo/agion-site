@@ -1696,6 +1696,19 @@ html,body{max-width:100%;overflow-x:hidden}
 }
 </style>
 <link rel="stylesheet" href="/plat-tour.css?v=b2">
+<style id="qr-fmt">
+/* QR_FMT_20261020: respostas rápidas (templates) da conversa — faixa integrada ao campo de mensagem */
+.cvc .qr{align-items:center;gap:8px;padding:10px 22px 4px 14px;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -12px 24px -20px rgba(11,42,38,.45);flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent)}
+.cvc .qr::-webkit-scrollbar{display:none}
+.cvc .qr:empty{display:none}
+.cvc .qr button{flex:none;padding:7px 13px;border-radius:999px;font-size:12.5px;font-weight:600;line-height:1.2;color:var(--ink);background:color-mix(in srgb,var(--gold) 9%,var(--card));border:1px solid color-mix(in srgb,var(--gold) 30%,var(--line));box-shadow:0 1px 2px rgba(11,42,38,.06);transition:background .25s,border-color .25s,transform .25s}
+.cvc .qr button:hover{background:var(--gold3);border-color:color-mix(in srgb,var(--gold) 55%,transparent);color:#0B2A26;transform:translateY(-1px)}
+.cvc .qr + .cvf{border-top:0;padding-top:8px}
+.dark .cvc .qr{box-shadow:0 -12px 24px -20px rgba(0,0,0,.7)}
+.dark .cvc .qr button{color:var(--ink);background:color-mix(in srgb,var(--gold) 12%,var(--card));border-color:color-mix(in srgb,var(--gold) 26%,var(--line))}
+.dark .cvc .qr button:hover{background:var(--gold3);color:#0B2A26}
+@media (max-width:860px){.cvc .qr{padding:8px 20px 2px 12px}}
+</style>
 </head><body>
 <div class="app" id="app">
  <aside class="sb" id="sb">
