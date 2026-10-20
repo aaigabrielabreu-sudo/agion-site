@@ -4954,7 +4954,7 @@ if(typeof cur!=='undefined'&&cur==='crm'&&$('#kb'))renderBoard(true);
 .org li:last-child::before{border-right:2px solid var(--ol);border-radius:0 12px 0 0}
 .org li:first-child::after{border-radius:12px 0 0 0}
 .org ul ul::before{content:'';position:absolute;top:0;left:50%;height:26px;border-left:2px solid var(--ol)}
-.org>ul{padding-top:0}.org>ul>li{padding-top:0}.org>ul>li::before,.org>ul>li::after{display:none}
+.org>ul{padding-top:0;gap:46px}.org>ul>li{padding-top:0}.org>ul>li::before,.org>ul>li::after{display:none}
 .onode{display:flex;flex-direction:column;align-items:center;cursor:pointer;border:0;background:none;padding:0;font:inherit;color:inherit;transition:transform .25s var(--ez)}
 .onode:hover{transform:translateY(-3px)}
 .oph{position:relative;width:66px;height:66px;border-radius:50%;display:grid;place-items:center;z-index:1}
@@ -4980,6 +4980,7 @@ if(typeof cur!=='undefined'&&cur==='crm'&&$('#kb'))renderBoard(true);
  .org li:only-child{padding-top:12px}
  .org ul ul::before{display:none}
  .org>ul>li{padding-top:0}.org>ul>li::before,.org>ul>li::after{display:none}
+ .org>ul>li+li{margin-top:26px;padding-top:18px;border-top:1px dashed var(--ol)}
  .onode{flex-direction:row;align-items:center;width:100%}
  .oph,.oph .av{width:54px!important;height:54px!important}.oph .av{font-size:17px!important}
  .onode.m .oph,.onode.m .oph .av{width:64px!important;height:64px!important}
@@ -4998,7 +4999,9 @@ if(typeof cur!=='undefined'&&cur==='crm'&&$('#kb'))renderBoard(true);
 /* CONTAS2_20261020: organograma vertical (master → líderes → especialistas) e edição dos dados de cada participante (foto, nome, celular, cargo, cor) */
 (function(){
 if(typeof R==='undefined'||!R.contas)return;
-var OC={master:'#C5A059',lider:'#6C9682',especialista:'#2E6A8A'},OL={master:'Master',lider:'Líder',especialista:'Especialista'},FOT=null;
+var OC={master:'#C5A059',lider:'#6C9682',especialista:'#2E6A8A',marketing:'#C2724A'},OL={master:'Master',lider:'Líder',especialista:'Especialista',marketing:'Marketing'},FOT=null;
+function ehMk(a){return !!(a&&a.role==='lider'&&/^\s*marketing/i.test(a.papel||''));}
+function rl(a){return ehMk(a)?'marketing':a.role;}
 function contasR(){return (pdb().accounts||[]).filter(function(a){return a.real&&a.role!=='cliente';});}
 function fotosEquipe(force){if(FOT&&!force)return FOT;var ids=contasR().map(function(a){return a.id;}).filter(Boolean);if(!ids.length)return Promise.resolve();
  FOT=Promise.resolve(psb().from('profiles').select('id,nome,avatar_url,celular,cor,papel').in('id',ids)).then(function(r){(r&&r.data||[]).forEach(function(p){var a=contasR().filter(function(x){return x.id===p.id;})[0];if(a){a.avatar_url=p.avatar_url||null;if(p.celular&&!a.celular)a.celular=p.celular;if(p.cor)a.cor=p.cor;}
@@ -5006,15 +5009,16 @@ function fotosEquipe(force){if(FOT&&!force)return FOT;var ids=contasR().map(func
 window.AGFotos=fotosEquipe;setTimeout(function(){try{fotosEquipe();}catch(e){}},1800);
 function avA(a,st){var n=a.nome||'?';return '<div class="av" style="background:'+(a.cor||avc(n))+';'+(st||'')+'" title="'+esc4(n)+'">'+ini(n)+'</div>';}
 function contaLeads(id){var at=LEADS.filter(function(l){return l.resp===id&&!l.perdido&&l.st<4;}).length,cl=CLIENTES.filter(function(c){return c.resp===id;}).length;return at+' lead'+(at!==1?'s':'')+' · '+cl+' cliente'+(cl!==1?'s':'');}
-function arvore(A){var ms=A.filter(function(a){return a.role==='master';}),ls=A.filter(function(a){return a.role==='lider';}),es=A.filter(function(a){return a.role==='especialista';});
+function arvore(A){var mk=A.filter(ehMk),ms=A.filter(function(a){return a.role==='master';}),ls=A.filter(function(a){return a.role==='lider'&&!ehMk(a);}),es=A.filter(function(a){return a.role==='especialista';});
  var ids={};A.forEach(function(a){ids[a.id]=1;});
  function filhosLider(l){return es.filter(function(e){return e.leaderId===l.id;});}
- var soltos=es.filter(function(e){return !(e.leaderId&&ids[e.leaderId]&&ls.some(function(l){return l.id===e.leaderId;}));});
+ var soltos=es.filter(function(e){return !(e.leaderId&&ids[e.leaderId]&&(ls.concat(mk)).some(function(l){return l.id===e.leaderId;}));});
  function no(a,kids){return {a:a,k:kids||[]};}
  var lid=ls.map(function(l){return no(l,filhosLider(l).map(function(e){return no(e);}));}),sol=soltos.map(function(e){return no(e);});
- if(ms.length)return ms.map(function(m,i){return no(m,i===0?lid.concat(sol):[]);});
- return lid.concat(sol);}
-function noHTML(n){var a=n.a,r=a.role,sub=r==='master'?'Proprietário · '+(contasR().length-1)+' na equipe':contaLeads(a.id);
+ var mkt=mk.map(function(m){return no(m,filhosLider(m).map(function(e){return no(e);}));});
+ if(ms.length)return ms.map(function(m,i){return no(m,i===0?lid.concat(sol):[]);}).concat(mkt);
+ return lid.concat(sol).concat(mkt);}
+function noHTML(n){var a=n.a,r=rl(a),sub=r==='master'?'Proprietário · '+contasR().filter(function(x){return x.role!=='master'&&!ehMk(x);}).length+' na equipe':r==='marketing'?(n.k.length?n.k.length+' na equipe de marketing':'Acompanha leads e tráfego'):contaLeads(a.id);
  return '<li><button class="onode '+(r==='master'?'m':'')+(a.ativo===false?' off':'')+'" data-ed="'+a.id+'" style="--oc:'+OC[r]+'"><span class="oph">'+avA(a)+'</span><span class="opil"><span class="otag">'+OL[r]+'</span><b>'+esc4(a.nome||'—')+'</b><small>'+esc4(sub)+'</small></span></button>'+(n.k.length?'<ul>'+n.k.map(noHTML).join('')+'</ul>':'')+'</li>';}
 function podeEditar(id){return !RO()&&(isM()||id===realId());}
 function editar(id){var a=contasR().filter(function(x){return x.id===id;})[0];if(!a)return;if(!podeEditar(id)){toast('Só o master edita os dados da equipe','lock');return;}
@@ -5024,18 +5028,20 @@ function editar(id){var a=contasR().filter(function(x){return x.id===id;})[0];if
   '<div class="g2" style="gap:12px"><div class="fi"><label>Nome completo</label><input id="edn" value="'+esc4(a.nome||'')+'"></div><div class="fi"><label>WhatsApp / celular</label><input id="edc" inputmode="tel" value="'+esc4(a.celular||'')+'" placeholder="51 99999-9999"></div></div>'+
   '<div class="fi"><label>Cargo (aparece no organograma)</label><input id="edp" value="'+esc4(a.papel||OL[a.role]||'')+'" placeholder="Ex.: Consultor de Alavancagem Patrimonial"></div>'+
   '<div class="lbl" style="margin-top:4px">Cor das iniciais (quando não tem foto)</div><div class="cores" id="edcr">'+CORES.map(function(c){return '<button data-c="'+c+'" class="'+(c===cor?'on':'')+'" style="background:'+c+'" aria-label="cor"></button>';}).join('')+'</div>'+
-  '<div style="display:flex;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap">'+(isM()&&a.role!=='master'?'<button class="btn ol" id="edat">Função e líder</button>':'<span></span>')+'<div style="display:flex;gap:10px"><button class="btn ol" onclick="closeSheet()">Cancelar</button><button class="btn gd" id="edok">'+I('ok',15)+'Salvar</button></div></div></div>',560);
+  (isM()&&a.role!=='master'?'<label class="row" style="gap:10px;margin-top:14px;font-size:13px;cursor:pointer"><button type="button" class="tg gd'+(ehMk(a)?' on':'')+'" id="edmk"></button><span><b>Perfil Marketing</b><br><small style="color:var(--mut)">Acompanha o CRM inteiro, Marketing (e MAAV), Distribuição, Conversas e KPIs de marketing. Não vê clientes, comissões nem contas.</small></span></label>':'')+'<div style="display:flex;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap">'+(isM()&&a.role!=='master'?'<button class="btn ol" id="edat">Função e líder</button>':'<span></span>')+'<div style="display:flex;gap:10px"><button class="btn ol" onclick="closeSheet()">Cancelar</button><button class="btn gd" id="edok">'+I('ok',15)+'Salvar</button></div></div></div>',560);
  function pinta(){var el=$('#edav',s);el.innerHTML=avA({nome:$('#edn',s).value||a.nome,cor:cor},foto?'background-image:url('+foto+');background-size:cover;background-position:center;color:transparent':'');}
  $('#edf',s).onchange=function(){var f=this.files[0];if(!f)return;fotoReduz(f).then(function(u){foto=u;pinta();}).catch(function(){toast('Não consegui ler essa imagem','x');});};
  if($('#edrm',s))$('#edrm',s).onclick=function(){foto=null;pinta();this.remove();};
  $$('#edcr button',s).forEach(function(b){b.onclick=function(){cor=b.dataset.c;$$('#edcr button',s).forEach(function(x){x.classList.toggle('on',x===b);});pinta();};});
  $('#edn',s).oninput=pinta;
+ var mkOn=ehMk(a);if($('#edmk',s))$('#edmk',s).onclick=function(){mkOn=!mkOn;this.classList.toggle('on',mkOn);var p=$('#edp',s);if(mkOn)p.value='Marketing';else if(/^\s*marketing/i.test(p.value))p.value=OL[a.role==='lider'?'lider':a.role]||'';};
  if($('#edat',s))$('#edat',s).onclick=function(){closeSheet();try{PW().AgionContasPapel.abrir(id);}catch(e){toast('Não abriu','x');}};
  $('#edok',s).onclick=async function(){var nm=$('#edn',s).value.trim();if(!nm){toast('Informe o nome','x');return;}var b=this;b.disabled=true;
   var up={nome:nm,celular:$('#edc',s).value.trim()||null,papel:$('#edp',s).value.trim()||null,cor:cor,avatar_url:foto};
+  if(isM()&&a.role!=='master'){if(mkOn){up.role='lider';if(!/^\s*marketing/i.test(up.papel||''))up.papel='Marketing';}else if(/^\s*marketing/i.test(up.papel||'')){up.papel=null;}}
   var r;try{r=await psb().from('profiles').update(up).eq('id',id).select('id');}catch(e){r={error:e};}
   if(r.error||!(r.data&&r.data.length)){b.disabled=false;toast('Não salvou: '+((r.error&&r.error.message)||'sem permissão'),'x');return;}
-  var velho=a.nome;Object.assign(a,{nome:nm,celular:up.celular,papel:up.papel,cor:cor,avatar_url:foto,inicial:ini(nm)});
+  var velho=a.nome;Object.assign(a,{nome:nm,celular:up.celular,papel:up.papel||(up.role?'Líder':a.papel),cor:cor,avatar_url:foto,inicial:ini(nm)});if(up.role){a.role=up.role;if(U[id])U[id].role=up.role;}
   if(U[id]){U[id].n=nm;U[id].cel=up.celular;U[id].cor=cor;U[id].avatar=foto;if(up.papel)U[id].p=up.papel;}
   if(velho&&velho!==nm)setPhoto(velho,null);setPhoto(nm,foto);try{pcall('save');}catch(e){}
   plog('conta_editar','profiles','Editou os dados de "'+nm+'"',{conta:nm});closeSheet();toast('Dados de '+nm.split(' ')[0]+' salvos','ok');if(cur==='contas')go('contas',null,1);};}
@@ -5043,13 +5049,68 @@ window.AG_editarConta=editar;
 var _rc=R.contas;R.contas=function(v,arg){_rc(v,arg);
  var A=contasR(),me=effIdR(),lid=effRoleR()==='lider';if(lid)A=A.filter(function(a){return a.id===me||a.leaderId===me;});
  var snw=$('#ctsn',v);snw=snw&&snw.closest('.snw');var p=document.createElement('div');p.className='panel rv mb';p.id='orgp';
- p.innerHTML='<div class="ph"><h3>'+I('team',18)+'Organograma</h3><span class="sp"></span><div class="oleg"><span style="--oc:'+OC.master+'"><i></i>Master</span><span style="--oc:'+OC.lider+'"><i></i>Líder</span><span style="--oc:'+OC.especialista+'"><i></i>Especialista</span></div></div>'+
+ p.innerHTML='<div class="ph"><h3>'+I('team',18)+'Organograma</h3><span class="sp"></span><div class="oleg"><span style="--oc:'+OC.master+'"><i></i>Master</span><span style="--oc:'+OC.lider+'"><i></i>Líder</span><span style="--oc:'+OC.especialista+'"><i></i>Especialista</span><span style="--oc:'+OC.marketing+'"><i></i>Marketing</span></div></div>'+
   '<div class="orgw"><div class="org"><ul>'+arvore(A).map(noHTML).join('')+'</ul></div></div>'+(isM()&&!RO()?'<div style="font-size:12px;color:var(--mut);margin-top:6px">Toque numa pessoa para editar foto, nome, celular e cargo.</div>':'');
  if(snw)snw.parentNode.insertBefore(p,snw);else v.appendChild(p);
  $$('[data-ed]',p).forEach(function(b){b.onclick=function(){editar(b.dataset.ed);};});
  /* botão Editar nos cartões da lista */
  $$('#ctl .ucard[data-id]',v).forEach(function(c){var id=c.dataset.id;if(!podeEditar(id))return;var a=contasR().filter(function(x){return x.id===id;})[0];if(!a||a.role==='cliente')return;var bx=$('.acts3',c);if(!bx)return;var b=document.createElement('button');b.className='btn sm ol';b.innerHTML=I('edit',13)+'Editar';b.onclick=function(){editar(id);};bx.insertBefore(b,bx.firstChild);});
+ $$('#ctl .ucard[data-id]',v).forEach(function(cd){var a=contasR().filter(function(x){return x.id===cd.dataset.id;})[0];if(!ehMk(a))return;$$('.pill',cd).forEach(function(p){if(/^l[ií]der$/i.test(p.textContent.trim())){p.textContent='Marketing';p.style.background=OC.marketing;p.style.color='#fff';}});});
  fotosEquipe();};
+})();
+</script>
+<script id="b-mkt-role">
+/* MKT_20261020: perfil Marketing (MAAV) — vê CRM completo, Captação/Distribuição, Marketing (+ MAAV), Conversas, Painel e KPIs de marketing.
+   Não vê clientes, cadastro, comissões, consultoria, contas nem atividades. Só acompanha: mudanças ficam com a equipe comercial. */
+(function(){
+if(typeof navGrupos!=='function')return;
+function MKT(){try{var P=window.parent;return !!(P&&P.AgionMkt&&P.AgionMkt.eh());}catch(e){return false;}}
+window.MKT=MKT;
+NAV.mkt=[['Visão geral',[['painel','Painel','grid'],['kpis','KPIs','kpi']]],
+ ['Comercial',[['crm','CRM','funnel'],['captacao','Captação','bolt'],['marketing','Marketing','mega']]],
+ ['Atendimento',[['conversas','Conversas','chat']]],
+ ['Ajuda',[['tutoriais','Tutoriais','book'],['ajustes','Ajustes','gear']]]];
+var OKMKT={painel:1,kpis:1,crm:1,captacao:1,marketing:1,conversas:1,tutoriais:1,ajustes:1,novidades:1};
+var _ng=navGrupos;navGrupos=function(){if(MKT())return NAV.mkt;return _ng.apply(this,arguments);};
+var _mine=mine;mine=function(a,k){if(MKT())return a;return _mine.apply(this,arguments);};
+var _ro=roOk;roOk=function(){if(MKT()&&cur!=='ajustes'){toast('Perfil Marketing: aqui é para acompanhar — mudanças ficam com a equipe comercial','eye');return false;}return _ro.apply(this,arguments);};
+var _go=go;go=function(k,arg,q){if(MKT()&&!OKMKT[k]&&!(k==='cliente'&&arg&&arg.lead)){k='painel';arg=null;}return _go.call(this,k,arg,q);};
+try{if(window.AG){var _ag=AG.go;AG.go=function(k,a,q){if(MKT()&&!OKMKT[k]&&!(k==='cliente'&&a&&a.lead)){k='painel';a=null;}return _ag.call(this,k,a,q);};}}catch(e){}
+function pct(a,b){return b?Math.round(a/b*100):0;}
+function cols(){return (window.AG7&&AG7.cols)||ST.map(function(s,i){return {k:String(i),n:s.n,c:s.c};});}
+function colDe(d){return window.AG7?AG7.colDe(d):String(d.st);}
+var _rp=R.painel;R.painel=function(v,a){if(!MKT())return _rp.apply(this,arguments);
+ var Ls=LEADS.filter(function(l){return !l.perdido;}),at=Ls.filter(function(l){return l.st<4;}),s7=Date.now()-7*864e5,s30=Date.now()-30*864e5,
+  novos7=LEADS.filter(function(l){return l.criado>=s7;}).length,novos30=LEADS.filter(function(l){return l.criado>=s30;}).length,
+  reun=Ls.filter(function(l){return colDe(l)==='agd';}).length,gan=LEADS.filter(function(l){return l.st===4&&!l.perdido;}).length,per=LEADS.filter(function(l){return l.perdido;}).length,
+  semResp=Ls.filter(function(l){return !l.resp;}).length,C=cols(),mx=1;
+ C.forEach(function(c){c.q=Ls.filter(function(l){return colDe(l)===c.k;}).length;if(c.q>mx)mx=c.q;});
+ v.innerHTML='<div class="hx rv"><div><h1 class="h1">Painel de <em>Marketing</em></h1><div class="sub">'+hojeTxt()+' · leads, funil e origem do tráfego</div></div><span class="sp"></span><button class="btn" onclick="AG.go(\'marketing\',{tab:\'maav\'})">'+I('mega',16)+'Marketing MAAV</button><button class="btn gd" onclick="AG.go(\'crm\')">'+I('funnel',16)+'Abrir CRM</button></div>'+
+  '<div class="kpis rv"><div class="kpi"><div class="ic">'+I('bolt')+'</div><div><b data-c="'+novos7+'">0</b><span class="chipd">'+novos30+' em 30 dias</span><small>Leads novos · 7 dias</small></div></div>'+
+  '<div class="kpi"><div class="ic">'+I('funnel')+'</div><div><b data-c="'+at.length+'">0</b><small>Leads ativos no CRM</small></div></div>'+
+  '<div class="kpi"><div class="ic">'+I('cal')+'</div><div><b data-c="'+reun+'">0</b><small>Reuniões agendadas</small></div></div>'+
+  '<div class="kpi"><div class="ic">'+I('trend')+'</div><div><b>'+pct(gan,gan+per)+'%</b><span class="chipd">'+gan+' ganho'+(gan!==1?'s':'')+'</span><small>Conversão</small></div></div></div>'+
+  (semResp?'<div class="banner rv">'+I('users',16)+'<span><b>'+semResp+' lead'+(semResp>1?'s':'')+' sem responsável</b> aguardando a distribuição.</span><span class="sp"></span><button class="btn sm dk" onclick="AG.go(\'captacao\',{tab:\'dist\'})">Ver distribuição</button></div>':'')+
+  '<div class="g2 mb"><div class="panel rv"><div class="ph"><h3>'+I('funnel',18)+'Funil de negócios</h3><small>onde os leads estão agora</small></div>'+C.map(function(c){return '<div class="hbar"><div class="hl"><span>'+c.n+'</span><b>'+c.q+'</b></div><div class="pb" style="height:12px"><i data-p="'+(c.q/mx)+'" style="background:var('+c.c+')"></i></div></div>';}).join('')+'</div>'+
+  '<div class="panel rv"><div class="ph"><h3>'+I('globe',18)+'Origem dos leads ativos</h3></div><div class="row" style="gap:24px;flex-wrap:wrap" id="mdn2"></div></div></div>';
+ counts(v);setTimeout(function(){$$('[data-p]',v).forEach(function(i){i.style.width=(Math.max(0,Math.min(1,+i.dataset.p))*100)+'%';});},80);
+ try{var oc=Object.keys(LORI).map(function(x){return [LORI[x].ic+' '+LORI[x].lb,Ls.filter(function(l){return l.ori===x;}).length,LORI[x].dot];}).filter(function(x){return x[1];});donut($('#mdn2'),oc,Ls.length,'leads');}catch(e){}};
+var _rk=R.kpis;R.kpis=function(v,a){if(!MKT())return _rk.apply(this,arguments);
+ var O=Object.keys(LORI),rows=O.map(function(k){var L=LEADS.filter(function(l){return l.ori===k;}),q=L.filter(function(l){return l.st>=1||l.perdido;}).length,op=L.filter(function(l){return l.st>=2||colDe(l)==='agd'||colDe(l)==='dia';}).length,g=L.filter(function(l){return l.st===4&&!l.perdido;}),p=L.filter(function(l){return l.perdido;}).length;
+  return {k:k,lb:LORI[k].ic+' '+LORI[k].lb,n:L.length,q:q,op:op,g:g.length,v:g.reduce(function(s,l){return s+l.valor;},0),p:p};}).filter(function(r){return r.n;});
+ var sem=[];for(var w=7;w>=0;w--){var ini=Date.now()-(w+1)*7*864e5,fim=Date.now()-w*7*864e5;sem.push([w===0?'esta semana':w===1?'semana passada':'há '+w+' semanas',LEADS.filter(function(l){return l.criado>=ini&&l.criado<fim;}).length]);}
+ var mxs=Math.max.apply(null,sem.map(function(x){return x[1];}).concat([1])),T=LEADS.length,G=LEADS.filter(function(l){return l.st===4&&!l.perdido;}).length,P=LEADS.filter(function(l){return l.perdido;}).length;
+ v.innerHTML='<div class="hx rv"><div><h1 class="h1"><em>KPIs</em> de marketing</h1><div class="sub">Quantos leads chegam, de onde vêm e quantos viram venda</div></div></div>'+
+  '<div class="kpis rv"><div class="kpi"><div class="ic">'+I('users')+'</div><div><b data-c="'+T+'">0</b><small>Leads no total</small></div></div><div class="kpi"><div class="ic">'+I('trophy')+'</div><div><b data-c="'+G+'">0</b><small>Viraram venda</small></div></div><div class="kpi"><div class="ic">'+I('x')+'</div><div><b data-c="'+P+'">0</b><small>Perdidos</small></div></div><div class="kpi"><div class="ic">'+I('trend')+'</div><div><b>'+pct(G,G+P)+'%</b><small>Conversão (ganhos ÷ decididos)</small></div></div></div>'+
+  '<div class="g2 mb"><div class="panel rv"><div class="ph"><h3>'+I('bolt',18)+'Leads novos por semana</h3></div>'+sem.map(function(x){return '<div class="hbar"><div class="hl"><span>'+x[0]+'</span><b>'+x[1]+'</b></div><div class="pb" style="height:12px"><i data-p="'+(x[1]/mxs)+'" style="background:var(--gold)"></i></div></div>';}).join('')+'</div>'+
+  '<div class="panel rv"><div class="ph"><h3>'+I('globe',18)+'Conversão por origem</h3></div><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Origem</th><th class="r">Leads</th><th class="r">Qualif.</th><th class="r">Oport.</th><th class="r">Vendas</th><th class="r">Conv.</th></tr></thead><tbody>'+
+  (rows.map(function(r){return '<tr><td><b>'+r.lb+'</b></td><td class="r">'+r.n+'</td><td class="r">'+r.q+'</td><td class="r">'+r.op+'</td><td class="r">'+r.g+'</td><td class="r"><b>'+pct(r.g,r.g+r.p)+'%</b></td></tr>';}).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--mut)">Sem leads ainda.</td></tr>')+'</tbody></table></div></div></div>'+
+  '<div class="banner bl rv">'+I('mega',16)+'<span>Custo por lead, campanhas e investimento estão em <b>Marketing › Marketing MAAV</b>.</span><span class="sp"></span><button class="btn sm" onclick="AG.go(\'marketing\',{tab:\'maav\'})">Abrir</button></div>';
+ counts(v);setTimeout(function(){$$('[data-p]',v).forEach(function(i){i.style.width=(Math.max(0,Math.min(1,+i.dataset.p))*100)+'%';});},80);};
+function rotulo(){try{if(!MKT())return;var u=U[effIdR()]||U[realId()];if(u)u.p='Marketing';$$('small,div,span').forEach(function(e){if(e.children.length===0&&e.textContent.trim()==='Líder'&&e.closest('aside,#sb,.sb,.sbf,.mme,.me'))e.textContent='Marketing';});}catch(e){}}
+var _ca=carregar;carregar=function(){var p=_ca.apply(this,arguments);try{return Promise.resolve(p).then(function(r){rotulo();return r;});}catch(e){return p;}};
+/* se abriu numa aba que o marketing não vê, leva para o painel */
+setTimeout(function(){try{if(MKT()){rotulo();buildNavKeep();if(!OKMKT[cur])go('painel');}}catch(e){}},1200);
 })();
 </script>
 <script src="/plat2-tour.js?v=2"></script>

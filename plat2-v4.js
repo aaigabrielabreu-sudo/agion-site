@@ -58,7 +58,7 @@ function montar(){
   D.head.appendChild(st);
   wrap=D.createElement('div'); wrap.id='v4wrap';
   fr=D.createElement('iframe'); fr.title='Agion Wealth'; fr.setAttribute('allow','clipboard-read; clipboard-write; notifications');
-  var src=W.__V4SRC||('/plat2-v4.html?v=22');
+  var src=W.__V4SRC||('/plat2-v4.html?v=23');
   if(W.__V4SRCDOC) fr.srcdoc=W.__V4SRCDOC; else fr.src=src;
   wrap.appendChild(fr); D.body.appendChild(wrap); D.body.classList.add('v4on'); D.documentElement.classList.add('v4on');
   fr.addEventListener('load',function(){ try{ if(D.documentElement.classList.contains('isApp')) fr.contentDocument.documentElement.classList.add('emapp'); }catch(e){} corApp(); });
