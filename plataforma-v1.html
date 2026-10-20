@@ -30,6 +30,7 @@
 <script src="https://bot.agionconsorcios.com.br/api/chart.umd.min.js"></script>
 <script>if(typeof Chart==='undefined'){document.write('<scr'+'ipt src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/scr'+'ipt>');}</script>
 <script>if(typeof Chart==='undefined'){document.write('<scr'+'ipt src="https://unpkg.com/chart.js@4.4.1/dist/chart.umd.js"><\/scr'+'ipt>');}</script>
+<script>/* SENHA_20261020 */try{window.__agHash=location.hash||"";window.__agSearch=location.search||"";}catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -2053,7 +2054,7 @@ async function forgotPass(){
   const el=document.getElementById('loginMsg'); el.style.color='var(--muted)'; el.textContent='Enviando…';
   const {error}=await supa.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
   if(error){el.style.color='var(--bad)';el.textContent='Não foi possível enviar agora. Tente novamente.';return;}
-  el.style.color='var(--ok)';el.textContent='Enviamos um link de redefinição para o seu e-mail (confira o spam).';
+  el.style.color='var(--ok)';el.textContent='Enviamos um link para o seu e-mail (confira o spam). Abra o e-mail MAIS RECENTE e crie a nova senha na tela que abrir.';
 }
 function enterApp(page){try{if(window.Notification&&Notification.permission==='granted')setTimeout(function(){try{window.agionAtivarPush&&window.agionAtivarPush(true);}catch(e){}},2500);}catch(e){} /* TAREFAS_V2 */ document.getElementById('loginView').classList.add('hidden');document.getElementById('app').classList.add('show');var h=(location.hash||'').slice(1);var start=(h&&navItems().some(function(it){return it[0]===h}))?h:page;view={page:start};renderNav();render();try{if(location.hash.slice(1)!==start)location.hash=start;}catch(e){}}
 async function logout(){ try{ stopRealtime(); }catch(e){} try{ if(supa) await supa.auth.signOut(); }catch(e){} session={role:null};document.getElementById('app').classList.remove('show');document.getElementById('loginView').classList.remove('hidden');destroyCharts(); const le=document.getElementById('logEmail'),lp=document.getElementById('logPass'); if(le)le.value=''; if(lp)lp.value=''; }
@@ -4048,7 +4049,7 @@ function masterReportPDF(){
 <script src="/plat-contas-papel.js?v=1"></script>
 <script src="/plat-mkt.js?v=1"></script>
 <script src="/plat-tour.js?v=14"></script>
-<script src="/plat-novidades.js?v=42"></script>
+<script src="/plat-novidades.js?v=43"></script>
 
 <!-- ===== Propostas (anexos por lead) — identidade Agion ===== -->
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">

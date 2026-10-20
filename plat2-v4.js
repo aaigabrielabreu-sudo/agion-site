@@ -77,6 +77,49 @@ function gancho(){
   n.__v4=1; n.__v2=r.__v2; W.render=n;
 }
 /* ---------- entrada: logo da Agion animada + login no visual novo ---------- */
+/* SENHA_20261020: link de redefinição de senha. Antes a pergunta da v1 ficava escondida atrás da
+   tela de entrada nova e a senha nunca era trocada. Agora o próprio login novo abre "Crie sua nova senha". */
+var REC=(function(){ try{ var t=String(W.__agHash!=null?W.__agHash:location.hash)+'&'+String(W.__agSearch!=null?W.__agSearch:location.search);
+  if(/type=recovery/.test(t)) return 'ok'; if(/type=invite/.test(t)||(/convite=1/.test(t)&&/access_token=/.test(t))) return 'conv'; if(/error_code=otp_expired|error=access_denied|error_description=/.test(t)) return 'exp'; }catch(e){} return null; })(), RECON=false;
+function supaV1(){ try{ return supa; }catch(e){ return null; } }
+function limpaUrl(){ try{ history.replaceState(null,'',location.pathname+(location.search||'').replace(/([?&])(type|code|error|error_code|error_description)=[^&]*/g,'$1').replace(/[?&]+$/,'')); }catch(e){} }
+function fechaModalV1(){ try{ var bg=D.getElementById('modalBg'), t=D.getElementById('modalTitle'); if(bg&&!bg.classList.contains('hidden')&&t&&/nova senha/i.test(t.textContent)){ var c=D.getElementById('modalCancel'); if(c) c.click(); } }catch(e){} }
+function lgNovaSenha(conv){ if(!LG) lgMontar(); RECON=true; LG.classList.remove('esp','fora'); LG.classList.add('form');
+ var f=LG.querySelector('form');
+ f.innerHTML=(conv?'<h1>Bem-vindo! Crie sua <em>senha</em></h1><p>É com ela que você vai entrar na plataforma, no computador e no celular.</p>':'<h1>Crie sua <em>nova senha</em></h1><p>Digite a nova senha duas vezes. Ela vale no computador e no celular.</p>')+
+  '<input id="v4nu" type="email" autocomplete="username" tabindex="-1" aria-hidden="true" style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none">'+
+  '<label for="v4n1">Nova senha</label><input id="v4n1" type="password" autocomplete="new-password" placeholder="mínimo 6 caracteres">'+
+  '<label for="v4n2">Repita a nova senha</label><input id="v4n2" type="password" autocomplete="new-password" placeholder="igual à de cima">'+
+  '<button class="lgb" type="submit">Salvar nova senha</button><button class="lgf" type="button">Voltar para a tela de entrada</button><div class="lgmsg" role="status"></div>';
+ f.onsubmit=function(e){ e.preventDefault(); salvaNova(); };
+ f.querySelector('.lgf').onclick=function(){ RECON=false; REC=null; limpaUrl(); var x=LG; LG=null; if(x&&x.parentNode) x.parentNode.removeChild(x); lgMontar(); lgForm(); };
+ var sb=supaV1(); try{ sb&&sb.auth.getSession().then(function(r){ var u=r&&r.data&&r.data.session&&r.data.session.user; if(u&&LG&&LG.querySelector('#v4nu')) LG.querySelector('#v4nu').value=u.email||''; }); }catch(e){}
+ var n=0, iv=setInterval(function(){ fechaModalV1(); if(++n>60||!RECON) clearInterval(iv); },250);
+ setTimeout(function(){ var i=LG&&LG.querySelector('#v4n1'); if(i) i.focus(); },500); }
+/* a v1 pergunta a senha numa janelinha que fica escondida atrás do login novo: troca pela tela acima */
+try{ var _ask=W.ask; if(typeof _ask==='function'&&!_ask.__sen){ var _na=function(o){ var t=String((o&&o.title)||'');
+  if(/nova senha/i.test(t)){ setTimeout(function(){ if(!RECON) lgNovaSenha(false); },0); return Promise.resolve(null); }
+  if(/defina sua senha|senha muito curta/i.test(t)){ setTimeout(function(){ if(!RECON) lgNovaSenha(true); },0); return Promise.resolve(null); }
+  return _ask.apply(this,arguments); }; _na.__sen=1; W.ask=_na; } }catch(e){}
+/* se a janelinha da v1 já abriu antes deste arquivo carregar, fecha e mostra a tela nova */
+(function(){ var n=0, iv=setInterval(function(){ try{ var bg=D.getElementById('modalBg'), t=D.getElementById('modalTitle'), c=D.getElementById('modalCancel');
+  if(bg&&t&&c&&!bg.classList.contains('hidden')){ var tx=t.textContent||'';
+   if(/nova senha/i.test(tx)){ c.click(); if(!RECON) lgNovaSenha(false); } else if(/defina sua senha|senha muito curta/i.test(tx)){ c.click(); if(!RECON) lgNovaSenha(true); } } }catch(e){}
+  if(++n>80) clearInterval(iv); },250); })();
+function espere(ms){ return new Promise(function(ok){ setTimeout(ok,ms); }); }
+async function salvaNova(){ var a=LG.querySelector('#v4n1').value, b=LG.querySelector('#v4n2').value, bt=LG.querySelector('.lgb');
+ if(a.length<6){ lgMsg('Use pelo menos 6 caracteres.'); return; } if(a!==b){ lgMsg('As duas senhas não estão iguais.'); return; }
+ var sb=supaV1(); if(!sb){ lgMsg('Serviço indisponível. Recarregue a página.'); return; }
+ bt.disabled=true; bt.textContent='Salvando…'; lgMsg('',0);
+ var s=null; for(var i=0;i<24&&!s;i++){ try{ var r=await sb.auth.getSession(); s=r&&r.data&&r.data.session; }catch(e){} if(!s) await espere(250); }
+ if(!s){ bt.disabled=false; bt.textContent='Salvar nova senha'; lgMsg('Esse link expirou ou já foi usado. Peça um novo em “Esqueci minha senha” e abra o e-mail mais recente.'); return; }
+ var res; try{ res=await sb.auth.updateUser({password:a}); }catch(e){ res={error:e}; }
+ if(res&&res.error){ bt.disabled=false; bt.textContent='Salvar nova senha'; var m=String(res.error.message||res.error||'');
+  lgMsg(/different|same|diferente/i.test(m)?'A nova senha precisa ser diferente da anterior.':/least|short|weak|caracter/i.test(m)?'Senha fraca: use pelo menos 6 caracteres.':'Não foi possível salvar a senha: '+m); return; }
+ fechaModalV1(); limpaUrl(); bt.textContent='Senha salva'; lgMsg('Senha alterada! Entrando…',1);
+ try{ if(W.PasswordCredential&&navigator.credentials&&s.user&&s.user.email) navigator.credentials.store(new W.PasswordCredential({id:s.user.email,password:a})); }catch(e){}
+ RECON=false; REC=null; lgT0=Date.now();
+ setTimeout(function(){ if(logado()){ if(pronto) lgSair(); else lgEspera(); } else { try{ if(typeof W.startSession==='function') W.startSession(s.user); }catch(e){} } },900); }
 var LG=null, lgMsgT=null, lgT0=Date.now(), lgPronto=false, LOGO='/plat2-v4/logo-hd.png', LOGO2='https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png';
 function lgCss(){ var s=D.createElement('style'); s.textContent=
  '@font-face{font-family:"DM Sans";src:url(/plat2-v4/DM-Sans-Variable.ttf) format("truetype");font-weight:100 1000}@font-face{font-family:Lora;src:url(/plat2-v4/Lora-Variable.ttf) format("truetype");font-weight:400 700}@font-face{font-family:Lora;font-style:italic;src:url(/plat2-v4/Lora-Italic-Variable.ttf) format("truetype");font-weight:400 700}'+
@@ -124,9 +167,9 @@ function lgEntrar(){ var em=LG.querySelector('#v4em').value.trim(), pw=LG.queryS
  var a=D.getElementById('logEmail'), b=D.getElementById('logPass'), m=D.getElementById('loginMsg'); if(!a||!b||typeof W.doLogin!=='function'){ lgMsg('Serviço de login indisponível. Recarregue a página.'); return; }
  a.value=em; b.value=pw; if(m) m.textContent=''; lgMsg('',0); var bt=LG.querySelector('.lgb'); bt.disabled=true; bt.textContent='Entrando…';
  try{ Promise.resolve(W.doLogin()).catch(function(){}); }catch(x){} lgEspelha(); }
-function lgForm(){ if(!LG) lgMontar(); if(LG.classList.contains('form')) return; LG.classList.remove('esp','fora'); LG.classList.add('form'); var bt=LG.querySelector('.lgb'); bt.disabled=false; bt.textContent='Entrar'; setTimeout(function(){ var i=LG.querySelector('#v4em'); if(i&&!i.value&&W.innerWidth>760) i.focus(); },700); }
-function lgEspera(){ if(!LG) lgMontar(); LG.classList.remove('form','fora'); LG.classList.add('esp'); }
-function lgSair(){ if(!LG) return; LG.classList.add('fora'); D.body.classList.remove('v4lg'); var x=LG; setTimeout(function(){ if(x.parentNode) x.parentNode.removeChild(x); },650); LG=null; }
+function lgForm(){ if(RECON) return; if(!LG) lgMontar(); if(LG.classList.contains('form')) return; LG.classList.remove('esp','fora'); LG.classList.add('form'); var bt=LG.querySelector('.lgb'); bt.disabled=false; bt.textContent='Entrar'; setTimeout(function(){ var i=LG.querySelector('#v4em'); if(i&&!i.value&&W.innerWidth>760) i.focus(); },700); }
+function lgEspera(){ if(RECON) return; if(!LG) lgMontar(); LG.classList.remove('form','fora'); LG.classList.add('esp'); }
+function lgSair(){ if(RECON) return; if(!LG) return; LG.classList.add('fora'); D.body.classList.remove('v4lg'); var x=LG; setTimeout(function(){ if(x.parentNode) x.parentNode.removeChild(x); },650); LG=null; }
 W.addEventListener('message',function(e){ if(e.data&&e.data.v4==='pronto'&&fr&&e.source===fr.contentWindow){ lgPronto=true; setTimeout(lgSair, Math.max(0,1300-(Date.now()-lgT0))); } });
 function appCliente(){ try{ var a=D.getElementById('app'); return !!(a&&a.classList.contains('show')&&session&&session.role==='cliente'); }catch(e){ return false; } }
 function telaLogin(){ var l=D.getElementById('loginView'); return !!(l&&l.offsetParent!==null&&getComputedStyle(l).display!=='none'); }
@@ -141,6 +184,10 @@ function espera(){
   }
   setTimeout(espera, pronto?1500:250);
 }
-function inicio(){ lgMontar(); espera(); }
+function inicio(){ lgMontar();
+ if(REC==='ok') lgNovaSenha(false); else if(REC==='conv') lgNovaSenha(true);
+ else if(REC==='exp'){ limpaUrl(); lgT0=0; lgForm(); lgMsg('Esse link de redefinição expirou ou já foi usado. Toque em “Esqueci minha senha” para receber outro e abra o e-mail mais recente.'); }
+ try{ var sb=supaV1(); if(sb&&sb.auth) sb.auth.onAuthStateChange(function(ev){ if(ev==='PASSWORD_RECOVERY'&&!RECON) lgNovaSenha(); }); }catch(e){}
+ espera(); }
 if(D.readyState==='loading') D.addEventListener('DOMContentLoaded',inicio); else inicio();
 })();
