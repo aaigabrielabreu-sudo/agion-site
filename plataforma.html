@@ -1382,7 +1382,7 @@ html.capNative body.isApp #viewbar,html.capNative body.isApp .topbar,html.capNat
 <link rel="stylesheet" href="/plat-theme.css?v=15">
 <link rel="stylesheet" href="/plat-crm.css?v=5">
 <link rel="stylesheet" href="/plat2-shell.css?v=2">
-<meta name="agion-build" content="12461158c22b">
+<meta name="agion-build" content="9d4907c9b8c7">
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
 <div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" type="email" inputmode="email" placeholder="seu@email.com" value="" autocomplete="username" aria-label="E-mail"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="" autocomplete="current-password" aria-label="Senha" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> </div>
@@ -2469,9 +2469,10 @@ function renderCRM(C){
     `<div class="kanban">${board}</div>`+
     (perdidos.length?`<div class="panel"><h2>${ICN.users} Perdidos (${perdidos.length})</h2> ${perdidos.map(l=>`<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line)"><span><b style="color:var(--head)">${esc(l.nome)}</b> <span class="ttype tt-${l.tipo}" style="margin:0 0 0 6px">${l.tipo}</span></span> <button class="btn btn-ghost btn-sm" onclick="crmRecuperar('${l.id}')">Reativar</button></div>`).join('')}</div>`:'');
 }
+/* CARROSSEL_20261020: 'carro' com \b — o anúncio da MAAV chama “Carrossel” e todo lead virava Automóvel */
 const LEAD_CATS=[
  {k:'imovel',lb:'Imóvel',ic:'🏠',cor:'#7FB2A6',re:/(im[oó]ve|casa\b|apart|ap[eê]\b|terreno|reforma|obra\b|constru|loja\b|sala comercial|galp|ch[aá]cara|s[ií]tio|quita[cç][aã]o)/},
- {k:'auto',lb:'Auto',ic:'🚗',cor:'#A9B4B1',re:/(carro|autom[oó]|ve[ií]culo|\bmoto\b|caminh[aã]o|pickup|\bsuv\b|\bauto\b|caminhonete)/},
+ {k:'auto',lb:'Auto',ic:'🚗',cor:'#A9B4B1',re:/(\bcarros?\b|autom[oó]|ve[ií]culo|\bmoto\b|caminh[aã]o|pickup|\bsuv\b|\bauto\b|caminhonete)/},
  {k:'estetica',lb:'Cirurgia plástica',ic:'✨',cor:'#D9A8C5',re:/(cirurg|\blipo|silicone|est[eé]tic|pl[aá]stica|rinoplast|abdominoplast|pr[oó]tese|harmoniz|mamoplast|bariátr|bariatr|implante)/},
  {k:'solar',lb:'Energia solar',ic:'☀️',cor:'#E5C97B',re:/(solar|placa.*energia|energia.*solar)/},
  {k:'nautica',lb:'Náutico',ic:'🚤',cor:'#9BC0E0',re:/(barco|lancha|jet ?ski|embarca)/}
@@ -4054,7 +4055,7 @@ function masterReportPDF(){
 <script src="/plat-contas-papel.js?v=1"></script>
 <script src="/plat-mkt.js?v=1"></script>
 <script src="/plat-tour.js?v=14"></script>
-<script src="/plat-novidades.js?v=46"></script>
+<script src="/plat-novidades.js?v=47"></script>
 
 <!-- ===== Propostas (anexos por lead) — identidade Agion ===== -->
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -4227,6 +4228,6 @@ function masterReportPDF(){
 }catch(e){}})();
 </script>
 <script src="/plat2-shell.js?v=4"></script>
-<script src="/plat2-v4.js?v=31"></script>
+<script src="/plat2-v4.js?v=32"></script>
 </body>
 </html>

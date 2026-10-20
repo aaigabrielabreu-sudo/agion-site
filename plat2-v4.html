@@ -4118,7 +4118,7 @@ function IMP(){try{return window.parent.AgionImport||null;}catch(e){return null;
 function importar(k){var I2=IMP();if(!I2){px().irV1('comissoes');return;}if(!roOk())return;var f={pag:'pagamentos',ass:'importarAssembleias',dat:'novaData'}[k];
  try{Promise.resolve(I2[f]()).then(function(){});}catch(e){toast('Não abriu a importação: '+e.message,'x');}
  /* quando a janela da v1 fecha, recarrega as assembleias/comissões */
- var t0=Date.now(),iv=setInterval(function(){var aberto=false;try{aberto=I2.isOpen&&I2.isOpen();}catch(e){}if(!aberto||Date.now()-t0>30*60000){clearInterval(iv);ASR=null;if(cur==='assembleias')go('assembleias',null,1);else if(cur==='comissoes')cmsRecarrega();}},1500);}
+ var t0=Date.now(),iv=setInterval(function(){var aberto=false;try{aberto=I2.isOpen&&I2.isOpen();}catch(e){}if(!aberto||Date.now()-t0>30*60000){clearInterval(iv);ASR=null;if(k!=='pag'&&typeof avisaAss==='function')avisaAss();/* ASSPUSH_20261020 */if(cur==='assembleias')go('assembleias',null,1);else if(cur==='comissoes')cmsRecarrega();}},1500);}
 R.ferramentas=function(v){v.innerHTML='<div class="hx rv"><div><h1 class="h1"><em>Ferramentas</em> de simulação</h1><div class="sub">Abrem em nova aba · use na frente do cliente · cada uma tem o seu tutorial</div></div></div>'+sn('fsn2',[['t','Todas',TOOLS.length],['Calculadora','Calculadoras'],['Estratégia','Estratégias'],['IA','IA'],['Equipe','Equipe'],['Em breve','Em breve',TOOLS.filter(function(t){return t.soon;}).length]],'t')+'<div class="tg2 rv" id="tg"></div>';
  $('#tg').innerHTML=TOOLS.map(function(t){return '<div class="tc'+(t.soon?' soon':'')+'" data-k="'+t.k+'"><div class="cov" style="--tcb:'+t.bg+'"><svg class="tline" viewBox="0 0 420 160" preserveAspectRatio="none">'+t.svg+'</svg><span class="em">'+I(t.ic,22)+'</span><span class="tg3">'+t.tag+'</span></div><div class="bd2"><h3>'+t.t+'</h3><p>'+t.d+'</p><div class="ft2">'+(t.soon?'<span class="pill">Em breve</span>':'<button class="how" data-tut="1" style="padding:6px 10px;font-size:11.5px"><i style="width:16px;height:16px;font-size:10px">?</i>Tutorial · '+t.tut+' passos</button><span class="open">Abrir '+I('arrow',15)+'</span>')+'</div></div></div>';}).join('');
  stagger($$('.tc'),120);setTimeout(function(){$$('.tc').forEach(function(c,i){setTimeout(function(){c.classList.add('in2');},i*120);});},300);
@@ -4194,6 +4194,7 @@ async function asExcluir(L){var fal=0;for(var i=0;i<L.length;i++){var a=L[i],ok=
   try{var r=await psb().from('assembleias_agenda').delete().eq('id',a.id).select('id');ok=!r.error&&!!(r.data&&r.data.length);}catch(e){}
   if(!ok){try{var r2=await papi('/api/assembleia_agenda',{method:'POST',body:JSON.stringify({acao:'excluir',id:a.id})});ok=!!(r2&&r2.ok&&r2.data&&r2.data.ok);}catch(e){}}
   if(ok)AGD=AGD.filter(function(x){return x.id!==a.id;});else fal++;}
+ if(L.length>fal&&typeof avisaAss==='function')avisaAss();/* ASSPUSH_20261020 */
  asCal();toast(fal?'Não consegui excluir '+(fal>1?fal+' datas':'a data')+' — tente de novo':(L.length>1?L.length+' datas excluídas':'Data excluída')+' · cadastre a certa em “Data de assembleia”',fal?'x':'check');}
 function asEscolhe(L){var s=sheet('<div class="lbl" style="color:var(--gold)">Assembleias</div><h2>Excluir qual data?</h2><p style="color:var(--mut);font-size:13.5px;margin:6px 0 12px">Dia '+fmtD(String(L[0].data_assembleia).slice(0,10)+'T12:00:00')+' tem '+L.length+' assembleias cadastradas.</p>'+
   L.map(function(a,i){return '<div class="li" style="background:var(--bg);margin-bottom:8px"><div class="t"><b>'+esc4(asInfo(a))+'</b></div><button class="btn sm ol" style="color:var(--badt)" data-i="'+i+'">'+I('x',13)+'Excluir</button></div>';}).join('')+
@@ -5205,6 +5206,120 @@ var _ra=R.ajustes;R.ajustes=function(v,a){_ra.apply(this,arguments);var pk=PK(),
    (ligar?pk.ativar():pk.desativar()).then(function(){on=ligar;t.style.opacity=1;t.disabled=false;t.classList.toggle('on',on);$('#ajpks',d).textContent=txt();toast(on?'Pronto! Na próxima entrada use '+rot(n)+'.':'Entrada com '+rot(n)+' desligada neste aparelho.','ok');if(!on)pk.preparar();})
     .catch(function(e){t.style.opacity=1;t.disabled=false;toast(pk.erro(e),'x');if(!on)pk.preparar();});};
  });};
+})();
+</script>
+<script id="b-push">
+/* ASSPUSH_20261020: notificações no visual novo.
+ (1) Ajustes › Conta › "Notificações neste aparelho" (liga, desliga e manda um teste);
+ (2) aviso no Painel para quem ainda não ligou neste aparelho (no iPhone, ensina a pôr na Tela de Início);
+ (3) avisaAss(): depois de importar resultado / mudar data de assembleia, o servidor avisa a equipe toda;
+ (4) /plataforma?abrir=assembleias (toque na notificação) abre direto a aba certa. */
+(function(){
+function W(){try{return window.parent;}catch(e){return null;}}
+function sup(){var w=W();try{return !!(w&&('Notification' in w)&&('serviceWorker' in w.navigator)&&('PushManager' in w));}catch(e){return false;}}
+function st(){var w=W();try{return w&&w.agionPushStatus?w.agionPushStatus():'sem-suporte';}catch(e){return 'sem-suporte';}}
+function ios(){var u=navigator.userAgent||'';return /iPhone|iPad|iPod/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1);}
+function app(){var w=W();try{return w.navigator.standalone===true||w.matchMedia('(display-mode: standalone)').matches;}catch(e){return false;}}
+function equipe(){try{return !RO()&&String(effRoleR()||'').toLowerCase()!=='cliente';}catch(e){return true;}}
+/* pede a permissão JÁ no toque (Safari exige), depois inscreve o aparelho com o usuário logado */
+function ligar(){var w=W();if(!sup())return Promise.resolve('sem');
+ var p=new Promise(function(res){try{var x=w.Notification.requestPermission(res);if(x&&x.then)x.then(res);}catch(e){res(w.Notification.permission);}});
+ return p.then(function(r){if(r!=='granted')return r==='denied'?'negado':'nao';
+  return Promise.resolve(w.agionAtivarPush(true)).then(function(ok){if(!ok)return 'falha';teste();return 'ok';});});}
+function desligar(){var w=W();try{w.localStorage.setItem('agion_push_ok','0');}catch(e){}
+ try{return w.navigator.serviceWorker.getRegistration('/').then(function(r){return r&&r.pushManager.getSubscription();}).then(function(s){return s&&s.unsubscribe();}).catch(function(){});}catch(e){return Promise.resolve();}}
+function teste(){try{papi('/api/push/teste_meu',{method:'POST'});}catch(e){}}
+function msgErro(r){return r==='negado'?'As notificações estão bloqueadas neste navegador. Libere nas configurações do navegador (Notificações › agionconsorcios.com.br).':r==='sem'?(ios()&&!app()?'No iPhone, abra a plataforma pela Tela de Início para receber notificações.':'Este navegador não recebe notificações.'):r==='nao'?'Você não autorizou as notificações.':'Não consegui ligar agora. Tente de novo em instantes.';}
+window.avisaAss=function(){try{var p=papi('/api/assembleia_aviso',{method:'POST'});if(p&&p.catch)p.catch(function(){});}catch(e){}};
+
+/* (1) Ajustes */
+if(typeof R!=='undefined'&&R.ajustes){var _ra=R.ajustes;R.ajustes=function(v,a){_ra.apply(this,arguments);var c=$('#ajc',v);if(!c||$('#ajpush',c))return;
+ var d=document.createElement('div');d.className='set';d.id='ajpush';d.style.marginTop='10px';
+ function txt(s){return s==='ativo'?'Ativas neste aparelho: assembleias, leads e tarefas chegam aqui.':s==='bloqueado'?'Bloqueadas no navegador. Libere em Configurações do navegador › Notificações.':s==='sem-suporte'?(ios()&&!app()?'No iPhone: Compartilhar › Adicionar à Tela de Início, e abra a plataforma por lá.':'Este navegador não recebe notificações.'):'Receba avisos de assembleia, lead novo e tarefas neste aparelho.';}
+ function pinta(){var s=st(),on=s==='ativo',pode=s!=='bloqueado'&&s!=='sem-suporte';
+  d.innerHTML='<div class="t"><b>Notificações neste aparelho</b><small>'+txt(s)+'</small>'+(on?'<small><a href="#" id="ajpushx" style="color:var(--gold);font-weight:600">Enviar um teste</a></small>':'')+'</div>'+(pode?'<button class="tg gd'+(on?' on':'')+'" id="ajpusht" aria-label="Notificações neste aparelho"></button>':'');
+  var t=$('#ajpusht',d);if(t)t.onclick=function(){if(RO()){toast('Saia do “Ver como” para mudar isso.','eye');return;}var lig=!t.classList.contains('on');t.style.opacity=.5;t.disabled=true;
+   (lig?ligar():desligar().then(function(){return 'off';})).then(function(r){t.style.opacity=1;t.disabled=false;pinta();
+    if(r==='ok')toast('Pronto! Mandei um teste para este aparelho.','ok');else if(r==='off')toast('Notificações desligadas neste aparelho.','ok');else toast(msgErro(r),'x');});};
+  var x=$('#ajpushx',d);if(x)x.onclick=function(e){e.preventDefault();teste();toast('Teste enviado. Deve chegar em alguns segundos.','ok');};}
+ pinta();var p=c.querySelector('p');if(p)c.insertBefore(d,p);else c.appendChild(d);};}
+
+/* (2) aviso no Painel */
+var NAO='agp-push-nao';
+function quieto(){try{return Date.now()-Number(localStorage.getItem(NAO)||0)<5*864e5;}catch(e){return false;}}
+if(typeof R!=='undefined'&&R.painel){var _rp=R.painel;R.painel=function(v){var r=_rp.apply(this,arguments);try{
+ var s=st(),iosN=ios()&&!app()&&!sup();
+ if(!equipe()||quieto()||$('#pushbn',v))return r;
+ if(!(s==='desligado'||s==='permitido'||iosN))return r;
+ var b=document.createElement('div');b.className='banner bl rv';b.id='pushbn';
+ b.innerHTML=I('bell',16)+'<span style="flex:1;min-width:180px">'+(iosN?'Para receber os avisos de <b>assembleia</b>, leads e tarefas no iPhone: toque em <b>Compartilhar › Adicionar à Tela de Início</b> e abra a plataforma por lá.':'Ligue as notificações neste aparelho para receber os avisos de <b>assembleia</b>, lead novo e tarefas.')+'</span>'+
+  (iosN?'':'<button class="btn sm gd" id="pushbnok">Ligar</button>')+'<button class="ib" id="pushbnx" aria-label="Agora não" title="Agora não" style="width:30px;height:30px">'+I('x',14)+'</button>';
+ v.insertBefore(b,v.firstChild);
+ var ok=$('#pushbnok',b);if(ok)ok.onclick=function(){ok.disabled=true;ok.style.opacity=.6;ligar().then(function(r){if(r==='ok'){b.remove();toast('Pronto! Mandei um teste para este aparelho.','ok');}else{ok.disabled=false;ok.style.opacity=1;toast(msgErro(r),'x');}});};
+ $('#pushbnx',b).onclick=function(){try{localStorage.setItem(NAO,String(Date.now()));}catch(e){}b.remove();};
+}catch(e){}return r;};}
+
+/* (4) toque na notificação: /plataforma?abrir=assembleias */
+(function(){var w=W(),q='';try{q=String(w.__agSearch!=null?w.__agSearch:w.location.search);}catch(e){}
+ var m=/[?&]abrir=([a-z_-]+)/.exec(q);if(!m)return;var k=m[1];
+ try{var l=w.location;w.history.replaceState(null,'',l.pathname+(l.search||'').replace(/([?&])abrir=[^&]*&?/,'$1').replace(/[?&]$/,'')+(l.hash||''));}catch(e){}
+ try{w.__agSearch=String(w.__agSearch||'').replace(/([?&])abrir=[^&]*&?/,'$1');}catch(e){}
+ var n=0,iv=setInterval(function(){n++;try{if(typeof cur!=='undefined'&&cur&&$('#view')){clearInterval(iv);if(cur!==k)go(k);}}catch(e){}if(n>60)clearInterval(iv);},250);})();
+})();
+</script>
+<script id="b-crmatr">
+/* CRMATR_20261020
+ (1) Trocar o responsável no card do CRM: a v1 recarrega a lista de leads de tempos em tempos (objetos novos)
+     e o card do visual novo continuava preso ao objeto antigo — gravava certo, mas mostrava o dono antigo.
+     Agora o card sempre relê o lead atual; e o aviso duplicado da versão antiga não aparece mais por cima.
+ (2) Distribuição › "Leads de rodízio" separados por canal: Tráfego pago (MAAV, entra no rodízio),
+     Instagram e Site (não entram: a Alice conversa e o master/líder designa). A fila "Aguardando designação"
+     mostra também quem ainda não virou card no CRM (só conversa), com o botão para designar. */
+(function(){
+if(typeof leadRefaz!=='function')return;
+function d8(x){var d=String(x||'').replace(/\D/g,'');return d.length>=8?d.slice(-8):'';}
+function fresco(d){try{var id=d&&d.raw&&d.raw.id,cr=pdb().crm||[];for(var i=0;i<cr.length;i++){if(cr[i]&&cr[i].id===id){d.raw=cr[i];return;}}}catch(e){}}
+var _lr0=leadRefaz;leadRefaz=function(d){fresco(d);return _lr0(d);};
+/* categoria inicial: só o que a pessoa disse. Sem pista = sem categoria (antes caía em Serviços/Automóvel por engano) */
+if(typeof ccatDe==='function')ccatDe=function(d){return d.ccat||(d.cat==='imovel'||d.cat==='solar'?'IMOVEL':d.cat==='auto'||d.cat==='nautica'?'AUTOMOVEL':d.cat==='estetica'?'SERVICOS':null);};
+function semFlashV1(fn){var w=null,f=null;try{w=window.parent;f=w.flash;w.flash=function(){};}catch(e){}try{return fn();}finally{try{if(w&&f)w.flash=f;}catch(e){}}}
+window.semFlashV1=semFlashV1;
+atrPop=function(d,el){pop(el,'<div class="pt">Atribuir para</div>'+respOpts().map(function(k){var n=LEADS.filter(function(l){return l.resp===k&&!l.perdido&&l.st<4;}).length;return '<button data-k="'+k+'" class="'+(k===d.resp?'on':'')+'">'+av(un(k),'','width:22px;height:22px;font-size:9px')+un(k)+'<span class="c">'+n+' ativos</span></button>';}).join(''),
+ function(b){if(!roOk())return;var k=b.dataset.k;if(k===d.resp){closePop&&closePop();return;}
+  fresco(d);semFlashV1(function(){pcall('crmAssign',d.uid,k);});leadRefaz(d);
+  if(d.resp!==k){try{d.raw.ownerId=k;pcall('saveLeadCloud',d.raw);pcall('save');leadRefaz(d);}catch(e){}}   /* garantia: grava direto */
+  toast(d.nome.split(' ')[0]+' agora é de '+un(d.resp)+' · avisamos no celular','users');if(cur==='crm')refreshCrm();else refreshCard(d);});};
+
+/* ---- Distribuição: canais + fila de espera do robô ---- */
+if(typeof distHTML!=='function'||typeof bindDist!=='function')return;
+var CAN=[['trafego','📣 Tráfego pago · MAAV'],['instagram','📸 Instagram'],['site','🌐 Site']];
+var CANTX={trafego:'Entram no rodízio automático: cada lead vai para a pessoa da vez.',instagram:'Não entram no rodízio. A Alice conversa e quem designa é você (ou o líder, para a equipe dele).',site:'Não entram no rodízio. A Alice conversa e quem designa é você (ou o líder, para a equipe dele).'};
+function hist(){return ((DST.srv||{}).historico)||[];}
+function canal(x){return x.canal==='outro'?'outro':(x.canal||'outro');}
+function esperaRobo(){var vis={},out=[],crm={};LEADS.forEach(function(l){var k=d8(l.tel);if(k)crm[k]=l;});
+ hist().forEach(function(x){var k=d8(x.phone);if(!k||vis[k])return;vis[k]=1;if(x.owner_id||!/^aguardando/i.test(x.regra||''))return;var l=crm[k];if(l&&(l.resp||l.perdido))return;if(l)return;/* card no CRM já aparece na lista normal */out.push(x);});return out;}
+function painelCanais(){var c=DST.canal||'trafego',H=hist(),mes=Date.now()/1000-30*86400;
+ var cont={};H.forEach(function(x){if(x.ts>=mes){var k=canal(x);cont[k]=(cont[k]||0)+1;}});
+ var L=H.filter(function(x){return canal(x)===c;}).slice(0,8);
+ return '<div class="panel mb" id="dcan"><div class="ph"><h3>'+I('users',18)+'Leads de rodízio</h3><span class="sp"></span><small style="color:var(--mut)">últimos 30 dias</small></div>'+
+  seg('dcn',CAN.map(function(o){return [o[0],o[1],cont[o[0]]||0];}),c,'gd')+
+  '<p style="font-size:12.5px;color:var(--mut);margin:10px 0 8px">'+CANTX[c]+(cont.outro?' <span style="white-space:nowrap">· '+cont.outro+' pelo WhatsApp direto (também designação manual)</span>':'')+'</p>'+
+  (L.map(function(x){var q=x.ts?agoTxt(x.ts*1000):'';return '<div class="li">'+(x.owner_id?av(dNome(x.owner_id),'','width:30px;height:30px'):'<span class="av" style="width:30px;height:30px;background:var(--bg3);display:inline-flex;align-items:center;justify-content:center">?</span>')+'<div class="t"><b>'+esc4(x.nome||('Lead '+String(x.phone||'').slice(-4)))+' → '+esc4(x.owner_id?dNome(x.owner_id).split(' ')[0]:'aguardando você')+'</b><small>'+esc4([x.valor?brl(+x.valor):'',x.regra||'',q].filter(Boolean).join(' · '))+'</small></div></div>';}).join('')||'<div class="empty" style="padding:12px">Nenhum lead deste canal ainda.</div>')+'</div>';}
+function painelEspera(){var pend=LEADS.filter(function(l){return !l.resp&&!l.perdido;}),rob=esperaRobo(),n=pend.length+rob.length,pode=isM()||(typeof isLid==='function'&&isLid());
+ return '<div class="panel mb"><div class="ph"><h3>⏳ Aguardando designação</h3><span class="pill bad">'+n+'</span></div>'+
+  (rob.map(function(x){var q=x.ts?agoTxt(x.ts*1000):'';return '<div class="li">'+av(x.nome||'?')+'<div class="t"><b>'+esc4(x.nome||('Lead '+String(x.phone||'').slice(-4)))+'</b><small>'+esc4([x.canal_lb||'',x.valor?brl(+x.valor):'','conversando com a Alice',q].filter(Boolean).join(' · '))+'</small></div>'+(pode?'<button class="btn sm dk" data-dzr="'+esc4(x.phone)+'">Escolher… '+I('chev',12)+'</button>':'')+'</div>';}).join('')+
+   pend.slice(0,30).map(function(l){return '<div class="li">'+av(l.nome)+'<div class="t"><b>'+esc4(l.nome)+'</b><small>'+LCAT[l.cat].lb+(l.valor?' · '+brl(l.valor):'')+' · '+l.dt+'</small></div>'+(isM()?'<button class="btn sm dk" data-dz="'+l.id+'">Escolher… '+I('chev',12)+'</button>':'')+'</div>';}).join('')||'<div class="empty">Ninguém aguardando 🎉</div>')+'</div>';}
+var A0='<div class="panel mb"><div class="ph"><h3>⏳ Aguardando designação</h3>',A1='<div class="panel"><div class="ph"><h3>Últimas designações</h3>';
+var _dh=distHTML;distHTML=function(){var h=_dh();try{var i=h.indexOf(A0),j=h.indexOf(A1);if(i>=0&&j>i)h=h.slice(0,i)+painelCanais()+painelEspera()+h.slice(j);}catch(e){}return h;};
+function onCan(k){DST.canal=k;var p=$('#dcan');if(p){var t=document.createElement('div');t.innerHTML=painelCanais();p.replaceWith(t.firstChild);bindSeg('dcn',onCan);}}
+function repinta(){var y=$('#mkb');if(y){y.innerHTML=distHTML();bindDist();try{counts(y);}catch(e){}}}
+var _bd=bindDist;bindDist=function(){_bd.apply(this,arguments);try{
+ bindSeg('dcn',onCan);
+ $$('[data-dzr]').forEach(function(b){b.onclick=function(e){e.stopPropagation();var ph=b.dataset.dzr;pop(b,'<div class="pt">Designar</div>'+respOpts().map(function(k){return '<button data-k="'+k+'">'+av(un(k),'','width:22px;height:22px;font-size:9px')+esc4(un(k))+'</button>';}).join(''),function(o){if(!roOk())return;var k=o.dataset.k;
+  papi('/api/designacao',{method:'POST',body:JSON.stringify({acao:'designar',phone:ph,owner_id:k})}).then(function(r){if(!r||!r.ok){toast('Não designou: '+((r&&r.data&&r.data.error)||'sem conexão com o robô'),'x');return;}toast('Designado para '+un(k)+' · avisamos no celular','users');distCarrega(true).then(repinta);});});};});
+}catch(e){}};
+/* histórico maior para separar por canal */
+var _dc=distCarrega;distCarrega=function(force){if(DST.srv&&!force)return Promise.resolve();return papi('/api/designacao?n=150').then(function(r){if(!r||!r.ok){DST.err=(r&&r.data&&r.data.error)||'Não foi possível falar com o robô agora.';return;}DST.err=null;DST.srv=r.data;if(!DST.sujo)DST.cfg=JSON.parse(JSON.stringify(r.data.config||{}));}).catch(function(){DST.err='Sem conexão com o robô.';});};
 })();
 </script>
 <script src="/plat2-tour.js?v=4"></script>
