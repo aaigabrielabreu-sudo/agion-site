@@ -29,7 +29,7 @@ function custoDe(camp){var ms=perMes();return (S.d.config.custos||[]).filter(fun
 function leadsPer(cp){var ms=perMes();if(!ms)return cp.leads;return ms.reduce(function(a,m){return a+((cp.meses||{})[m]||0);},0);}
 
 function topo(){var c=S.d.conexao||{},cf=S.d.config||{};
- return '<div class="panel mb gl"><div class="mvst"><span class="dot'+(c.ok?'':' no')+'"></span><div style="flex:1;min-width:200px"><b style="font-size:15px">'+(c.ok?'Conectado ao Mooving CRM':'Sem conexão com o Mooving')+(c.conta?' · '+e(c.conta):'')+'</b><div style="font-size:12.5px;color:var(--mut);margin-top:2px">'+(c.ok?'Última leitura '+quando(c.ultimo_ciclo)+' · '+(c.total_mooving!=null?c.total_mooving+' contato(s) no Mooving':'')+' · confere a cada '+(cf.intervalo_min||5)+' min':e(c.erro||'Verifique o token da integração privada no Mooving.'))+'</div></div>'+
+ return '<div class="panel mb gl"><div class="mvst"><span class="dot'+(c.ok?'':' no')+'"></span><div style="flex:1;min-width:200px"><b style="font-size:15px">'+(c.ok?'Conectado ao Mooving CRM':'Sem conexão com o Mooving')+(c.conta?' · '+e(c.conta):'')+'</b><div style="font-size:12.5px;color:var(--mut);margin-top:2px">'+(c.ok?'Última leitura '+quando(c.ultimo_ciclo)+' · '+(c.total_mooving!=null?c.total_mooving+' contato(s) no Mooving':'')+' · confere a cada '+((cf.intervalo_min||1)==1?'minuto':(cf.intervalo_min+' min')):e(c.erro||'Verifique o token da integração privada no Mooving.'))+'</div></div>'+
  '<span class="pill '+(cf.importar?'ok':'')+'">'+(cf.importar?'● Entrada ligada':'Entrada desligada')+'</span><span class="pill '+(cf.devolver?'ok':'')+'">'+(cf.devolver?'● Devolução ligada':'Devolução desligada')+'</span>'+
  (ed()?'<button class="btn sm ol" id="mvsync">'+I('refresh',14)+'Sincronizar agora</button>':'')+'</div></div>';}
 
@@ -69,7 +69,7 @@ function regras(){var d=S.d,cf=d.config,m=d.mooving||{},pl=(m.pipelines||[]).fil
   '<div class="mvrow"><span>Nunca trazer com a etiqueta</span><input class="mvi" id="rig" list="rtg" value="'+e((cf.ignorar_tags||[]).join(', '))+'" placeholder="ex.: teste, desqualificado"'+dis+'></div><datalist id="rtg">'+(m.tags||[]).map(function(t){return '<option value="'+e(t)+'">';}).join('')+'</datalist>'+
   '<div class="mvrow"><span>Resposta que vira o valor do crédito</span><select class="mvi" id="rval"'+dis+'>'+opt(m.campos||[],cf.campo_valor_mooving,'— nenhuma —')+'</select></div>'+
   '<div class="mvrow"><span>Nome da origem na plataforma</span><input class="mvi" id="rori" value="'+e(cf.origem_nome||'MAAV')+'"'+dis+'></div>'+
-  '<div class="mvrow"><span>Conferir o Mooving a cada</span><select class="mvi" id="rint"'+dis+'>'+[2,5,10,15,30].map(function(n){return '<option value="'+n+'"'+(+cf.intervalo_min===n?' selected':'')+'>'+n+' minutos</option>';}).join('')+'</select></div>'+
+  '<div class="mvrow"><span>Conferir o Mooving a cada</span><select class="mvi" id="rint"'+dis+'>'+[1,2,5,10,15,30].map(function(n){return '<option value="'+n+'"'+(+cf.intervalo_min===n?' selected':'')+'>'+(n===1?'1 minuto':n+' minutos')+'</option>';}).join('')+'</select></div>'+
  '</div><div class="panel"><div class="ph"><h3>'+I('send',18)+'O que volta (Agion → Mooving)</h3></div>'+
   sw('devolver','Devolver o andamento para o marketing','Quando o lead anda aqui (etapa, reunião, perda, venda), o Mooving é atualizado: oportunidade no funil, campos e etiquetas. Assim o MAAV vê o resultado real de cada anúncio.')+
   '<div class="mvrow"><span>Funil no Mooving</span><select class="mvi" id="rpl"'+dis+'>'+opt(m.pipelines||[],cf.pipeline_id,'— escolha o funil —')+'</select></div>'+
@@ -82,7 +82,7 @@ function hist(){var L=S.d.log||[],ic={entrada:'⬇️',saida:'⬆️',erro:'⚠�
 
 function coleta(){var cf=JSON.parse(JSON.stringify(S.d.config)),q=function(s){return document.querySelector(s);},spl=function(v){return String(v||'').split(',').map(function(t){return t.trim();}).filter(Boolean);};
  document.querySelectorAll('.mv [data-sw]').forEach(function(b){cf[b.dataset.sw]=b.classList.contains('on');});
- if(q('#rso')){cf.so_tags=spl(q('#rso').value);cf.ignorar_tags=spl(q('#rig').value);cf.campo_valor_mooving=q('#rval').value;cf.origem_nome=q('#rori').value.trim()||'MAAV';cf.intervalo_min=+q('#rint').value||5;cf.pipeline_id=q('#rpl').value;
+ if(q('#rso')){cf.so_tags=spl(q('#rso').value);cf.ignorar_tags=spl(q('#rig').value);cf.campo_valor_mooving=q('#rval').value;cf.origem_nome=q('#rori').value.trim()||'MAAV';cf.intervalo_min=+q('#rint').value||1;cf.pipeline_id=q('#rpl').value;
   cf.mapa_etapas={};document.querySelectorAll('.mv [data-me]').forEach(function(s){if(s.value)cf.mapa_etapas[s.dataset.me]=s.value;});
   cf.tags_etapa={};document.querySelectorAll('.mv [data-te]').forEach(function(s){if(s.value.trim())cf.tags_etapa[s.dataset.te]=s.value.trim();});
   cf.mapa_campos={};document.querySelectorAll('.mv [data-mc]').forEach(function(s){if(s.value)cf.mapa_campos[s.dataset.mc]=s.value;});}
