@@ -1709,6 +1709,20 @@ html,body{max-width:100%;overflow-x:hidden}
 .dark .cvc .qr button:hover{background:var(--gold3);color:#0B2A26}
 @media (max-width:860px){.cvc .qr{padding:8px 20px 2px 12px}}
 </style>
+<style id="asscal-css">
+/* ASSCAL_20261020 */
+.calw{position:relative}
+.calw .cnav{position:absolute;top:calc(50% + 8px);transform:translateY(-50%);z-index:2;width:34px;height:34px;padding:0;border-radius:50%;display:grid;place-items:center;background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:0 6px 16px -8px rgba(11,42,38,.45);cursor:pointer;transition:background .2s,transform .2s}
+.calw .cnav:hover{background:var(--gold3);color:#0B2A26}
+.calw .cnav:active{transform:translateY(-50%) scale(.92)}
+.calw #calp{left:-22px}.calw #caln{right:-22px}
+.calw .cnav svg{width:16px;height:16px}.calw .cnav.nx svg{transform:rotate(180deg)}
+#calm{cursor:default}#calm.ln{cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.cald.sel{box-shadow:inset 0 0 0 2px #C2463B!important}
+.cald .cx{position:absolute;top:-7px;right:-7px;width:24px;height:24px;padding:0;border-radius:50%;border:0;background:#C2463B;color:#fff;display:grid;place-items:center;box-shadow:0 3px 8px rgba(0,0,0,.3);cursor:pointer;z-index:3;animation:pop .3s var(--sp)}
+.cald .cx svg{width:12px;height:12px;stroke-width:3}
+@media (max-width:860px){.calw .cnav{width:30px;height:30px}.calw #calp{left:-19px}.calw #caln{right:-19px}.cald .cx{width:22px;height:22px;top:-6px;right:-6px}}
+</style>
 </head><body>
 <div class="app" id="app">
  <aside class="sb" id="sb">
@@ -3759,7 +3773,7 @@ R.conversas=function(v,arg){if(arg&&(arg.id||arg.phone)){CVF.id=arg.id||ckey(arg
   function band(){var q=$('#qb');if(!q)return;var h=c.hum;q.className='qband'+(h?' hum':c.pede?' pede':' ali');var s=CVX.hum[c.phone];
    var vol='';if(s&&s.ativo&&!s.fixo){var a=s.ate?new Date(typeof s.ate==='number'?(s.ate<1e12?s.ate*1000:s.ate):s.ate):null;vol=a&&!isNaN(a)?' · a Alice volta às '+z2(a.getHours())+':'+z2(a.getMinutes())+' se ninguém responder':' · Alice pausada';}else if(s&&s.ativo)vol=' · Alice pausada até alguém devolver';
    q.innerHTML=(c.pede&&!h?'<span class="dotl" style="background:var(--bad)"></span><span><b>'+esc4(c.nome.split(' ')[0])+' pediu para falar com uma pessoa.</b> A Alice segura a conversa por 10 minutos — toque em Assumir.</span>':h?'<span class="dotl"></span><span><b>'+esc4(h)+' no comando</b>'+(vol||' · Alice pausada')+'</span>':'<span class="dotl"></span><span><b>A Alice está atendendo</b> e faz o follow-up deste '+(c.tipo==='cliente'?'cliente':'lead')+'</span>')+'<span style="flex:1"></span>'+
-   (isM()&&!RO()?'<label class="row" style="gap:6px;font-size:12px;white-space:nowrap" title="Suas mensagens chegam com o seu nome em negrito em cima"><button class="tg gd'+(assinaOn()?' on':'')+'" id="sg" style="transform:scale(.8)"></button>Assinar com meu nome</label>':'')+
+   (!RO()?'<label class="row" style="gap:6px;font-size:12px;white-space:nowrap" title="Suas mensagens chegam com o seu nome em negrito em cima"><button class="tg gd'+(assinaOn()?' on':'')+'" id="sg" style="transform:scale(.8)"></button>Assinar com meu nome</label>':'')+
    (h?'<button class="btn sm" id="dev">'+I('robot',14)+'Devolver para a Alice</button>':'<button class="btn sm dk" id="ass">'+I('hand',14)+'Assumir</button>');
    if($('#ass'))$('#ass').onclick=function(){humAcao('assumir');};if($('#dev'))$('#dev').onclick=function(){humAcao('devolver');};
    if($('#sg'))$('#sg').onclick=function(){var on=!assinaOn();this.classList.toggle('on',on);try{P.AgionHumano.assinar(on);}catch(e){}toast(on?'Suas mensagens vão assinadas com o seu nome.':'Suas mensagens vão sem o seu nome.','edit');};}
@@ -3808,7 +3822,7 @@ async function novaConversa(){if(!roOk())return;var L0=await tplLista();var s=sh
   var t=L0.filter(function(x){return x[0]===ob.dataset.k;})[0],ps=await tplParams(t,nm);if(ps===null)return;var r=await papi('/api/send_template',{method:'POST',body:JSON.stringify({phone:f,template:t[0],params:ps,nome:nm})});
   if(!r||!r.ok){toast('Falha: '+((r&&r.data&&r.data.error)||'sem conexão'),'x');return;}closeSheet();toast('Conversa iniciada · a Alice acompanha a resposta','send');await cvCarregaLista();go('conversas',{phone:f,nome:nm},1);};}
 
-function autorHumano(a){if(!a||/^(bot|alice|reengaj|follow|robo|sistema|auto)/i.test(a))return false;if(U[a])return true;var al=String(a).toLowerCase();return Object.keys(U).some(function(k){var n=U[k].n.toLowerCase();return n===al||n.split(' ')[0]===al;});}
+function autorHumano(a){if(!a||/^(bot|alice|reengaj|follow|robo|robô|sistema|auto|aviso|lembrete|boleto|template|nutri)/i.test(String(a).trim()))return false;return true;}  /* AUTOR_20261020: quem é da equipe aparece com o nome para todo mundo (antes dependia de a pessoa estar na lista de contas de quem olha) */
 
 /* ===== v_zr5_clientes.js ===== */
 /* ================= CLIENTES · FICHA · CADASTRO ÚNICO — visual do v4, dados e ações reais ================= */
@@ -4116,20 +4130,15 @@ R.assembleias=function(v){if(!ASR){v.innerHTML='<div class="empty" style="margin
  var GR=rows.map(function(r){return [r.grupo,+r.contemplados||0,+r.sorteio||0,+r.lance_fixo||0,+r.lance_fixo2||0,+r.lance_livre||0,+r.lance_limitado||0,+r.excluidos||0,r.lance_parcelas==null?999:+r.lance_parcelas,r];});
  v.innerHTML='<div class="hx rv" style="align-items:center"><button class="ib" id="asbk">'+I('back',18)+'</button><div><div class="crumb" style="margin-bottom:4px">Ferramentas</div><h1 class="h1">'+(AS.adm==='HS'?'HS Consórcios':'Âncora')+' · <em>'+ASLB[AS.cat]+'</em></h1><div class="sub">'+(AS.mes?'resultado de '+mesLb(AS.mes)+' · '+GR.length+' grupo'+(GR.length!==1?'s':''):'nenhum resultado importado ainda')+'</div></div><span class="sp"></span>'+(isM()?'<button class="btn" id="asdt">'+I('plus',15)+'Data de assembleia</button><button class="btn gd" id="asim">'+I('up',15)+'Importar resultado</button>':'')+'</div>'+
  sn('aadm',[['HS','HS Consórcios'],['ANC','Âncora Consórcios']],AS.adm)+'<div class="tb rv">'+seg('acat',Object.keys(ASLB).map(function(k){var n=cats[k]?cats[k][Object.keys(cats[k]).sort().reverse()[0]]:0;return [k,ASLB[k],n||0];}),AS.cat)+'<span class="sp"></span>'+(meses.length?dd('ames','Mês',meses.map(function(m){return {k:m,lb:mesLb(m)};}),AS.mes):'')+'</div>'+
- '<div class="g12 mb"><div class="panel rv"><div class="ph"><h3>'+I('cal',18)+'Próximas assembleias</h3><small>'+MESX[hojeD().getMonth()]+'</small></div><div class="calg" id="cal"></div><div id="agl"></div></div>'+
+ '<div class="g12 mb"><div class="panel rv"><div class="ph"><h3>'+I('cal',18)+'Próximas assembleias</h3><small id="calm" title="Voltar para o mês atual">'+MESX[hojeD().getMonth()]+'</small></div><div class="calw" id="calw"><button class="cnav" id="calp" aria-label="Mês anterior" title="Mês anterior">'+I('back',16)+'</button><div class="calg" id="cal"></div><button class="cnav nx" id="caln" aria-label="Próximo mês" title="Próximo mês">'+I('back',16)+'</button></div><div id="agl"></div></div>'+
  '<div><div class="g3 mb rv" style="grid-template-columns:repeat(5,1fr)">'+[['Grupos',GR.length],['Contemplações',GR.reduce(function(a,g){return a+g[1];},0)],['Sorteio',GR.reduce(function(a,g){return a+g[2];},0)],['Lances',GR.reduce(function(a,g){return a+g[3]+g[4]+g[5]+g[6];},0)],['Excluídas sorteadas',GR.reduce(function(a,g){return a+g[7];},0)]].map(function(k){return '<div class="catc" style="background:var(--card);box-shadow:var(--shadow)"><small>'+k[0]+'</small><b data-c="'+k[1]+'">0</b></div>';}).join('')+'</div>'+
  '<div class="panel rv"><div class="ph"><h3>'+I('trophy',18)+'Rankings do mês</h3></div><div class="asst" style="grid-template-columns:repeat(4,1fr)" id="rks"></div></div></div></div>'+
  '<div class="panel rv"><div class="ph"><h3>'+I('layers',18)+'Grupos · '+(AS.mes?mesLb(AS.mes):'—')+'</h3><span class="sp"></span><small>clique no título de uma coluna para ordenar e numa linha para ver as cotas contempladas</small></div><table class="tbl" id="gt"></table></div>';
  $('#asbk').onclick=function(){go('ferramentas');};if($('#asdt'))$('#asdt').onclick=function(){importar('dat');};if($('#asim'))$('#asim').onclick=function(){importar('ass');};
  bindSeg('aadm',function(k){AS.adm=k;AS.mes=null;go('assembleias',null,1);});bindSeg('acat',function(k){AS.cat=k;AS.mes=null;go('assembleias',null,1);});if(meses.length)bindDD('ames',function(k){AS.mes=k;go('assembleias',null,1);});
  /* calendário do mês atual com as datas cadastradas */
- var h=hojeD(),y=h.getFullYear(),m=h.getMonth(),pri=new Date(y,m,1).getDay(),nd=new Date(y,m+1,0).getDate(),nAnt=new Date(y,m,0).getDate(),ev={};
- AGD.forEach(function(a){var d=a.data_assembleia?new Date(String(a.data_assembleia).slice(0,10)+'T12:00:00'):null;if(d&&d.getFullYear()===y&&d.getMonth()===m)(ev[d.getDate()]=ev[d.getDate()]||[]).push(a);});
- var ds=[];for(var i=0;i<35;i++){var d=i-pri+1,fora=d<1||d>nd,e=!fora&&ev[d];ds.push('<div class="cald'+(fora?' ou':'')+(e?' ev':'')+(!fora&&d===h.getDate()?' hj':'')+'" data-d="'+d+'">'+(d<1?nAnt+d:d>nd?d-nd:d)+(e?'<small>'+esc4(admK(e[0].administradora)==='ANC'?'Âncora':'HS '+(ASLB[ASCAT[e[0].tipo]]||'').toLowerCase())+'</small>':'')+'</div>');}
- $('#cal').innerHTML=['D','S','T','Q','Q','S','S'].map(function(x){return '<div style="text-align:center;font:700 10px DM Sans;color:var(--mut)">'+x+'</div>';}).join('')+ds.join('');stagger($$('#cal .cald'),100);
- $$('#cal .cald.ev').forEach(function(c){c.onclick=function(){var L=ev[+c.dataset.d]||[];toast(L.map(function(a){return (admK(a.administradora)==='ANC'?'Âncora':'HS')+' · '+(ASLB[ASCAT[a.tipo]]||a.tipo||'')+(a.obs?' · '+a.obs:'');}).join(' | ')+' · dia '+c.dataset.d,'cal');};});
- var fut=AGD.filter(function(a){return a.data_assembleia&&String(a.data_assembleia).slice(0,10)>=dtLocal(h).slice(0,10);}).slice(0,4);
- $('#agl').innerHTML=fut.length?'<div style="margin-top:12px">'+fut.map(function(a){return '<div class="li" style="padding:6px 4px"><div class="t"><b style="font-size:13px">'+fmtD(String(a.data_assembleia).slice(0,10)+'T12:00:00')+' · '+(admK(a.administradora)==='ANC'?'Âncora':'HS')+'</b><small>'+esc4((ASLB[ASCAT[a.tipo]]||a.tipo||'')+(a.obs?' · '+a.obs:''))+'</small></div></div>';}).join('')+'</div>':'<div class="empty" style="padding:12px 4px">Nenhuma data cadastrada'+(isM()?' · use “Data de assembleia”':'')+'.</div>';
+ var h=hojeD();if(AS.calY==null){AS.calY=h.getFullYear();AS.calM=h.getMonth();}
+ asCal();stagger($$('#cal .cald'),100);asCalNav();
  var RK=[['Mais contemplações',1],['Mais cotas no sorteio',2],['Lance fixo',3],['2º lance fixo',4],['Lance livre',5],['Lance limitado',6],['Lance fixo c/ menos parcelas',8,1],['Mais excluídas sorteadas',7]];
  $('#rks').innerHTML=RK.map(function(r){var base=r[2]?GR.filter(function(g){return g[3]>0&&g[8]<999;}):GR,top=base.slice().sort(function(a,b){return r[2]?a[r[1]]-b[r[1]]:b[r[1]]-a[r[1]];}).slice(0,3);return '<div class="rkb"><div class="lbl">'+r[0]+'</div>'+(top.length?top.map(function(g,i){return '<div><span>'+(i+1)+'. Grupo <b>'+esc4(g[0])+'</b></span><b>'+(r[2]?g[8]+' parc.':g[r[1]])+'</b></div>';}).join(''):'<div><span style="color:var(--mut)">—</span></div>')+'</div>';}).join('');
  var so=1,dir=-1,op=null;function lista(a){return (a&&a.length)?a.map(esc4).join(' / '):'—';}
@@ -4139,6 +4148,41 @@ R.assembleias=function(v){if(!ASR){v.innerHTML='<div class="empty" style="margin
    (op===String(g[0])?'<tr><td colspan="8" style="background:var(--card)"><div style="font-size:12.5px;line-height:1.7;animation:up .4s var(--ez)"><b>Sorteio ('+g[2]+'):</b> '+lista(dt.ativa||dt.sorteio)+' · <b>Lance fixo ('+g[3]+'):</b> '+lista(dt.fixo)+' · <b>2º fixo ('+g[4]+'):</b> '+lista(dt.fixo2)+' · <b>Lance livre ('+g[5]+'):</b> '+lista(dt.livre)+' · <b>Limitado ('+g[6]+'):</b> '+lista(dt.limitado)+' · <b>Excluídas ('+g[7]+'):</b> '+lista(dt.excluida)+(g[9].obs?' · '+esc4(g[9].obs):'')+'</div></td></tr>':'');}).join(''):'<tr><td colspan="8"><div class="empty">Nenhum resultado para este filtro.</div></td></tr>')+'</tbody>';
   $$('#gt th').forEach(function(t){t.onclick=function(){var i=+t.dataset.i;if(so===i)dir=-dir;else{so=i;dir=i?-1:1;}gt();};});$$('#gt tr[data-g]').forEach(function(r){r.onclick=function(){op=op===r.dataset.g?null:r.dataset.g;gt();};});}
  gt();};
+
+/* ASSCAL_20261020: calendário de assembleias com setas para os outros meses e exclusão (toque na data → X → exclui) */
+function asInfo(a){return (admK(a.administradora)==='ANC'?'Âncora':'HS')+' · '+(ASLB[ASCAT[a.tipo]]||a.tipo||'')+(a.obs?' · '+a.obs:'');}
+function asCal(anim){var cal=$('#cal');if(!cal)return;var h=hojeD(),y=AS.calY,m=AS.calM,pri=new Date(y,m,1).getDay(),nd=new Date(y,m+1,0).getDate(),nAnt=new Date(y,m,0).getDate(),ev={},ed=isM()&&!RO(),atual=y===h.getFullYear()&&m===h.getMonth();
+ AGD.forEach(function(a){var d=a.data_assembleia?new Date(String(a.data_assembleia).slice(0,10)+'T12:00:00'):null;if(d&&d.getFullYear()===y&&d.getMonth()===m)(ev[d.getDate()]=ev[d.getDate()]||[]).push(a);});
+ var tot=Math.ceil((pri+nd)/7)*7,ds=[];
+ for(var i=0;i<tot;i++){var d=i-pri+1,fora=d<1||d>nd,e=!fora&&ev[d];ds.push('<div class="cald'+(fora?' ou':'')+(e?' ev':'')+(!fora&&atual&&d===h.getDate()?' hj':'')+'" data-d="'+d+'">'+(d<1?nAnt+d:d>nd?d-nd:d)+(e?'<small>'+esc4(admK(e[0].administradora)==='ANC'?'Âncora':'HS '+(ASLB[ASCAT[e[0].tipo]]||'').toLowerCase())+(e.length>1?' +'+(e.length-1):'')+'</small>':'')+'</div>');}
+ cal.innerHTML=['D','S','T','Q','Q','S','S'].map(function(x){return '<div style="text-align:center;font:700 10px DM Sans;color:var(--mut)">'+x+'</div>';}).join('')+ds.join('');
+ var lb=$('#calm');if(lb){lb.textContent=MESX[m]+(y!==h.getFullYear()?'/'+y:'');lb.classList.toggle('ln',!atual);}
+ if(anim)cal.animate([{opacity:0,transform:'translateX('+(anim>0?18:-18)+'px)'},{opacity:1,transform:'none'}],{duration:320,easing:'cubic-bezier(.22,1,.36,1)'});
+ function limpa(){$$('#cal .cald.sel').forEach(function(x){x.classList.remove('sel');var b=$('.cx',x);if(b)b.remove();});}
+ $$('#cal .cald.ev').forEach(function(c){c.onclick=function(){var L=ev[+c.dataset.d]||[];
+  if(!ed){toast(L.map(asInfo).join(' | ')+' · dia '+c.dataset.d,'cal');return;}
+  if(c.classList.contains('sel')){limpa();return;}
+  limpa();c.classList.add('sel');c.insertAdjacentHTML('beforeend','<button class="cx" aria-label="Excluir esta data" title="Excluir esta data">'+I('x',12)+'</button>');
+  toast(L.map(asInfo).join(' | ')+' · toque no X para excluir','cal');
+  $('.cx',c).onclick=function(e){e.stopPropagation();if(!roOk())return;if(L.length>1)asEscolhe(L);else asExcluir(L);};};});
+ $$('#cal .cald:not(.ev)').forEach(function(c){c.onclick=limpa;});
+ var fut=AGD.filter(function(a){return a.data_assembleia&&String(a.data_assembleia).slice(0,10)>=dtLocal(h).slice(0,10);}).slice(0,4);
+ if($('#agl'))$('#agl').innerHTML=fut.length?'<div style="margin-top:12px">'+fut.map(function(a){return '<div class="li" style="padding:6px 4px"><div class="t"><b style="font-size:13px">'+fmtD(String(a.data_assembleia).slice(0,10)+'T12:00:00')+' · '+(admK(a.administradora)==='ANC'?'Âncora':'HS')+'</b><small>'+esc4((ASLB[ASCAT[a.tipo]]||a.tipo||'')+(a.obs?' · '+a.obs:''))+'</small></div></div>';}).join('')+'</div>':'<div class="empty" style="padding:12px 4px">Nenhuma data cadastrada'+(isM()?' · use “Data de assembleia”':'')+'.</div>';}
+function asMes(n){var m=AS.calM+n,y=AS.calY;while(m<0){m+=12;y--;}while(m>11){m-=12;y++;}AS.calM=m;AS.calY=y;asCal(n);}
+function asCalNav(){var p=$('#calp'),n=$('#caln'),w=$('#calw'),lb=$('#calm');if(p)p.onclick=function(){asMes(-1);};if(n)n.onclick=function(){asMes(1);};
+ if(lb)lb.onclick=function(){var h=hojeD(),d=(h.getFullYear()-AS.calY)*12+(h.getMonth()-AS.calM);if(!d)return;AS.calY=h.getFullYear();AS.calM=h.getMonth();asCal(d>0?1:-1);};
+ if(w&&!w._sw){w._sw=1;var x0=null,y0=0;w.addEventListener('touchstart',function(e){var t=e.touches[0];x0=t.clientX;y0=t.clientY;},{passive:true});
+  w.addEventListener('touchend',function(e){if(x0==null)return;var t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;if(Math.abs(dx)>60&&Math.abs(dy)<45)asMes(dx<0?1:-1);},{passive:true});}}
+async function asExcluir(L){var fal=0;for(var i=0;i<L.length;i++){var a=L[i],ok=false;
+  try{var r=await psb().from('assembleias_agenda').delete().eq('id',a.id).select('id');ok=!r.error&&!!(r.data&&r.data.length);}catch(e){}
+  if(!ok){try{var r2=await papi('/api/assembleia_agenda',{method:'POST',body:JSON.stringify({acao:'excluir',id:a.id})});ok=!!(r2&&r2.ok&&r2.data&&r2.data.ok);}catch(e){}}
+  if(ok)AGD=AGD.filter(function(x){return x.id!==a.id;});else fal++;}
+ asCal();toast(fal?'Não consegui excluir '+(fal>1?fal+' datas':'a data')+' — tente de novo':(L.length>1?L.length+' datas excluídas':'Data excluída')+' · cadastre a certa em “Data de assembleia”',fal?'x':'check');}
+function asEscolhe(L){var s=sheet('<div class="lbl" style="color:var(--gold)">Assembleias</div><h2>Excluir qual data?</h2><p style="color:var(--mut);font-size:13.5px;margin:6px 0 12px">Dia '+fmtD(String(L[0].data_assembleia).slice(0,10)+'T12:00:00')+' tem '+L.length+' assembleias cadastradas.</p>'+
+  L.map(function(a,i){return '<div class="li" style="background:var(--bg);margin-bottom:8px"><div class="t"><b>'+esc4(asInfo(a))+'</b></div><button class="btn sm ol" style="color:var(--badt)" data-i="'+i+'">'+I('x',13)+'Excluir</button></div>';}).join('')+
+  '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px"><button class="btn ol" id="aecn">Cancelar</button><button class="btn" style="color:var(--badt)" id="aeall">Excluir todas</button></div>',480);
+ $$('[data-i]',s).forEach(function(b){b.onclick=function(){closeSheet();asExcluir([L[+b.dataset.i]]);};});
+ $('#aecn',s).onclick=function(){closeSheet();};$('#aeall',s).onclick=function(){closeSheet();asExcluir(L);};}
 
 /* ===== v_zr7_gestao.js ===== */
 /* ================= CONTAS · ATIVIDADES · TUTORIAIS · NOVIDADES · AJUSTES — visual do v4, dados e ações reais ================= */
@@ -4738,6 +4782,7 @@ var st=document.createElement('style');st.id='etapas7-css';st.textContent=
 '.dm .stg7 i b{position:absolute;inset:0;background:currentColor;transform-origin:left;transform:scaleX(0);transition:transform .6s var(--ez)}'+
 '.dm .stg7 i.f b{transform:scaleX(1)}'+
 '.dm .stl7{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;font-size:9.5px;margin-top:8px;opacity:.6;line-height:1.25}'+
+'@media (max-width:860px){.kb .deal{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}}body.tdrag{-webkit-user-select:none;user-select:none}'+
 '.dm .stl7 span{cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dm .stl7 em{font-style:normal}.dm .stl7 .sm7{display:none}@media (max-width:860px){.dm .stl7 .lg7{display:none}.dm .stl7 .sm7{display:inline}}.dm .stl7 span.on{opacity:1;font-weight:700}';
 document.head.appendChild(st);
 var KC=[{k:'0',st:0},{k:'1',st:1},{k:'2',st:2},{k:'agd',st:2,n:'Reunião agendada',c:'--sr',t:'--srt',cu:'Reunião'},{k:'dia',st:2,n:'Diagnóstico',c:'--sd',t:'--sdt',cu:'Diagnóstico'},{k:'3',st:3},{k:'4',st:4}];
@@ -4803,7 +4848,26 @@ function dragify7(card){card.addEventListener('pointerdown',function(e){if(e.but
   if(k!=='4'){ghost.style.setProperty('--c','var('+kk.c+')');ghost.style.setProperty('--t','var('+kk.t+')');}
   setTimeout(function(){ghost.classList.remove('drag');ghost.style.cssText='';slot.parentNode.replaceChild(ghost,slot);mover(d,k);},360);}
  document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);});}
-dragify=function(card){if(isMob()&&('ontouchstart' in window))return;dragify7(card);};
+dragify=function(card){if(isMob()&&('ontouchstart' in window)){dragToque(card);return;}dragify7(card);};
+/* DRAGTOQUE_20261020: no celular, segurar o cartão ~0,4 s e arrastar para outra etapa (rolar a tela continua normal) */
+function dragToque(card){if(card._td)return;card._td=1;
+ card.addEventListener('touchstart',function(e){if(e.touches.length!==1||(e.target.closest&&e.target.closest('button,a,input,select,textarea')))return;
+  var t=e.touches[0],sx=t.clientX,sy=t.clientY,lx=sx,ly=sy,drag=false,ghost=null,ox=0,oy=0,raf=0,kb=$('#kb'),sc=null,snap='';
+  var timer=setTimeout(comeca,380);
+  function comeca(){if(!card.isConnected){fim();return;}drag=true;card._dragged=true;try{if(navigator.vibrate)navigator.vibrate(12);}catch(_){}
+   var r=card.getBoundingClientRect();ox=sx-r.left;oy=sy-r.top;ghost=card.cloneNode(true);ghost.classList.add('drag');ghost.style.width=r.width+'px';ghost.style.left=r.left+'px';ghost.style.top=r.top+'px';ghost.style.transform='rotate(-2deg) scale(1.04)';document.body.appendChild(ghost);
+   card.style.opacity='.35';document.body.classList.add('tdrag');if(kb){snap=kb.style.scrollSnapType;kb.style.setProperty('scroll-snap-type','none','important');}sc=rolador(card);loop();}
+  function colAt(x,y){return document.elementsFromPoint(x,y).filter(function(n){return n.classList&&n.classList.contains('col');})[0]||null;}
+  function mv(ev){var p=ev.touches[0];lx=p.clientX;ly=p.clientY;if(!drag){if(Math.hypot(lx-sx,ly-sy)>10){clearTimeout(timer);fim();}return;}
+   if(ev.cancelable)ev.preventDefault();ghost.style.left=(lx-ox)+'px';ghost.style.top=(ly-oy)+'px';var col=colAt(lx,ly);$$('#kb .col').forEach(function(c){c.classList.toggle('hov',c===col);});}
+  function loop(){if(!drag)return;var w=innerWidth,h=innerHeight;if(kb){if(lx>w-46)kb.scrollLeft+=9;else if(lx<46)kb.scrollLeft-=9;}if(sc){if(ly>h-120)sc.scrollTop+=10;else if(ly<110)sc.scrollTop-=10;}var col=colAt(lx,ly);$$('#kb .col').forEach(function(c){c.classList.toggle('hov',c===col);});raf=requestAnimationFrame(loop);}
+  function up(){clearTimeout(timer);if(drag){drag=false;cancelAnimationFrame(raf);var col=colAt(lx,ly);if(ghost)ghost.remove();card.style.opacity='';document.body.classList.remove('tdrag');$$('#kb .col').forEach(function(c){c.classList.remove('hov');});
+    if(kb){kb.style.removeProperty('scroll-snap-type');if(snap)kb.style.scrollSnapType=snap;}
+    var d=leadById(card.dataset.id),k=col?(col.dataset.col||col.dataset.st):null;setTimeout(function(){card._dragged=false;},450);if(d&&k&&k!==colDe(d))mover(d,k);}
+   fim();}
+  function fim(){document.removeEventListener('touchmove',mv,{passive:false});document.removeEventListener('touchend',up);document.removeEventListener('touchcancel',up);}
+  document.addEventListener('touchmove',mv,{passive:false});document.addEventListener('touchend',up);document.addEventListener('touchcancel',up);},{passive:true});}
+function rolador(el){var n=el.parentElement;while(n&&n!==document.body){var cs=getComputedStyle(n);if(/(auto|scroll)/.test(cs.overflowY)&&n.scrollHeight>n.clientHeight+4)return n;n=n.parentElement;}return document.scrollingElement||document.documentElement;}
 /* faixa de etapas do celular com as 7 colunas */
 var _cs=crmStrip;crmStrip=function(){var kb=$('#kb');if(!kb||!kb.classList.contains('kb7')){_cs();return;}if(!isMob()||cur!=='crm')return;
  var cols=$$('.col',kb),sp=$('#kbs');if(!sp){sp=document.createElement('div');sp.id='kbs';sp.className='kbs';kb.parentNode.insertBefore(sp,kb);}

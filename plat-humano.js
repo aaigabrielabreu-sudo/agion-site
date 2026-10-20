@@ -43,7 +43,7 @@ var prefLida=false;
 async function lerPref(){ if(prefLida) return; prefLida=true; try{ var u=(await SB().auth.getUser()).data.user; if(!u) return; var r=await SB().from('tutorial_progresso').select('dados').eq('user_id',u.id).eq('contexto','conversas').maybeSingle(); if(r.data&&r.data.dados){ localStorage.setItem(prefKey(),JSON.stringify(Object.assign(pref(),r.data.dados))); pintar(); } }catch(e){} }
 async function gravarPref(p){ try{ localStorage.setItem(prefKey(),JSON.stringify(p)); }catch(e){}
   try{ var u=(await SB().auth.getUser()).data.user; if(!u) return; await SB().from('tutorial_progresso').upsert({user_id:u.id,contexto:'conversas',dados:p,updated_at:new Date().toISOString()},{onConflict:'user_id,contexto'}); }catch(e){} }
-function assina(){ var r=papel(); if(verComo()) return false; if(['master','lider','especialista'].indexOf(r)<0) return false; if(r==='master'&&pref().semNome) return false; return !!meuNome(); }
+function assina(){ var r=papel(); if(verComo()) return false; if(['master','lider','especialista'].indexOf(r)<0) return false; if(pref().semNome) return false; return !!meuNome(); }  /* 20/out: todos da equipe escolhem assinar ou não (antes só o master) */
 function comNome(t){ var n=meuNome(); if(!n) return t; var pre='*'+n+'*\n\n'; return String(t).indexOf(pre)===0?t:pre+t; }
 
 /* ---------- estilos ---------- */
@@ -122,7 +122,7 @@ function pintar(){
   var bts='';
   if(s){ if(!s.ativo||!s.fixo) bts+='<button class="hu-bt'+(pulse?' pulse':'')+'" onclick="AgionHumano.assumir()" title="Pausa a Alice e o follow-up sem prazo, até você devolver">Assumir</button>';
          if(s.ativo) bts+='<button class="hu-bt alt" onclick="AgionHumano.devolver()" title="A Alice volta a responder agora">Devolver para a Alice</button>'; }
-  if(papel()==='master'&&!verComo()) bts+='<label class="hu-sw" title="Suas mensagens chegam ao cliente com o seu nome em negrito em cima"><input type="checkbox" '+(pref().semNome?'':'checked')+' onchange="AgionHumano.assinar(this.checked)"> Assinar com meu nome</label>';
+  if(['master','lider','especialista'].indexOf(papel())>=0&&!verComo()) bts+='<label class="hu-sw" title="Suas mensagens chegam ao cliente com o seu nome em negrito em cima"><input type="checkbox" '+(pref().semNome?'':'checked')+' onchange="AgionHumano.assinar(this.checked)"> Assinar com meu nome</label>';
   bar.innerHTML='<span class="hu-dot" aria-hidden="true"></span><span class="hu-tx">'+t.html+'</span>'+bts;
   if(BUSY) bar.querySelectorAll('.hu-bt').forEach(function(b){ b.disabled=true; });
 }
