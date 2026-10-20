@@ -1968,7 +1968,7 @@ function carregar(){ if(_carregando)return _carregando; _carregando=(async funct
   var me=effIdR();TEAM=[me];if(role==='lider')(d.accounts||[]).forEach(function(a){if(a.leaderId===me)TEAM.push(a.id);});
   /* extras do banco (em paralelo; se falhar, segue com o que a v1 já tem) */
   var q=[];
-  q.push(sb.from('leads').select('id,score,em_followup,reuniao_em,reuniao_tipo,link_meet,fu_nivel,fu_inicio,fu_pausado,fu_ultimo_toque,optout,email,subcategoria,parcela_desejada,valor_lance,motivo_nao_conversao,data_perda,contato_pref,fu_cenario,fu_problema,fu_razoes,fu_beneficio').then(function(r){XL={};(r.data||[]).forEach(function(x){XL[x.id]=x;});}).catch(function(){}));
+  q.push(sb.from('leads').select('id,score,em_followup,reuniao_em,reuniao_tipo,link_meet,fu_nivel,fu_inicio,fu_pausado,fu_ultimo_toque,optout,email,subcategoria,parcela_desejada,valor_lance,motivo_nao_conversao,data_perda,contato_pref,fu_cenario,fu_problema,fu_razoes,fu_beneficio,compareceu').then(function(r){XL={};(r.data||[]).forEach(function(x){XL[x.id]=x;});}).catch(function(){}));
   q.push(sb.from('comissoes_vendas').select('*').then(function(r){VENDAS=(r.data||[]).map(mapVenda);}).catch(function(){VENDAS=[];}));
   q.push(sb.from('cartas').select('*').then(function(r){CARTAS=r.data||[];}).catch(function(){CARTAS=[];}));
   q.push(sb.from('metas').select('*').eq('ativo',true).then(function(r){METAS_DB=r.data||[];}).catch(function(){METAS_DB=[];}));
@@ -4708,6 +4708,113 @@ window.AG.setRole=setRole;
  var novo=function(els,base){(els||[]).forEach(function(e,i){if(i>=8){e.style.opacity='';e.style.transform='';e.style.transition='';return;}
   e.style.opacity=0;e.style.transform='translateY(14px) scale(.985)';setTimeout(function(){e.style.transition='opacity .38s var(--ez),transform .45s var(--ez)';e.style.opacity=1;e.style.transform='none';setTimeout(function(){e.style.transition='';e.style.transform='';},480);},Math.min(base==null?60:base,90)+i*32);});};
  if(ok())window.stagger=novo;else document.addEventListener('DOMContentLoaded',function(){window.stagger=novo;});})();
+</script>
+<script id="b-etapas7">
+/* ETAPAS7_20261020: CRM com 7 colunas — "Reunião agendada" e "Diagnóstico" entre Estudo/Simulação e Proposta.
+   No banco NADA muda de número: stage continua 0..4 (KPIs, comissões, conversão, rodízio e robô continuam iguais).
+   As duas colunas novas vêm de reuniao_em / compareceu — os mesmos campos que o robô e o Calendly já usam. */
+(function(){
+if(typeof renderBoard!=='function'||typeof ST==='undefined')return;
+var st=document.createElement('style');st.id='etapas7-css';st.textContent=
+':root{--sr:#6A63A3;--srt:#fff;--sd:#8E5A7E;--sdt:#fff}'+
+'.kb.kb7{grid-template-columns:repeat(7,minmax(276px,1fr))}'+
+'@media (max-width:860px){.kb.kb7{grid-template-columns:repeat(7,66vw)!important}}'+
+'.dm .stg.o5,.dm .stl.o5{display:none}'+
+'.dm .stg7{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}'+
+'.dm .stg7 i{height:5px;border-radius:5px;background:color-mix(in srgb,currentColor 22%,transparent);position:relative;overflow:hidden;cursor:pointer}'+
+'.dm .stg7 i b{position:absolute;inset:0;background:currentColor;transform-origin:left;transform:scaleX(0);transition:transform .6s var(--ez)}'+
+'.dm .stg7 i.f b{transform:scaleX(1)}'+
+'.dm .stl7{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;font-size:9.5px;margin-top:8px;opacity:.6;line-height:1.25}'+
+'.dm .stl7 span{cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dm .stl7 em{font-style:normal}.dm .stl7 .sm7{display:none}@media (max-width:860px){.dm .stl7 .lg7{display:none}.dm .stl7 .sm7{display:inline}}.dm .stl7 span.on{opacity:1;font-weight:700}';
+document.head.appendChild(st);
+var KC=[{k:'0',st:0},{k:'1',st:1},{k:'2',st:2},{k:'agd',st:2,n:'Reunião agendada',c:'--sr',t:'--srt',cu:'Reunião'},{k:'dia',st:2,n:'Diagnóstico',c:'--sd',t:'--sdt',cu:'Diagnóstico'},{k:'3',st:3},{k:'4',st:4}];
+var CURTO={'0':'Novo','1':'Contato','2':'Estudo','3':'Proposta','4':'Ganho'};
+KC.forEach(function(c){var s=ST[c.st];if(!c.n)c.n=s.n;if(!c.c){c.c=s.c;c.t=s.t;}if(!c.cu)c.cu=CURTO[c.k];});
+var KM={};KC.forEach(function(c){KM[c.k]=c;});
+function ix(k){for(var i=0;i<KC.length;i++)if(KC[i].k===k)return i;return 0;}
+function colDe(d){if(!d)return '0';if(d.st>=3)return String(d.st);var x=XL[d.uid]||{};if(x.compareceu===true)return 'dia';if(x.reuniao_em)return 'agd';return String(d.st);}
+window.AG7={colDe:colDe,cols:KC};
+function dtBR(iso){try{var t=new Date(iso);return t.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' às '+t.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
+function pop(d){var n=$('#kb .deal[data-id="'+d.id+'"]');if(n)n.animate([{transform:'scale(.92)'},{transform:'scale(1.03)'},{transform:'none'}],{duration:500,easing:'cubic-bezier(.34,1.56,.64,1)'});}
+function pedeData(d,cb){var t=new Date();t.setDate(t.getDate()+1);t.setHours(10,0,0,0);var pad=function(n){return String(n).padStart(2,'0');},v=t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate())+'T10:00',feito=false;
+ var s=sheet('<div class="lbl" style="color:var(--gold)">CRM</div><h2>Reunião com '+esc4(d.nome.split(' ')[0])+'</h2><p style="color:var(--mut);font-size:13.5px;margin:6px 0 14px">Quando vai ser a reunião? Ela aparece na agenda de Tarefas e o robô passa a tratar o lead como reunião marcada (confirmação no WhatsApp, como nas reuniões do Calendly).</p>'+
+  '<div class="fi"><label>Data e hora</label><input type="datetime-local" id="r7d" value="'+v+'"></div><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px"><button class="btn ol" id="r7n">Cancelar</button><button class="btn gd" id="r7y">'+I('cal',15)+'Marcar reunião</button></div>',460);
+ var fim=function(x){if(feito)return;feito=true;closeSheet();cb(x);};
+ $('#r7n',s).onclick=function(){fim(null);};$('.x',s).onclick=function(){fim(null);};
+ $('#r7y',s).onclick=function(){var val=$('#r7d',s).value;if(!val){toast('Escolha a data e a hora','cal');return;}var dt=new Date(val);if(isNaN(+dt)){toast('Data inválida','x');return;}fim(dt.toISOString());};}
+/* mover o lead para uma coluna (k) — grava só o que já existe: stage 0..4, reuniao_em, compareceu */
+function mover(d,k){var from=colDe(d),x=XL[d.uid]||{};if(!d||k===from){renderBoard(true);return;}
+ if(!roOk()){renderBoard(true);return;}
+ if(k==='4'){renderBoard(true);ganhoFlow(d,$('#kb .deal[data-id="'+d.id+'"]'));return;}
+ var fim=function(ok){if(cur==='crm'){renderBoard(true);updKpis();pop(d);}if(ok!==false)toast(d.nome+' → '+KM[k].n);else toast('Não consegui salvar agora — tente de novo','x');};
+ if(k==='agd'){
+  if(from==='dia'){if(d.st!==2)setStageR(d,2);leadExtra(d,{compareceu:null}).then(fim);return;}
+  if(x.reuniao_em){if(d.st!==2)setStageR(d,2);fim(true);return;}
+  pedeData(d,function(iso){if(!iso){if(cur==='crm')renderBoard(true);return;}if(d.st!==2)setStageR(d,2);leadAtv(d,'Reunião marcada para '+dtBR(iso));leadExtra(d,{reuniao_em:iso,reuniao_tipo:x.reuniao_tipo||'R1',compareceu:null}).then(fim);});return;}
+ if(k==='dia'){var c={compareceu:true};if(!x.reuniao_em)c.reuniao_em=new Date().toISOString();if(d.st!==2)setStageR(d,2);leadAtv(d,'Compareceu à reunião (diagnóstico)');leadExtra(d,c).then(fim);return;}
+ var s2=+k;
+ if(s2<=2&&(from==='agd'||from==='dia'||x.reuniao_em||x.compareceu===true)){var fr=KM[from]||KM['0'];confirma('Tirar de “'+fr.n+'”?',esc4(d.nome)+(x.reuniao_em?' tem reunião em '+dtBR(x.reuniao_em)+'.':'.')+' Ao voltar para “'+KM[k].n+'” a reunião é desmarcada na plataforma.','Desmarcar e mover').then(function(ok){
+   if(!ok){if(cur==='crm')renderBoard(true);return;}if(s2!==d.st&&!setStageR(d,s2)){renderBoard(true);return;}leadAtv(d,'Reunião desmarcada');leadExtra(d,{reuniao_em:null,compareceu:null}).then(fim);});return;}
+ if(setStageR(d,s2))fim(true);else renderBoard(true);}
+window.AG7.mover=mover;
+/* cartão com a cor da coluna nova */
+var _dh=dealHTML;dealHTML=function(d,mini){var h=_dh(d,mini),k=colDe(d);if(k==='agd'||k==='dia'){var s=ST[d.st],n=KM[k];h=h.replace('style="--c:var('+s.c+');--t:var('+s.t+')"','style="--c:var('+n.c+');--t:var('+n.t+')"');}return h;};
+/* quadro com 7 colunas (lista e perdidos continuam iguais) */
+var _rb=renderBoard;renderBoard=function(quick){var kb=$('#kb');if(!kb)return;
+ if(F.modo==='perdidos'||F.modo==='lista'){_rb(quick);if(F.modo==='lista')fixLista(kb);return;}
+ var ls=crmFiltrados();var fb=$('#fbar');if(fb)fb.style.display='';
+ kb.className='kb kb7';
+ kb.innerHTML=KC.map(function(s){var ds=ls.filter(function(d){return colDe(d)===s.k;}),nova=s.k==='agd'||s.k==='dia';
+  return '<div class="col'+(s.k==='4'?' won':'')+'" data-st="'+s.st+'" data-col="'+s.k+'" style="--cc:var('+s.c+')"><div class="ch"><i></i><b>'+s.n+'</b><span class="n">'+ds.length+'</span><span class="sp"></span>'+(nova?'<button tabindex="-1" aria-hidden="true" style="visibility:hidden;pointer-events:none">'+I('plus',16)+'</button>':'<button data-add="'+s.st+'" title="Novo lead nesta etapa">'+I('plus',16)+'</button>')+'</div><div class="tot">'+brl(ds.reduce(function(a,d){return a+d.valor;},0))+'</div><div class="list">'+(ds.map(function(d){return dealHTML(d);}).join('')||'<div class="kempty"><b>Nenhum lead nesta etapa</b>Arraste um cartão para cá</div>')+'</div></div>';}).join('');
+ bindDeals(kb);$$('.deal',kb).forEach(dragify);$$('[data-add]',kb).forEach(function(b){b.onclick=function(){novoLead(+b.dataset.add);};});
+ if(!quick)stagger($$('.deal',kb),200);};
+function fixLista(kb){$$('tbody tr',kb).forEach(function(tr){var d=leadById(tr.dataset.id),k=colDe(d);if(k!=='agd'&&k!=='dia')return;var p=tr.querySelector('td:nth-child(2) .pill');if(p){p.textContent=KM[k].n;p.style.background='var('+KM[k].c+')';p.style.color='var('+KM[k].t+')';}});}
+/* seta (mover etapa) respeita as colunas novas */
+var _ms=moveStage;moveStage=function(d,st){var a=ix(colDe(d));if(st===d.st+1||st===d.st-1){var j=a+(st>d.st?1:-1);if(j>=0&&j<KC.length){mover(d,KC[j].k);return;}}_ms(d,st);};
+/* arrastar: mesmo movimento de antes, gravando pela coluna */
+function dragify7(card){card.addEventListener('pointerdown',function(e){if(e.button!==0||e.target.closest('button'))return;var sx=e.clientX,sy=e.clientY,started=false,ghost,slot,r,ox,oy,lastX=sx,tilt=0;
+ function mv(ev){var dx=ev.clientX-sx,dy=ev.clientY-sy;
+  if(!started){if(Math.hypot(dx,dy)<6)return;started=true;card._dragged=true;r=card.getBoundingClientRect();ox=sx-r.left;oy=sy-r.top;
+   slot=document.createElement('div');slot.className='ph-slot';slot.style.height=r.height+'px';card.parentNode.insertBefore(slot,card);
+   ghost=card;ghost.classList.add('drag');ghost.style.width=r.width+'px';ghost.style.left=r.left+'px';ghost.style.top=r.top+'px';document.body.appendChild(ghost);}
+  var vx=ev.clientX-lastX;lastX=ev.clientX;tilt+=(Math.max(-12,Math.min(12,vx*0.9))-tilt)*0.25;
+  ghost.style.left=(ev.clientX-ox)+'px';ghost.style.top=(ev.clientY-oy)+'px';ghost.style.transform='rotate('+tilt.toFixed(2)+'deg) scale(1.04)';
+  var col=document.elementsFromPoint(ev.clientX,ev.clientY).filter(function(x){return x.classList&&x.classList.contains('col');})[0];
+  $$('.col').forEach(function(c){c.classList.toggle('hov',c===col);});
+  if(col){var list=$('.list',col),em=$('.kempty',list);if(em)em.remove();var cards=$$('.deal',list).filter(function(c){return c!==ghost;}),before=null;
+   for(var i=0;i<cards.length;i++){var cr=cards[i].getBoundingClientRect();if(ev.clientY<cr.top+cr.height/2){before=cards[i];break;}}
+   if(slot.parentNode!==list||slot.nextSibling!==before){flip(function(){list.insertBefore(slot,before);});slot.style.setProperty('--cc',getComputedStyle(col).getPropertyValue('--cc'));}}}
+ function up(){document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);if(!started)return;$$('.col').forEach(function(c){c.classList.remove('hov');});
+  var col=slot.closest('.col'),d=leadById(card.dataset.id),sr=slot.getBoundingClientRect(),k=col?(col.dataset.col||col.dataset.st):colDe(d),kk=KM[k]||KM['0'];
+  ghost.style.transition='left .35s var(--ez),top .35s var(--ez),transform .35s var(--ez)';ghost.style.left=sr.left+'px';ghost.style.top=sr.top+'px';ghost.style.transform='none';
+  if(k!=='4'){ghost.style.setProperty('--c','var('+kk.c+')');ghost.style.setProperty('--t','var('+kk.t+')');}
+  setTimeout(function(){ghost.classList.remove('drag');ghost.style.cssText='';slot.parentNode.replaceChild(ghost,slot);mover(d,k);},360);}
+ document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);});}
+dragify=function(card){if(isMob()&&('ontouchstart' in window))return;dragify7(card);};
+/* faixa de etapas do celular com as 7 colunas */
+var _cs=crmStrip;crmStrip=function(){var kb=$('#kb');if(!kb||!kb.classList.contains('kb7')){_cs();return;}if(!isMob()||cur!=='crm')return;
+ var cols=$$('.col',kb),sp=$('#kbs');if(!sp){sp=document.createElement('div');sp.id='kbs';sp.className='kbs';kb.parentNode.insertBefore(sp,kb);}
+ sp.innerHTML=cols.map(function(c,i){var s=KM[c.dataset.col]||KM['0'];return '<button data-i="'+i+'" style="--cc:var('+s.c+')"><i></i>'+s.n.replace(' (ganho)','')+'<b>'+$('.n',c).textContent+'</b></button>';}).join('');
+ $$('button',sp).forEach(function(b){b.onclick=function(){var c=cols[+b.dataset.i];kb.scrollTo({left:c.offsetLeft-kb.offsetLeft-14,behavior:'smooth'});};});
+ function act(){var x=kb.scrollLeft,best=0,bd=1e9;cols.forEach(function(c,i){var d=Math.abs(c.offsetLeft-kb.offsetLeft-14-x);if(d<bd){bd=d;best=i;}});$$('button',sp).forEach(function(b,i){b.classList.toggle('on',i===best);});var on=$('button.on',sp);if(on)sp.scrollTo({left:on.offsetLeft-sp.clientWidth/2+on.offsetWidth/2,behavior:'smooth'});}
+ kb.onscroll=function(){clearTimeout(kb._t);kb._t=setTimeout(act,60);};act();
+ if(!kb._mo){kb._mo=new MutationObserver(function(){setTimeout(crmStrip,30);});kb._mo.observe(kb,{childList:true});}};
+/* ficha do lead: régua com as 7 etapas */
+function regua(m,d){var inn=$('.in',m);if(!inn)return;var g=$('.stg',inn),l=$('.stl',inn);if(!g||!l||$('.stg7',inn))return;
+ var k=colDe(d),a=ix(k);g.classList.add('o5');l.classList.add('o5');
+ var g7=document.createElement('div');g7.className='stg7';g7.innerHTML=KC.map(function(c,i){return '<i data-k="'+c.k+'" title="Mover para '+c.n+'"><b></b></i>';}).join('');
+ var l7=document.createElement('div');l7.className='stl7';l7.innerHTML=KC.map(function(c,i){return '<span data-k="'+c.k+'" class="'+(i===a?'on':'')+'">'+(c.k==='dia'?'<em class="lg7">Diagnóstico</em><em class="sm7">Diag.</em>':c.cu)+'</span>';}).join('');
+ l.parentNode.insertBefore(g7,l.nextSibling);g7.parentNode.insertBefore(l7,g7.nextSibling);
+ $$('i',g7).forEach(function(e,i){setTimeout(function(){e.classList.toggle('f',i<=a);},150+i*80);});
+ var ir=function(k2){if(k2===k)return;var ov=$('#ov'),x=$('.x',m);if(x)x.click();else if(ov&&ov._close)ov._close();setTimeout(function(){mover(d,k2);},620);};
+ $$('[data-k]',g7).concat($$('[data-k]',l7)).forEach(function(e){e.onclick=function(ev){ev.stopPropagation();ir(e.dataset.k);};});
+ var nx=KC[a+1],bmv=$('[data-a="mv"]',inn);if(bmv&&nx&&nx.k!=='4'){bmv.innerHTML='Mover para '+nx.n+I('arrow',15);bmv.onclick=function(ev){ev.stopPropagation();ir(nx.k);};}
+ else if(bmv&&nx&&nx.k==='4'){bmv.innerHTML=I('trophy',15)+'Marcar ganho';bmv.onclick=function(ev){ev.stopPropagation();var x=$('.x',m);if(x)x.click();setTimeout(function(){ganhoFlow(d,$('#kb .deal[data-id="'+d.id+'"]'));},620);};}}
+var _od=openDeal;openDeal=function(d,from){_od(d,from);var m=$$('.dm').pop();if(!m)return;
+ var c=colDe(d);if(c==='agd'||c==='dia'){m.style.setProperty('--c','var('+KM[c].c+')');m.style.setProperty('--t','var('+KM[c].t+')');}
+ regua(m,d);var inn=$('.in',m);if(inn){var mo=new MutationObserver(function(){regua(m,d);});mo.observe(inn,{childList:true});}};
+if(typeof cur!=='undefined'&&cur==='crm'&&$('#kb'))renderBoard(true);
+})();
 </script>
 <script src="/plat2-tour.js?v=2"></script>
 <script src="/plat2-maav.js?v=3"></script>
