@@ -28,7 +28,8 @@ W.AgionV4Ponte={
   voltarV4:function(){ mostrar(); },
   sair:function(){ try{ logout(); }catch(e){} esconder(true); },
   avisar:function(){ avisa(); },
-  convLink:function(){ var l=LINK; LINK=null; if(l&&Date.now()-(l.ts||0)>10*60000) return null; return l; }
+  convLink:function(){ var l=LINK; LINK=null; if(l&&Date.now()-(l.ts||0)>10*60000) return null; return l; },
+  passkey:{ suporte:function(){ return pkSuporte(); }, ativo:function(){ return pkAtivo(); }, nome:function(){ return pkNome(); }, ativar:function(){ return pkAtivar(); }, preparar:function(){ return pkPrep('reg').catch(function(){}); }, desativar:function(){ return pkDesativar(); }, erro:function(e){ return pkErro(e); } }
 };
 
 var LINK=null; try{ LINK=JSON.parse(sessionStorage.getItem('agion:conv')||'null'); }catch(e){}
@@ -58,7 +59,7 @@ function montar(){
   D.head.appendChild(st);
   wrap=D.createElement('div'); wrap.id='v4wrap';
   fr=D.createElement('iframe'); fr.title='Agion Wealth'; fr.setAttribute('allow','clipboard-read; clipboard-write; notifications');
-  var src=W.__V4SRC||('/plat2-v4.html?v=26');
+  var src=W.__V4SRC||('/plat2-v4.html?v=27');
   if(W.__V4SRCDOC) fr.srcdoc=W.__V4SRCDOC; else fr.src=src;
   wrap.appendChild(fr); D.body.appendChild(wrap); D.body.classList.add('v4on'); D.documentElement.classList.add('v4on');
   fr.addEventListener('load',function(){ try{ if(D.documentElement.classList.contains('isApp')) fr.contentDocument.documentElement.classList.add('emapp'); }catch(e){} corApp(); });
@@ -120,6 +121,69 @@ async function salvaNova(){ var a=LG.querySelector('#v4n1').value, b=LG.querySel
  try{ if(W.PasswordCredential&&navigator.credentials&&s.user&&s.user.email) navigator.credentials.store(new W.PasswordCredential({id:s.user.email,password:a})); }catch(e){}
  RECON=false; REC=null; lgT0=Date.now();
  setTimeout(function(){ if(logado()){ if(pronto) lgSair(); else lgEspera(); } else { try{ if(typeof W.startSession==='function') W.startSession(s.user); }catch(e){} } },900); }
+/* PASSKEY_20261020: entrar com Face ID / Touch ID / digital (passkey). A chave fica no aparelho; o robô
+   confere a assinatura e devolve um token de uso único que vira a sessão do Supabase. */
+var PWLOGIN=false;
+function pkBase(){ try{ return W.AgionV4Ponte.botApi(); }catch(e){ return 'https://bot.agionconsorcios.com.br'; } }
+function pkNome(){ var u=navigator.userAgent||''; if(/iPhone|iPad|iPod/.test(u)) return 'Face ID'; if(/Android/.test(u)) return 'digital'; if(/Macintosh|Mac OS X/.test(u)) return 'Touch ID'; if(/Windows/.test(u)) return 'Windows Hello'; return 'biometria'; }
+function pkRotulo(){ var n=pkNome(); return n==='digital'?'Entrar com a digital':'Entrar com '+n; }
+function pkAparelho(){ var u=navigator.userAgent||''; return /iPhone/.test(u)?'iPhone':/iPad/.test(u)?'iPad':/Android/.test(u)?'Android':/Macintosh/.test(u)?'Mac':/Windows/.test(u)?'Windows':'Aparelho'; }
+function pkSuporte(){ try{ if(!W.PublicKeyCredential||!navigator.credentials||!W.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) return Promise.resolve(false); return W.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(function(){ return false; }); }catch(e){ return Promise.resolve(false); } }
+function pkLs(k,v){ try{ if(v===undefined) return localStorage.getItem(k); if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){ return null; } }
+function pkAtivo(){ return pkLs('agp-pk')==='1'; }
+function en64(b){ var a=new Uint8Array(b), s=''; for(var i=0;i<a.length;i++) s+=String.fromCharCode(a[i]); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function de64(t){ t=String(t||'').replace(/-/g,'+').replace(/_/g,'/'); while(t.length%4) t+='='; var s=atob(t), a=new Uint8Array(s.length); for(var i=0;i<s.length;i++) a[i]=s.charCodeAt(i); return a.buffer; }
+function pkPost(path,body,tok){ var h={'Content-Type':'application/json'}; if(tok) h.Authorization='Bearer '+tok;
+ return fetch(pkBase()+path,{method:'POST',headers:h,body:JSON.stringify(body||{})}).then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ return {ok:r.ok,data:j||{}}; }); }); }
+async function pkSessao(){ var sb=supaV1(); if(!sb) return null; try{ var r=await sb.auth.getSession(); return r&&r.data&&r.data.session||null; }catch(e){ return null; } }
+/* o Safari só deixa pedir a biometria logo depois do toque: as opções são buscadas ANTES (cache de 4 min) */
+var PKC={};
+function pkPrep(tipo){ var c=PKC[tipo]; if(c&&Date.now()-c.ts<240000) return Promise.resolve(c);
+ var p=tipo==='reg'?pkSessao().then(function(s){ if(!s) throw new Error('Entre com a senha primeiro.'); return pkPost('/api/passkey/registro/opcoes',{},s.access_token).then(function(r){ return {r:r,tok:s.access_token,email:(s.user&&s.user.email)||''}; }); })
+  :pkPost('/api/passkey/entrar/opcoes',{}).then(function(r){ return {r:r}; });
+ return p.then(function(x){ if(!x.r.ok||!x.r.data.opcoes) throw new Error((x.r.data&&(x.r.data.erro||x.r.data.error))||'Sem conexão com o servidor.'); var c={id:x.r.data.id,o:x.r.data.opcoes,tok:x.tok,email:x.email,ts:Date.now()}; PKC[tipo]=c; return c; }); }
+function pkPega(tipo){ var c=PKC[tipo]; delete PKC[tipo]; if(c&&Date.now()-c.ts<240000) return Promise.resolve(c); return pkPrep(tipo).then(function(x){ delete PKC[tipo]; return x; }); }
+async function pkAtivar(){
+ var k=await pkPega('reg'), o=k.o, r={data:{id:k.id}}, s={access_token:k.tok,user:{email:k.email}};
+ var pub={challenge:de64(o.challenge),rp:o.rp,user:{id:de64(o.user.id),name:o.user.name,displayName:o.user.displayName},pubKeyCredParams:o.pubKeyCredParams,timeout:o.timeout||60000,
+  excludeCredentials:(o.excludeCredentials||[]).map(function(c){ return {type:'public-key',id:de64(c.id)}; }),authenticatorSelection:o.authenticatorSelection,attestation:o.attestation||'none'};
+ var c=await navigator.credentials.create({publicKey:pub});
+ var j={id:c.id,rawId:en64(c.rawId),type:c.type,response:{clientDataJSON:en64(c.response.clientDataJSON),attestationObject:en64(c.response.attestationObject),transports:(c.response.getTransports?c.response.getTransports():[])},clientExtensionResults:{},authenticatorAttachment:c.authenticatorAttachment||null};
+ var r2=await pkPost('/api/passkey/registro/salvar',{id:r.data.id,credencial:j,aparelho:pkAparelho()},s.access_token);
+ if(!r2.ok||!r2.data.ok) throw new Error((r2.data&&(r2.data.erro||r2.data.error))||'não salvou');
+ pkLs('agp-pk','1'); pkLs('agp-pk-cred',r2.data.cred||''); pkLs('agp-pk-email',(s.user&&s.user.email)||''); pkLs('agp-pk-nao',null); return true; }
+async function pkDesativar(){ var s=await pkSessao(), cr=pkLs('agp-pk-cred');
+ if(s&&cr){ try{ await pkPost('/api/passkey/remover',{cred:cr},s.access_token); }catch(e){} }
+ pkLs('agp-pk',null); pkLs('agp-pk-cred',null); return true; }
+function pkErro(e){ var n=(e&&e.name)||'', m=String((e&&e.message)||e||'');
+ if(/NotAllowed|Abort/i.test(n)) return 'Biometria cancelada. Tente de novo ou entre com a senha.';
+ if(/InvalidState/i.test(n)) return 'Este aparelho já está ativado.';
+ return m||'Não deu certo agora. Entre com a senha.'; }
+async function pkEntrar(){ var bt=LG&&LG.querySelector('.lgpk'); if(bt){ bt.disabled=true; bt.textContent='Confirmando…'; } lgMsg('',0);
+ try{
+  var k=await pkPega('auth'), r={data:{id:k.id}}, o=k.o, pub={challenge:de64(o.challenge),rpId:o.rpId,timeout:o.timeout||60000,userVerification:'required',allowCredentials:(o.allowCredentials||[]).map(function(c){ return {type:'public-key',id:de64(c.id)}; })};
+  var c=await navigator.credentials.get({publicKey:pub});
+  var j={id:c.id,rawId:en64(c.rawId),type:c.type,response:{clientDataJSON:en64(c.response.clientDataJSON),authenticatorData:en64(c.response.authenticatorData),signature:en64(c.response.signature),userHandle:c.response.userHandle?en64(c.response.userHandle):null},clientExtensionResults:{},authenticatorAttachment:c.authenticatorAttachment||null};
+  var r2=await pkPost('/api/passkey/entrar',{id:r.data.id,credencial:j});
+  if(!r2.ok||!r2.data.ok) throw new Error((r2.data&&(r2.data.erro||r2.data.error))||'Não confirmou.');
+  var sb=supaV1(), v=await sb.auth.verifyOtp({token_hash:r2.data.token_hash,type:'magiclink'});
+  if(v.error) v=await sb.auth.verifyOtp({token_hash:r2.data.token_hash,type:'email'});
+  if(v.error||!v.data||!v.data.user) throw new Error('Não consegui abrir a sessão. Entre com a senha.');
+  if(bt) bt.textContent='Entrando…'; lgT0=Date.now();
+  if(typeof W.startSession==='function') await W.startSession(v.data.user); lgEspelha();
+ }catch(e){ if(bt){ bt.disabled=false; bt.textContent=pkRotulo(); } lgMsg(pkErro(e)); try{ pkPrep('auth'); }catch(x){} } }
+/* convite depois de entrar com senha no celular: "Quer entrar com Face ID da próxima vez?" */
+function pkConvite(){ pkSuporte().then(function(ok){ if(!ok||pkAtivo()||pkLs('agp-pk-nao')||D.getElementById('pkconv')) return;
+ var cel=/iPhone|iPad|Android/.test(navigator.userAgent||'')||D.documentElement.classList.contains('isApp'); if(!cel) return;
+ var n=pkNome(), x=D.createElement('div'); x.id='pkconv';
+ x.innerHTML='<style>#pkconv{position:fixed;left:0;right:0;bottom:0;z-index:3000;display:flex;justify-content:center;padding:0 12px calc(12px + env(safe-area-inset-bottom));animation:pkup .45s cubic-bezier(.22,1,.36,1)}@keyframes pkup{from{transform:translateY(110%)}to{transform:none}}#pkconv .b{width:100%;max-width:440px;background:#0B2A26;color:#F3EEE2;border:1px solid rgba(232,204,139,.3);border-radius:22px;padding:18px 18px 14px;box-shadow:0 24px 60px rgba(0,0,0,.4);font-family:"DM Sans",system-ui,sans-serif}#pkconv b{display:block;font:600 17px Lora,Georgia,serif;color:#E8CC8B;margin-bottom:4px}#pkconv p{margin:0 0 14px;font-size:13px;color:#C9D6D1;line-height:1.45}#pkconv .r{display:flex;gap:10px}#pkconv button{flex:1;padding:12px;border-radius:999px;border:1px solid rgba(232,204,139,.35);background:none;color:#E8CC8B;font:700 14px "DM Sans",system-ui}#pkconv button.s{border:0;background:linear-gradient(115deg,#A8853E,#E8CC8B 52%,#C5A059 92%);color:#0B2A26}</style>'+
+  '<div class="b"><b>Entrar com '+n+'?</b><p>Da próxima vez você entra sem digitar a senha, só com '+(n==='digital'?'a sua digital':'o '+n)+' deste aparelho. Dá para desligar em Ajustes.</p><div class="r"><button type="button" class="n">Agora não</button><button type="button" class="s">Ativar</button></div><div class="m" style="font-size:12px;color:#F4AAA0;margin-top:8px;min-height:14px"></div></div>';
+ D.body.appendChild(x); pkPrep('reg').catch(function(){});
+ x.querySelector('.n').onclick=function(){ pkLs('agp-pk-nao',String(Date.now())); x.remove(); };
+ x.querySelector('.s').onclick=function(){ var b=this; b.disabled=true; b.textContent='Ativando…';
+  pkAtivar().then(function(){ x.querySelector('.b').innerHTML='<b>Pronto!</b><p style="margin:0">Da próxima vez toque em “'+pkRotulo()+'” na tela de entrada.</p>'; setTimeout(function(){ x.remove(); },2600); })
+   .catch(function(e){ b.disabled=false; b.textContent='Tentar de novo'; x.querySelector('.m').textContent=pkErro(e); pkPrep('reg').catch(function(){}); }); };
+}); }
 var LG=null, lgMsgT=null, lgT0=Date.now(), lgPronto=false, LOGO='/plat2-v4/logo-hd.png', LOGO2='https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png';
 function lgCss(){ var s=D.createElement('style'); s.textContent=
  '@font-face{font-family:"DM Sans";src:url(/plat2-v4/DM-Sans-Variable.ttf) format("truetype");font-weight:100 1000}@font-face{font-family:Lora;src:url(/plat2-v4/Lora-Variable.ttf) format("truetype");font-weight:400 700}@font-face{font-family:Lora;font-style:italic;src:url(/plat2-v4/Lora-Italic-Variable.ttf) format("truetype");font-weight:400 700}'+
@@ -140,6 +204,7 @@ function lgCss(){ var s=D.createElement('style'); s.textContent=
  '#v4login input:focus{border-color:#E8CC8B;box-shadow:0 0 0 3px rgba(232,204,139,.18)}#v4login input::placeholder{color:#6F8A83}'+
  '#v4login .lgb{width:100%;margin-top:18px;padding:14px;border:0;border-radius:999px;cursor:pointer;background:linear-gradient(115deg,#A8853E,#E8CC8B 52%,#C5A059 92%);color:#0B2A26;font:800 14.5px "DM Sans",system-ui;letter-spacing:.02em;box-shadow:0 10px 26px rgba(197,160,89,.35);transition:transform .2s,filter .2s}'+
  '#v4login .lgb:active{transform:scale(.98)}#v4login .lgb[disabled]{filter:saturate(.6) brightness(.9);cursor:default}'+
+ '#v4login .lgpk{width:100%;margin-top:10px;padding:13px;border-radius:999px;cursor:pointer;background:rgba(232,204,139,.08);border:1px solid rgba(232,204,139,.45);color:#F1DEA9;font:700 14px "DM Sans",system-ui;align-items:center;justify-content:center;gap:8px}#v4login .lgpk:active{transform:scale(.98)}#v4login .lgpk[disabled]{opacity:.7}'+
  '#v4login .lgf{display:block;margin:14px auto 0;background:none;border:0;color:#A9BFB8;font:600 12.5px "DM Sans",system-ui;cursor:pointer;text-decoration:underline;text-underline-offset:3px}'+
  '#v4login .lgmsg{min-height:18px;margin-top:12px;text-align:center;font-size:12.5px;color:#F4AAA0}#v4login .lgmsg.ok{color:#9FD9B0}'+
  '#v4login .lgt{margin-top:22px;font:italic 400 13px Lora,Georgia,serif;color:#C5A059;text-align:center;opacity:.9}'+
@@ -153,23 +218,25 @@ function lgMontar(){ if(LG) return; lgCss(); D.body.classList.add('v4lg'); W.Agi
   '<form class="lgc" autocomplete="on" novalidate><h1>Bem-vindo à <em>Agion</em></h1><p>Plataforma de planejamento financeiro</p>'+
   '<label for="v4em">E-mail</label><input id="v4em" type="email" inputmode="email" autocomplete="username" placeholder="seu@email.com">'+
   '<label for="v4pw">Senha</label><input id="v4pw" type="password" autocomplete="current-password" placeholder="••••••••">'+
-  '<button class="lgb" type="submit">Entrar</button><button class="lgf" type="button">Esqueci minha senha</button><div class="lgmsg" role="status"></div></form>'+
+  '<button class="lgb" type="submit">Entrar</button><button class="lgpk" type="button" style="display:none"></button><button class="lgf" type="button">Esqueci minha senha</button><div class="lgmsg" role="status"></div></form>'+
   '<div class="lgt">Consórcio para os seus sonhos, planejamento para a sua vida.</div><div class="lgw"></div>';
  D.body.appendChild(LG);
  var im=LG.querySelector('img'); im.onerror=function(){ if(im.src.indexOf(LOGO2)<0) im.src=LOGO2; };
  var f=LG.querySelector('form');
  f.onsubmit=function(e){ e.preventDefault(); lgEntrar(); };
+ var pkb=LG.querySelector('.lgpk'); pkb.textContent=pkRotulo(); pkb.onclick=function(){ pkEntrar(); };
+ pkSuporte().then(function(ok){ if(ok&&pkAtivo()&&LG&&LG.querySelector('.lgpk')){ var b=LG.querySelector('.lgpk'); b.style.display='flex'; pkPrep('auth').catch(function(){}); var iv=setInterval(function(){ if(!LG){ clearInterval(iv); return; } delete PKC.auth; pkPrep('auth').catch(function(){}); },180000); var em=pkLs('agp-pk-email'); var i=LG.querySelector('#v4em'); if(em&&i&&!i.value) i.value=em; } });
  LG.querySelector('.lgf').onclick=function(){ var em=D.getElementById('logEmail'); if(em) em.value=LG.querySelector('#v4em').value.trim(); lgMsg('',0); try{ forgotPass(); }catch(x){ lgMsg('Serviço indisponível. Recarregue a página.'); } lgEspelha(); };
 }
 function lgMsg(t,ok){ if(!LG) return; var m=LG.querySelector('.lgmsg'); m.textContent=t||''; m.classList.toggle('ok',!!ok); }
 function lgEspelha(){ clearInterval(lgMsgT); var n=0; lgMsgT=setInterval(function(){ n++; var m=D.getElementById('loginMsg'); if(m&&m.textContent.trim()){ var cor=(m.style.color||'').indexOf('bad')<0&&!/erro|inválid|incorret|inform|indispon|não/i.test(m.textContent); lgMsg(m.textContent.trim(),cor); var b=LG&&LG.querySelector('.lgb'); if(b&&!logado()){ b.disabled=false; b.textContent='Entrar'; } } if(n>60||logado()) clearInterval(lgMsgT); },250); }
-function lgEntrar(){ var em=LG.querySelector('#v4em').value.trim(), pw=LG.querySelector('#v4pw').value; if(!em||!pw){ lgMsg('Informe e-mail e senha.'); return; }
+function lgEntrar(){ PWLOGIN=true; var em=LG.querySelector('#v4em').value.trim(), pw=LG.querySelector('#v4pw').value; if(!em||!pw){ lgMsg('Informe e-mail e senha.'); return; }
  var a=D.getElementById('logEmail'), b=D.getElementById('logPass'), m=D.getElementById('loginMsg'); if(!a||!b||typeof W.doLogin!=='function'){ lgMsg('Serviço de login indisponível. Recarregue a página.'); return; }
  a.value=em; b.value=pw; if(m) m.textContent=''; lgMsg('',0); var bt=LG.querySelector('.lgb'); bt.disabled=true; bt.textContent='Entrando…';
  try{ Promise.resolve(W.doLogin()).catch(function(){}); }catch(x){} lgEspelha(); }
 function lgForm(){ if(RECON) return; if(!LG) lgMontar(); if(LG.classList.contains('form')) return; LG.classList.remove('esp','fora'); LG.classList.add('form'); var bt=LG.querySelector('.lgb'); bt.disabled=false; bt.textContent='Entrar'; setTimeout(function(){ var i=LG.querySelector('#v4em'); if(i&&!i.value&&W.innerWidth>760) i.focus(); },700); }
 function lgEspera(){ if(RECON) return; if(!LG) lgMontar(); LG.classList.remove('form','fora'); LG.classList.add('esp'); }
-function lgSair(){ if(RECON) return; if(!LG) return; LG.classList.add('fora'); D.body.classList.remove('v4lg'); var x=LG; setTimeout(function(){ if(x.parentNode) x.parentNode.removeChild(x); },650); LG=null; }
+function lgSair(){ if(RECON) return; if(!LG) return; if(PWLOGIN){ PWLOGIN=false; setTimeout(pkConvite,2200); } LG.classList.add('fora'); D.body.classList.remove('v4lg'); var x=LG; setTimeout(function(){ if(x.parentNode) x.parentNode.removeChild(x); },650); LG=null; }
 W.addEventListener('message',function(e){ if(e.data&&e.data.v4==='pronto'&&fr&&e.source===fr.contentWindow){ lgPronto=true; setTimeout(lgSair, Math.max(0,1300-(Date.now()-lgT0))); } });
 function appCliente(){ try{ var a=D.getElementById('app'); return !!(a&&a.classList.contains('show')&&session&&session.role==='cliente'); }catch(e){ return false; } }
 function telaLogin(){ var l=D.getElementById('loginView'); return !!(l&&l.offsetParent!==null&&getComputedStyle(l).display!=='none'); }

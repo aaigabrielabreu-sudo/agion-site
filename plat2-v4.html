@@ -5187,6 +5187,25 @@ var _ca=carregar;carregar=function(){var p=_ca.apply(this,arguments);try{return 
 setTimeout(function(){try{if(MKT()){rotulo();buildNavKeep();if(!OKMKT[cur])go('painel');}}catch(e){}},1200);
 })();
 </script>
+<script id="b-passkey">
+/* PASSKEY_20261020: Ajustes › Conta › "Entrar com Face ID / digital" neste aparelho (liga e desliga) */
+(function(){
+if(typeof R==='undefined'||!R.ajustes)return;
+function PK(){try{return window.parent.AgionV4Ponte.passkey||null;}catch(e){return null;}}
+function rot(n){return n==='digital'?'a digital':n;}
+var _ra=R.ajustes;R.ajustes=function(v,a){_ra.apply(this,arguments);var pk=PK(),c=$('#ajc',v);if(!pk||typeof pk.suporte!=='function'||!c)return;
+ pk.suporte().then(function(ok){if(!document.body.contains(c)||$('#ajpk',c))return;var n=pk.nome(),on=pk.ativo();
+  var d=document.createElement('div');d.className='set';d.id='ajpk';d.style.marginTop='10px';
+  function txt(){return ok?(on?'Ativo neste aparelho. Na tela de entrada, toque em “Entrar com '+rot(n)+'”.':'Entre sem digitar a senha, só com '+rot(n)+' deste aparelho.'):'Este aparelho não tem Face ID, Touch ID ou leitor de digital disponível.';}
+  d.innerHTML='<div class="t"><b>Entrar com '+rot(n)+'</b><small id="ajpks">'+txt()+'</small></div>'+(ok?'<button class="tg gd'+(on?' on':'')+'" id="ajpkt" aria-label="Entrar com '+rot(n)+'"></button>':'');
+  var p=c.querySelector('p');if(p)c.insertBefore(d,p);else c.appendChild(d);
+  if(ok&&!on)pk.preparar();
+  var t=$('#ajpkt',d);if(t)t.onclick=function(){if(RO()){toast('Saia do “Ver como” para mudar isso.','eye');return;}var ligar=!t.classList.contains('on');t.style.opacity=.5;t.disabled=true;
+   (ligar?pk.ativar():pk.desativar()).then(function(){on=ligar;t.style.opacity=1;t.disabled=false;t.classList.toggle('on',on);$('#ajpks',d).textContent=txt();toast(on?'Pronto! Na próxima entrada use '+rot(n)+'.':'Entrada com '+rot(n)+' desligada neste aparelho.','ok');if(!on)pk.preparar();})
+    .catch(function(e){t.style.opacity=1;t.disabled=false;toast(pk.erro(e),'x');if(!on)pk.preparar();});};
+ });};
+})();
+</script>
 <script src="/plat2-tour.js?v=3"></script>
 <script src="/plat2-maav.js?v=3"></script>
 <script id="b-tab-estavel">/* Chat B 19/out: abas do celular respondem no 1º toque.
