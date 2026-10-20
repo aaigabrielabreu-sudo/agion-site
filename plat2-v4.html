@@ -4954,7 +4954,8 @@ if(typeof cur!=='undefined'&&cur==='crm'&&$('#kb'))renderBoard(true);
 .org li:last-child::before{border-right:2px solid var(--ol);border-radius:0 12px 0 0}
 .org li:first-child::after{border-radius:12px 0 0 0}
 .org ul ul::before{content:'';position:absolute;top:0;left:50%;height:26px;border-left:2px solid var(--ol)}
-.org>ul{padding-top:0;gap:46px}.org>ul>li{padding-top:0}.org>ul>li::before,.org>ul>li::after{display:none}
+.org>ul{padding-top:0;gap:0}.org>ul>li{padding-top:0}.org>ul>li+li{margin-left:34px;padding-left:34px;border-left:1px dashed var(--ol)}
+.ogrp{font:800 9.5px "DM Sans";letter-spacing:.18em;text-transform:uppercase;color:var(--mut);margin:0 0 12px;text-align:center}.org>ul>li::before,.org>ul>li::after{display:none}
 .onode{display:flex;flex-direction:column;align-items:center;cursor:pointer;border:0;background:none;padding:0;font:inherit;color:inherit;transition:transform .25s var(--ez)}
 .onode:hover{transform:translateY(-3px)}
 .oph{position:relative;width:66px;height:66px;border-radius:50%;display:grid;place-items:center;z-index:1}
@@ -4980,7 +4981,8 @@ if(typeof cur!=='undefined'&&cur==='crm'&&$('#kb'))renderBoard(true);
  .org li:only-child{padding-top:12px}
  .org ul ul::before{display:none}
  .org>ul>li{padding-top:0}.org>ul>li::before,.org>ul>li::after{display:none}
- .org>ul>li+li{margin-top:26px;padding-top:18px;border-top:1px dashed var(--ol)}
+ .org>ul>li+li{margin:26px 0 0;padding:18px 0 0;border-left:0;border-top:1px dashed var(--ol)}
+ .ogrp{text-align:left;margin:0 0 10px}
  .onode{flex-direction:row;align-items:center;width:100%}
  .oph,.oph .av{width:54px!important;height:54px!important}.oph .av{font-size:17px!important}
  .onode.m .oph,.onode.m .oph .av{width:64px!important;height:64px!important}
@@ -5052,6 +5054,7 @@ var _rc=R.contas;R.contas=function(v,arg){_rc(v,arg);
  p.innerHTML='<div class="ph"><h3>'+I('team',18)+'Organograma</h3><span class="sp"></span><div class="oleg"><span style="--oc:'+OC.master+'"><i></i>Master</span><span style="--oc:'+OC.lider+'"><i></i>Líder</span><span style="--oc:'+OC.especialista+'"><i></i>Especialista</span><span style="--oc:'+OC.marketing+'"><i></i>Marketing</span></div></div>'+
   '<div class="orgw"><div class="org"><ul>'+arvore(A).map(noHTML).join('')+'</ul></div></div>'+(isM()&&!RO()?'<div style="font-size:12px;color:var(--mut);margin-top:6px">Toque numa pessoa para editar foto, nome, celular e cargo.</div>':'');
  if(snw)snw.parentNode.insertBefore(p,snw);else v.appendChild(p);
+ var rz=$$('.org>ul>li',p);if(rz.length>1)rz.forEach(function(li){var b=$('.onode',li),mk=b&&/Marketing/i.test(($('.otag',b)||{}).textContent||'');li.insertAdjacentHTML('afterbegin','<div class="ogrp">'+(mk?'Marketing':(b&&b.classList.contains('m')?'Equipe comercial':'Equipe'))+'</div>');});
  $$('[data-ed]',p).forEach(function(b){b.onclick=function(){editar(b.dataset.ed);};});
  /* botão Editar nos cartões da lista */
  $$('#ctl .ucard[data-id]',v).forEach(function(c){var id=c.dataset.id;if(!podeEditar(id))return;var a=contasR().filter(function(x){return x.id===id;})[0];if(!a||a.role==='cliente')return;var bx=$('.acts3',c);if(!bx)return;var b=document.createElement('button');b.className='btn sm ol';b.innerHTML=I('edit',13)+'Editar';b.onclick=function(){editar(id);};bx.insertBefore(b,bx.firstChild);});
