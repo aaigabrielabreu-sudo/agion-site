@@ -18,7 +18,8 @@ var S3=['master','lider','especialista'], ML=['master','lider'], M=['master'], T
 function v4w(){ try{ var f=D.querySelector('#v4wrap iframe'); if(f&&D.documentElement.classList.contains('v4on')&&f.contentWindow&&f.contentWindow.AgionTour2) return f.contentWindow; }catch(e){} return null; }
 function irV2(tab,tut){ var w=v4w(); if(w){ try{ if(tut) w.AgionTour2.start(tut); else w.go(tab); }catch(e){} return; } try{ go({painel:'dash',clientes:'users',ajustes:'config'}[tab]||tab); }catch(e){} }
 var VERSOES=[
- {v:27,rev:1,data:'21/10/2026',titulo:'Cliente é quem tem carta de consórcio',sub:'A aba Clientes passou a mostrar só quem tem carta; quem ainda não tem fica no Cadastro.',itens:[
+ {v:27,rev:2,data:'21/10/2026',titulo:'CRM em 7 etapas e cliente é quem tem carta',sub:'Os pop-ups das etapas do CRM (com “Pular por agora”) e a aba Clientes só com quem tem carta de consórcio.',itens:[
+   {g:'CRM',roles:S3,ic:'funnel',t:'CRM em 7 etapas',d:'Cada etapa pergunta o que a Alice precisa saber. No Contato feito você marca se o cliente respondeu: se não respondeu, a Alice volta a chamar sozinha. Todo pop-up tem “Pular por agora”, o que faltou aparece no card como “falta: …”, e o card pode pular etapas.',abrir:function(){ irV2('crm','t-crm7'); }},
    {g:'Clientes',roles:S3,ic:'users',t:'Cliente é quem tem carta de consórcio',d:'A aba Clientes mostra só quem tem carta de consórcio. Quem ainda não tem fica no Cadastro e volta para Clientes quando a carta for registrada. Em “Novo cliente” a plataforma pergunta se a pessoa já tem carta; se não tiver, ela entra direto no Cadastro.',abrir:function(){ irV2('clientes'); }}
  ]},
  {v:26,rev:11,data:'20/10/2026',titulo:'Visual novo e tudo o que mudou desde a versão 24',sub:'Da maior mudança (o visual novo) aos pequenos ajustes de toque no celular — tudo o que entrou de 17 a 20 de outubro, por assunto.',itens:[

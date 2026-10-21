@@ -513,9 +513,9 @@ function areaInvite(){
   if(RO()||RUN) return;
   var pg=curPage(); if(!pg||pg==='tutoriais'||pg==='novidades') return;
   var t=forPage(pg); if(!t||!stepsOf(t).length) return;
-  ainvTimer=setTimeout(function(){
+  ainvTimer=setTimeout(function ainvTenta(){
     if(curPage()!==pg||RUN||RO()) return;
-    if(novidadesAbertas()||$('.sheet.on')||$('.dm')){ ainvTimer=setTimeout(arguments.callee,1500); return; }
+    if(novidadesAbertas()||$('.sheet.on')||$('.dm')){ ainvTimer=setTimeout(ainvTenta,1500); return; } /* CRM7_POPUPS_20261021: arguments.callee quebrava em modo estrito */
     var d=data(), r=d.items[t.id]; if(r&&(r.done||r.step>0||r.ask)) return;
     var el=D.createElement('div'); el.className='tr-invite tr-ainv b-ainv'+(narrow()?' tr-sh':''); el.setAttribute('role','dialog'); el.setAttribute('aria-labelledby','trAinvT');
     el.innerHTML='<div class="k">Primeira vez aqui?</div><h4 id="trAinvT">'+esc(t.inv||('Como usar '+TX(t.title)))+'</h4><p>'+esc(TX(t.desc))+' Um guia de '+stepsOf(t).length+' passos, direto nesta tela, sem alterar nada.'+(t.abas?' Passa pelas '+t.abas.length+' abas:':'')+'</p>'+(t.abas?'<div class="ab">'+t.abas.map(function(x){ return '<span>'+esc(x)+'</span>'; }).join('')+'</div>':'')+

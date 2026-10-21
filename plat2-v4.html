@@ -2019,7 +2019,7 @@ function carregar(){ if(_carregando)return _carregando; _carregando=(async funct
   var me=effIdR();TEAM=[me];if(role==='lider')(d.accounts||[]).forEach(function(a){if(a.leaderId===me)TEAM.push(a.id);});
   /* extras do banco (em paralelo; se falhar, segue com o que a v1 já tem) */
   var q=[];
-  q.push(sb.from('leads').select('id,score,em_followup,reuniao_em,reuniao_tipo,link_meet,fu_nivel,fu_inicio,fu_pausado,fu_ultimo_toque,optout,email,subcategoria,parcela_desejada,valor_lance,motivo_nao_conversao,data_perda,contato_pref,fu_cenario,fu_problema,fu_razoes,fu_beneficio,compareceu').then(function(r){XL={};(r.data||[]).forEach(function(x){XL[x.id]=x;});}).catch(function(){}));
+  q.push(sb.from('leads').select('id,score,em_followup,reuniao_em,reuniao_tipo,link_meet,fu_nivel,fu_inicio,fu_pausado,fu_ultimo_toque,optout,email,subcategoria,parcela_desejada,valor_lance,motivo_nao_conversao,data_perda,contato_pref,fu_cenario,fu_problema,fu_razoes,fu_beneficio,compareceu,etapa_crm,etapa_crm_em,contato_respondeu,contato_resp_em,data_decisao').then(function(r){XL={};(r.data||[]).forEach(function(x){XL[x.id]=x;});}).catch(function(){}));
   q.push(sb.from('comissoes_vendas').select('*').then(function(r){VENDAS=(r.data||[]).map(mapVenda);}).catch(function(){VENDAS=[];}));
   q.push(sb.from('cartas').select('*').then(function(r){CARTAS=r.data||[];}).catch(function(){CARTAS=[];}));
   q.push(sb.from('metas').select('*').eq('ativo',true).then(function(r){METAS_DB=r.data||[];}).catch(function(){METAS_DB=[];}));
@@ -4852,13 +4852,16 @@ var st=document.createElement('style');st.id='etapas7-css';st.textContent=
 '.kb,.kb *{-webkit-user-select:none;user-select:none}.kb .deal{-webkit-touch-callout:none}body.tdrag,body.tdrag *{-webkit-user-select:none!important;user-select:none!important}'+
 '.dm .stl7 span{cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dm .stl7 em{font-style:normal}.dm .stl7 .sm7{display:none}@media (max-width:860px){.dm .stl7 .lg7{display:none}.dm .stl7 .sm7{display:inline}}.dm .stl7 span.on{opacity:1;font-weight:700}';
 document.head.appendChild(st);
-var KC=[{k:'0',st:0},{k:'1',st:1},{k:'2',st:2},{k:'agd',st:2,n:'Reunião agendada',c:'--sr',t:'--srt',cu:'Reunião'},{k:'dia',st:2,n:'Diagnóstico',c:'--sd',t:'--sdt',cu:'Diagnóstico'},{k:'3',st:3},{k:'4',st:4}];
+var KC=[{k:'0',st:0},{k:'1',st:1},{k:'2',st:2},{k:'agd',st:2,n:'Reunião agendada',c:'--sr',t:'--srt',cu:'Reunião'},{k:'dia',st:2,n:'Diagnóstico',c:'--sd',t:'--sdt',cu:'Diagnóstico'},{k:'3',st:3},{k:'4',st:4,n:'Fechado',cu:'Fechado'}];/* CRM7_POPUPS_20261021: a coluna Fechado tem ganho e quem ainda vai marcar */
 var CURTO={'0':'Novo','1':'Contato','2':'Estudo','3':'Proposta','4':'Ganho'};
 KC.forEach(function(c){var s=ST[c.st];if(!c.n)c.n=s.n;if(!c.c){c.c=s.c;c.t=s.t;}if(!c.cu)c.cu=CURTO[c.k];});
 var KM={};KC.forEach(function(c){KM[c.k]=c;});
 function ix(k){for(var i=0;i<KC.length;i++)if(KC[i].k===k)return i;return 0;}
-function colDe(d){if(!d)return '0';if(d.st>=3)return String(d.st);var x=XL[d.uid]||{};if(x.compareceu===true)return 'dia';if(x.reuniao_em)return 'agd';return String(d.st);}
-window.AG7={colDe:colDe,cols:KC};
+var ETK2K={novo:'0',contato:'1',estudo:'2',reuniao:'agd',diagnostico:'dia',proposta:'3',fechado:'4'},ETST={novo:0,contato:1,estudo:2,reuniao:2,diagnostico:2,proposta:3};
+function colDe(d){if(!d)return '0';if(d.st>=4)return '4';var x=XL[d.uid]||{},e=x.etapa_crm;
+ if(e&&ETK2K[e]&&(e==='fechado'||ETST[e]===d.st))return ETK2K[e];/* CRM7_POPUPS_20261021: a etapa nova (etapa_crm) manda quando bate com o stage */
+ if(d.st>=3)return String(d.st);if(x.compareceu===true)return 'dia';if(x.reuniao_em)return 'agd';return String(d.st);}
+window.AG7={colDe:colDe,cols:KC,KM:KM,KC:KC,ix:ix};
 function dtBR(iso){try{var t=new Date(iso);return t.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' às '+t.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}catch(e){return '';}}
 function pop(d){var n=$('#kb .deal[data-id="'+d.id+'"]');if(n)n.animate([{transform:'scale(.92)'},{transform:'scale(1.03)'},{transform:'none'}],{duration:500,easing:'cubic-bezier(.34,1.56,.64,1)'});}
 function pedeData(d,cb){var t=new Date();t.setDate(t.getDate()+1);t.setHours(10,0,0,0);var pad=function(n){return String(n).padStart(2,'0');},v=t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate())+'T10:00',feito=false;
@@ -4868,7 +4871,8 @@ function pedeData(d,cb){var t=new Date();t.setDate(t.getDate()+1);t.setHours(10,
  $('#r7n',s).onclick=function(){fim(null);};$('.x',s).onclick=function(){fim(null);};
  $('#r7y',s).onclick=function(){var val=$('#r7d',s).value;if(!val){toast('Escolha a data e a hora','cal');return;}var dt=new Date(val);if(isNaN(+dt)){toast('Data inválida','x');return;}fim(dt.toISOString());};}
 /* mover o lead para uma coluna (k) — grava só o que já existe: stage 0..4, reuniao_em, compareceu */
-function mover(d,k){var from=colDe(d),x=XL[d.uid]||{};if(!d||k===from){renderBoard(true);return;}
+function mover(d,k){if(window.CRM7&&typeof CRM7.mover==='function')return CRM7.mover(d,k);return moverBase(d,k);}/* CRM7_POPUPS_20261021: pop-ups das 7 etapas (plat2-crm7.js) */
+function moverBase(d,k){var from=colDe(d),x=XL[d.uid]||{};if(!d||k===from){renderBoard(true);return;}
  if(!roOk()){renderBoard(true);return;}
  if(k==='4'){renderBoard(true);ganhoFlow(d,$('#kb .deal[data-id="'+d.id+'"]'));return;}
  var fim=function(ok){if(cur==='crm'){renderBoard(true);updKpis();pop(d);}if(ok!==false)toast(d.nome+' → '+KM[k].n);else toast('Não consegui salvar agora — tente de novo','x');};
@@ -4881,7 +4885,7 @@ function mover(d,k){var from=colDe(d),x=XL[d.uid]||{};if(!d||k===from){renderBoa
  if(s2<=2&&(from==='agd'||from==='dia'||x.reuniao_em||x.compareceu===true)){var fr=KM[from]||KM['0'];confirma('Tirar de “'+fr.n+'”?',esc4(d.nome)+(x.reuniao_em?' tem reunião em '+dtBR(x.reuniao_em)+'.':'.')+' Ao voltar para “'+KM[k].n+'” a reunião é desmarcada na plataforma.','Desmarcar e mover').then(function(ok){
    if(!ok){if(cur==='crm')renderBoard(true);return;}if(s2!==d.st&&!setStageR(d,s2)){renderBoard(true);return;}leadAtv(d,'Reunião desmarcada');leadExtra(d,{reuniao_em:null,compareceu:null}).then(fim);});return;}
  if(setStageR(d,s2))fim(true);else renderBoard(true);}
-window.AG7.mover=mover;
+window.AG7.mover=mover;window.AG7.moverBase=moverBase;window.AG7.anima=pop;window.AG7.dtBR=dtBR;
 /* cartão com a cor da coluna nova */
 var _dh=dealHTML;dealHTML=function(d,mini){var h=_dh(d,mini),k=colDe(d);if(k==='agd'||k==='dia'){var s=ST[d.st],n=KM[k];h=h.replace('style="--c:var('+s.c+');--t:var('+s.t+')"','style="--c:var('+n.c+');--t:var('+n.t+')"');}return h;};
 /* quadro com 7 colunas (lista e perdidos continuam iguais) */
@@ -5013,7 +5017,7 @@ function regua(m,d){var inn=$('.in',m);if(!inn)return;var g=$('.stg',inn),l=$('.
  var ir=function(k2){if(k2===k)return;var ov=$('#ov'),x=$('.x',m);if(x)x.click();else if(ov&&ov._close)ov._close();setTimeout(function(){mover(d,k2);},620);};
  $$('[data-k]',g7).concat($$('[data-k]',l7)).forEach(function(e){e.onclick=function(ev){ev.stopPropagation();ir(e.dataset.k);};});
  var nx=KC[a+1],bmv=$('[data-a="mv"]',inn);if(bmv&&nx&&nx.k!=='4'){bmv.innerHTML='Mover para '+nx.n+I('arrow',15);bmv.onclick=function(ev){ev.stopPropagation();ir(nx.k);};}
- else if(bmv&&nx&&nx.k==='4'){bmv.innerHTML=I('trophy',15)+'Marcar ganho';bmv.onclick=function(ev){ev.stopPropagation();var x=$('.x',m);if(x)x.click();setTimeout(function(){ganhoFlow(d,$('#kb .deal[data-id="'+d.id+'"]'));},620);};}}
+ else if(bmv&&nx&&nx.k==='4'){bmv.innerHTML=I('trophy',15)+'Ir para Fechado';bmv.onclick=function(ev){ev.stopPropagation();var x=$('.x',m);if(x)x.click();setTimeout(function(){mover(d,'4');},620);};}}
 var _od=openDeal;openDeal=function(d,from){_od(d,from);var m=$$('.dm').pop();if(!m)return;
  var c=colDe(d);if(c==='agd'||c==='dia'){m.style.setProperty('--c','var('+KM[c].c+')');m.style.setProperty('--t','var('+KM[c].t+')');}
  regua(m,d);var inn=$('.in',m);if(inn){var mo=new MutationObserver(function(){regua(m,d);});mo.observe(inn,{childList:true});}};
@@ -5432,10 +5436,11 @@ vcMontar=function(){var vc=$('#vc');if(!vc)return;if(!vcPode()){vc.style.display
 vcMontar();
 })();
 </script>
-<script src="/plat2-tour.js?v=5"></script>
+<script src="/plat2-tour.js?v=6"></script>
 <script src="/plat2-maav.js?v=3"></script>
 <script src="/calc-link.js?v=4"></script>
 <script src="/plat2-histferr.js?v=3"></script>
+<script src="/plat2-crm7.js?v=1"></script>
 <script id="b-tab-estavel">/* Chat B 19/out: abas do celular respondem no 1º toque.
  Causa: a barra era REFEITA (innerHTML) a cada atualização de números/badges (CRM, conversas, recarga a cada poucos segundos);
  se isso acontecia entre o dedo encostar e soltar, o toque se perdia — e a rolagem da barra voltava para o meio.
