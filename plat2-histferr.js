@@ -18,7 +18,7 @@ if(W.__hfOn) return; W.__hfOn=1;
 var FER={financiamento:{n:'Financiamento × Consórcio',c:'#2E6A8A',p:'calc-financiamento',k:'Financiamento',o:'o',em:'no',de:'do'},alavancagem:{n:'Alavancagem Patrimonial',c:'#C5A059',p:'calc-alavancagem',k:'Alavancagem',o:'a',em:'na',de:'da'},escada:{n:'Escada Financeira',c:'#3F8F6A',p:'escada-financeira',k:'Escada',o:'a',em:'na',de:'da'}};
 var TIPO={simulacao:['⌁','#C5A059'],abertura:['◉','#2E6A8A'],link:['↗','#0B2A26'],proposta:['▤','#A8457A'],envio:['✉','#A8457A'],tarefa:['✓','#6E7C78'],etapa:['→','#C2463B'],nota:['•','#8C9590'],email:['✉','#1E4E79'],whatsapp:['●','#2E8F57']};
 var H=36e5;
-var HF={links:[],ev:{},t:0,ok:true,load:null,atv:{},dias:30,sub:'ger',sel:null,mdet:false,q:'',fesp:'',sim24:false};
+var HF={links:[],ev:{},t:0,ok:true,load:null,atv:{},dias:30,sub:'ger',sel:null,mdet:false,q:'',fesp:''};
 W.AgionHF=HF;
 
 /* ---------------------------------------------------------------- utilidades */
@@ -156,7 +156,10 @@ function css(){ if($('#hf-css')) return; var s=D.createElement('style'); s.id='h
   '.hf .hf-t thead{display:none}.hf .hf-t,.hf .hf-t tbody{display:block}.hf .hf-t tr{display:block;border:1px solid var(--line);border-radius:16px;padding:8px 12px;margin-bottom:10px;background:var(--card)}'+
   '.hf .hf-t td{display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;padding:4px 0;text-align:right}.hf .hf-t td:before{content:attr(data-l);color:var(--mut);font-size:11.5px;font-weight:600;text-align:left}.hf .hf-t td:first-child{font-size:14px}.hf .hf-t td:first-child:before{content:none}'+
   '.hf .hx .btn{flex:1 1 auto;justify-content:center}.hf .snw{flex-wrap:wrap;row-gap:8px}.hf .snw>.snav{flex:1 1 100%}.hf .snw>.sp{display:none}.hf .hf-how .t1{display:none}.hf .hf-how .t2{display:inline}.hf .hf-per{margin-left:auto}.hf .hf-per button{padding:7px 10px}'+
-  '.fbar.mfb #hfSimF{grid-column:1/-1;justify-content:center;box-shadow:var(--shadow)}.fbar.mfb #hfSimF.on{box-shadow:none}}'+
+  /* CRM_CARD2_20261020: no celular a lupa entra na 1ª linha, junto de valor, categoria, origem e ordenar */
+  '.fbar.mfb{grid-template-columns:42px repeat(4,minmax(0,1fr))!important}.fbar.mfb .search{grid-row:1!important;grid-column:1!important}'+
+  '.fbar.mfb.sopen .search{grid-row:2!important;grid-column:1/-1!important}.fbar.mfb .avf{grid-row:2!important;grid-column:1/5!important}.fbar.mfb.sopen .avf{grid-row:3!important}'+
+  '.fbar.mfb .clr{grid-row:2!important;grid-column:5/6!important}.fbar.mfb.sopen .clr{grid-row:3!important}}'+
  /* card do CRM */
  '.deal .hf-sw{flex:none;display:inline-flex}.deal .hf-selo{font-size:10px;padding:3px 8px;margin-left:2px}.deal .hf-selo.au{background:#FBF0D2;color:#7A5A1A}.deal .hf-selo.bl{background:#DCE9F1;color:#1F4F69}.deal .hf-selo.bad{background:#F7DDD8;color:#9A2F25}'+
  '.deal .hf-at{margin:9px -13px 0;padding:8px 13px 9px;background:rgba(0,0,0,.1);border-top:1px solid rgba(255,255,255,.18);color:var(--t)}'+
@@ -164,8 +167,13 @@ function css(){ if($('#hf-css')) return; var s=D.createElement('style'); s.id='h
  '.deal .hf-at .ti button{font:700 9.5px "DM Sans";letter-spacing:.1em;color:inherit;opacity:1;text-transform:uppercase;padding:2px 0}'+
  '.deal .hf-mini{display:flex;gap:7px;font-size:11.8px;padding:2px 0;align-items:flex-start;line-height:1.35}.deal .hf-mini>i{font-style:normal;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;font-size:9px;flex:none;margin-top:1px}'+
  '.deal .hf-mini span{min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.deal .hf-mini em{font-style:normal;opacity:.7}'+
- '.hf-sf{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:999px;font-size:12.5px;font-weight:700;background:var(--card);box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink2);white-space:nowrap}'+
- '.hf-sf.on{background:var(--ink);color:var(--bg);box-shadow:none}'+
+ /* CRM_CARD2_20261020: sem o "N leads" repetido; a busca encolhe para caber na mesma linha dos filtros */
+ '#fbar #nres{display:none!important}.fbar:not(.mfb) .search{flex:1 1 180px;min-width:150px!important;max-width:340px}'+
+ /* bloco Atividades dentro do card aberto */
+ '.dm .hf-dmat{margin:4px 0 18px;padding:11px 14px 10px;border-radius:16px;background:rgba(0,0,0,.12);border:1px solid rgba(255,255,255,.14);color:inherit}'+
+ '.dm .hf-dmat .ti{font:700 10px "DM Sans";letter-spacing:.13em;text-transform:uppercase;opacity:.8;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}'+
+ '.dm .hf-dmat .ti button{font:700 10px "DM Sans";letter-spacing:.1em;color:inherit;text-transform:uppercase;padding:2px 0}'+
+ '.dm .hf-mini{display:flex;gap:8px;font-size:13px;padding:3px 0;align-items:flex-start;line-height:1.4}.dm .hf-mini>i{font-style:normal;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;font-size:10px;flex:none;margin-top:1px}.dm .hf-mini em{font-style:normal;opacity:.7}'+
  /* ficha: aba Atividades */
  '.hf-atv .hf-flt{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 6px}.hf-atv .hf-flt button{padding:6px 12px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--line);font-size:12px;font-weight:600;color:var(--ink2)}'+
  '.hf-atv .hf-flt button.on{background:var(--ink);color:var(--bg);box-shadow:none}.hf-atv .hf-flt button .n{font-size:10.5px;opacity:.65;margin-left:5px}.hf-atv .hf-tl{padding:4px 2px 4px}'+
@@ -331,22 +339,41 @@ function tour(){ try{ W.AgionTour2.start('t-histferr'); }catch(e){ toast('O tuto
 
 /* ---------------------------------------------------------------- 2) card do CRM */
 var ATV={};
+/* DUPLIC_20261020: tira atividades repetidas (ex.: "Distribuído para Lisiane" 9 vezes seguidas). Distribuição igual à anterior
+   sai; outras anotações idênticas à anterior (mesmo autor, menos de 10 min) também. Entrada em ordem do mais novo. */
+var DIST=/^(Distribu[ií]do para|Atribu[ií]do a)\s*/i;
+function enxuga(rows){ var asc=(rows||[]).slice().sort(function(a,b){ return ms(a.quando)-ms(b.quando); }), out=[], dist=null;
+  asc.forEach(function(r){ var t=String(r.titulo||'').trim();
+    if(r.tipo==='nota'&&DIST.test(t)){ var v=t.replace(DIST,'').toLowerCase(); if(v===dist) return; dist=v; out.push(r); return; }
+    var p=out[out.length-1]; if(p&&p.tipo===r.tipo&&String(p.titulo||'').trim()===t&&p.autor_id===r.autor_id&&Math.abs(ms(r.quando)-ms(p.quando))<600000&&r.tipo==='nota') return;
+    out.push(r); });
+  return out.reverse(); }
 function carregaAtv(ids,force){ var sb=SB(); if(!sb||!ids.length) return Promise.resolve(); var t=agora();
   var fz=ids.filter(function(id,i,a){ var x=ATV[id]; return a.indexOf(id)===i&&(force||!x||t-x.t>60000); }); if(!fz.length) return Promise.resolve();
   var ps=[]; for(var i=0;i<fz.length;i+=40){ (function(p){ ps.push(Promise.resolve(sb.from('lead_atividades').select('lead_id,quando,tipo,titulo,detalhe').in('lead_id',p).order('quando',{ascending:false}).limit(400)).then(function(r){ if(r.error) throw r.error;
-      var by={}; (r.data||[]).forEach(function(x){ (by[x.lead_id]=by[x.lead_id]||[]).push(x); }); p.forEach(function(id){ ATV[id]={t:agora(),rows:by[id]||[]}; }); }).catch(function(e){ console.warn('[histferr] atividades',e); p.forEach(function(id){ ATV[id]=ATV[id]||{t:agora(),rows:[]}; }); })); })(fz.slice(i,i+40)); }
+      var by={}; (r.data||[]).forEach(function(x){ (by[x.lead_id]=by[x.lead_id]||[]).push(x); }); p.forEach(function(id){ ATV[id]={t:agora(),rows:enxuga(by[id]||[])}; }); }).catch(function(e){ console.warn('[histferr] atividades',e); p.forEach(function(id){ ATV[id]=ATV[id]||{t:agora(),rows:[]}; }); })); })(fz.slice(i,i+40)); }
   return Promise.all(ps); }
 function curto(r){ var d=r.detalhe||{}, f=FER[d.calculadora];
   if(r.tipo==='simulacao') return f?'Simulou '+f.em+' '+f.n:'Simulou numa calculadora';
   if(r.tipo==='abertura') return (f?'Abriu '+f.o+' '+f.n:r.titulo)+((+d.aberturas||0)>1?' ('+d.aberturas+'×)':'');
   if(r.tipo==='link') return f?'Link '+f.de+' '+f.n+' enviado':String(r.titulo||'');
   return String(r.titulo||''); }
+/* CRM_CARD2_20261020: o bloco "Atividades" fica só dentro do card aberto (clique no lead) */
 function atHtml(d){ var a=ATV[d.uid]; if(!a||!a.rows.length) return '';
-  return '<div class="hf-at"><div class="ti"><span>Atividades</span><button type="button" data-a="hfatv">ver tudo →</button></div>'+a.rows.slice(0,3).map(function(r){ var tp=TIPO[r.tipo]||TIPO.nota;
+  return '<div class="hf-at hf-dmat"><div class="ti"><span>Atividades</span><button type="button" data-hfv="'+d.id+'">ver tudo →</button></div>'+a.rows.slice(0,4).map(function(r){ var tp=TIPO[r.tipo]||TIPO.nota;
     return '<div class="hf-mini"><i style="color:'+tp[1]+'">'+tp[0]+'</i><span>'+esc(curto(r))+' <em>· '+esc(ha(ms(r.quando)))+'</em></span></div>'; }).join('')+'</div>'; }
 function marcaCrm(){ $$('#view .deal').forEach(function(el){ var d=null; try{ d=W.leadById(el.dataset.id); }catch(e){} if(!d) return;
   var sw=el.querySelector('.hf-sw'); if(sw){ var s=selo(d.uid,1); if(sw.innerHTML!==s) sw.innerHTML=s; }
-  var aw=el.querySelector('.hf-aw'); if(aw){ var a=atHtml(d); if(aw.innerHTML!==a) aw.innerHTML=a; } }); }
+ }); }
+function ajustaDm(m){ setTimeout(function(){ var inn=$('.in',m); if(!inn||!m.isConnected||!m.classList.contains('full')) return; var falta=inn.scrollHeight-inn.clientHeight;
+  if(falta>2){ var h=Math.min(m.offsetHeight+falta,W.innerHeight-40); m.style.height=h+'px'; m.style.top=Math.max(20,(W.innerHeight-h)/2)+'px'; } },700); }
+function atvModal(d){ var m=$$('.dm').pop(); if(!m||!d||!d.uid) return;
+  var pinta=function(){ var inn=$('.in',m); if(!inn||!m.isConnected) return; var tl=$('.tl',inn), old=$('.hf-dmat',inn), h=atHtml(d);
+    if(!h){ if(old) old.remove(); if(tl) tl.style.display=''; return; }
+    if(old) old.outerHTML=h; else if(tl) tl.insertAdjacentHTML('beforebegin',h); else return;
+    if(tl) tl.style.display='none'; ajustaDm(m); };
+  setTimeout(pinta,90); Promise.resolve(carregaAtv([d.uid])).then(function(){ setTimeout(pinta,0); });
+  var inn=$('.in',m); if(inn&&W.MutationObserver){ var mo=new MutationObserver(function(){ if(!m.isConnected){ mo.disconnect(); return; } if(!$('.hf-dmat',inn)) setTimeout(pinta,60); }); mo.observe(inn,{childList:true}); } }
 var tCrm=0;
 function hfCrm(){ clearTimeout(tCrm); tCrm=setTimeout(function(){ if(W.cur!=='crm'&&W.cur!=='cliente') return;
   var ids=$$('#view .deal').map(function(el){ var d=null; try{ d=W.leadById(el.dataset.id); }catch(e){} return d&&d.uid; }).filter(Boolean);
@@ -355,26 +382,21 @@ function ganchoCrm(){
   if(typeof W.dealHTML!=='function'||W.dealHTML.__hf) return;
   var _dh=W.dealHTML; W.dealHTML=function(d,mini){ var h=_dh.apply(this,arguments); if(mini||!d||!d.uid) return h;
     try{ h=h.replace('<span class="sp"></span>','<span class="sp"></span><span class="hf-sw">'+selo(d.uid,1)+'</span>');
-      var i=h.indexOf('<div class="ab">'); if(i<0) i=h.indexOf('<div class="gp'); if(i<0) i=h.indexOf('<div class="dft">');
-      if(i>=0) h=h.slice(0,i)+'<div class="hf-aw">'+atHtml(d)+'</div>'+h.slice(i); }catch(e){} return h; };
+    }catch(e){} return h; };
   W.dealHTML.__hf=1;
   if(typeof W.renderBoard==='function'){ var _rb=W.renderBoard; W.renderBoard=function(){ var r=_rb.apply(this,arguments); hfCrm(); return r; }; }
-  if(typeof W.crmFiltrados==='function'){ var _cf=W.crmFiltrados; W.crmFiltrados=function(){ var r=_cf.apply(this,arguments); if(HF.sim24) r=r.filter(function(l){ return simulou24(l.uid); }); return r; }; }
-  if(typeof W.renderFiltros==='function'){ var _rf=W.renderFiltros; W.renderFiltros=function(){ var r=_rf.apply(this,arguments); try{ filtroSim(); }catch(e){} return r; }; }
-  /* "ver tudo →" no bloco Atividades abre a ficha direto na aba Atividades */
-  D.addEventListener('click',function(e){ var b=e.target&&e.target.closest&&e.target.closest('[data-a="hfatv"]'); if(!b) return; var c=b.closest('.deal'); if(!c) return;
-    e.stopPropagation(); e.preventDefault(); var d=null; try{ d=W.leadById(c.dataset.id); }catch(_){} if(d){ try{ W.closeDrawer(); }catch(_){} $$('.dm').forEach(function(m){ m.remove(); }); try{ W.$('#ov').classList.remove('on'); }catch(_){} W.go('cliente',{lead:d,tab:'atv'}); } },true); }
-function filtroSim(){ var fb=$('#fbar'); if(!fb||W.cur!=='crm') return; var b=$('#hfSimF',fb);
-  if(!b){ b=D.createElement('button'); b.type='button'; b.id='hfSimF'; var lab=$('.search',fb); if(!mob()&&lab&&lab.nextSibling) fb.insertBefore(b,lab.nextSibling); else fb.appendChild(b); }
-  b.className='hf-sf'+(HF.sim24?' on':''); b.innerHTML='🔥 Simularam nas últimas 24 h'; b.title='Só os leads que simularam numa calculadora nas últimas 24 horas';
-  b.onclick=function(){ HF.sim24=!HF.sim24; var go2=function(){ W.renderFiltros(); W.renderBoard(); }; if(HF.sim24&&!HF.t) carrega().then(go2); go2(); if(HF.sim24) toast('Mostrando só quem simulou nas últimas 24 h','flame'); }; }
+  if(typeof W.openDeal==='function'&&!W.openDeal.__hf){ var _od=W.openDeal; W.openDeal=function(d){ var r=_od.apply(this,arguments); try{ atvModal(d); }catch(e){} return r; }; W.openDeal.__hf=1; }
+  /* "ver tudo →" dentro do card aberto: ficha do lead direto na aba Atividades */
+  D.addEventListener('click',function(e){ var b=e.target&&e.target.closest&&e.target.closest('[data-hfv]'); if(!b) return;
+    e.stopPropagation(); e.preventDefault(); var d=null; try{ d=W.leadById(b.dataset.hfv); }catch(_){} if(d) W.go('cliente',{lead:d,tab:'atv'}); },true); }
+/* CRM_CARD2_20261020: o filtro "Simularam nas últimas 24 h" saiu a pedido do Gabriel */
 
 /* ---------------------------------------------------------------- 3) ficha: aba Atividades */
 function leadDoCliente(c){ if(!c) return null; var L=W.LEADS||[], cid=c.raw&&c.raw.cadastroId;
   var x=cid?L.filter(function(l){ return l.raw&&l.raw.cadastroId===cid; })[0]:null; if(!x) x=L.filter(function(l){ return norma(l.nome)===norma(c.nome); })[0]; return x?x.uid:null; }
 var AF={k:'tudo'};
 function carregaUm(uid){ var sb=SB(); if(!sb) return Promise.resolve([]);
-  return Promise.resolve(sb.from('lead_atividades').select('*').eq('lead_id',uid).order('quando',{ascending:false}).limit(200)).then(function(r){ if(r.error) throw r.error; return r.data||[]; }); }
+  return Promise.resolve(sb.from('lead_atividades').select('*').eq('lead_id',uid).order('quando',{ascending:false}).limit(200)).then(function(r){ if(r.error) throw r.error; return enxuga(r.data||[]); }); }
 var FL=[['tudo','Tudo'],['sim','Simulações'],['link','Links'],['email','E-mails'],['wa','WhatsApp'],['prop','Propostas'],['tar','Tarefas'],['eta','Etapas']];
 var ETRX=/^(Movido para|Perdido|Reunião (marcada|desmarcada)|Compareceu|Recuperad|Ganho|Virou cliente)/i;
 function casa(r,k){ var t=r.tipo; if(k==='tudo') return true; if(k==='sim') return t==='simulacao'; if(k==='link') return t==='link'||t==='abertura'; if(k==='prop') return t==='proposta'||t==='envio';
@@ -427,9 +449,10 @@ function noHF(){ if(W.cur!=='histferr') W.go('histferr'); }
 function subHF(k){ return function(){ fechaModal(); if(W.cur!=='histferr'){ HF.sub=k; HF.mdet=false; W.go('histferr'); return; } var b=$('#hfsn button[data-k="'+k+'"]'); if(b&&!b.classList.contains('on')) b.click(); }; }
 function mostraDet(){ if(!mob()) return; var pc=$('.hf-pc2'); if(pc&&!pc.classList.contains('det')){ var it=$('#hfCl .hf-ci'); if(it) it.click(); } }
 function dealSelo(){ var s=$$('#kb .deal .hf-selo').filter(vis)[0]; if(s) return s.closest('.deal'); return $$('#kb .deal').filter(vis)[0]||null; }
-function atBloco(){ var a=$$('#kb .deal .hf-at').filter(vis); var c=dealSelo(); var x=c?$('.hf-at',c):null; return (x&&vis(x))?x:(a[0]||null); }
+function fechaDm(){ var x=$('.dm .x'); if(x) try{ x.click(); }catch(e){} }
+function abreDm(){ if($('.dm')) return; var c=dealSelo(); if(!c) return; var d=null; try{ d=W.leadById(c.dataset.id); }catch(e){} if(d) try{ W.openDeal(d,c); }catch(e){} }
 function alinhaKb(){ if(!mob()) return; var kb=$('#kb'), s=$('#kb .deal .hf-selo'), c=s?s.closest('.col'):null; if(kb&&c) try{ kb.scrollTo({left:Math.max(0,c.offsetLeft-12),behavior:'auto'}); }catch(e){ kb.scrollLeft=c.offsetLeft-12; } }
-function paraCrm(){ fechaModal(); try{ if(W.F&&W.F.modo!=='quadro') W.F.modo='quadro'; }catch(e){} if(W.cur!=='crm') W.go('crm'); [700,1500,2400].forEach(function(t){ setTimeout(alinhaKb,t); }); }
+function paraCrm(){ fechaModal(); fechaDm(); try{ if(W.F&&W.F.modo!=='quadro') W.F.modo='quadro'; }catch(e){} if(W.cur!=='crm') W.go('crm'); [700,1500,2400].forEach(function(t){ setTimeout(alinhaKb,t); }); }
 function abreFicha(){ fechaModal(); if(W.cur==='cliente'&&W.curArg&&W.curArg.tab==='atv') return; var L=(W.LEADS||[]).filter(function(l){ return !l.perdido; }), alvo=null;
   for(var i=0;i<HF.links.length&&!alvo;i++){ var d=leadDe(HF.links[i].lead); if(d&&!d.perdido) alvo=d; }
   if(!alvo){ try{ alvo=W.mine(L)[0]||L[0]; }catch(e){ alvo=L[0]; } }
@@ -437,7 +460,7 @@ function abreFicha(){ fechaModal(); if(W.cur==='cliente'&&W.curArg&&W.curArg.tab
 var TOUR={id:'t-histferr',page:'histferr',navk:'ferramentas',pages:['histferr','crm','ficha-lead','ficha-cliente'],v:1,g:'Ferramentas',title:'Histórico de ferramentas',inv:'Como usar o Histórico de ferramentas',
  desc:'Todos os links das calculadoras num lugar só: quem recebeu, quem abriu e o que cada cliente simulou.',
  abas:['Histórico de ferramentas','Card do CRM','Cadastro do cliente','Dentro das ferramentas'],
- post:function(){ fechaModal(); },
+ post:function(){ fechaModal(); fechaDm(); },
  steps:[
   {act:subHF('ger'),t:null,title:'Tudo o que o cliente faz nas calculadoras',text:'Quando você manda um link temporário de uma calculadora, o sistema guarda quando o cliente abriu e cada simulação em que ele parou para pensar. Este tutorial mostra onde isso aparece, em 4 abas.'},
   {t:null,title:'As 4 abas',text:'1. Histórico de ferramentas: a ferramenta nova, com tudo num lugar só. 2. Card do CRM: o resumo no card. 3. Cadastro do cliente: a linha do tempo completa. 4. Dentro das ferramentas: onde o link é gerado.'},
@@ -453,8 +476,7 @@ var TOUR={id:'t-histferr',page:'histferr',navk:'ferramentas',pages:['histferr','
   {a:0,t:q('#hfDet .hf-tl'),optional:true,title:'Cada simulação, com a hora',text:'A linha do tempo mostra cada tela em que o cliente parou 3 segundos ou mais, em qual ferramenta e com quais números.'},
   {a:0,act:subHF('lnk'),t:q('#hfT'),title:'Todos os links',text:'A lista completa: cliente, ferramenta, especialista, quando foi gerado, quanto tempo falta para vencer, aberturas, simulações e a etapa do cliente no CRM.'},
   {a:1,act:paraCrm,t:dealSelo,wait:4500,optional:true,title:'O card mostra o que está acontecendo',text:'No topo do card aparece "simulando agora", "abriu o link há 2 h" ou "link sem abrir". Você sabe de quem cuidar sem abrir nada.'},
-  {a:1,t:atBloco,optional:true,title:'Atividades no card',text:'As 3 últimas coisas que aconteceram com o cliente: simulação, abertura do link, e-mail recebido. "Ver tudo" abre o cadastro direto na aba Atividades.'},
-  {a:1,act:paraCrm,t:q('#hfSimF'),optional:true,title:'Filtro no CRM',text:'No filtro do CRM entra a opção "Simularam nas últimas 24 h", para montar a lista de ligações do dia.'},
+  {a:1,act:function(){ setTimeout(abreDm,W.cur==='crm'?0:900); },t:q('.dm .hf-dmat'),wait:4500,optional:true,title:'Atividades dentro do card',text:'Ao clicar no card, aparecem as últimas coisas que aconteceram com o cliente: simulação, abertura do link, e-mail recebido. "Ver tudo" abre o cadastro direto na aba Atividades.'},
   {a:2,act:abreFicha,t:q('#ctab'),wait:4500,optional:true,title:'Aba Atividades no cadastro',text:'O cadastro do cliente ganha a aba Atividades, ao lado de Dados, Conversa, Propostas e Cartas.'},
   {a:2,t:q('#hfAf'),wait:4000,optional:true,title:'Filtrar por tipo',text:'Veja tudo ou só simulações, links, e-mails, WhatsApp, propostas, tarefas ou mudanças de etapa.'},
   {a:2,t:q('.hf-atv .hf-tl'),optional:true,title:'A história inteira do cliente',text:'Tudo em ordem, de todas as fontes: o que ele simulou, quando abriu o link, o que a Alice falou, os e-mails, as propostas, as tarefas e as mudanças de etapa.'},
@@ -474,7 +496,7 @@ function registra(){
   try{ W.V4OK.histferr=1; }catch(e){}
   try{ if(!W.TOOLS.some(function(t){ return t.k==='hist'; })){ var i=-1; W.TOOLS.forEach(function(t,j){ if(t.k==='prop') i=j; });
     W.TOOLS.splice(i>=0?i+1:W.TOOLS.length,0,{k:'hist',t:'Histórico de ferramentas',d:'Todos os links das calculadoras num lugar só: quem recebeu, quem abriu e o que cada cliente simulou.',tag:'Equipe',ic:'act',bg:'linear-gradient(140deg,#2A5F6E,#0B2A26)',
-     svg:'<path d="M20 132 C90 124 120 84 190 96 S300 60 372 56" stroke="#E8CC8B" stroke-width="3" fill="none"/><g fill="#E8CC8B"><circle cx="190" cy="96" r="6"/><circle cx="290" cy="70" r="6"/><circle cx="372" cy="56" r="7"/></g><g fill="#9CCBE6" opacity=".9"><circle cx="90" cy="122" r="5"/></g>',tut:23}); } }catch(e){}
+     svg:'<path d="M20 132 C90 124 120 84 190 96 S300 60 372 56" stroke="#E8CC8B" stroke-width="3" fill="none"/><g fill="#E8CC8B"><circle cx="190" cy="96" r="6"/><circle cx="290" cy="70" r="6"/><circle cx="372" cy="56" r="7"/></g><g fill="#9CCBE6" opacity=".9"><circle cx="90" cy="122" r="5"/></g>',tut:22}); } }catch(e){}
   if(typeof W.R.ferramentas==='function'&&!W.R.ferramentas.__hf){ var _rf=W.R.ferramentas; W.R.ferramentas=function(v){ var r=_rf.apply(this,arguments);
     try{ var c=$('.tc[data-k="hist"]',v); if(c) c.onclick=function(e){ if(e.target.closest('[data-tut]')){ W.go('histferr'); setTimeout(tour,900); return; } W.go('histferr'); };
       var o=$('.tc[data-k="hist"] .open',v); if(o) o.innerHTML='Abrir '+Ic('arrow',15); }catch(e){} return r; }; W.R.ferramentas.__hf=1; }

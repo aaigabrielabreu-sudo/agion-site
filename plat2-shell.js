@@ -68,7 +68,7 @@ function maisSheet(){
     h+='<button class="'+(view.page===k?'on':'')+'" onclick="AgionV2._fecharMais();go(\''+k+'\')">'+(it[2]||'')+'<span>'+esc(ROTULO[k]||it[1])+'</span></button>'; });
   if(g0) h+='</div>';
   var bg=D.createElement('div'); bg.className='v2-sheet-bg'; bg.id='v2Mais';
-  bg.innerHTML='<div class="v2-sheet" role="dialog" aria-label="Todas as abas"><div class="v2-grab"></div><div class="v2-sheet-hd"><b>Todas as abas</b><a href="/plataforma-v1" class="v2-volta">Versão anterior</a></div>'+h+'</div>';
+  bg.innerHTML='<div class="v2-sheet" role="dialog" aria-label="Todas as abas"><div class="v2-grab"></div><div class="v2-sheet-hd"><b>Todas as abas</b></div>'+h+'</div>';
   bg.addEventListener('click',function(e){ if(e.target===bg) fecharMais(); });
   D.body.appendChild(bg); requestAnimationFrame(function(){ bg.classList.add('on'); });
 }
@@ -79,7 +79,7 @@ function botaoMais(){
   b.innerHTML=ICONES.mais+'<span>Mais</span>'; b.onclick=function(){ D.getElementById('v2Mais')?fecharMais():maisSheet(); };
   D.body.appendChild(b);
 }
-function seloPrevia(){
+function seloPrevia(){ return; /* UMA_PLATAFORMA_20261020: sem link para a versão anterior */
   var f=D.querySelector('aside.side .foot'); if(!f||f.querySelector('.v2-selo')) return;
   var s=D.createElement('div'); s.className='v2-selo'; s.innerHTML='<b>Plataforma v2</b><a href="/plataforma-v1">Abrir a versão anterior</a>';
   f.insertBefore(s,f.firstChild);
@@ -123,7 +123,7 @@ function anteriorV4(){ try{ var fr=D.querySelector('#v4wrap iframe'); if(!fr) re
   var p=d.createElement('div'); p.id='v2ant'; p.className='panel mb'; p.style.marginTop='16px';
   p.innerHTML='<div class="ph"><h3>Versão anterior</h3></div><div class="set" style="border:0"><div class="t"><b>Abrir a versão anterior da plataforma</b><small>O visual antigo, com os mesmos dados. Para voltar ao visual novo, abra a plataforma normalmente.</small></div><a class="btn sm dk" href="/plataforma-v1" target="_top">Abrir</a></div>';
   v.appendChild(p); }catch(e){} }
-setInterval(anteriorV4,1200);
+/* UMA_PLATAFORMA_20261020: a versão anterior saiu (tudo aponta para a plataforma nova) */
 
 /* ---------- ATUALIZAÇÃO AUTOMÁTICA (19/out, pedido do Gabriel) ----------
    O app instalado (iPhone/Android) e o computador pegam a versão nova sozinhos, sem reinstalar:

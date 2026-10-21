@@ -6,6 +6,56 @@
       "source": "/app",
       "destination": "/plataforma",
       "permanent": false
+    },
+    {
+      "source": "/plataforma-v1",
+      "destination": "/plataforma",
+      "permanent": false
+    },
+    {
+      "source": "/plataforma-v1.html",
+      "destination": "/plataforma",
+      "permanent": false
+    },
+    {
+      "source": "/plataformav2",
+      "destination": "/plataforma",
+      "permanent": false
+    },
+    {
+      "source": "/plataformav2.html",
+      "destination": "/plataforma",
+      "permanent": false
+    },
+    {
+      "source": "/plataforma_backup_2026-07-05",
+      "destination": "/plataforma",
+      "permanent": false
+    },
+    {
+      "source": "/plataforma_backup_2026-07-09",
+      "destination": "/plataforma",
+      "permanent": false
+    },
+    {
+      "source": "/plataforma_backup_2026-07-09b",
+      "destination": "/plataforma",
+      "permanent": false
+    },
+    {
+      "source": "/plataforma_backup_2026-07-05.html",
+      "destination": "/plataforma",
+      "permanent": false
+    },
+    {
+      "source": "/plataforma_backup_2026-07-09.html",
+      "destination": "/plataforma",
+      "permanent": false
+    },
+    {
+      "source": "/plataforma_backup_2026-07-09b.html",
+      "destination": "/plataforma",
+      "permanent": false
     }
   ],
   "headers": [

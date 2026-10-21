@@ -3107,9 +3107,9 @@ R.painel=function(v){var Ls=mine(LEADS).filter(function(l){return !l.perdido;}),
   $('#pes').innerHTML=es.map(function(k,i){return '<div class="hbar"><div class="hl"><span class="row" style="gap:8px">'+av(un(k),'','width:24px;height:24px;font-size:9px')+fn(k)+'</span><b>'+brlK(pv[i])+'</b></div><div class="pb"><i data-p="'+(pv[i]/pm)+'"></i></div></div>';}).join('');
   var rk=Object.keys(U).filter(function(k){return U[k].ativo&&U[k].role!=='master';}).map(function(k){var p=VENDAS.filter(function(x){return x.vend===k&&x.orig==='LEAD_AGION'&&inComp(x.data);}).reduce(function(a,x){return a+x.cred;},0);return [k,p,clusterDe(p)];}).sort(function(a,b){return b[1]-a[1];});
   $('#rnk').innerHTML=rk.map(function(r,i){return '<div class="rk"><div class="pos '+(i===0?'g1':'')+'">'+(i+1)+'</div>'+av(un(r[0]),'','width:30px;height:30px;font-size:10px')+'<div class="t"><b>'+fn(r[0])+' <span class="pill" style="margin-left:4px">'+pct(r[2].p*1,2).replace('%','')+'%</span></b><div class="pb"><i data-p="'+Math.min(1,r[1]/1000000)+'"></i></div><small style="font-size:11px;color:var(--mut)">'+brlK(r[1])+(r[2].prox?' · faltam '+brlK(r[2].falta)+' p/ '+r[2].prox.toFixed(2).replace('.',',')+'%':'')+'</small></div></div>';}).join('');}
- else{var mv=VENDAS.filter(function(x){return x.vend===ME()&&x.orig==='LEAD_AGION'&&inComp(x.data);}).reduce(function(a,x){return a+x.cred;},0),cl=clusterDe(mv),com=mv*cl.p/100;
+ else{var mv=VENDAS.filter(function(x){return x.vend===ME()&&x.orig==='LEAD_AGION'&&inComp(x.data);}).reduce(function(a,x){return a+x.cred;},0),cl=clusterDe(mv),/* COMISSAO_PAINEL_20261020: soma a comissão de todas as cartas da competência (lead da Agion + cliente próprio), pelo mesmo cálculo da aba Comissões */vcm=VENDAS.filter(function(x){return x.vend===ME()&&x.an!=='RECUSADA'&&inComp(x.data);}),mpr=vcm.filter(function(x){return x.orig==='PROPRIO';}).reduce(function(a,x){return a+x.cred;},0),comT=vcm.reduce(function(a,x){var c=0;try{c=+com(x).fTot||0;}catch(e){}return a+c;},0);
   $('#mcm').innerHTML='<div class="row" style="gap:26px;align-items:center;flex-wrap:wrap"><div class="donut" style="width:150px;height:150px"><svg width="150" height="150" viewBox="0 0 150 150"><circle cx="75" cy="75" r="62" fill="none" stroke="var(--bg2)" stroke-width="12"/><circle id="clr1" cx="75" cy="75" r="62" fill="none" stroke="url(#gg1)" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 400"/><defs><linearGradient id="gg1"><stop offset="0" stop-color="#A8853E"/><stop offset="1" stop-color="#E8CC8B"/></linearGradient></defs></svg><div class="c"><b>'+cl.p.toFixed(2).replace('.',',')+'%</b><small>seu cluster</small></div></div>'+
-  '<div style="flex:1;min-width:220px"><div class="lbl">Comissão da competência</div><div style="font:700 34px DM Sans;letter-spacing:-.03em;margin:6px 0" data-c="'+com+'" data-f="b2">0</div><div style="font-size:13px;color:var(--mut)">Produção com lead da Agion: <b style="color:var(--ink)">'+brl(mv)+'</b>'+(cl.prox?' · faltam <b style="color:var(--goldd)">'+brl(cl.falta)+'</b> para subir para '+cl.prox.toFixed(2).replace('.',',')+'%':'')+'</div>'+
+  '<div style="flex:1;min-width:220px"><div class="lbl">Comissão da competência</div><div style="font:700 34px DM Sans;letter-spacing:-.03em;margin:6px 0" data-c="'+comT+'" data-f="b2">0</div><div style="font-size:13px;color:var(--mut)">'+vcm.length+' carta'+(vcm.length!==1?'s':'')+' na competência · Produção com lead da Agion: <b style="color:var(--ink)">'+brl(mv)+'</b>'+(mpr?' · Cliente próprio: <b style="color:var(--ink)">'+brl(mpr)+'</b>':'')+(cl.prox?' · faltam <b style="color:var(--goldd)">'+brl(cl.falta)+'</b> para subir para '+cl.prox.toFixed(2).replace('.',',')+'%':'')+'</div>'+
   '<div class="row" style="gap:10px;margin-top:14px;flex-wrap:wrap">'+proxPagtos(ME()).map(function(p,i){return '<span class="pill'+(i===0?' gd':'')+'">'+p+'</span>';}).join('')+'<span class="pill bl">Pós-contemplação potencial '+brlK(VENDAS.filter(function(x){return x.vend===ME()&&x.orig==='PROPRIO'&&x.adm==='HS';}).reduce(function(a,x){return a+x.cred*.01;},0))+'</span></div></div></div>';
   setTimeout(function(){var c=$('#clr1');if(c)c.setAttribute('stroke-dasharray',(390*Math.min(1,mv/1000000))+' 400');},300);}
  var hot=mine(LEADS).filter(function(d){return d.st<4&&!d.perdido;}).sort(function(a,b){return b.score-a.score;}).slice(0,4);
@@ -5326,10 +5326,42 @@ var _bd=bindDist;bindDist=function(){_bd.apply(this,arguments);try{
 var _dc=distCarrega;distCarrega=function(force){if(DST.srv&&!force)return Promise.resolve();return papi('/api/designacao?n=150').then(function(r){if(!r||!r.ok){DST.err=(r&&r.data&&r.data.error)||'Não foi possível falar com o robô agora.';return;}DST.err=null;DST.srv=r.data;if(!DST.sujo)DST.cfg=JSON.parse(JSON.stringify(r.data.config||{}));}).catch(function(){DST.err='Sem conexão com o robô.';});};
 })();
 </script>
+<script id="b-vercomo">
+/* VERCOMO_20261020 (pedido do Gabriel): no "Ver como", um clique no participante já mostra a visão dele, com a pílula
+   deslizando e a tela entrando suave; clicar de novo no participante que já está ativo abre a lista de todos. */
+(function(){
+if(typeof vcMontar!=='function'||typeof vcHtml!=='function')return;
+var st=document.createElement('style');st.textContent=
+ '#vc .ind{transition:left .6s var(--sp),width .6s var(--sp)!important}'+
+ '#vc button{transition:color .35s var(--ez)}#vc button .av{transition:transform .5s var(--sp),box-shadow .5s var(--ez)}#vc button.on .av{transform:scale(1.08);box-shadow:0 0 0 2px rgba(232,204,139,.55)}'+
+ '#vc.vc-ir button[data-r="outro"]>*{animation:vcTroca .55s var(--ez) both}#vc.vc-ir button[data-r="outro"]>span{animation-delay:.06s}'+
+ '@keyframes vcTroca{0%{opacity:0;transform:translateY(9px) scale(.88)}100%{opacity:1;transform:none}}'+
+ '#vc.vc-ok button.on{animation:vcPulse .7s var(--ez)}@keyframes vcPulse{0%{transform:scale(.96)}55%{transform:scale(1.035)}100%{transform:none}}'+
+ '#view.vc-fade{animation:vcView .65s var(--ez) both}@keyframes vcView{0%{opacity:.15;filter:blur(4px);transform:translateY(14px) scale(.99)}100%{opacity:1;filter:none;transform:none}}'+
+ '@media (prefers-reduced-motion: reduce){#vc .ind{transition:none!important}#vc *,#vc,#view.vc-fade{animation:none!important}}';
+document.head.appendChild(st);
+var BUSY=false;
+function ativa(vc,b){$$('button',vc).forEach(function(x){x.classList.toggle('on',x===b);});slide(vc);}
+function troca(id){if(BUSY)return;BUSY=true;var vc=$('#vc');setTimeout(function(){Promise.resolve(verComoR(id)).then(function(){var v=$('#view');if(v){v.classList.remove('vc-fade');void v.offsetWidth;v.classList.add('vc-fade');setTimeout(function(){v.classList.remove('vc-fade');},700);}
+  var c=$('#vc');if(c){c.classList.add('vc-ok');setTimeout(function(){c.classList.remove('vc-ok','vc-ir');},750);}BUSY=false;}).catch(function(){BUSY=false;});},320);}
+function lista(b){vcEscolher(b,function(id){if(!id)return;var vc=$('#vc'),s=psess();if(s.viewAs&&s.viewAs.id===id)return;
+  if(id===realId()){ativa(vc,$('button[data-r="eu"]',vc));troca(null);return;}
+  var o=$('button[data-r="outro"]',vc),u=U[id];if(o&&u){o.innerHTML=av(u.n,'','background:#8E5A7A')+'<span>'+u.n.split(' ')[0]+' · '+u.p+'</span>';vc.classList.add('vc-ir');ativa(vc,o);}troca(id);});}
+vcMontar=function(){var vc=$('#vc');if(!vc)return;if(!vcPode()){vc.style.display='none';return;}vc.style.display='';
+ var i0=$('.ind',vc),L0=i0?i0.style.left:'',W0=i0?i0.style.width:'';
+ vc.innerHTML=vcHtml();var ind=$('.ind',vc);if(ind&&L0){ind.style.transition='none';ind.style.left=L0;ind.style.width=W0;void ind.offsetWidth;ind.style.transition='';}
+ $$('button',vc).forEach(function(b){b.onclick=function(e){e.stopPropagation();if(BUSY)return;var vend=!!(psess().viewAs);
+   if(b.dataset.r==='eu'){if(vend){ativa(vc,b);troca(null);}else lista(b);return;}
+   if(!vend){var al=vcAlvo();if(al){ativa(vc,b);troca(al);return;}}
+   lista(b);};});
+ setTimeout(function(){slide(vc);},30);};
+vcMontar();
+})();
+</script>
 <script src="/plat2-tour.js?v=5"></script>
 <script src="/plat2-maav.js?v=3"></script>
 <script src="/calc-link.js?v=3"></script>
-<script src="/plat2-histferr.js?v=2"></script>
+<script src="/plat2-histferr.js?v=3"></script>
 <script id="b-tab-estavel">/* Chat B 19/out: abas do celular respondem no 1º toque.
  Causa: a barra era REFEITA (innerHTML) a cada atualização de números/badges (CRM, conversas, recarga a cada poucos segundos);
  se isso acontecia entre o dedo encostar e soltar, o toque se perdia — e a rolagem da barra voltava para o meio.
