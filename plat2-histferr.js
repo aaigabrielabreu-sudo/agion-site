@@ -233,7 +233,8 @@ function telaGer(){ var L=periodo(), C=clientes(L), t=agora();
   var PF={financiamento:[0,0],alavancagem:[0,0],escada:[0,0]}; L.forEach(function(l){ PF[l.calc][0]++; PF[l.calc][1]+=sims(l).length; });
   var mx=Math.max(1,PF.financiamento[0],PF.alavancagem[0],PF.escada[0]), best=null, br=0;
   Object.keys(PF).forEach(function(k){ if(PF[k][0]&&PF[k][1]/PF[k][0]>br){ br=PF[k][1]/PF[k][0]; best=k; } });
-  h+='<div class="panel rv" id="hfFe"><div class="ph"><h3>Por ferramenta</h3></div><div class="hf-bars">'+Object.keys(PF).map(function(k){ return '<div class="r"><div class="nm">'+esc(FER[k].n.replace(' × Consórcio',' × Cons.'))+'</div><div class="tr"><div class="fl" style="width:'+(100*PF[k][0]/mx)+'%;background:'+FER[k].c+'"></div></div><div class="vv">'+PF[k][0]+'</div></div>'; }).join('')+'</div>'+
+  /* Escada Financeira não tem link temporário (decisão do Gabriel, 20/out): só aparece se algum dia houver link dela */
+  h+='<div class="panel rv" id="hfFe"><div class="ph"><h3>Por ferramenta</h3></div><div class="hf-bars">'+Object.keys(PF).filter(function(k){ return k!=='escada'||PF[k][0]>0; }).map(function(k){ return '<div class="r"><div class="nm">'+esc(FER[k].n.replace(' × Consórcio',' × Cons.'))+'</div><div class="tr"><div class="fl" style="width:'+(100*PF[k][0]/mx)+'%;background:'+FER[k].c+'"></div></div><div class="vv">'+PF[k][0]+'</div></div>'; }).join('')+'</div>'+
    (best?'<div class="hf-nt">A '+esc(FER[best].n)+' é a que mais gera simulação por link.</div>':'')+'</div>';
   var A=atencao(); HF._a=A;
   h+='<div class="panel rv" id="hfA"><div class="ph"><h3>⚠ Precisam de atenção</h3></div>'+(A.length?A.map(function(a,i){ return '<div class="hf-hot">'+avh(a.nome)+'<div style="flex:1;min-width:0"><div class="nm" style="font-size:13px">'+esc(a.nome)+'</div><div class="ds">'+esc(a.txt)+'</div></div><button class="btn sm ol" data-at="'+i+'">'+a.bt+'</button></div>'; }).join(''):'<div class="hf-vz">Nada pendente.</div>')+'</div></div>';
