@@ -13,11 +13,14 @@
 var W=window, D=document;
 var S3=['master','lider','especialista'], ML=['master','lider'], M=['master'], TODOS=['master','lider','especialista','cliente'];
 
-/* v25 começou com rev:1 — no dia 16/10 um número 25 ficou no ar por alguns minutos. v26 = 19/10 (visual novo; rev 2 = tudo desde a 24, por assunto). Próxima: 27. */
+/* v25 começou com rev:1 — no dia 16/10 um número 25 ficou no ar por alguns minutos. v26 = 19/10 (visual novo; rev 2 = tudo desde a 24, por assunto). v27 = 21/10. Próxima: 28. */
 /* itens com v2tut abrem o tutorial guiado do visual novo (plat2-tour.js) */
 function v4w(){ try{ var f=D.querySelector('#v4wrap iframe'); if(f&&D.documentElement.classList.contains('v4on')&&f.contentWindow&&f.contentWindow.AgionTour2) return f.contentWindow; }catch(e){} return null; }
 function irV2(tab,tut){ var w=v4w(); if(w){ try{ if(tut) w.AgionTour2.start(tut); else w.go(tab); }catch(e){} return; } try{ go({painel:'dash',clientes:'users',ajustes:'config'}[tab]||tab); }catch(e){} }
 var VERSOES=[
+ {v:27,rev:1,data:'21/10/2026',titulo:'Cliente é quem tem carta de consórcio',sub:'A aba Clientes passou a mostrar só quem tem carta; quem ainda não tem fica no Cadastro.',itens:[
+   {g:'Clientes',roles:S3,ic:'users',t:'Cliente é quem tem carta de consórcio',d:'A aba Clientes mostra só quem tem carta de consórcio. Quem ainda não tem fica no Cadastro e volta para Clientes quando a carta for registrada. Em “Novo cliente” a plataforma pergunta se a pessoa já tem carta; se não tiver, ela entra direto no Cadastro.',abrir:function(){ irV2('clientes'); }}
+ ]},
  {v:26,rev:11,data:'20/10/2026',titulo:'Visual novo e tudo o que mudou desde a versão 24',sub:'Da maior mudança (o visual novo) aos pequenos ajustes de toque no celular — tudo o que entrou de 17 a 20 de outubro, por assunto.',itens:[
    {g:'CRM',roles:S3,ic:'funnel',t:'Arrastar cartão em qualquer altura do quadro',d:'Com o quadro rolado para baixo, o cartão vai para qualquer etapa: as colunas vão até o fim, o quadro rola sozinho perto das bordas e, ao arrastar, aparece embaixo a barra “Mover para” com todas as etapas.',abrir:function(){ irV2('crm'); }},
    {g:'CRM',roles:S3,ic:'funnel',t:'Lead em reengajamento fica fora do CRM',d:'Lead sem responsável que está com o robô em reengajamento não aparece mais no CRM, nem em “aguardando distribuição”. O cadastro continua. Quando a pessoa volta a conversar, ela é distribuída e entra no CRM de novo.'},

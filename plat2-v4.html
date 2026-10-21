@@ -1753,7 +1753,7 @@ html,body{max-width:100%;overflow-x:hidden}
   <button class="tog" id="tog" title="Recolher menu"><svg class="i" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M15 18l-6-6 6-6"/></svg></button>
   <nav class="nav" id="nav"></nav>
   <div class="sbf">
-   <button class="ver" id="ver"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M12 8S10 3 7.5 3 5 6 7 8M12 8s2-5 4.5-5S19 6 17 8"/></svg><span>Versão 26 · Novidades</span><b class="nv">NOVO</b></button>
+   <button class="ver" id="ver"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18M12 8S10 3 7.5 3 5 6 7 8M12 8s2-5 4.5-5S19 6 17 8"/></svg><span>Versão 27 · Novidades</span><b class="nv">NOVO</b></button>
    <div class="uc" id="uc"></div>
   </div>
  </aside>
@@ -1939,7 +1939,7 @@ var NOVIDADES=[
    Os nomes e formatos são os mesmos do protótipo v4 (LEADS, CLIENTES, TASKS, VENDAS,
    CONV, U…) para as telas ficarem idênticas. Cada item guarda .uid (id real) e .raw
    (objeto da v1) para as ações gravarem pelo caminho oficial. */
-var LEADS=[],CLIENTES=[],TASKS=[],CONV=[],VENDAS=[],CARTAS=[],METAS_DB=[],ATVLOG=[],INBOXR=[];
+var LEADS=[],CLIENTES=[],CLIENTES_TODOS=[],TASKS=[],CONV=[],VENDAS=[],CARTAS=[],METAS_DB=[],ATVLOG=[],INBOXR=[];
 var U={},EQUIPE=[],TEAM=[];
 var IDN={},IDC=0;function nid(uid){if(!IDN[uid])IDN[uid]=++IDC;return IDN[uid];}
 var XL={};            /* colunas extras de leads (score, em_followup, reuniao_em, parcela_desejada…) */
@@ -2004,6 +2004,7 @@ function mapCliente(c){var mp=(c.plans||[]).filter(function(p){return p.main;})[
 
 /* ---------- venda (comissoes_vendas → v4) ---------- */
 var SIT_LB={EM_DIA:'Em dia',CONTEMPLADO:'Contemplada',INADIMPLENTE:'Inadimplente',CANCELADO:'Cancelada',EXCLUIDO:'Excluída'};
+function temCarta(c){return !!(c&&((c.cartas&&c.cartas.length)||(c.vendas||[]).some(function(v){return v.an!=='RECUSADA';})));}
 function mapVenda(v){var d=v.data_insercao?new Date(v.data_insercao+'T12:00:00'):(v.criado_em?new Date(v.criado_em):new Date());var ps=Array.isArray(v.parcelas)?v.parcelas:[];
  return {id:nid(v.id),uid:v.id,raw:v,cli:v.cliente_nome||'—',cliId:v.cliente_id||null,vend:v.vendedor_id||null,cred:+v.credito||0,orig:(v.origem==='CLIENTE_PROPRIO'||v.origem==='PROPRIO')?'PROPRIO':(v.origem||'LEAD_AGION'),adm:admCurta(v.administradora),cat:v.categoria||null,sub:v.subcategoria||null,
   data:fmtD(d),ts:+d,sit:v.situacao||'EM_DIA',sitLb:SIT_LB[v.situacao]||v.situacao||'Em dia',an:v.analise_status||null,grupo:v.grupo||'',cota:v.cota||'',pagas:ps.filter(function(p){return p&&(p.recebida||p.pago||p.status==='RECEBIDA');}).length};}
@@ -2026,7 +2027,7 @@ function carregar(){ if(_carregando)return _carregando; _carregando=(async funct
   /* leads e clientes visíveis segundo as regras da v1 (papel, "Ver como", Alice) */
   var VL=pfn('visibleLeads')?pcall('visibleLeads'):(d.crm||[]),VC=pfn('visibleClients')?pcall('visibleClients'):(d.clients||[]);
   LEADS=(VL||[]).map(mapLead);
-  CLIENTES=(VC||[]).map(mapCliente);
+  CLIENTES_TODOS=(VC||[]).map(mapCliente);CLIENTES=CLIENTES_TODOS.filter(temCarta);/* CLIENTE_TEM_CARTA_20261020: sem carta de consórcio não é cliente — fica só no Cadastro */
   TASKS=(d.tasks||[]).filter(function(t){return !t.arquivada;}).map(mapTask);
   if(!isM())VENDAS=VENDAS.filter(function(v){return TEAM.indexOf(v.vend)>=0;});
   INBOXR=(d.inbox||[]);ATVLOG=(d.actlog||[]);
@@ -3869,13 +3870,13 @@ R.clientes=function(v){var cs=mine(CLIENTES),fv=favs();cs.forEach(function(c){c.
  '<div class="kpis rv"><div class="kpi"><div class="ic">'+I('users')+'</div><div><b data-c="'+cs.length+'">0</b>'+(novos?'<span class="chipd">+'+novos+' no mês</span>':'')+'<small>Clientes</small></div></div>'+
  '<div class="kpi"><div class="ic">'+I('wallet')+'</div><div><b data-c="'+cs.reduce(function(a,c){return a+c.cred;},0)+'" data-f="brl">0</b><small>Crédito sob gestão</small></div></div>'+
  '<div class="kpi"><div class="ic">'+I('trophy')+'</div><div><b data-c="'+cs.filter(function(c){return /contempl/i.test(c.sit);}).length+'">0</b><small>Contemplados</small></div></div>'+
- '<div class="kpi"><div class="ic">'+I('shield')+'</div><div><b data-c="'+cs.filter(function(c){return /N2|INADIM|atraso/i.test(c.sit);}).length+'">0</b>'+(cs.some(function(c){return /N2|INADIM|atraso/i.test(c.sit);})?'<span class="chipd r">atenção</span>':'')+'<small>Com parcela em aberto</small></div></div></div>'+
+ '<div class="kpi"><div class="ic">'+I('shield')+'</div><div><b data-c="'+cs.filter(function(c){return /N2|INADIM|atraso/i.test(c.sit);}).length+'">0</b>'+(cs.some(function(c){return /N2|INADIM|atraso/i.test(c.sit);})?'<span class="chipd r">atenção</span>':'')+'<small>Com parcela em aberto</small></div></div></div>'+semCartaBan()+
  sn('ccat',[['todos','Todos',cs.length]].concat(Object.keys(CCAT).map(function(k){return [k,CCAT[k].ic+' '+CCAT[k].lb,cs.filter(function(c){return c.cat===k;}).length];})),CF.cat)+'<div class="tb rv">'+
  dd('csit','Todas as situações',[{k:'todas',lb:'Todas as situações'},{k:'Em dia',lb:'Em dia',dot:'#3F8F6A'},{k:'Contemplada',lb:'Contemplados',dot:'#C5A059'},{k:'N21',lb:'Atenção (parcela em aberto)',dot:'#C2463B'}],CF.sit)+
  (tkGest()?dd('cwho','Todos os especialistas',[{k:'todas',lb:'Todos os especialistas'}].concat(Object.keys(U).filter(function(k){return CLIENTES.some(function(c){return c.resp===k;});}).map(function(k){return {k:k,lb:un(k),dot:avc(un(k)),c:CLIENTES.filter(function(c){return c.resp===k;}).length};})),CF.who):'')+
  '<label class="search">'+I('search',16)+'<input id="cq" placeholder="Nome, CPF, telefone, grupo…" value="'+esc4(CF.q)+'"></label></div><div class="cg rv" id="cg"></div>';
  bindSeg('ccat',function(k){CF.cat=k;grid();});bindDD('csit',function(k){CF.sit=k;R.clientes(v);reveal(v);counts(v);});if(tkGest())bindDD('cwho',function(k){CF.who=k;R.clientes(v);reveal(v);counts(v);});
- $('#cq').oninput=function(e){CF.q=e.target.value.toLowerCase();grid();};$('#ncl').onclick=function(){if(roOk())pcall('newClient');};$('#cexp').onclick=function(){exportaCli(cs);};grid();
+ $('#cq').oninput=function(e){CF.q=e.target.value.toLowerCase();grid();};$('#ncl').onclick=function(){if(roOk())novoClienteCarta();};if($('#csc'))$('#csc').onclick=function(){go('cadastro');};$('#cexp').onclick=function(){exportaCli(cs);};grid();
  if(!PAG)carregaPag().then(function(){if(cur==='clientes')grid();});
  function okSit(c){if(CF.sit==='todas')return true;if(CF.sit==='Contemplada')return /contempl/i.test(c.sit);if(CF.sit==='N21')return /N2|INADIM|atraso/i.test(c.sit);return !/contempl|N2|INADIM|atraso|cancel/i.test(c.sit);}
  function grid(){var ls=cs.filter(function(c){if(CF.q&&(c.nome+' '+c.grupo+' '+c.cota+' '+c.cpf+' '+c.tel+' '+c.email+' '+(c.cartas||[]).map(function(k){return k.grupo+' '+k.cota;}).join(' ')).toLowerCase().indexOf(CF.q)<0)return false;if(CF.cat!=='todos'&&c.cat!==CF.cat)return false;if(!okSit(c))return false;if(CF.who!=='todas'&&c.resp!==CF.who)return false;return true;});
@@ -3903,6 +3904,43 @@ function subCli(c){if(c.sub)return c.sub;return {AUTOMOVEL:c.cred>=300000?'Pesad
 function cartasModal(c){if(!c)return;pcall('openCartas',c.id);}
 function abrePlano(c){var p=(c.plans||[]).filter(function(x){return x.main;})[0]||(c.plans||[])[0];if(!p){toast('Este cliente ainda não tem plano','x');return;}pcall('openEditor',c.id,p.id,RO());}
 function compararModal(c){try{var vw=pev('view');vw.page='compare';vw.clientId=c.id;pcall('renderNav');pcall('render');}catch(e){toast('Não consegui abrir a comparação','x');}}
+/* CLIENTE_TEM_CARTA_20261020: "Novo cliente" pergunta se tem carta; sem carta, a pessoa entra só no Cadastro */
+function semCartaBan(){var n=mine(CLIENTES_TODOS).filter(function(c){return !temCarta(c);}).length;if(!n)return '';
+ return '<div class="banner rv">'+I('idc',17)+'<span><b>'+n+(n>1?' pessoas':' pessoa')+' sem carta de consórcio</b> '+(n>1?'ficam':'fica')+' só no Cadastro. Quando a carta for registrada, '+(n>1?'elas passam':'ela passa')+' a aparecer aqui.</span><span class="sp"></span><button class="btn sm dk" id="csc">Ver no Cadastro</button></div>';}
+function novoClienteCarta(){var s=sheet('<h2>Novo cliente</h2><p style="color:var(--mut);font-size:13.5px;margin:6px 0 16px">O cliente já tem <b>carta de consórcio</b>? Só é cliente quem tem carta. Quem ainda não tem entra no <b>Cadastro</b>.</p><div style="display:grid;gap:10px"><button class="btn gd" id="ncs" style="justify-content:center">'+I('ok',15)+'Sim, tem carta de consórcio</button><button class="btn ol" id="ncn" style="justify-content:center">Não, ainda não tem</button></div>',440);
+ $('#ncs',s).onclick=function(){closeSheet();setTimeout(function(){pcall('newClient');},250);};
+ $('#ncn',s).onclick=function(){cadastroSemCarta();};}
+function cadastroSemCarta(){var s=sheet('<h2>Entra no Cadastro</h2><p style="color:var(--mut);font-size:13.5px;margin:6px 0 14px">Sem carta de consórcio, a pessoa fica no Cadastro. Quando ela fechar, registre a carta e ela passa a ser cliente.</p>'+
+ '<div class="fi"><label>Nome completo</label><input id="scn" autocomplete="off"></div><div class="fi"><label>WhatsApp (com DDD)</label><input id="sct" inputmode="tel" placeholder="(51) 9…" autocomplete="off"></div>'+
+ '<div class="fi"><label>CPF ou CNPJ (opcional)</label><input id="scc" inputmode="numeric" autocomplete="off"></div><div class="fi"><label>E-mail (opcional)</label><input id="sce" type="email" autocomplete="off"></div>'+
+ '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px"><button class="btn ol" id="scx">Cancelar</button><button class="btn gd" id="scy">'+I('idc',15)+'Salvar no Cadastro</button></div>',460);
+ setTimeout(function(){var n=$('#scn',s);if(n)n.focus();},350);$('#scx',s).onclick=function(){closeSheet();};
+ $('#scy',s).onclick=async function(){var b=this,nome=$('#scn',s).value.trim(),tel=$('#sct',s).value.replace(/\D/g,''),cpf=$('#scc',s).value.replace(/\D/g,''),em=$('#sce',s).value.trim();
+  if(tel.length>=12&&/^55/.test(tel))tel=tel.slice(2);
+  if(!nome){toast('Informe o nome','x');return;}
+  if(tel.length<10&&cpf.length<11&&em.indexOf('@')<0){toast('Informe o WhatsApp com DDD, o CPF ou o e-mail','x');return;}
+  if(cpf&&cpf.length!==11&&cpf.length!==14){toast('CPF com 11 dígitos ou CNPJ com 14','x');return;}
+  b.disabled=true;var tx=b.innerHTML;b.textContent='Salvando…';var r=null;try{r=await salvaCadastro(nome,tel,cpf,em);}catch(e){toast('Não salvou agora — tente de novo','x');}b.disabled=false;b.innerHTML=tx;if(!r)return;
+  if(r.existia&&!r.visivel){closeSheet();setTimeout(function(){sheet('<h2>Já está no Cadastro</h2><p style="color:var(--mut);font-size:13.5px;margin:6px 0 16px">'+esc4(r.nome||nome)+' já está no Cadastro'+(r.origem==='COLABORADOR'&&r.origem_por_nome?', trazido por '+esc4(String(r.origem_por_nome).split(' ')[0]):', com origem Agion')+'. Para atender essa pessoa, fale com o seu gestor.</p><div style="display:flex;justify-content:flex-end"><button class="btn gd" onclick="closeSheet()">Entendi</button></div>',440);},300);return;}
+  closeSheet();toast(r.existia?(r.nome||nome)+' já estava no Cadastro — abrimos a ficha':(nome.split(' ')[0]+' entrou no Cadastro'),'idc');
+  try{await pcall('loadCloud');}catch(e){}try{await carregar();}catch(e){}
+  go('cadastro');setTimeout(function(){var k=(pdb().cadastros||[]).filter(function(x){return x.id===r.id;})[0];if(k)fichaPessoa(k);},500);};}
+async function salvaCadastro(nome,tel,cpf,em){var sb=psb(),r=null;
+ try{r=await sb.rpc('cadastro_novo',{p_nome:nome,p_tel:tel||null,p_cpf:cpf||null,p_email:em||null});}catch(e){r={error:{message:String(e&&e.message||e)}};}
+ if(r&&!r.error&&r.data)return r.data;
+ var er=r&&r.error?((r.error.code||'')+' '+(r.error.message||'')):'';
+ if(!/PGRST202|could not find|does not exist|cadastro_novo/i.test(er)){toast('Não salvou: '+((r&&r.error&&r.error.message)||'erro'),'x');return null;}
+ /* a função nova ainda não foi liberada no banco: só o master pode gravar direto no Cadastro (regra atual do banco) */
+ if(!isM()){toast('Falta liberar no banco o cadastro sem carta (pedido ao Gabriel)','x');return null;}
+ var c=await sb.rpc('cadastro_consulta',{p_tel:tel||null,p_cpf:cpf||null,p_email:em||null});
+ if(c&&!c.error&&c.data&&c.data.found)return {id:c.data.id,existia:true,visivel:true,nome:c.data.nome,origem:c.data.origem};
+ var tk=null;try{tk=tel?pcall('telKey',tel):null;}catch(e){}
+ var row={nome:nome,tel:tel||null,tel_chave:tk||null,cpf:cpf||null,email:em?em.toLowerCase():null,origem:'EMPRESA',origem_canal:'Cadastro manual',
+  historico:[{quando:new Date().toISOString(),tipo:'cadastro',ref:null,nome:nome,resp:realId(),por:realId(),op:'INSERT',texto:'Entrou no Cadastro (sem carta de consórcio)'}]};
+ var ins=await sb.from('cadastros').insert(row).select('id').maybeSingle();
+ if(ins.error){toast('Não salvou: '+ins.error.message,'x');return null;}
+ plog('CADASTRO_NOVO','cadastros','Cadastrou '+nome+' no Cadastro (sem carta de consórcio)',{cadastro_id:ins.data&&ins.data.id});
+ return {id:ins.data&&ins.data.id,existia:false,visivel:true,nome:nome};}
 function exportaCli(cs){var L0=[['Nome','E-mail','Telefone','CPF','Categoria','Administradora','Crédito','Patrimônio','Responsável','Cliente desde']].concat(cs.map(function(c){return [c.nome,c.email,c.tel,c.cpf,c.cat?CCAT[c.cat].lb:'',c.adm,c.cred,c.pat,un(c.resp),c.since];}));
  var csv=L0.map(function(r){return r.map(function(x){x=String(x==null?'':x);return /[;"\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x;}).join(';');}).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'}));a.download='clientes-agion.csv';document.body.appendChild(a);a.click();a.remove();toast('Planilha de clientes baixada','dl');}
 
@@ -3974,7 +4012,7 @@ function sampleFor(o){return '';}
 
 /* ---------- cadastro único (master/líder) ---------- */
 R.cadastro=function(v){var CD=(pdb().cadastros||[]),cli={},ld={},MST=isM();/* CAD_ESP_20261020: colaborador vê só os cadastros dos clientes e leads dele (regra do banco; aqui de novo, para o “Ver como”) */
- if(!MST){var TM={};(TEAM||[effIdR()]).forEach(function(x){TM[x]=1;});var ok={};(pdb().clients||[]).forEach(function(c){if(c.cadastroId&&TM[c.ownerId])ok[c.cadastroId]=1;});(LEADS||[]).forEach(function(l){var c=l.raw&&l.raw.cadastroId;if(c&&TM[l.resp])ok[c]=1;});/* só os leads que estão no CRM dele (os que ainda estão com a Alice não entram) */CD=CD.filter(function(k){return ok[k.id]||TM[k.origem_por];});}(pdb().clients||[]).forEach(function(c){if(c.cadastroId)cli[c.cadastroId]=c;});(pdb().crm||[]).forEach(function(l){if(l.cadastroId&&!l.perdido)(ld[l.cadastroId]=ld[l.cadastroId]||[]).push(l);});
+ if(!MST){var TM={};(TEAM||[effIdR()]).forEach(function(x){TM[x]=1;});var ok={};(pdb().clients||[]).forEach(function(c){if(c.cadastroId&&TM[c.ownerId])ok[c.cadastroId]=1;});(LEADS||[]).forEach(function(l){var c=l.raw&&l.raw.cadastroId;if(c&&TM[l.resp])ok[c]=1;});/* só os leads que estão no CRM dele (os que ainda estão com a Alice não entram) */CD=CD.filter(function(k){return ok[k.id]||TM[k.origem_por];});}var _cc={};(CLIENTES||[]).forEach(function(x){_cc[x.id]=1;});(pdb().clients||[]).forEach(function(c){if(c.cadastroId&&_cc[c.id])cli[c.cadastroId]=c;});/* CLIENTE_TEM_CARTA_20261020 */(pdb().crm||[]).forEach(function(l){if(l.cadastroId&&!l.perdido)(ld[l.cadastroId]=ld[l.cadastroId]||[]).push(l);});
  function sit(k){return cli[k.id]?'Cliente':ld[k.id]?'Lead em andamento':'Sem negócio ativo';}
  var nCli=CD.filter(function(k){return cli[k.id];}).length,nLead=CD.filter(function(k){return !cli[k.id]&&ld[k.id];}).length,nPro=CD.filter(function(k){return k.origem==='COLABORADOR';}).length,nAg=CD.length-nPro;
  var tk=function(t){try{return pcall('telKey',t);}catch(e){return '';}},dup=[],byT={},byC={};CD.forEach(function(k){var t=tk(k.tel),c=String(k.cpf||'').replace(/\D/g,'');if(t){if(byT[t])dup.push([byT[t],k,'Mesmo telefone (com e sem o 9)']);else byT[t]=k;}if(c.length>=11){if(byC[c])dup.push([byC[c],k,'Mesmo CPF']);else byC[c]=k;}});
@@ -3997,7 +4035,7 @@ R.cadastro=function(v){var CD=(pdb().cadastros||[]),cli={},ld={},MST=isM();/* CA
 function fichaPessoa(k){if(!k)return;var TMf={};(TEAM||[]).forEach(function(x){TMf[x]=1;});var cli=(pdb().clients||[]).filter(function(c){return c.cadastroId===k.id&&(isM()||TMf[c.ownerId]);}),ls=LEADS.filter(function(l){return l.raw.cadastroId===k.id;}),hist=Array.isArray(k.historico)?k.historico:[];
  var d=drawer('<div class="row" style="gap:14px;margin-bottom:6px">'+av(k.nome||'?','','width:52px;height:52px;font-size:18px')+'<div><h3 style="margin:0">'+esc4(k.nome||'—')+'</h3><span class="pill '+(k.origem==='COLABORADOR'?'au':'')+'">'+(k.origem==='COLABORADOR'?'👤 Própria de '+fn(k.origem_por):'🏢 Agion'+(k.origem_canal?' · '+esc4(k.origem_canal):''))+'</span></div></div>'+
  '<div class="kv" style="margin:16px 0">'+[['WhatsApp',k.tel||'—'],['CPF/CNPJ',k.cpf?(pfn('cpfFmt')?pcall('cpfFmt',k.cpf):k.cpf):'—'],['E-mail',k.email||'—'],['No cadastro desde',k.criado_em?fmtD(k.criado_em):'—']].map(function(x){return '<div><small>'+x[0]+'</small><b style="font-size:13px">'+esc4(x[1])+'</b></div>';}).join('')+'</div>'+
- '<div class="lbl" style="margin-bottom:8px">Cliente</div>'+(cli.length?cli.map(function(c){var cc=CLIENTES.filter(function(x){return x.id===c.id;})[0];return '<div class="li" style="background:var(--bg)">'+I('users',18)+'<div class="t"><b>Ficha de cliente'+(c.categoria&&CCAT[c.categoria]?' · '+CCAT[c.categoria].ic+' '+CCAT[c.categoria].lb:'')+'</b><small>'+(c.criadoEm?'desde '+fmtD(c.criadoEm):'')+(c.ownerId?' · com '+fn(c.ownerId):'')+'</small></div><button class="btn sm" data-cc="'+c.id+'">🎫 Cartas</button>'+(cc?'<button class="btn sm" data-cf="'+c.id+'">Abrir</button>':'')+'</div>';}).join(''):'<div class="empty" style="padding:12px">Ainda não é cliente.</div>')+
+ '<div class="lbl" style="margin-bottom:8px">Cliente</div>'+(cli.length?cli.map(function(c){var cc=CLIENTES.filter(function(x){return x.id===c.id;})[0];return '<div class="li" style="background:var(--bg)">'+I('users',18)+'<div class="t"><b>'+(cc?'Ficha de cliente':'Ainda sem carta de consórcio')+(c.categoria&&CCAT[c.categoria]?' · '+CCAT[c.categoria].ic+' '+CCAT[c.categoria].lb:'')+'</b><small>'+(c.criadoEm?'desde '+fmtD(c.criadoEm):'')+(c.ownerId?' · com '+fn(c.ownerId):'')+'</small></div><button class="btn sm" data-cc="'+c.id+'">'+(cc?'🎫 Cartas':'🎫 Registrar carta')+'</button>'+(cc?'<button class="btn sm" data-cf="'+c.id+'">Abrir</button>':'')+'</div>';}).join(''):'<div class="empty" style="padding:12px">Ainda não é cliente.</div>')+
  '<div class="lbl" style="margin:14px 0 8px">Leads</div>'+(ls.length?ls.map(function(l){return '<div class="li" style="background:var(--bg)"><span class="pill" style="background:var('+ST[l.st].c+');color:var('+ST[l.st].t+')">'+(l.perdido?'Perdido':ST[l.st].n)+'</span><div class="t"><small>'+fmtD(l.criado)+' · com '+(l.resp?fn(l.resp):'ninguém')+'</small></div><button class="btn sm" data-ld="'+l.id+'">Abrir</button></div>';}).join(''):'<div class="empty" style="padding:12px">Nenhum lead na base hoje.</div>')+
  '<div class="lbl" style="margin:14px 0 8px">Histórico</div>'+(hist.length?hist.slice(-12).reverse().map(function(h){return '<div class="li"><i style="width:8px;height:8px;border-radius:50%;background:var(--gold);flex:none"></i><div class="t"><b style="font-weight:600;font-size:13px">'+esc4(h.texto||h.acao||h.evento||JSON.stringify(h).slice(0,80))+'</b><small>'+(h.quando||h.em||h.data?fmtD(h.quando||h.em||h.data):'')+'</small></div></div>';}).join(''):'<div class="empty" style="padding:12px">Sem histórico registrado.</div>')+
  (isM()?'<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:16px"><button class="btn sm" id="fpe">✏️ Editar dados</button><button class="btn sm" id="fpo">🏷 Origem</button><button class="btn sm dk" id="fpu">🔗 Unificar com outro cadastro</button></div>':''));
