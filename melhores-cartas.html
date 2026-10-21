@@ -205,7 +205,7 @@ function preparar(d){
  S.GR=GR;S.cartas=d.cartas||[];
  var M={};(d.marcas||[]).forEach(function(x){var k=adm(x.administradora)+'|'+num(x.grupo);var c=+x.cota;((M[k]=M[k]||{})[c]=M[k][c]||{})[x.marca]=x;});S.M=M;
  var t1=S.ult.IMOVEL,t2=S.ult.AUTOMOVEL;
- var tm=S.ultMes.IMOVEL||S.ultMes.AUTOMOVEL;$('#atu').innerHTML=(t1||t2)?('<span class="hm2">Resultado final</span><span class="sm2">Final</span> até '+mesLb(t1&&t2?(mIdx(t1)>mIdx(t2)?t1:t2):(t1||t2))+(tm?'<span class="hm2"> + resultado do mês</span>':'')+'<span class="hm2"> · '+Object.keys(GR).filter(function(k){return GR[k].w;}).length+' grupos</span>'):'Sem assembleias importadas';
+ var tm=S.ultMes.IMOVEL||S.ultMes.AUTOMOVEL;$('#atu').innerHTML=(t1||t2)?('<span class="hm2">Resultado final</span><span class="sm2">Final</span><span class="hm2"> até</span> '+mesLb(t1&&t2?(mIdx(t1)>mIdx(t2)?t1:t2):(t1||t2))+(tm?'<span class="hm2"> + resultado do mês</span>':'')+'<span class="hm2"> · '+Object.keys(GR).filter(function(k){return GR[k].w;}).length+' grupos</span>'):'Sem assembleias importadas';
  migraLocal();}
 /* posições antigas que ficaram só neste aparelho viram posições da equipe (no banco) */
 async function migraLocal(){var PL=null;try{PL=JSON.parse(localStorage.getItem('agmc-plan')||'null');}catch(e){}if(!PL)return;var rows=[];
