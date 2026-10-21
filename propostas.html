@@ -968,7 +968,7 @@ try{parent.postMessage({type:'agion-ready'},'*');}catch(e){}
 
 <script src="/tool-tour.js?v=1" defer></script>
 
-<script src="/calc-link.js?v=2"></script>
+<script src="/calc-link.js?v=3"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js" async></script>
 <script id="ag-prop-calc-link">/* Chat B 19/out: link temporário da calculadora dentro do Gerador de propostas + página “Simule você mesmo” no deck */
 (function(){
@@ -976,7 +976,7 @@ try{parent.postMessage({type:'agion-ready'},'*');}catch(e){}
  function inc(){try{return localStorage.getItem(INC)!=='0';}catch(e){return true;}}
  function sel(){var s=window.AgCalcLink&&AgCalcLink.selecionado();return (s&&s.expira>Date.now()/1000)?s:null;}
  function info(){var el=document.getElementById('aglInfo');if(!el)return;var s=window.AgCalcLink&&AgCalcLink.selecionado();
-  if(!s){el.innerHTML='Nenhum link escolhido. Gere um link e clique em <b>Usar na proposta</b>.';return;}
+  if(!s){el.innerHTML='Nenhum link na proposta ainda. Escolha o cliente, gere o link e ele entra na proposta.';return;}
   if(s.expira<=Date.now()/1000){el.innerHTML='<span style="color:#b0503f">O link escolhido expirou — gere outro para a proposta.</span>';return;}
   el.innerHTML='Na proposta: <b>'+(AgCalcLink.FERR[s.pagina]||'calculadora')+(s.cliente?' · '+s.cliente:'')+'</b> — válido até '+AgCalcLink.quando(s.expira)+'.';}
  function montar(){var gb=document.getElementById('btnGerar');if(!gb||document.getElementById('aglBox')||!window.AgCalcLink)return;var row=gb.closest('.btnrow');
@@ -986,7 +986,7 @@ try{parent.postMessage({type:'agion-ready'},'*');}catch(e){}
    '<div id="aglInfo" style="font-size:12.5px;color:#586b62;margin-bottom:12px"></div><div id="aglMount"></div>';
   row.parentNode.insertBefore(box,row);
   document.getElementById('aglInc').onchange=function(){try{localStorage.setItem(INC,this.checked?'1':'0');}catch(e){}if(typeof liveUpdate==='function')liveUpdate();};
-  AgCalcLink.mount(document.getElementById('aglMount'),{pagina:'calc-alavancagem',escolher:true,selecionavel:true,onSel:function(){info();if(typeof liveUpdate==='function')liveUpdate();}});info();
+  var o={pagina:'calc-alavancagem',escolher:true,selecionavel:true,onSel:function(){info();if(typeof liveUpdate==='function')liveUpdate();}};/* HISTFERR_20261020: o cliente da proposta já vem escolhido e a busca usa os leads que a pessoa vê */try{var P=window.parent&&window.parent.AgionV4Ponte,cx=window.parent&&window.parent.__agPropCtx;if(P){var d=P.db(),A={};(d.accounts||[]).forEach(function(a){A[a.id]=a.nome||'';});var VL=[];try{VL=P.call('visibleLeads')||[];}catch(e){VL=d.crm||[];}o.leads=VL.map(function(l){return {id:l.id,nome:l.nome||'—',etapa:AgCalcLink.etapaDe({stage:l.stage,perdido:l.perdido}),esp:A[l.ownerId]||'',tel:l.contato||''};});if(cx&&cx.kind==='lead'){var L=o.leads.filter(function(x){return x.id===cx.cid;})[0];if(L)o.lead=L;}}}catch(e){}AgCalcLink.mount(document.getElementById('aglMount'),o);info();
   setInterval(info,30000);}
  /* ---------- página “Simule você mesmo” ---------- */
  function rrp(x,x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}

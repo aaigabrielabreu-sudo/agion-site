@@ -20,7 +20,7 @@ SAIDAS = [os.path.join(RAIZ, 'plataforma.html'), os.path.join(RAIZ, 'plataformav
 # versões dos arquivos da casca (subir a cada mudança)
 SHELL_CSS = '/plat2-shell.css?v=2'
 SHELL_JS = '/plat2-shell.js?v=4'
-V4_JS = '/plat2-v4.js?v=33'   # visual v4 (Chat A) por cima da v1; ?v1=1 na URL desliga
+V4_JS = '/plat2-v4.js?v=34'   # visual v4 (Chat A) por cima da v1; ?v1=1 na URL desliga
 
 src = open(V1, encoding='utf-8').read()
 
@@ -48,7 +48,7 @@ out = unico(out, '<link rel="apple-touch-icon" sizes="180x180" href="/agion-icon
 # 5) VERSÃO DO BUILD (atualização automática do app, 19/out): hash de tudo o que compõe a plataforma.
 #    O plat2-shell.js compara a versão carregada com /plataforma-versao.json e recarrega sozinho quando muda.
 h = hashlib.sha1(out.encode('utf-8'))
-for f in ['plat2-v4.html', 'plat2-v4.js', 'plat2-shell.js', 'plat2-shell.css', 'plat2-tour.js', 'plat-tour.css']:
+for f in ['plat2-v4.html', 'plat2-v4.js', 'plat2-shell.js', 'plat2-shell.css', 'plat2-tour.js', 'plat-tour.css', 'plat2-histferr.js', 'calc-link.js']:
     fp = os.path.join(RAIZ, f)
     if os.path.exists(fp):
         h.update(open(fp, 'rb').read())

@@ -4050,7 +4050,7 @@ function masterReportPDF(){
 <script src="/plat-contas-papel.js?v=1"></script>
 <script src="/plat-mkt.js?v=1"></script>
 <script src="/plat-tour.js?v=14"></script>
-<script src="/plat-novidades.js?v=48"></script>
+<script src="/plat-novidades.js?v=49"></script>
 
 <!-- ===== Propostas (anexos por lead) — identidade Agion ===== -->
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -4112,7 +4112,7 @@ function masterReportPDF(){
    const ent = kind==='cliente' ? (db.clients||[]).find(x=>x.id===id) : (db.crm||[]).find(x=>x.id===id);
    if(!ent){flash(kind==='cliente'?'Cliente não encontrado':'Lead não encontrado');return;}
    if(!ent.ownerId){flash('Sem responsável definido — distribua o lead antes de criar a proposta.');return;}
-   ctx={cid:id,ownerId:ent.ownerId,nome:ent.nome,kind:kind}; pending=null;
+   ctx={cid:id,ownerId:ent.ownerId,nome:ent.nome,kind:kind}; pending=null; try{window.__agPropCtx=ctx;}catch(e){} /* HISTFERR_20261020: o link da calculadora no Gerador já sai ligado a este lead */
    el('propTitle').textContent='Propostas — '+ent.nome;
    el('propGenWrap').style.display='none'; el('propGen').src='about:blank'; el('propHint').textContent='';
    try{el('propIaTxt').value='';el('propIaFile').value='';el('propIaStatus').textContent='';var _l=el('propIaFileLbl');if(_l)_l.textContent='Selecionar print do grupo';}catch(e){}

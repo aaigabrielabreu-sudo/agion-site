@@ -2073,7 +2073,7 @@ function moveInd(k){var b=$('.ni[data-k="'+k+'"]'),ind=$('#nind');if(!ind)return
  var nav=$('#nav');if(b.offsetTop<nav.scrollTop||b.offsetTop>nav.scrollTop+nav.clientHeight-60)nav.scrollTo({top:b.offsetTop-120,behavior:'smooth'});}
 var PARENT={cliente:'clientes',lead:'crm',assembleias:'ferramentas',novidades:null};
 function go(k,arg,nohist){
- var allowed=navList().map(function(t){return t[0];}).concat(['cliente','assembleias','novidades']);if(allowed.indexOf(k)<0)k='painel';
+ var allowed=navList().map(function(t){return t[0];}).concat(['cliente','assembleias','novidades','histferr']);if(allowed.indexOf(k)<0)k='painel';
  cur=k;curArg=arg||null;var nk=k==='cliente'?(arg&&arg.lead?'crm':'clientes'):(PARENT[k]!==undefined?PARENT[k]:k);moveInd(nk);
  var t=navList().filter(function(x){return x[0]===nk;})[0];$('#crumb').innerHTML=(t?t[3]+' <span>· '+t[1]+'</span>':'Plataforma <span>· Novidades</span>');
  if(!nohist)try{history.replaceState(null,'','#'+k);}catch(e){}
@@ -5326,8 +5326,10 @@ var _bd=bindDist;bindDist=function(){_bd.apply(this,arguments);try{
 var _dc=distCarrega;distCarrega=function(force){if(DST.srv&&!force)return Promise.resolve();return papi('/api/designacao?n=150').then(function(r){if(!r||!r.ok){DST.err=(r&&r.data&&r.data.error)||'Não foi possível falar com o robô agora.';return;}DST.err=null;DST.srv=r.data;if(!DST.sujo)DST.cfg=JSON.parse(JSON.stringify(r.data.config||{}));}).catch(function(){DST.err='Sem conexão com o robô.';});};
 })();
 </script>
-<script src="/plat2-tour.js?v=4"></script>
+<script src="/plat2-tour.js?v=5"></script>
 <script src="/plat2-maav.js?v=3"></script>
+<script src="/calc-link.js?v=3"></script>
+<script src="/plat2-histferr.js?v=1"></script>
 <script id="b-tab-estavel">/* Chat B 19/out: abas do celular respondem no 1º toque.
  Causa: a barra era REFEITA (innerHTML) a cada atualização de números/badges (CRM, conversas, recarga a cada poucos segundos);
  se isso acontecia entre o dedo encostar e soltar, o toque se perdia — e a rolagem da barra voltava para o meio.

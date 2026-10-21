@@ -1,8 +1,11 @@
 /* Agion · Links temporários das calculadoras (Chat B · 19/out/2026)
-   Componente usado no Gerador de propostas e nas próprias calculadoras.
-   AgCalcLink.mount(el,{pagina,escolher,selecionavel,onSel})  -> painel embutido
-   AgCalcLink.modal({pagina})                                   -> janela por cima da página
-   AgCalcLink.falta(expiraSeg)                                  -> "1d 4h 10min"            */
+   Componente usado no Gerador de propostas, nas próprias calculadoras e no Histórico de ferramentas.
+   AgCalcLink.mount(el,{pagina,escolher,selecionavel,onSel,leads,lead,onVer,onCriado,tema}) -> painel embutido
+   AgCalcLink.modal({...mesmas opções, z, titulo})                                        -> janela por cima da página
+   AgCalcLink.falta(expiraSeg)                                                             -> "1d 4h 10min"
+   20/out (HISTFERR): o cliente vem da busca do CRM (lead_id vai junto); a lista de links e o
+   "Histórico do cliente" passaram para o Histórico de ferramentas da plataforma. O rastreio
+   (rastrear / /api/link_evento) continua exatamente igual. */
 (function(W){
  if(W.AgCalcLink)return;
  var API='https://bot.agionconsorcios.com.br';
@@ -72,74 +75,121 @@
  function num(v){var x=String(v).replace(/\s/g,'');if(/^-?\d+(\.\d+)?$/.test(x)){var n=+x;return Math.abs(n)>=1000?n.toLocaleString('pt-BR',{maximumFractionDigits:2}):String(x).replace('.',',');}return v;}
  function val(c){var u=c[3]||'',v=num(c[2]);if(v==='')return '(vazio)';if(u==='m')u='meses';if(!u)return v;if(u==='R$')return 'R$ '+v;return v+(/^%/.test(u)?'':' ')+u;}
  function hora(ts){var d=new Date(ts*1000);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
- function faixas(ev){var por={};ev.forEach(function(e){(e.d.campos||[]).forEach(function(c){var k=c[0];(por[k]=por[k]||{l:c[1],u:c[3],v:[]}).v.push(c[2]);});});
+ function faixasArr(ev){var por={};ev.forEach(function(e){((e.d||{}).campos||[]).forEach(function(c){var k=c[0];(por[k]=por[k]||{l:c[1],u:c[3],v:[]}).v.push(c[2]);});});
   var out=[];Object.keys(por).forEach(function(k){var p=por[k],vs=p.v.filter(function(x,i,a){return a.indexOf(x)===i;});if(vs.length<2)return;
    var nums=vs.map(function(x){return parseFloat(String(x).replace(',','.'));}).filter(function(x){return !isNaN(x);});
-   out.push('<b>'+esc(p.l)+'</b> '+(nums.length===vs.length?esc(val([k,p.l,String(Math.min.apply(0,nums)),p.u]))+' a '+esc(val([k,p.l,String(Math.max.apply(0,nums)),p.u])):vs.map(function(x){return esc(val([k,p.l,x,p.u]));}).join(' / ')));});
+   out.push([p.l,nums.length===vs.length?val([k,p.l,String(Math.min.apply(0,nums)),p.u])+' a '+val([k,p.l,String(Math.max.apply(0,nums)),p.u]):vs.map(function(x){return val([k,p.l,x,p.u]);}).join(' / ')]);});
   return out;}
- function htmlHist(j){var ev=j.eventos||[];if(!ev.length)return '<div class="agl-vz">O cliente ainda não mexeu nos números.</div>';
-  var ant=null,linhas=ev.map(function(e){var d=e.d||{},cp=d.campos||[],md=d.modos||[],ch=[];
+ function faixas(ev){return faixasArr(ev).map(function(f){return '<b>'+esc(f[0])+'</b> '+esc(f[1]);});}
+ /* cada simulação: o que mudou em relação à anterior (a 1ª mostra tudo) + os resultados principais */
+ function difs(ev){var ant=null;return ev.map(function(e){var d=e.d||{},cp=d.campos||[],md=d.modos||[],ch=[];
    if(!ant){ch=cp.filter(function(c){return c[2]!=='';}).map(function(c){return esc(c[1])+' <b>'+esc(val(c))+'</b>';});md.forEach(function(m){ch.push(esc(m[1])+' <b>'+esc(m[2])+'</b>');});}
    else{var A={},M={};(ant.campos||[]).forEach(function(c){A[c[0]]=c;});(ant.modos||[]).forEach(function(m){M[m[0]]=m[2];});
     cp.forEach(function(c){var o=A[c[0]];if(!o||o[2]!==c[2]||o[3]!==c[3])ch.push(esc(c[1])+' '+(o?'<s>'+esc(val(o))+'</s> → ':'')+'<b>'+esc(val(c))+'</b>');});
     md.forEach(function(m){if(M[m[0]]!==m[2])ch.push(esc(m[1])+' <b>'+esc(m[2])+'</b>');});}
-   ant=d;var rs=(d.res||[]).map(function(r){return esc(r[0])+': <b>'+esc(r[1])+'</b>';}).join(' · ');
-   return '<div class="agl-hl"><div class="agl-hh">'+hora(e.ts)+'</div><div>'+(ch.join(' · ')||'mesma simulação')+'</div>'+(rs?'<div class="agl-hr">'+rs+'</div>':'')+'</div>';});
+   ant=d;return {ts:e.ts,ch:ch,rs:(d.res||[]).map(function(r){return esc(r[0])+': <b>'+esc(r[1])+'</b>';})};});}
+ function htmlHist(j){var ev=j.eventos||[];if(!ev.length)return '<div class="agl-vz">O cliente ainda não mexeu nos números.</div>';
+  var linhas=difs(ev).map(function(x){var rs=x.rs.join(' · ');return '<div class="agl-hl"><div class="agl-hh">'+hora(x.ts)+'</div><div>'+(x.ch.join(' · ')||'mesma simulação')+'</div>'+(rs?'<div class="agl-hr">'+rs+'</div>':'')+'</div>';});
   var fx=faixas(ev);
   return '<div class="agl-hs"><b>'+ev.length+' simulaç'+(ev.length>1?'ões':'ão')+'</b> em que ele parou para pensar'+(fx.length?'. O que ele está cogitando: '+fx.join(' · '):'')+'</div>'+linhas.reverse().join('');}
- function lerCache(){try{return JSON.parse(localStorage.getItem(CACHE)||'[]');}catch(e){return [];}}
- function gravaCache(l){try{localStorage.setItem(CACHE,JSON.stringify(l.slice(0,40)));}catch(e){}}
- function lista(p){var t=tok();if(!t)return Promise.resolve({links:lerCache(),offline:1});
-  return fetch(API+'/api/link_lista'+(p?'?p='+encodeURIComponent(p):''),{headers:{Authorization:'Bearer '+t}}).then(function(r){return r.json();}).then(function(j){if(j&&j.ok){gravaCache(j.links);return j;}return {links:lerCache(),offline:1};}).catch(function(){return {links:lerCache(),offline:1};});}
- function criar(p,horas,cliente){return fetch(API+'/api/link_temp',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok()},body:JSON.stringify({pagina:p,horas:horas,cliente:cliente||''})}).then(function(r){return r.json();});}
+
+ /* HISTFERR_20261020 — o link nasce ligado ao cliente do CRM (lead_id). A lista de links e o
+    "Histórico do cliente" saíram daqui: moram no Histórico de ferramentas da plataforma. */
+ var SUPA='https://sfekirqoflozylghwlbe.supabase.co',SKEY='sb_publishable_Ds4PlQmsvnny5GdALHvVYQ_RHgtFXw2';
+ var PLAT='/plataforma#historico-ferramentas';
+ var ETAPA=['Novo lead','Contato feito','Estudo/Simulação','Proposta enviada','Fechado (ganho)'];
+ function etapaDe(l){var s=+l.stage||0;if(l.perdido)return 'Perdido';if(s===2&&l.compareceu===true)return 'Diagnóstico';if(s===2&&l.reuniao_em)return 'Reunião agendada';return ETAPA[Math.max(0,Math.min(4,s))];}
+ function fone(t){var n=String(t||'').split('·')[0].replace(/\D/g,'');if(n.length>=10&&n.length<=11)n='55'+n;return n.length>=12?n:'';}
+ function rest(path){var t=tok();if(!t)return Promise.reject(new Error('sem sessão'));return fetch(SUPA+'/rest/v1/'+path,{headers:{apikey:SKEY,Authorization:'Bearer '+t}}).then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();});}
+ var _perf=null;
+ function perfis(){if(_perf)return _perf;_perf=rest('profiles?select=id,nome').then(function(rs){var m={};(rs||[]).forEach(function(p){if(p&&p.id)m[p.id]=p.nome||'';});return m;}).catch(function(){_perf=null;return {};});return _perf;}
+ function buscaLeads(q){q=String(q||'').replace(/[(),*%\\]/g,' ').trim();if(q.length<2)return Promise.resolve([]);
+  var dg=q.replace(/\D/g,''),f='nome.ilike.*'+encodeURIComponent(q)+'*'+(dg.length>=4?',contato.ilike.*'+dg+'*':'');
+  return Promise.all([rest('leads?select=id,nome,stage,owner_id,contato,reuniao_em,compareceu,perdido&or=('+f+')&order=criado_em.desc&limit=8'),perfis()]).then(function(r){var P=r[1]||{};
+   return (r[0]||[]).map(function(l){return {id:l.id,nome:l.nome||'—',etapa:etapaDe(l),esp:P[l.owner_id]||'',tel:l.contato||''};});});}
+ function norma(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+ function criar(p,horas,cliente,lead){var b={pagina:p,horas:horas,cliente:cliente||''};if(lead)b.lead_id=lead;
+  return fetch(API+'/api/link_temp',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok()},body:JSON.stringify(b)}).then(function(r){return r.json();});}
  function encerrar(t){return fetch(API+'/api/link_encerrar',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok()},body:JSON.stringify({token:t})}).then(function(r){return r.json();});}
- function copiar(u){try{navigator.clipboard.writeText(u);return true;}catch(e){}try{var i=document.createElement('textarea');i.value=u;document.body.appendChild(i);i.select();document.execCommand('copy');i.remove();return true;}catch(e){}return false;}
+ function copiar(u,falhou){function fb(){try{var i=document.createElement('textarea');i.value=u;i.setAttribute('readonly','');i.style.cssText='position:fixed;opacity:0;left:-99px';document.body.appendChild(i);i.select();var ok=document.execCommand('copy');i.remove();if(!ok&&falhou)falhou();}catch(e){if(falhou)falhou();}}
+  try{var p=navigator.clipboard&&navigator.clipboard.writeText(u);if(p&&p.then){p.catch(fb);return true;}}catch(e){}fb();return true;}
  function selecionado(){try{return JSON.parse(localStorage.getItem(SEL_KEY)||'null');}catch(e){return null;}}
- function mount(root,opt){opt=opt||{};css();var pag=opt.pagina||'calc-alavancagem',horas=48,links=[],mostrarExp=false,timer=null;
-  root.classList.add('agl');
-  root.innerHTML=(opt.escolher?'<div class="agl-k">Ferramenta</div><select class="agl-fe" style="width:100%;margin-bottom:12px">'+Object.keys(FERR).map(function(k){return '<option value="'+k+'"'+(k===pag?' selected':'')+'>'+FERR[k]+'</option>';}).join('')+'</select>':'')+
-   '<div class="agl-k">Por quanto tempo o link fica aberto?</div>'+
-   '<div class="agl-chips"><button type="button" class="agl-chip" data-h="24">1 dia</button><button type="button" class="agl-chip on" data-h="48">2 dias</button><button type="button" class="agl-chip" data-h="72">3 dias</button><button type="button" class="agl-chip" data-h="c">Personalizado</button></div>'+
-   '<div class="agl-cust"><input type="number" class="agl-n" min="1" max="168" value="5" style="width:90px"><select class="agl-u"><option value="24">dias</option><option value="1">horas</option></select><span class="agl-sub">até 7 dias</span></div>'+
-   '<div class="agl-row"><input class="agl-cl" placeholder="Nome do cliente (opcional)" maxlength="80"><button type="button" class="agl-go" style="margin:0">Gerar link</button></div>'+
-   '<div class="agl-msg"></div>'+
-   '<div class="agl-lh"><div class="agl-k" style="margin:0">Links gerados</div><label><input type="checkbox" class="agl-ex"> mostrar expirados</label></div>'+
-   '<div class="agl-ls"><div class="agl-vz">Carregando…</div></div>';
+ function waTexto(u,exp){return 'Segue a sua simulação da Agion Consórcios (link válido até '+quando(exp)+'): '+u;}
+ function waUrl(tel,txt){var n=fone(tel);return 'https://wa.me/'+(n||'')+'?text='+encodeURIComponent(txt);}
+ function abrePlat(lead){var u=PLAT+(lead?'?lead='+encodeURIComponent(lead):'');var w=null;try{w=window.open(u,'_blank');}catch(e){}if(!w)location.href=u;}
+ function css2(){if(document.getElementById('agl-css2'))return;var s=document.createElement('style');s.id='agl-css2';s.textContent=
+  '.agl .agl-cli{position:relative}.agl .agl-q{width:100%}'+
+  '.agl .agl-sug{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #e0d6bf;border-radius:12px;box-shadow:0 18px 40px -16px rgba(10,40,35,.35);z-index:5;overflow:hidden;display:none;max-height:300px;overflow-y:auto}'+
+  '.agl .agl-sug.on{display:block}.agl .agl-sug button{display:block;width:100%;text-align:left;border:0;background:none;padding:10px 12px;font:500 13px Poppins,system-ui;color:#0a2823;cursor:pointer;border-bottom:1px solid #f0eadc}'+
+  '.agl .agl-sug button:hover,.agl .agl-sug button.on{background:#f8f2e6}.agl .agl-sug button small{display:block;color:#8a9089;font-size:11.5px;margin-top:1px}.agl .agl-sug .agl-mn{color:#9a7a34;font-weight:600}'+
+  '.agl .agl-esc{display:flex;align-items:center;gap:10px;border:1.5px solid #c5a059;background:#f8f2e6;border-radius:12px;padding:10px 12px}.agl .agl-esc b{display:block;font-size:13.5px}.agl .agl-esc small{display:block;color:#586b62;font-size:12px}'+
+  '.agl .agl-esc button{margin-left:auto;border:1px solid #e0d6bf;background:#fff;border-radius:9px;padding:6px 10px;font:600 12px Poppins,system-ui;cursor:pointer;color:#0a2823}'+
+  '.agl .agl-alt{border:0;background:none;color:#9a7a34;font:600 12px Poppins,system-ui;cursor:pointer;padding:6px 0 0;text-decoration:underline;text-underline-offset:3px}'+
+  '.agl .agl-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.agl .agl-acts button{border:0;border-radius:12px;padding:12px 14px;font:700 13.5px Poppins,system-ui;cursor:pointer}'+
+  '.agl .agl-acts .agl-go{width:auto;margin:0;flex:1 1 180px}.agl .agl-acts .agl-wa{background:#25D366;color:#fff;flex:1 1 160px}.agl .agl-acts .agl-ver{background:none;border:1.5px solid #e0d6bf;color:#0a2823;flex:1 1 100%}'+
+  '.agl .agl-acts button[disabled]{opacity:.55;cursor:wait}'+
+  '.agl .agl-res{margin-top:12px;border:1px solid #e0d6bf;background:#fff;border-radius:14px;padding:12px 14px}.agl .agl-res .agl-t1 span:last-child{color:#2a6a77}'+
+  '.agl.agv4{font-family:"DM Sans",system-ui,sans-serif;color:var(--ink)}.agl.agv4 .agl-k{color:var(--goldd)}.agl.agv4 .agl-chip,.agl.agv4 .agl-sug,.agl.agv4 .agl-res,.agl.agv4 .agl-esc button{background:var(--card);color:var(--ink);border-color:var(--line);font-family:inherit}'+
+  '.agl.agv4 .agl-chip.on,.agl.agv4 .agl-esc{background:color-mix(in srgb,var(--gold2) 22%,var(--card));border-color:var(--gold)}.agl.agv4 input,.agl.agv4 select{background:var(--bg);border-color:var(--line);color:var(--ink);font-family:inherit}'+
+  '.agl.agv4 .agl-sug button{color:var(--ink);border-color:var(--line);font-family:inherit}.agl.agv4 .agl-sug button:hover,.agl.agv4 .agl-sug button.on{background:var(--bg)}.agl.agv4 .agl-sug button small,.agl.agv4 .agl-esc small,.agl.agv4 .agl-msg,.agl.agv4 .agl-sub,.agl.agv4 .agl-url{color:var(--mut)}'+
+  '.agl.agv4 .agl-go{background:var(--ink);color:var(--gold2);font-family:inherit}.agl.agv4 .agl-acts .agl-ver{border-color:var(--line);color:var(--ink);font-family:inherit}.agl.agv4 .agl-acts .agl-wa{font-family:inherit}.agl.agv4 .agl-alt{color:var(--goldd);font-family:inherit}'+
+  '.agl.agv4 .agl-bt button,.agl.agv4 .agl-bt a{background:var(--card);color:var(--ink);border-color:var(--line);font-family:inherit}.agl.agv4 .agl-bt .wa{background:#25D366;border-color:#25D366;color:#fff}';
+  document.head.appendChild(s);}
+ var VAL=[[1,'1 h'],[2,'2 h'],[24,'1 dia'],[48,'2 dias']];
+ /* opt: pagina, escolher, selecionavel, onSel, leads (lista do CRM já carregada), lead ({id,nome,tel}), onVer(leadId), onCriado(j), tema:'v4' */
+ function mount(root,opt){opt=opt||{};css();css2();var pag=opt.pagina||'calc-alavancagem',horas=48,cli=opt.lead&&opt.lead.id?opt.lead:null,manual=false,ult=null,sug=[],si=-1,tq=null;
+  root.classList.add('agl');if(opt.tema==='v4')root.classList.add('agv4');
+  root.innerHTML=(opt.escolher?'<div class="agl-k">Ferramenta</div><select class="agl-fe" style="width:100%;margin-bottom:14px">'+Object.keys(FERR).map(function(k){return '<option value="'+k+'"'+(k===pag?' selected':'')+'>'+FERR[k]+'</option>';}).join('')+'</select>':'')+
+   '<div class="agl-k">Cliente</div><div class="agl-cw"></div>'+
+   '<div class="agl-k" style="margin-top:14px">Validade do link</div>'+
+   '<div class="agl-chips">'+VAL.map(function(v){return '<button type="button" class="agl-chip'+(v[0]===48?' on':'')+'" data-h="'+v[0]+'">'+v[1]+'</button>';}).join('')+'</div>'+
+   '<div class="agl-acts"><button type="button" class="agl-go">Gerar e copiar link</button><button type="button" class="agl-wa">Enviar no WhatsApp</button><button type="button" class="agl-ver">Ver no Histórico de ferramentas →</button></div>'+
+   '<div class="agl-msg"></div><div class="agl-rs"></div>';
   var $=function(s){return root.querySelector(s);},msg=function(t,er){var m=$('.agl-msg');m.textContent=t||'';m.className='agl-msg'+(er?' er':'');};
-  if(opt.escolher)$('.agl-fe').onchange=function(){pag=this.value;carregar();};
-  root.querySelectorAll('.agl-chip').forEach(function(b){b.onclick=function(){root.querySelectorAll('.agl-chip').forEach(function(x){x.classList.remove('on');});b.classList.add('on');var h=b.getAttribute('data-h');$('.agl-cust').classList.toggle('on',h==='c');horas=h==='c'?null:+h;};});
-  function horasEsc(){if(horas)return horas;var n=parseFloat($('.agl-n').value)||1,u=+$('.agl-u').value;return Math.max(1,Math.min(168,n*u));}
-  $('.agl-ex').onchange=function(){mostrarExp=this.checked;desenha();};
-  $('.agl-go').onclick=function(){var b=this,h=horasEsc();if(!tok()){msg('Entre na plataforma para gerar links.',1);return;}
-   b.disabled=true;msg('Gerando…');criar(pag,h,$('.agl-cl').value.trim()).then(function(j){b.disabled=false;
-    if(!j||!j.ok){msg('Não gerou: '+((j&&j.error)||'erro'),1);return;}
-    var cp=copiar(j.url);msg('Link criado'+(cp?' e copiado ✓':'')+' — válido até '+quando(j.expira)+'.');
-    $('.agl-cl').value='';carregar(j.url);}).catch(function(){b.disabled=false;msg('Sem conexão com o servidor.',1);});};
-  function desenha(){var ls=$('.agl-ls'),agora=Date.now()/1000,sel=selecionado();
-   var vis=links.filter(function(l){return mostrarExp||l.expira>agora;});
-   if(!vis.length){ls.innerHTML='<div class="agl-vz">'+(links.length?'Nenhum link ativo. Marque “mostrar expirados” para ver os antigos.':'Nenhum link gerado ainda.')+'</div>';return;}
-   ls.innerHTML=vis.map(function(l){var ex=l.expira<=agora,on=sel&&sel.token===l.token;
-    return '<div class="agl-it'+(ex?' exp':'')+(on?' sel':'')+'" data-t="'+esc(l.token)+'"><div class="agl-t1"><span>'+esc(FERR[l.pagina]||l.pagina)+(l.cliente?' · '+esc(l.cliente):'')+'</span><span class="agl-cd" data-e="'+l.expira+'">'+(ex?'expirado':'⏱ '+falta(l.expira))+'</span></div>'+
-     '<div class="agl-url">'+esc(l.url)+'</div><div class="agl-sub">'+(ex?'Expirou em ':'Válido até ')+quando(l.expira)+(l.aberturas?' · aberto '+l.aberturas+'×':' · ainda não aberto')+(l.sims?' · <b style="color:#2a6a77">'+l.sims+' simulaç'+(l.sims>1?'ões':'ão')+' do cliente</b>':'')+'</div>'+
-     (ex&&l.sims?'<div class="agl-bt"><button type="button" class="hi" data-a="hi">Histórico do cliente ('+l.sims+')</button></div>':'')+
-     (ex?'':'<div class="agl-bt">'+(l.sims?'<button type="button" class="hi" data-a="hi">Histórico do cliente ('+l.sims+')</button>':'')+'<button type="button" data-a="cp">Copiar</button><a class="wa" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent('Segue a sua simulação da Agion Consórcios (link válido até '+quando(l.expira)+'): '+l.url)+'">WhatsApp</a>'+
-      (opt.selecionavel?'<button type="button" class="us'+(on?' on':'')+'" data-a="us">'+(on?'✓ Na proposta':'Usar na proposta')+'</button>':'')+'<button type="button" data-a="en">Encerrar</button></div>')+'</div>';}).join('');
-   ls.querySelectorAll('[data-a]').forEach(function(b){b.onclick=function(){var t=b.closest('.agl-it').getAttribute('data-t'),l=links.filter(function(x){return x.token===t;})[0];if(!l)return;var a=b.getAttribute('data-a');
-    if(a==='hi'){var it=b.closest('.agl-it'),hb=it.querySelector('.agl-h');if(hb){hb.remove();return;}hb=document.createElement('div');hb.className='agl-h';hb.innerHTML='<div class="agl-vz">Carregando…</div>';it.appendChild(hb);
-     historico(t).then(function(j){hb.innerHTML=j&&j.ok?htmlHist(j):'<div class="agl-vz">Não consegui abrir o histórico agora.</div>';}).catch(function(){hb.innerHTML='<div class="agl-vz">Sem conexão com o servidor.</div>';});return;}
-    if(a==='cp'){copiar(l.url);b.textContent='Copiado ✓';setTimeout(function(){b.textContent='Copiar';},1500);}
-    else if(a==='us'){var s=selecionado();if(s&&s.token===t){localStorage.removeItem(SEL_KEY);}else{localStorage.setItem(SEL_KEY,JSON.stringify({token:l.token,url:l.url,expira:l.expira,pagina:l.pagina,cliente:l.cliente||''}));}desenha();opt.onSel&&opt.onSel(selecionado());}
-    else if(a==='en'){if(!confirm('Encerrar este link agora? Quem tiver o link não consegue mais abrir.'))return;encerrar(t).then(function(){var s=selecionado();if(s&&s.token===t){localStorage.removeItem(SEL_KEY);opt.onSel&&opt.onSel(null);}carregar();});}};});}
-  function carregar(novo){lista(opt.escolher?'':pag).then(function(j){links=(j.links||[]).filter(function(l){return !l.pagina||!FERR[l.pagina]||opt.escolher||l.pagina===pag;});
-   if(novo&&opt.selecionavel){var l=links.filter(function(x){return x.url===novo;})[0];if(l){localStorage.setItem(SEL_KEY,JSON.stringify({token:l.token,url:l.url,expira:l.expira,pagina:l.pagina,cliente:l.cliente||''}));opt.onSel&&opt.onSel(selecionado());}}
-   desenha();if(j.offline&&!tok())msg('Entre na plataforma para ver e gerar links.',1);});}
-  carregar();clearInterval(timer);timer=setInterval(function(){if(!document.body.contains(root)){clearInterval(timer);return;}var agora=Date.now()/1000,mudou=false;
-   root.querySelectorAll('.agl-cd').forEach(function(c){var e=+c.getAttribute('data-e');if(e<=agora&&c.textContent!=='expirado'){mudou=true;}c.textContent=e<=agora?'expirado':'⏱ '+falta(e);});
-   if(mudou){desenha();opt.onSel&&opt.onSel(selecionado());}},1000);
-  return {recarregar:carregar};}
- function modal(opt){css();var bg=document.createElement('div');bg.style.cssText='position:fixed;inset:0;z-index:2147483600;background:rgba(4,20,18,.55);display:flex;align-items:center;justify-content:center;padding:12px';
-  bg.innerHTML='<div style="background:#fff;border-radius:22px;max-width:520px;width:100%;max-height:calc(100vh - 24px);overflow:auto;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.3)"><div style="font:700 11px system-ui;letter-spacing:.12em;color:#9a7a34">LINK PARA O CLIENTE</div><h3 style="font:600 22px Lora,Georgia,serif;margin:6px 0 4px;color:#0a2823">Enviar esta calculadora</h3><p style="color:#586b62;font:13.5px Poppins,system-ui;margin:0 0 16px">O cliente abre sem login até o prazo acabar. Você pode gerar quantos links quiser, cada um com o seu tempo.</p><div class="agm"></div><button type="button" class="agx" style="margin-top:14px;width:100%;border:1px solid #e0d6bf;background:#fff;border-radius:12px;padding:11px;font:600 13px Poppins,system-ui;cursor:pointer;color:#0a2823">Fechar</button></div>';
-  document.body.appendChild(bg);bg.querySelector('.agx').onclick=function(){bg.remove();};bg.onclick=function(e){if(e.target===bg)bg.remove();};
-  mount(bg.querySelector('.agm'),opt);}
- W.AgCalcLink={mount:mount,modal:modal,falta:falta,quando:quando,selecionado:selecionado,FERR:FERR,historico:historico,htmlHist:htmlHist,foto:foto};
+  if(opt.escolher)$('.agl-fe').onchange=function(){pag=this.value;ult=null;$('.agl-rs').innerHTML='';};
+  root.querySelectorAll('.agl-chip').forEach(function(b){b.onclick=function(){root.querySelectorAll('.agl-chip').forEach(function(x){x.classList.remove('on');});b.classList.add('on');horas=+b.getAttribute('data-h');ult=null;};});
+  function nomeCli(){return cli?cli.nome:(manual?($('.agl-cl')&&$('.agl-cl').value.trim())||'':'');}
+  function desenhaCli(){var w=$('.agl-cw');
+   if(cli){w.innerHTML='<div class="agl-esc"><div><b>'+esc(cli.nome)+'</b><small>'+esc([cli.etapa,cli.esp].filter(Boolean).join(' · ')||'Cliente do CRM')+'</small></div><button type="button" data-a="tr">Trocar</button></div>';
+    w.querySelector('[data-a=tr]').onclick=function(){cli=null;ult=null;desenhaCli();var q=$('.agl-q');if(q)q.focus();};return;}
+   if(manual){w.innerHTML='<input class="agl-cl" placeholder="Nome do cliente" maxlength="80" style="width:100%"><button type="button" class="agl-alt" data-a="crm">Buscar no CRM</button>';
+    w.querySelector('[data-a=crm]').onclick=function(){manual=false;desenhaCli();var q=$('.agl-q');if(q)q.focus();};$('.agl-cl').oninput=function(){ult=null;};return;}
+   w.innerHTML='<div class="agl-cli"><input class="agl-q" placeholder="Buscar cliente no CRM: nome ou telefone" autocomplete="off"><div class="agl-sug"></div></div><button type="button" class="agl-alt" data-a="mn">Digitar nome (cliente fora do CRM)</button>';
+   var q=$('.agl-q'),box=$('.agl-sug');
+   w.querySelector('[data-a=mn]').onclick=function(){manual=true;ult=null;desenhaCli();var c=$('.agl-cl');if(c)c.focus();};
+   function pinta(){if(!q.value.trim()){box.classList.remove('on');return;}
+    box.innerHTML=(sug.length?sug.map(function(l,i){return '<button type="button" data-i="'+i+'" class="'+(i===si?'on':'')+'">'+esc(l.nome)+'<small>'+esc([l.etapa,l.esp].filter(Boolean).join(' · '))+'</small></button>';}).join(''):'<button type="button" disabled><small>Nenhum cliente encontrado</small></button>')+
+     '<button type="button" data-i="m" class="agl-mn">Digitar “'+esc(q.value.trim())+'” (cliente fora do CRM)</button>';
+    box.classList.add('on');
+    box.querySelectorAll('[data-i]').forEach(function(b){b.onmousedown=function(e){e.preventDefault();};b.onclick=function(){var i=b.getAttribute('data-i');if(i==='m'){var t=q.value.trim();manual=true;desenhaCli();$('.agl-cl').value=t;return;}cli=sug[+i];ult=null;desenhaCli();};});}
+   function busca(){var t=q.value.trim();si=-1;
+    if(opt.leads){var n=norma(t),dg=t.replace(/\D/g,'');sug=t.length<1?[]:opt.leads.filter(function(l){return norma(l.nome).indexOf(n)>=0||(dg.length>=4&&String(l.tel||'').replace(/\D/g,'').indexOf(dg)>=0);}).slice(0,8);pinta();return;}
+    clearTimeout(tq);tq=setTimeout(function(){buscaLeads(t).then(function(r){if(q.value.trim()!==t)return;sug=r;pinta();}).catch(function(){sug=[];pinta();});},220);}
+   q.oninput=busca;q.onfocus=function(){if(q.value.trim())pinta();};q.onblur=function(){setTimeout(function(){box.classList.remove('on');},150);};
+   q.onkeydown=function(e){if(!box.classList.contains('on'))return;if(e.key==='ArrowDown'){si=Math.min(sug.length-1,si+1);pinta();e.preventDefault();}else if(e.key==='ArrowUp'){si=Math.max(0,si-1);pinta();e.preventDefault();}else if(e.key==='Enter'&&si>=0&&sug[si]){cli=sug[si];ult=null;desenhaCli();e.preventDefault();}else if(e.key==='Escape'){box.classList.remove('on');}};}
+  desenhaCli();
+  function gera(){if(ult&&ult.expira>Date.now()/1000)return Promise.resolve(ult);if(!tok())return Promise.reject(new Error('Entre na plataforma para gerar links.'));
+   if(!cli&&!nomeCli())return Promise.reject(new Error('Escolha o cliente do CRM (ou digite o nome).'));
+   return criar(pag,horas,nomeCli(),cli?cli.id:'').then(function(j){if(!j||!j.ok)throw new Error('Não gerou: '+((j&&j.error)||'erro'));
+    ult={token:j.token||String(j.url).split('acesso=').pop(),url:j.url,expira:j.expira,pagina:pag,cliente:nomeCli(),lead:cli?cli.id:''};
+    if(opt.selecionavel){try{localStorage.setItem(SEL_KEY,JSON.stringify({token:ult.token,url:ult.url,expira:ult.expira,pagina:pag,cliente:ult.cliente||''}));}catch(e){}opt.onSel&&opt.onSel(selecionado());}
+    resultado();try{opt.onCriado&&opt.onCriado(ult);}catch(e){}return ult;});}
+  function resultado(){var r=$('.agl-rs');if(!ult){r.innerHTML='';return;}
+   r.innerHTML='<div class="agl-res"><div class="agl-t1"><span>'+esc(FERR[ult.pagina]||ult.pagina)+(ult.cliente?' · '+esc(ult.cliente):'')+'</span><span class="agl-cd">⏱ '+falta(ult.expira)+'</span></div><div class="agl-url">'+esc(ult.url)+'</div><div class="agl-sub">Válido até '+quando(ult.expira)+(opt.selecionavel?' · já está na proposta':'')+'</div>'+
+    '<div class="agl-bt"><button type="button" data-a="cp">Copiar de novo</button><a class="wa" target="_blank" rel="noopener" href="'+esc(waUrl(cli&&cli.tel,waTexto(ult.url,ult.expira)))+'">WhatsApp</a></div></div>';
+   r.querySelector('[data-a=cp]').onclick=function(){copiar(ult.url);this.textContent='Copiado ✓';var b=this;setTimeout(function(){b.textContent='Copiar de novo';},1500);};}
+  $('.agl-go').onclick=function(){var b=this;b.disabled=true;msg('Gerando…');gera().then(function(l){b.disabled=false;msg('Link copiado ✓ — válido até '+quando(l.expira)+'.');copiar(l.url,function(){msg('Link pronto — válido até '+quando(l.expira)+'. Toque em “Copiar de novo” para copiar.');});})
+   .catch(function(e){b.disabled=false;msg(e&&e.message?e.message:'Sem conexão com o servidor.',1);});};
+  $('.agl-wa').onclick=function(){var b=this,w=null;if(!(ult&&ult.expira>Date.now()/1000)){try{w=window.open('','_blank');}catch(e){}}b.disabled=true;msg('Gerando…');
+   gera().then(function(l){b.disabled=false;var u=waUrl(cli&&cli.tel,waTexto(l.url,l.expira));if(w&&!w.closed){try{w.location.href=u;}catch(e){location.href=u;}}else{var x=null;try{x=window.open(u,'_blank');}catch(e){}if(!x)location.href=u;}msg('Link pronto — válido até '+quando(l.expira)+'.');})
+   .catch(function(e){b.disabled=false;try{w&&w.close();}catch(_){}msg(e&&e.message?e.message:'Sem conexão com o servidor.',1);});};
+  $('.agl-ver').onclick=function(){var id=cli?cli.id:'';if(opt.onVer){opt.onVer(id);return;}abrePlat(id);};
+  var timer=setInterval(function(){if(!document.body.contains(root)){clearInterval(timer);return;}var c=root.querySelector('.agl-cd');if(c&&ult)c.textContent=ult.expira<=Date.now()/1000?'expirado':'⏱ '+falta(ult.expira);},1000);
+  return {recarregar:function(){},escolher:function(l){cli=l&&l.id?l:null;ult=null;desenhaCli();}};}
+ function modal(opt){opt=opt||{};css();var bg=document.createElement('div'),v4=opt.tema==='v4';bg.className='agl-bg';bg.style.cssText='position:fixed;inset:0;z-index:'+(opt.z||2147483600)+';background:rgba(4,20,18,.55);display:flex;align-items:center;justify-content:center;padding:12px';
+  bg.innerHTML='<div class="agl-box" style="background:'+(v4?'var(--card)':'#fff')+';border-radius:22px;max-width:520px;width:100%;max-height:calc(100vh - 24px);overflow:auto;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.3)"><div style="font:700 11px system-ui;letter-spacing:.12em;color:'+(v4?'var(--goldd)':'#9a7a34')+'">LINK PARA O CLIENTE</div><h3 style="font:600 22px Lora,Georgia,serif;margin:6px 0 4px;color:'+(v4?'var(--ink)':'#0a2823')+'">'+esc(opt.titulo||'Enviar esta calculadora')+'</h3><p style="color:'+(v4?'var(--mut)':'#586b62')+';font:13.5px '+(v4?'"DM Sans"':'Poppins')+',system-ui;margin:0 0 16px">O cliente abre sem login até o prazo acabar. Escolha o cliente do CRM: tudo o que ele abrir e simular aparece no Histórico de ferramentas.</p><div class="agm" style="padding-top:4px"></div><button type="button" class="agx" style="margin-top:14px;width:100%;border:1px solid '+(v4?'var(--line)':'#e0d6bf')+';background:'+(v4?'var(--card)':'#fff')+';border-radius:12px;padding:11px;font:600 13px '+(v4?'"DM Sans"':'Poppins')+',system-ui;cursor:pointer;color:'+(v4?'var(--ink)':'#0a2823')+'">Fechar</button></div>';
+  document.body.appendChild(bg);var fecha=function(){bg.remove();try{opt.onClose&&opt.onClose();}catch(e){}};bg.querySelector('.agx').onclick=fecha;bg.onclick=function(e){if(e.target===bg)fecha();};
+  var m=mount(bg.querySelector('.agm'),opt);m.fechar=fecha;m.el=bg;return m;}
+ W.AgCalcLink={mount:mount,modal:modal,falta:falta,quando:quando,selecionado:selecionado,FERR:FERR,historico:historico,htmlHist:htmlHist,foto:foto,
+  difs:difs,faixas:faixas,faixasArr:faixasArr,val:val,encerrar:encerrar,copiar:copiar,waUrl:waUrl,waTexto:waTexto,etapaDe:etapaDe};
 })(window);

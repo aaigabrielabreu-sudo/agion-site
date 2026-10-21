@@ -298,7 +298,7 @@ var GROUP_ORDER=['Comece por aqui','Comercial','Atendimento','Carteira','Ferrame
 
 function TX(v){ if(v==null) return ''; if(typeof v==='function') return v(); if(typeof v==='string') return v; var r=role(); return v[r]!=null?v[r]:(v._!=null?v._:(v.master||v.lider||v.especialista||'')); }
 function stepsOf(t){ var r=role(); return t.steps.filter(function(st){ return !st.roles||st.roles.indexOf(r)>=0; }); }
-function forRole(){ return CFG.filter(function(t){ return tabOk(t.ficha==='lead'?'ficha-lead':t.ficha==='cliente'?'ficha-cliente':t.page); }); }
+function forRole(){ return CFG.filter(function(t){ return tabOk(t.ficha==='lead'?'ficha-lead':t.ficha==='cliente'?'ficha-cliente':(t.navk||t.page)); }); } /* HISTFERR_20261020: navk = aba do menu de uma tela interna */
 function byId(id){ for(var i=0;i<CFG.length;i++) if(CFG[i].id===id) return CFG[i]; return null; }
 function forPage(pg){ if(pg==='ficha-lead'||pg==='ficha-cliente') return byId(pg); return forRole().filter(function(t){ return t.page===pg&&!t.ficha; })[0]||null; }
 
@@ -341,7 +341,7 @@ function buildUI(){
      '<div class="tr-top"><span class="tr-area"></span><span class="tr-count"></span>'+
      '<button type="button" class="tr-ic tr-col" aria-label="Recolher explicação" aria-expanded="true">–</button>'+
      '<button type="button" class="tr-ic tr-close" aria-label="Fechar tutorial">✕</button></div>'+
-     '<div class="tr-bar" aria-hidden="true"><i></i></div>'+
+     '<div class="tr-tabs" aria-hidden="true" hidden></div><div class="tr-bar" aria-hidden="true"><i></i></div>'+
      '<h4 id="trTitle"></h4><p id="trText"></p><div class="tr-miss" hidden></div>'+
      '<div class="tr-acts"><button type="button" class="tr-btn tr-play" aria-pressed="false"></button>'+
      '<button type="button" class="tr-btn see">Ver destaque</button><span class="sp"></span>'+
@@ -349,7 +349,7 @@ function buildUI(){
    '</div><div class="tr-sr" aria-live="polite"></div>';
   D.body.appendChild(root);
   UI={root:root,ring:$('.tr-ring',root),arrow:$('.tr-arrow',root),cur:$('#trCur',root),card:$('.tr-card',root),area:$('.tr-area',root),count:$('.tr-count',root),
-      bar:$('.tr-bar i',root),title:$('#trTitle',root),text:$('#trText',root),miss:$('.tr-miss',root),prev:$('.tr-prev',root),next:$('.tr-next',root),
+      bar:$('.tr-bar i',root),tabs:$('.tr-tabs',root),title:$('#trTitle',root),text:$('#trText',root),miss:$('.tr-miss',root),prev:$('.tr-prev',root),next:$('.tr-next',root),
       play:$('.tr-play',root),see:$('.see',root),col:$('.tr-col',root),live:$('.tr-sr',root),curPos:null,ghost:null};
   UI.prev.onclick=function(){ prev(); };
   UI.next.onclick=function(){ next(); };
@@ -467,7 +467,8 @@ async function show(i,dir){
   var tok=++RUN.stepTok; RUN.i=i; var STEPS=stepsOf(t), st=STEPS[i], n=STEPS.length;
   UI.next.onclick=function(){ next(); };
   var r=rec(t.id); if(!r.done||status(t)!=='done'){ r.step=i; save(); }
-  UI.area.textContent=TX(t.title); UI.count.textContent='Passo '+(i+1)+' de '+n;
+  UI.area.textContent=(t.abas&&st.a!=null)?('Aba '+(st.a+1)+' de '+t.abas.length+' · '+t.abas[st.a]):TX(t.title); UI.count.textContent='Passo '+(i+1)+' de '+n;
+  if(UI.tabs){ if(t.abas){ UI.tabs.hidden=false; UI.tabs.innerHTML=t.abas.map(function(x,k){ return '<i class="'+(st.a===k?'on':((st.a!=null&&k<st.a)||i===n-1?'ok':''))+'" title="'+esc(x)+'"></i>'; }).join(''); } else { UI.tabs.hidden=true; UI.tabs.innerHTML=''; } }
   UI.bar.style.transform='scaleX('+((i+1)/n)+')';
   UI.title.textContent=TX(st.title); UI.text.textContent=TX(st.text); UI.miss.hidden=true;
   UI.prev.disabled=i===0; UI.next.textContent=i===n-1?'Concluir':'Próximo';
@@ -517,7 +518,7 @@ function areaInvite(){
     if(novidadesAbertas()||$('.sheet.on')||$('.dm')){ ainvTimer=setTimeout(arguments.callee,1500); return; }
     var d=data(), r=d.items[t.id]; if(r&&(r.done||r.step>0||r.ask)) return;
     var el=D.createElement('div'); el.className='tr-invite tr-ainv b-ainv'+(narrow()?' tr-sh':''); el.setAttribute('role','dialog'); el.setAttribute('aria-labelledby','trAinvT');
-    el.innerHTML='<div class="k">Primeira vez aqui?</div><h4 id="trAinvT">Como usar '+esc(TX(t.title))+'</h4><p>'+esc(TX(t.desc))+' Um guia de '+stepsOf(t).length+' passos, direto nesta tela, sem alterar nada.</p>'+
+    el.innerHTML='<div class="k">Primeira vez aqui?</div><h4 id="trAinvT">'+esc(t.inv||('Como usar '+TX(t.title)))+'</h4><p>'+esc(TX(t.desc))+' Um guia de '+stepsOf(t).length+' passos, direto nesta tela, sem alterar nada.'+(t.abas?' Passa pelas '+t.abas.length+' abas:':'')+'</p>'+(t.abas?'<div class="ab">'+t.abas.map(function(x){ return '<span>'+esc(x)+'</span>'; }).join('')+'</div>':'')+
       '<div class="r"><button class="gold" data-a="go">Iniciar</button><button data-a="skip">Agora não</button></div>';
     el.addEventListener('click',function(e){ var a=e.target&&e.target.getAttribute('data-a'); if(!a) return;
       if(a==='skip'){ rec(t.id).ask='no'; save(); closeAreaInvite(); try{ W.toast('Quando quiser: botão “?” no topo ou Tutoriais','play'); }catch(_){ } }
@@ -537,7 +538,7 @@ function helpBtn(){
 }
 function afterGo(){
   helpBtn();
-  if(RUN&&!RUN.nav){ var pg=curPage(), want=RUN.t.ficha==='lead'?'ficha-lead':RUN.t.ficha==='cliente'?'ficha-cliente':RUN.t.page; if(pg!==want) stop('nav'); }
+  if(RUN&&!RUN.nav){ var pg=curPage(), want=RUN.t.ficha==='lead'?'ficha-lead':RUN.t.ficha==='cliente'?'ficha-cliente':RUN.t.page; if(RUN.t.pages?RUN.t.pages.indexOf(pg)<0:pg!==want) stop('nav'); }
   if(curPage()==='tutoriais'&&!RUN) setTimeout(refreshCenter,30);
   areaInvite();
 }
@@ -558,15 +559,19 @@ function css(){ if($('#b2TourCss')) return; var st=D.createElement('style'); st.
   '#trRoot.tr-sh.collapsed .tr-card p,#trRoot.tr-sh.collapsed .tr-miss,#trRoot.tr-sh.collapsed .tr-acts .tr-play,#trRoot.tr-sh.collapsed .tr-acts .see{display:none!important}'+
   '#trRoot.tr-sh.collapsed .tr-card h4{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
   '#trRoot.tr-sh.collapsed .tr-acts{margin-top:8px}'+
-  '#trRoot .tr-ghost{z-index:2}';
+  '#trRoot .tr-ghost{z-index:2}'+
+  /* HISTFERR_20261020: barra de abas no cartão (tutorial que passa por várias telas) e lista de abas no convite */
+  '#trRoot .tr-tabs{display:flex;gap:4px;margin:2px 0 8px}#trRoot .tr-tabs[hidden]{display:none}#trRoot .tr-tabs i{flex:1;height:4px;border-radius:3px;background:rgba(255,255,255,.14)}'+
+  '#trRoot .tr-tabs i.on{background:#e8cc8b}#trRoot .tr-tabs i.ok{background:rgba(232,204,139,.45)}'+
+  '.tr-invite .ab{display:flex;flex-direction:column;gap:4px;margin:-6px 0 12px;font-size:.8rem;color:#DCE9E7}.tr-invite .ab span:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#c5a059;margin-right:7px;vertical-align:1px}';
   D.head.appendChild(st); }
 function hook(){
   if(typeof W.go!=='function'||typeof W.R!=='object'||!W.R.tutoriais) return setTimeout(hook,80);
   if(W.__b2tour) return; W.__b2tour=1; css();
   var _go=W.go; W.go=function(){ var r=_go.apply(this,arguments); setTimeout(afterGo,240); return r; };
   /* Central de Tutoriais do visual novo usa estes tutoriais */
-  W.TUG=[['Comece por aqui',['painel','kpis']],['Comercial',['tarefas','crm','ficha-lead','captacao','marketing']],['Atendimento',['conversas','disparos','feed','chat']],['Carteira',['clientes','ficha-cliente','cadastro','comissoes','consultoria']],['Ferramentas',['ferramentas']],['Gestão',['contas','atividades','ajustes']]];
-  W.TUIC={painel:'grid',kpis:'kpi',tarefas:'check',crm:'funnel','ficha-lead':'idc',captacao:'spark',marketing:'trend',conversas:'chat',disparos:'send',feed:'act',chat:'chat',clientes:'users','ficha-cliente':'idc',cadastro:'idc',comissoes:'money',consultoria:'wallet',ferramentas:'calc',contas:'team',atividades:'act',ajustes:'gear'};
+  W.TUG=[['Comece por aqui',['painel','kpis']],['Comercial',['tarefas','crm','ficha-lead','captacao','marketing']],['Atendimento',['conversas','disparos','feed','chat']],['Carteira',['clientes','ficha-cliente','cadastro','comissoes','consultoria']],['Ferramentas',['ferramentas','t-histferr']],['Gestão',['contas','atividades','ajustes']]];
+  W.TUIC={painel:'grid',kpis:'kpi',tarefas:'check',crm:'funnel','ficha-lead':'idc',captacao:'spark',marketing:'trend',conversas:'chat',disparos:'send',feed:'act',chat:'chat',clientes:'users','ficha-cliente':'idc',cadastro:'idc',comissoes:'money',consultoria:'wallet',ferramentas:'calc','t-histferr':'act',contas:'team',atividades:'act',ajustes:'gear'};
   W.tourLista=function(){ return forRole().map(function(t){ return {id:t.id,title:TX(t.title),status:status(t)}; }); };
   W.tourStart=function(id){ start(id,'resume'); };
   setTimeout(afterGo,600);
