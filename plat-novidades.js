@@ -18,7 +18,8 @@ var S3=['master','lider','especialista'], ML=['master','lider'], M=['master'], T
 function v4w(){ try{ var f=D.querySelector('#v4wrap iframe'); if(f&&D.documentElement.classList.contains('v4on')&&f.contentWindow&&f.contentWindow.AgionTour2) return f.contentWindow; }catch(e){} return null; }
 function irV2(tab,tut){ var w=v4w(); if(w){ try{ if(tut) w.AgionTour2.start(tut); else w.go(tab); }catch(e){} return; } try{ go({painel:'dash',clientes:'users',ajustes:'config'}[tab]||tab); }catch(e){} }
 var VERSOES=[
- {v:26,rev:9,data:'20/10/2026',titulo:'Visual novo e tudo o que mudou desde a versão 24',sub:'Da maior mudança (o visual novo) aos pequenos ajustes de toque no celular — tudo o que entrou de 17 a 20 de outubro, por assunto.',itens:[
+ {v:26,rev:10,data:'20/10/2026',titulo:'Visual novo e tudo o que mudou desde a versão 24',sub:'Da maior mudança (o visual novo) aos pequenos ajustes de toque no celular — tudo o que entrou de 17 a 20 de outubro, por assunto.',itens:[
+   {g:'CRM',roles:S3,ic:'funnel',t:'Lead em reengajamento fica fora do CRM',d:'Lead sem responsável que está com o robô em reengajamento não aparece mais no CRM, nem em “aguardando distribuição”. O cadastro continua. Quando a pessoa volta a conversar, ela é distribuída e entra no CRM de novo.'},
    {g:'CRM',roles:S3,ic:'funnel',t:'Lead com a Alice fica no CRM',d:'Os leads que a Alice está acompanhando no follow-up agora aparecem no CRM do especialista responsável, com a etiqueta “🤖 Alice”. Antes eles só entravam quando a Alice passava a conversa.'},
    {g:'Só para o master',roles:ML,ic:'users',t:'Ver como: um clique',d:'Um clique no participante já mostra a visão dele, com a pílula deslizando; clicar de novo nele abre a lista de todos para escolher outro.'},
    {g:'Comissões',roles:S3,ic:'money',t:'Comissão da competência completa',d:'No Painel, “Sua comissão” agora soma todas as cartas da competência — lead da Agion e cliente próprio —, pelo mesmo cálculo da aba Comissões.'},

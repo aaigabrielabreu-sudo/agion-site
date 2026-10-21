@@ -105,8 +105,8 @@
  function perfis(){if(_perf)return _perf;_perf=rest('profiles?select=id,nome').then(function(rs){var m={};(rs||[]).forEach(function(p){if(p&&p.id)m[p.id]=p.nome||'';});return m;}).catch(function(){_perf=null;return {};});return _perf;}
  function buscaLeads(q){q=String(q||'').replace(/[(),*%\\]/g,' ').trim();if(q.length<2)return Promise.resolve([]);
   var dg=q.replace(/\D/g,''),f='nome.ilike.*'+encodeURIComponent(q)+'*'+(dg.length>=4?',contato.ilike.*'+dg+'*':'');
-  return Promise.all([rest('leads?select=id,nome,stage,owner_id,contato,reuniao_em,compareceu,perdido&or=('+f+')&order=criado_em.desc&limit=8'),perfis()]).then(function(r){var P=r[1]||{};
-   return (r[0]||[]).map(function(l){return {id:l.id,nome:l.nome||'—',etapa:etapaDe(l),esp:P[l.owner_id]||'',tel:l.contato||''};});});}
+  return Promise.all([rest('leads?select=id,nome,stage,owner_id,contato,reuniao_em,compareceu,perdido,tipo&or=('+f+')&order=criado_em.desc&limit=12'),perfis()]).then(function(r){var P=r[1]||{};
+   return (r[0]||[]).filter(function(l){return l.owner_id||String(l.tipo||'').toLowerCase()!=='reengajamento';}/* REENG_FORA_CRM_20261020 */).slice(0,8).map(function(l){return {id:l.id,nome:l.nome||'—',etapa:etapaDe(l),esp:P[l.owner_id]||'',tel:l.contato||''};});});}
  function norma(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
  function criar(p,horas,cliente,lead){var b={pagina:p,horas:horas,cliente:cliente||''};if(lead)b.lead_id=lead;
   return fetch(API+'/api/link_temp',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok()},body:JSON.stringify(b)}).then(function(r){return r.json();});}

@@ -2430,7 +2430,7 @@ function renderCRM(C){
     return `<div class="kcol${i===CRM_STAGES.length-1?' kcol-won':''}" data-stage="${i}"><div class="khead"><h4><span class="kname">${esc(st)}</span><span class="kcount">${leads.length}</span></h4><div class="ksum">${BRL(soma)}</div></div><div class="kbody" ondragover="kbOver(event)" ondragleave="kbLeave(event)" ondrop="kbDrop(event,${i})">${leads.map(l=>leadCard(l,i)).join('')||'<div class="kempty"><b>Nenhum lead nesta etapa</b><span>Arraste um cartão para cá</span></div>'}</div></div>`;
   }).join('');
   const perdidos=VL.filter(l=>l.perdido);
-  const naoDistrib=isMaster()?(db.crm||[]).filter(l=>!l.ownerId&&!l.perdido):[];
+  const naoDistrib=isMaster()?(db.crm||[]).filter(l=>!l.ownerId&&!l.perdido&&!(window.agForaCRM&&window.agForaCRM(l))):[]; /* REENG_FORA_CRM_20261020 */
   C.innerHTML=cards+
     (naoDistrib.length?`<div class="banner"> ${naoDistrib.length} lead(s) aguardando distribuição. Use o seletor “Distribuir” em cada cartão para encaminhar a um especialista.</div>`:'')+
     `<div class="panel crmFiltros" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px;margin:14px 0">
@@ -4047,10 +4047,11 @@ function masterReportPDF(){
 <script src="/plat-humano.js?v=6"></script>
 <script src="/plat-rodizio.js?v=1"></script>
 <script src="/plat-crm-alice.js?v=2"></script>
+<script src="/plat-crm-reeng.js?v=1"></script>
 <script src="/plat-contas-papel.js?v=1"></script>
 <script src="/plat-mkt.js?v=1"></script>
 <script src="/plat-tour.js?v=14"></script>
-<script src="/plat-novidades.js?v=51"></script>
+<script src="/plat-novidades.js?v=52"></script>
 
 <!-- ===== Propostas (anexos por lead) — identidade Agion ===== -->
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
