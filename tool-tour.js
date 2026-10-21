@@ -93,15 +93,15 @@ var TOURS={
   steps:[
    {t:null,title:'Onde posicionar o cliente',text:'A ferramenta usa o Resultado de Assembleia Final da HS, mês a mês desde jun/2019, para mostrar em cada grupo as cotas que já saíram e as livres mais bem posicionadas perto delas.'},
    {t:up('#cats','.fld'),title:'Categoria',text:'Imóvel ou Automóvel. Cada categoria tem os próprios grupos.'},
-   {t:up('#gsel','.fld'),title:'Grupo',text:'Os grupos ativos que mais contemplam vêm primeiro. Ao lado aparece a média de contemplações por assembleia e quantas cotas da carteira estão no grupo.'},
+   {t:up('#gsel','.fld'),title:'Grupo',text:'Os grupos aparecem do maior para o menor número. Ao lado, quantas contemplações o grupo teve na última assembleia e quantas cotas da carteira estão nele. Ao abrir, a ferramenta já mostra o grupo que mais contemplou no último mês.'},
    {t:up('#psel','.fld'),title:'Período',text:'“Todo o histórico” considera todas as contempladas desde 2019, porque cota contemplada não volta. Dá para olhar só os últimos 12, 6 ou 3 meses, ou a última assembleia.'},
    {t:up('#jan','.fld'),title:'Janela',text:'Até quantos números de distância de uma contemplada a cota livre conta como oportunidade. Alta é colada (±1), média até ±3 e baixa até a janela.'},
    {t:up('.kpis'),title:'Resumo do grupo',text:'Total de cotas (toque em “ajustar” se o grupo tiver outro tamanho), contempladas, clientes da carteira e quantas livres estão coladas numa contemplada.'},
-   {t:up('#mapa .grid'),title:'Mapa de cotas',text:'Cada quadrado é uma cota. Colorida é contemplada (a cor diz como saiu), dourada é cliente Agion, verde é oportunidade e listrada é reservada ou indisponível. Toque numa cota para ver o detalhe.'},
+   {t:up('#mapa .grid'),title:'Mapa de cotas',text:'Cada quadrado é uma cota. Vermelha é contemplada (cada tom de vermelho é uma modalidade), verde com borda é cliente Agion, dourada é oportunidade (a mais forte, com a estrela, é a alta) e listrada é reservada ou indisponível. Toque numa cota para ver o detalhe.'},
    {t:up('#fil'),title:'Filtros',text:'Veja só oportunidades, contempladas, disponíveis, clientes ou reservadas. “Ocultar clientes” esconde nomes e cotas da carteira para você mostrar a tela ao cliente.'},
    {t:up('#pop'),title:'Melhores oportunidades',text:'As livres mais perto das contempladas, com quantos números do sorteio caem em cada uma. Na HS, se o número sorteado já saiu, a vez passa para a cota de cima e depois para a de baixo.'},
    {t:up('#det'),title:'Detalhe e ações',text:'Na cota escolhida: posicionar cliente (a equipe toda vê), marcar como reservada ou indisponível quando o portal da HS mostrar que não dá, e desfazer depois.'},
-   {t:up('#tabs'),title:'Melhores grupos e grade global',text:'“Melhores grupos” ordena os grupos pela média de contemplações no período. “Grade global” mostra a carteira em todos os grupos e sugere números para espalhar os clientes.'},
+   {t:up('#tabs'),title:'Melhores grupos e grade global',text:'“Melhores grupos” ordena os grupos pelas contemplações do último mês: quanto mais o grupo anda, mais ele contempla. “Grade global” mostra a carteira de 1 a 3.000, em todos os grupos, e sugere números para espalhar os clientes.'},
    {t:null,title:'Sempre confirme na HS',text:'A ferramenta sugere; a reserva de verdade é no portal da HS. Se a cota já estiver reservada por outro corretor, marque aqui como reservada para a equipe não perder tempo.'}
   ]}
 };

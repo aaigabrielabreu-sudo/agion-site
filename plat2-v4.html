@@ -4187,31 +4187,35 @@ function admK(a){return /anc|âncora/i.test(a||'')?'ANC':'HS';}
 function carregaAss(){if(ASR)return Promise.resolve();if(ASL)return ASL;var sb=psb();
  ASL=Promise.all([sb.from('assembleias_resultado').select('*').order('mes_ref',{ascending:false}).limit(5000).then(function(r){ASR=r.data||[];}),
   sb.from('assembleias_agenda').select('*').order('data_assembleia',{ascending:true}).limit(500).then(function(r){AGD=r.data||[];}).catch(function(){AGD=[];})]).catch(function(){ASR=ASR||[];}).then(function(){ASL=null;});return ASL;}
-var AS={adm:'HS',cat:'imovel',mes:null,fonte:'mes'};
+var AS={adm:'HS',cat:'imovel',mes:null,orig:false};
 /* ASSFINAL_20261021: Resultado de Assembleia Final da HS (assembleias_final, desde jun/2019) ao lado do resultado do mês */
 var AFM=null,AFR={},AFL=null;
 function carregaAFM(){if(AFM)return Promise.resolve();if(AFL)return AFL;AFL=psb().from('assembleias_final_meses').select('*').limit(1000).then(function(r){AFM=r.data||[];}).catch(function(){AFM=[];}).then(function(){AFL=null;});return AFL;}
 function carregaAFR(tipo,mes){var k=tipo+'|'+mes;if(AFR[k])return Promise.resolve(AFR[k]);
  return psb().from('assembleias_final').select('administradora,tipo,mes_ref,grupo,contemplados,sorteio,lance_fixo,lance_fixo2,lance_livre,lance_limitado,lance_fidelidade,excluidos,lance_parcelas,detalhes').eq('tipo',tipo).eq('mes_ref',mes).limit(1000).then(function(r){AFR[k]=r.data||[];return AFR[k];});}
-function afFinal(){return AS.fonte==='final'&&AS.adm==='HS';}
+function afTem(tipo,mes){return !!(AFM&&AFM.some(function(m){return m.tipo===tipo&&m.mes_ref===mes;}));}
 R.assembleias=function(v){if(!ASR){v.innerHTML='<div class="empty" style="margin-top:80px">Carregando assembleias…</div>';carregaAss().then(function(){if(cur==='assembleias')go('assembleias',null,1);});return;}
- var FIN=afFinal();if(FIN&&!AFM){v.innerHTML='<div class="empty" style="margin-top:80px">Carregando o resultado final…</div>';carregaAFM().then(function(){if(cur==='assembleias')go('assembleias',null,1);});return;}
- var doAdm=FIN?[]:ASR.filter(function(r){return admK(r.administradora)===AS.adm;}),cats={};
- if(FIN)AFM.forEach(function(m){var c=ASCAT[m.tipo]||'out';cats[c]=cats[c]||{};cats[c][m.mes_ref]=+m.grupos||0;});
- else doAdm.forEach(function(r){var c=ASCAT[r.tipo]||'out';cats[c]=cats[c]||{};cats[c][r.mes_ref]=(cats[c][r.mes_ref]||0)+1;});
+ var HSx=AS.adm==='HS';if(HSx&&!AFM){v.innerHTML='<div class="empty" style="margin-top:80px">Carregando assembleias…</div>';carregaAFM().then(function(){if(cur==='assembleias')go('assembleias',null,1);});return;}
+ /* FINALIMP_20261021: na HS o resultado final substitui o resultado do mês; até o final sair, vale o do mês */
+ var doAdm=ASR.filter(function(r){return admK(r.administradora)===AS.adm;}),cats={};
+ doAdm.forEach(function(r){var c=ASCAT[r.tipo]||'out';cats[c]=cats[c]||{};cats[c][r.mes_ref]=(cats[c][r.mes_ref]||0)+1;});
+ if(HSx)AFM.forEach(function(m){var c=ASCAT[m.tipo]||'out';cats[c]=cats[c]||{};cats[c][m.mes_ref]=+m.grupos||0;});
  if(!cats[AS.cat]){var c1=Object.keys(cats)[0];if(c1)AS.cat=c1;}
  var meses=Object.keys(cats[AS.cat]||{}).sort().reverse();if(!AS.mes||meses.indexOf(AS.mes)<0)AS.mes=meses[0]||null;
+ var temF=HSx&&afTem(ASCATR[AS.cat],AS.mes),temM=doAdm.some(function(r){return (ASCAT[r.tipo]||'out')===AS.cat&&r.mes_ref===AS.mes;}),FIN=temF&&!(AS.orig&&temM);
  var rows;if(FIN){var afk=ASCATR[AS.cat]+'|'+AS.mes;if(AS.mes&&!AFR[afk]){v.innerHTML='<div class="empty" style="margin-top:80px">Carregando o resultado final de '+mesLb(AS.mes)+'…</div>';carregaAFR(ASCATR[AS.cat],AS.mes).then(function(){if(cur==='assembleias')go('assembleias',null,1);}).catch(function(){toast('Não carregou o resultado final','x');});return;}rows=AS.mes?AFR[afk]:[];}
  else rows=doAdm.filter(function(r){return (ASCAT[r.tipo]||'out')===AS.cat&&r.mes_ref===AS.mes;});
  var GR=rows.map(function(r){return [r.grupo,+r.contemplados||0,+r.sorteio||0,+r.lance_fixo||0,+r.lance_fixo2||0,+r.lance_livre||0,+r.lance_limitado||0,+r.excluidos||0,r.lance_parcelas==null?999:+r.lance_parcelas,r];});
- v.innerHTML='<div class="hx rv" style="align-items:center"><button class="ib" id="asbk">'+I('back',18)+'</button><div><div class="crumb" style="margin-bottom:4px">Ferramentas</div><h1 class="h1">'+(AS.adm==='HS'?'HS Consórcios':'Âncora')+' · <em>'+ASLB[AS.cat]+'</em></h1><div class="sub">'+(AS.mes?(FIN?'resultado final de ':'resultado de ')+mesLb(AS.mes)+' · '+GR.length+' grupo'+(GR.length!==1?'s':'')+(FIN?' · histórico desde '+mesLb((Object.keys(cats[AS.cat]||{}).sort()[0])||AS.mes):''):'nenhum resultado importado ainda')+'</div></div><span class="sp"></span>'+(isM()?'<button class="btn" id="asdt">'+I('plus',15)+'Data de assembleia</button><button class="btn gd" id="asim">'+I('up',15)+'Importar resultado</button>':'')+'</div>'+
- sn('aadm',[['HS','HS Consórcios'],['ANC','Âncora Consórcios']],AS.adm)+(AS.adm==='HS'?sn('afonte',[['mes','Resultado do mês'],['final','Resultado final (HS)']],AS.fonte):'')+'<div class="tb rv">'+seg('acat',Object.keys(ASLB).map(function(k){var n=cats[k]?cats[k][Object.keys(cats[k]).sort().reverse()[0]]:0;return [k,ASLB[k],n||0];}),AS.cat)+'<span class="sp"></span>'+(meses.length?dd('ames','Mês',meses.map(function(m){return {k:m,lb:mesLb(m)};}),AS.mes):'')+'</div>'+
+ v.innerHTML='<div class="hx rv" style="align-items:center"><button class="ib" id="asbk">'+I('back',18)+'</button><div><div class="crumb" style="margin-bottom:4px">Ferramentas</div><h1 class="h1">'+(AS.adm==='HS'?'HS Consórcios':'Âncora')+' · <em>'+ASLB[AS.cat]+'</em></h1><div class="sub">'+(AS.mes?(FIN?'<span class="pill ok" style="font-size:11px;padding:3px 9px;margin-right:6px">Resultado final</span>':(HSx?'<span class="pill au" style="font-size:11px;padding:3px 9px;margin-right:6px">Resultado do mês</span>':''))+(FIN?'resultado final de ':'resultado de ')+mesLb(AS.mes)+' · '+GR.length+' grupo'+(GR.length!==1?'s':'')+(FIN&&temM?' · substitui o resultado do mês (<a href="#" id="asorig" style="color:inherit">ver o do mês</a>)':'')+(!FIN&&temF?' · <a href="#" id="asorig" style="color:inherit">voltar ao resultado final</a>':'')+(HSx&&!temF?' · o resultado final sai no início do mês seguinte':''):'nenhum resultado importado ainda')+'</div></div><span class="sp"></span>'+(isM()?'<button class="btn" id="asdt">'+I('plus',15)+'Data de assembleia</button><button class="btn gd" id="asim">'+I('up',15)+'Importar resultado</button>'+(HSx?'<button class="btn gd" id="asfi">'+I('up',15)+'Importar final</button>':''):'')+'</div>'+
+ sn('aadm',[['HS','HS Consórcios'],['ANC','Âncora Consórcios']],AS.adm)+'<div class="tb rv">'+seg('acat',Object.keys(ASLB).map(function(k){var n=cats[k]?cats[k][Object.keys(cats[k]).sort().reverse()[0]]:0;return [k,ASLB[k],n||0];}),AS.cat)+'<span class="sp"></span>'+(meses.length?dd('ames','Mês',meses.map(function(m){return {k:m,lb:mesLb(m)};}),AS.mes):'')+'</div>'+
  '<div class="g12 mb"><div class="panel rv"><div class="ph"><h3>'+I('cal',18)+'Próximas assembleias</h3><small id="calm" title="Voltar para o mês atual">'+MESX[hojeD().getMonth()]+'</small></div><div class="calw" id="calw"><button class="cnav" id="calp" aria-label="Mês anterior" title="Mês anterior">'+I('back',16)+'</button><div class="calg" id="cal"></div><button class="cnav nx" id="caln" aria-label="Próximo mês" title="Próximo mês">'+I('back',16)+'</button></div><div id="agl"></div></div>'+
  '<div><div class="g3 mb rv" style="grid-template-columns:repeat(5,1fr)">'+[['Grupos',GR.length],['Contemplações',GR.reduce(function(a,g){return a+g[1];},0)],['Sorteio',GR.reduce(function(a,g){return a+g[2];},0)],['Lances',GR.reduce(function(a,g){return a+g[3]+g[4]+g[5]+g[6]+(+g[9].lance_fidelidade||0);},0)],['Excluídas sorteadas',GR.reduce(function(a,g){return a+g[7];},0)]].map(function(k){return '<div class="catc" style="background:var(--card);box-shadow:var(--shadow)"><small>'+k[0]+'</small><b data-c="'+k[1]+'">0</b></div>';}).join('')+'</div>'+
  '<div class="panel rv"><div class="ph"><h3>'+I('trophy',18)+'Rankings do mês</h3></div><div class="asst" style="grid-template-columns:repeat(4,1fr)" id="rks"></div></div></div></div>'+
  '<div class="panel rv"><div class="ph"><h3>'+I('layers',18)+'Grupos · '+(AS.mes?mesLb(AS.mes):'—')+'</h3><span class="sp"></span><small>clique no título de uma coluna para ordenar e numa linha para ver as cotas contempladas</small></div><table class="tbl" id="gt"></table></div>';
  $('#asbk').onclick=function(){go('ferramentas');};if($('#asdt'))$('#asdt').onclick=function(){importar('dat');};if($('#asim'))$('#asim').onclick=function(){importar('ass');};
- bindSeg('aadm',function(k){AS.adm=k;AS.mes=null;go('assembleias',null,1);});if($('#afonte'))bindSeg('afonte',function(k){AS.fonte=k;AS.mes=null;go('assembleias',null,1);});bindSeg('acat',function(k){AS.cat=k;AS.mes=null;go('assembleias',null,1);});if(meses.length)bindDD('ames',function(k){AS.mes=k;go('assembleias',null,1);});
+ bindSeg('aadm',function(k){AS.adm=k;AS.mes=null;go('assembleias',null,1);});bindSeg('acat',function(k){AS.cat=k;AS.mes=null;AS.orig=false;go('assembleias',null,1);});if(meses.length)bindDD('ames',function(k){AS.mes=k;AS.orig=false;go('assembleias',null,1);});
+ if($('#asorig'))$('#asorig').onclick=function(e){e.preventDefault();AS.orig=!AS.orig;go('assembleias',null,1);};
+ if($('#asfi'))$('#asfi').onclick=function(){if(!roOk())return;if(!window.AgionFinal){toast('O importador ainda está carregando — tente de novo','x');return;}window.AgionFinal.abrir({sb:psb(),onDone:function(i){AFM=null;AFR={};AS.cat=ASCAT[i.tipo]||AS.cat;AS.mes=i.mes;AS.orig=false;toast('Resultado final de '+mesLb(i.mes)+' gravado · '+i.grupos+' grupos','check');go('assembleias',null,1);}});};
  /* calendário do mês atual com as datas cadastradas */
  var h=hojeD();if(AS.calY==null){AS.calY=h.getFullYear();AS.calM=h.getMonth();}
  asCal();stagger($$('#cal .cald'),100);asCalNav();
@@ -5447,6 +5451,7 @@ vcMontar();
 })();
 </script>
 <script src="/plat2-tour.js?v=6"></script>
+<script src="/plat-final-import.js?v=1"></script>
 <script src="/plat2-maav.js?v=3"></script>
 <script src="/calc-link.js?v=4"></script>
 <script src="/plat2-histferr.js?v=3"></script>
