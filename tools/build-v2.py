@@ -20,7 +20,7 @@ SAIDAS = [os.path.join(RAIZ, 'plataforma.html'), os.path.join(RAIZ, 'plataformav
 # versões dos arquivos da casca (subir a cada mudança)
 SHELL_CSS = '/plat2-shell.css?v=2'
 SHELL_JS = '/plat2-shell.js?v=5'
-V4_JS = '/plat2-v4.js?v=36'   # visual v4 (Chat A) por cima da v1; ?v1=1 na URL desliga
+V4_JS = '/plat2-v4.js?v=37'   # visual v4 (Chat A) por cima da v1; ?v1=1 na URL desliga
 
 src = open(V1, encoding='utf-8').read()
 

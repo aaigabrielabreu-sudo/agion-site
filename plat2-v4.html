@@ -3613,7 +3613,7 @@ function respOpts(){var me=realId(),m=isM();return Object.keys(U).filter(functio
 
 function dealHTML(d,mini){var s=ST[d.st],lid=tkGest();
  return '<div class="deal v4 v41'+(mini?' mini':'')+'" data-id="'+d.id+'" data-st="'+d.st+'" style="--c:var('+s.c+');--t:var('+s.t+')">'+
- '<div class="d1">'+catChip(d,mini)+(d.alice&&isM()?'<span class="pill" title="A Alice está fazendo o follow-up; especialistas e líderes ainda não veem este lead" style="font-size:10px;padding:2px 7px;margin-left:6px">🤖 Alice</span>':'')+'<span class="sp"></span>'+(mini?'':'<button class="wab" data-a="wa" title="Abrir conversa no WhatsApp">'+I('wa',30)+'</button>')+'</div>'+
+ '<div class="d1">'+catChip(d,mini)+(d.alice?'<span class="pill" title="A Alice está fazendo o follow-up deste lead" style="font-size:10px;padding:2px 7px;margin-left:6px">🤖 Alice</span>':'')+'<span class="sp"></span>'+(mini?'':'<button class="wab" data-a="wa" title="Abrir conversa no WhatsApp">'+I('wa',30)+'</button>')+'</div>'+
  '<div class="dbody"><div class="dl">'+
  '<div class="nm">'+esc4(d.nome)+'</div>'+
  '<div class="vl">'+brl(d.valor)+'</div></div>'+(mini?'':'<div class="dr">'+lscore(d)+'</div>')+'</div>'+
