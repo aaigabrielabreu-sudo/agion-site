@@ -4338,7 +4338,7 @@ R.tutoriais=function(v){var TL=tourLista(),by={};TL.forEach(function(t){by[t.id]
 
 /* ---------- Novidades (versões reais da v1 + o novo visual) ---------- */
 R.novidades=function(v){var N=PW()&&PW().AgionNovidades,vs=[];try{vs=N?(typeof N.versoes==='function'?N.versoes():N.versoes)||[]:[];}catch(e){}
- var role=effRoleR(),L=[NOVIDADES[0]].concat(vs.map(function(x){var it=(x.itens||[]).filter(function(i){return !i.roles||i.roles.indexOf(role)>=0;});return ['v'+x.v,x.data||'',x.titulo||'',it.map(function(i){return i.t+(i.d?'<small style="display:block;color:var(--mut);font-weight:400;margin-top:2px">'+esc4(i.d)+'</small>':'');})];}).filter(function(n){return n[3].length;}));
+ var role=effRoleR(),L=(vs.length?[]:[NOVIDADES[0]]).concat(vs.map(function(x){var it=(x.itens||[]).filter(function(i){return !i.roles||i.roles.indexOf(role)>=0;});return ['v'+x.v,x.data||'',x.titulo||'',it.map(function(i){return i.t+(i.d?'<small style="display:block;color:var(--mut);font-weight:400;margin-top:2px">'+esc4(i.d)+'</small>':'');})];}).filter(function(n){return n[3].length;}));
  v.innerHTML='<div class="hx rv"><div><h1 class="h1"><em>Novidades</em> da plataforma</h1><div class="sub">O que mudou em cada versão</div></div></div>'+L.map(function(n,i){return '<div class="nv2 rv"><div class="vv">'+n[0]+'<small>'+n[1]+'</small></div><div class="panel'+(i===0?' gl':'')+'"><div class="ph"><h3>'+esc4(n[2])+'</h3>'+(i===0?'<span class="pill gd">NOVO</span>':'')+'</div>'+n[3].map(function(x){return '<div class="li" style="padding:7px 4px"><span style="color:var(--gold)">✦</span><div class="t"><b style="font-weight:600;font-size:13.5px">'+x+'</b></div></div>';}).join('')+'</div></div>';}).join('');};
 
 /* ---------- Ajustes ---------- */
