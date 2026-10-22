@@ -89,7 +89,7 @@ async function jaEnviadas(d){var out=[],c=sb();if(!c)return out;
 function popDoc(ctx,tipo,tit,semKey,extra){var d=ctx.d,inicio=Date.now();
  var s=folha(ctx,tit,tipo==='completa'?'Ela não vai para o cliente: serve para a Alice saber o que foi montado.':'É o documento que mais ajuda a Alice a puxar para a reunião.',
   (extra||'')+'<div class="c7o">'+opc('arq','📎','Importar do computador','PDF ou imagem')+opc('txt','📝','Colar o texto','Cole a proposta como texto')+opc('ger','✨','Gerar no Gerador de propostas',d.resp?'Abre o gerador já com este lead':'Designe o lead antes de gerar',!d.resp)+opc('lst','🗂️','Escolher uma já enviada','Propostas que este lead já tem')+'</div>'+
-  '<div class="c7x" id="c7x"></div><input type="file" id="c7f" accept="application/pdf,image/*" hidden><button class="c7sem" data-c7="sem">Prosseguir sem a '+(tipo==='completa'?'completa':'resumida')+'</button>');
+  '<div class="c7x" id="c7x"></div><input type="file" id="c7f" accept="application/pdf,image/*" hidden><button class="c7sem" data-c7="sem">Prosseguir sem a '+(tipo==='completa'?'completa':'resumida')+'</button>',true);   /* SEM_DUPLO_20261022: o "Prosseguir sem…" já faz o papel do "Pular por agora" */
  var x=$('#c7x',s),fin=function(atv){ctx.fecha();aplica(ctx,ctx.campos||{},(ctx.atvs||[]).concat([atv]));};
  $('[data-o="arq"]',s).onclick=function(){$('#c7f',s).click();};
  $('#c7f',s).onchange=async function(){var f=this.files&&this.files[0];if(!f)return;x.innerHTML='<div class="c7w">Enviando '+e4(f.name)+'…</div>';
@@ -151,7 +151,7 @@ function popProposta(ctx){var d=ctx.d,x=xl(d);
  var s=folha(ctx,'Como a proposta chegou a '+e4(nm(d))+'?','Assim a Alice sabe o que a pessoa tem em mãos para acompanhar a decisão.',
   '<div class="c7o">'+opc('plat','📤','Enviar pela plataforma','Disponível quando o e-mail de cada especialista for conectado',true)+opc('fora','💬','Já enviei por fora','WhatsApp ou e-mail próprio')+'</div>'+
   '<div class="fi" style="margin-top:12px"><label>Quando deve decidir? (opcional)</label><input type="date" id="c7dd" value="'+e4((x.data_decisao||'').slice(0,10))+'"></div>'+
-  '<button class="c7sem" data-c7="sem">Prosseguir sem registrar</button>');
+  '<button class="c7sem" data-c7="sem">Prosseguir sem registrar</button>',true);   /* SEM_DUPLO_20261022 */
  var dd=function(){var v=$('#c7dd',s).value;return v?{data_decisao:v}:{};};
  $('[data-o="fora"]',s).onclick=async function(){var b=this;b.disabled=true;try{await salvaDoc(d,{tipo:'material',titulo:'Proposta enviada por fora',enviado_em:new Date().toISOString(),enviado_por:W.realId()});}catch(e){}
   ctx.fecha();var c=dd();aplica(ctx,c,['Proposta enviada por fora (WhatsApp ou e-mail próprio)'+(c.data_decisao?' · decide até '+c.data_decisao.split('-').reverse().join('/'):'')]);};
