@@ -1,6 +1,6 @@
 /* ==========================================================================
    Agion — tool-tour.js · tutoriais das ferramentas que abrem em nova aba
-   (Financiamento × Consórcio, Escada Financeira, Alavancagem Patrimonial, Gerador de Propostas)
+   (Financiamento × Consórcio, Escada Financeira, Alavancagem, Gerador de Propostas)
    - Botão "? Como usar esta ferramenta" em cada ferramenta; convite na 1ª visita; ?tour=1 inicia direto.
    - Nada é gravado: só destaca e explica. Troca de modo usada na demonstração (ex.: Carta nova) volta ao fim.
    - Conclusão fica em localStorage 'agion:tooltour:done' e a Central de Tutoriais (plat-tour.js) lê e sincroniza.
@@ -53,7 +53,7 @@ var TOURS={
    {t:up('#pdfbtn'),title:'Baixar PDF',text:'Gera o PDF do documento para enviar ao cliente. “Abrir em nova aba” mostra o documento sozinho, bom para apresentar numa chamada.'},
    {t:null,title:'Imprimir igual ao modelo',text:'Se imprimir pelo navegador, ative “Gráficos de fundo” e desmarque “Cabeçalhos e rodapés” para sair idêntico ao modelo. Lembre: são cenários com premissas, não promessa de ágio nem de rendimento.'}
   ]},
- 'calc-alavancagem':{id:'t-alav',v:1,title:'Alavancagem Patrimonial',
+ 'calc-alavancagem':{id:'t-alav',v:1,title:'Alavancagem',
   steps:[
    {t:null,title:'Consórcio não é dívida, é alavancagem',text:'Dois cenários numa tela só: vender a carta contemplada como investimento, ou usar a carta para comprar um imóvel de renda. Tudo recalcula na hora; nada é gravado.'},
    {t:nth('.scn .scnhd',0),title:'Cenário 1 · vender a carta',text:'O consórcio como aplicação: o cliente paga parcela reduzida até contemplar, contempla com lance embutido e vende a carta com ágio.'},

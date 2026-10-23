@@ -15,7 +15,7 @@
 'use strict';
 var W=window, D=document;
 if(W.__hfOn) return; W.__hfOn=1;
-var FER={financiamento:{n:'Financiamento × Consórcio',c:'#2E6A8A',p:'calc-financiamento',k:'Financiamento',o:'o',em:'no',de:'do'},alavancagem:{n:'Alavancagem Patrimonial',c:'#C5A059',p:'calc-alavancagem',k:'Alavancagem',o:'a',em:'na',de:'da'},escada:{n:'Escada Financeira',c:'#3F8F6A',p:'escada-financeira',k:'Escada',o:'a',em:'na',de:'da'}};
+var FER={financiamento:{n:'Financiamento × Consórcio',c:'#2E6A8A',p:'calc-financiamento',k:'Financiamento',o:'o',em:'no',de:'do'},alavancagem:{n:'Alavancagem',c:'#C5A059',p:'calc-alavancagem',k:'Alavancagem',o:'a',em:'na',de:'da'},escada:{n:'Escada Financeira',c:'#3F8F6A',p:'escada-financeira',k:'Escada',o:'a',em:'na',de:'da'}};
 var TIPO={simulacao:['⌁','#C5A059'],abertura:['◉','#2E6A8A'],link:['↗','#0B2A26'],proposta:['▤','#A8457A'],envio:['✉','#A8457A'],tarefa:['✓','#6E7C78'],etapa:['→','#C2463B'],nota:['•','#8C9590'],email:['✉','#1E4E79'],whatsapp:['●','#2E8F57']};
 var H=36e5;
 var HF={links:[],ev:{},t:0,ok:true,load:null,atv:{},dias:30,sub:'ger',sel:null,mdet:false,q:'',fesp:''};
@@ -494,7 +494,7 @@ function registra(){
   W.R.histferr=rota;
   try{ W.PARENT.histferr='ferramentas'; }catch(e){}
   try{ W.V4OK.histferr=1; }catch(e){}
-  try{ if(!W.TOOLS.some(function(t){ return t.k==='hist'; })){ var i=-1; W.TOOLS.forEach(function(t,j){ if(t.k==='prop') i=j; });
+  try{ if(!W.TOOLS.some(function(t){ return t.k==='hist'; })){ var i=-1; W.TOOLS.forEach(function(t,j){ if(t.k==='ass') i=j; });
     W.TOOLS.splice(i>=0?i+1:W.TOOLS.length,0,{k:'hist',t:'Histórico de ferramentas',d:'Todos os links das calculadoras num lugar só: quem recebeu, quem abriu e o que cada cliente simulou.',tag:'Equipe',ic:'act',bg:'linear-gradient(140deg,#2A5F6E,#0B2A26)',
      svg:'<path d="M20 132 C90 124 120 84 190 96 S300 60 372 56" stroke="#E8CC8B" stroke-width="3" fill="none"/><g fill="#E8CC8B"><circle cx="190" cy="96" r="6"/><circle cx="290" cy="70" r="6"/><circle cx="372" cy="56" r="7"/></g><g fill="#9CCBE6" opacity=".9"><circle cx="90" cy="122" r="5"/></g>',tut:22}); } }catch(e){}
   if(typeof W.R.ferramentas==='function'&&!W.R.ferramentas.__hf){ var _rf=W.R.ferramentas; W.R.ferramentas=function(v){ var r=_rf.apply(this,arguments);

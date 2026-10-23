@@ -257,7 +257,7 @@ var CFG=[
    {t:q('#fsn2'),title:'Tipos de ferramenta',text:'Calculadoras, Estratégias, IA, Equipe e as que estão chegando.',demo:'click'},
    {t:q('.tc[data-k="fin"]'),title:'Financiamento × Consórcio',text:'Compara custo real, CET e SAC/Price com o consórcio — carta nova ou contemplada. Abre em outra aba para usar na frente do cliente.',optional:true},
    {t:q('.tc[data-k="esc"]'),title:'Escada Financeira',text:'Monta a escada de cartas que se paga sozinha.',optional:true},
-   {t:q('.tc[data-k="ala"]'),title:'Alavancagem Patrimonial',text:'Simula vender a carta contemplada com ágio ou transformá-la em renda.',optional:true},
+   {t:q('.tc[data-k="ala"]'),title:'Alavancagem',text:'Simula vender a carta contemplada com ágio ou transformá-la em renda.',optional:true},
    {t:q('.tc[data-k="prop"]'),title:'Gerador de Propostas',text:'Monta a proposta do cliente e baixa em PDF ou PNG (várias páginas vêm num .zip). No iPhone abre o Compartilhar.',optional:true},
    {t:q('.tc[data-k="ass"]'),title:'Assembleias',text:'Resultado mensal dos grupos por administradora e categoria: sorteio, lances e calendário.',optional:true},
    {t:q('.tc .how'),title:'Tutorial de cada ferramenta',text:'Cada ferramenta tem o seu tutorial: toque em “Tutorial” no cartão ou em “Como usar esta ferramenta” dentro dela.',optional:true}
