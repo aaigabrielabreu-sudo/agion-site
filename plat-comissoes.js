@@ -1009,3 +1009,6 @@ async function _rotaComissoes(C){
   paintFunc(C,eId());
 };
 })();
+
+/* CMSCSS_23OUT: trava contra toque duplo em "Registrar venda" (o pop-up só aparece depois de carregar os dados) */
+(function(){var f=window.cmsNovaVenda,busy=false;if(typeof f!=='function')return;window.cmsNovaVenda=async function(){if(busy)return;busy=true;try{return await f.apply(this,arguments);}finally{busy=false;}};})();
