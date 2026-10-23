@@ -20,7 +20,7 @@ SAIDAS = [os.path.join(RAIZ, 'plataforma.html'), os.path.join(RAIZ, 'plataformav
 # versões dos arquivos da casca (subir a cada mudança)
 SHELL_CSS = '/plat2-shell.css?v=2'
 SHELL_JS = '/plat2-shell.js?v=5'
-V4_JS = '/plat2-v4.js?v=43'   # visual v4 (Chat A) por cima da v1; ?v1=1 na URL desliga
+V4_JS = '/plat2-v4.js?v=44'   # visual v4 (Chat A) por cima da v1; ?v1=1 na URL desliga
 
 src = open(V1, encoding='utf-8').read()
 
@@ -36,6 +36,19 @@ out = unico(out, '<!DOCTYPE html>', '<!DOCTYPE html>\n<!-- GERADO por tools/buil
 # 1) título + noindex (só a v2)
 out = unico(out, '<title>Agion — Plataforma de Planejamento Financeiro</title>',
             '<title>Agion Wealth — Plataforma</title>\n<meta name="robots" content="noindex,nofollow">')
+# 1b) V1_INVISIVEL_23OUT (Gabriel 23/out: "não apareça nenhum resquício do aplicativo anterior"):
+#     desde o PRIMEIRO quadro a tela de entrada e o app da v1 ficam invisíveis e uma capa no tom da
+#     entrada nova cobre tudo até o plat2-v4.js montar a entrada nova (classe v4ok). Cliente (role
+#     cliente), as telas da v1 que ainda abrem por cima e o ?v1=1 de emergência ganham a classe v1on.
+#     Se o visual novo não carregar em 12 s, a v1 aparece (nunca fica tela vazia).
+PRE = ('<style id="agv4pre">html:not(.v1on) #loginView,html:not(.v1on) #app{visibility:hidden!important}'
+       'html:not(.v1on),html:not(.v1on) body{background:#0B2A26}'
+       'html:not(.v1on):not(.v4ok) body::after{content:"";position:fixed;inset:0;z-index:1990;'
+       'background:radial-gradient(circle at 50% 38%,#1B5A4D,#0B2A26 64%)}</style>\n'
+       '<script>(function(){var h=document.documentElement;'
+       'if(/[?&]v1=1/.test(location.search)||!/^\\/plataforma(v2)?(\\.html)?$/.test(location.pathname))h.classList.add("v1on");'
+       'setTimeout(function(){if(!h.classList.contains("v4ok")){h.classList.add("v1on");h.classList.add("v4ok");}},12000);})();</script>')
+out = unico(out, '<meta charset="UTF-8">', '<meta charset="UTF-8">\n' + PRE)
 # 2) CSS da casca: antes do PRIMEIRO </head> (o do documento; há outro dentro de uma string JS mais abaixo)
 out = unico(out, '</head>', '<link rel="stylesheet" href="%s">\n</head>' % SHELL_CSS)
 # 3) JS da casca: antes do ÚLTIMO </body> (o do documento)
