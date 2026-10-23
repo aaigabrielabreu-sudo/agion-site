@@ -490,7 +490,7 @@ var CLI_ROTAS=[['inicio','Início','grid','inicio'],['planejamento','Planejament
 var CLI_OK={inicio:1,planejamento:1,jornada:1,gastos:1,cota:1,ajustes:1,tutoriais:1,meuplano:1};
 function rotaDaAba(a){ var r=CLI_ROTAS.filter(function(x){ return x[3]===a; })[0]; return r?r[0]:'inicio'; }
 (function(){ if(document.getElementById('clicss')) return; var s=document.createElement('style'); s.id='clicss'; s.textContent=
- 'body.cli #sk,body.cli #bell,body.cli #vc,body.cli #ver,body.cli .vcw{display:none!important}'+
+ 'body.cli #sk,body.cli #bell,body.cli #vc,body.cli #ver,body.cli .vcw,body.cli #mbusca,body.cli .mvc{display:none!important}'+
  '.clivc{display:flex;align-items:center;gap:10px;flex-wrap:wrap}';
  document.head.appendChild(s); })();
 try{
@@ -511,8 +511,13 @@ try{
    var sub=$('.hx .sub',v); if(sub) sub.textContent='Aparência, celular e conta';
   }catch(e){ console.warn('[cliente] ajustes',e); } }; }
 }catch(e){ console.warn('[cliente] modo cliente',e); }
+/* celular: barra de baixo do cliente; e o cliente "existe" na lista de pessoas (cartão, menu Mais) */
+var MTABS_CLI=[['inicio','Início','home'],['planejamento','Plano','target'],['jornada','Jornada','ladder'],['gastos','Gastos','money']];
+try{ if(typeof MTABS!=='undefined'&&MTABS.esp){ var _mEsp=MTABS.esp; Object.defineProperty(MTABS,'esp',{get:function(){ return ehCli()?MTABS_CLI:_mEsp; },configurable:true}); } }catch(e){}
+function cliU(){ try{ if(!ehCli()) return; var c=cliente(meuCid())||{}; U[ME()]={n:c.nome||'Cliente',p:'Cliente',role:'cliente',ativo:true}; }catch(e){} }
+if(typeof window.carregar==='function'){ var _carC=window.carregar; window.carregar=function(){ var pr=_carC.apply(this,arguments); cliU(); try{ Promise.resolve(pr).then(cliU); }catch(e){} return pr; }; }
 /* entrada do cliente: menu e cartão do cliente e a aba Início logo de cara */
-setTimeout(function(){ try{ if(!ehCli()) return; document.body.classList.add('cli'); try{ buildNav(); }catch(e){} try{ if(typeof buildTab==='function') buildTab(); }catch(e){} try{ meCard(); }catch(e){}
+setTimeout(function(){ try{ if(!ehCli()) return; cliU(); document.body.classList.add('cli'); try{ buildNav(); }catch(e){} try{ if(typeof buildTab==='function') buildTab(); }catch(e){} try{ meCard(); }catch(e){}
  if(!CLI_OK[cur]) go('inicio',null,1); }catch(e){ console.warn('[cliente] entrada',e); } },0);
 /* equipe usando o "Ver como" um cliente (pela plataforma antiga): faixa para voltar */
 function faixaVerComo(){ try{ var s=px().session(); if(!(s&&s.viewAs&&s.role!=='cliente')) return ''; return '<div class="banner rv clivc">'+I('eye',16)+'<span>Você está vendo como <b>'+e4(s.viewAs.nome||'o cliente')+'</b> (somente leitura).</span><span class="sp" style="flex:1"></span><button class="btn sm ol" id="clisai">Voltar para a minha visão</button></div>'; }catch(e){ return ''; } }
@@ -521,7 +526,7 @@ function ligaFaixa(v){ var b=$('#clisai',v); if(b) b.onclick=function(){ try{ pc
 /* Planejamento do cliente: Plano Principal só leitura + os planejamentos dele editáveis */
 function abaPlanoCli(X){ var p=X.p;
  var plans='<div class="plplans">'+X.ps.map(function(q){ return '<button data-pl="'+q.id+'" class="'+(q.id===p.id?'on':'')+'">'+(q.main?'★ Plano Principal':e4(q.titulo||'Planejamento'))+'</button>'; }).join('')+(RO()?'':'<button data-novo="1" style="background:transparent;border:1px dashed var(--line)">'+I('plus',12)+' Novo planejamento</button>')+'</div>';
- if(!p.main) return plans+'<div id="plcli"></div>';
+ if(!p.main) return '<div id="plcli"></div>';   /* o editor já mostra os planos em cima */
  return plans+'<div class="banner rv">'+I('star',16)+'<span>Este é o seu <b>Plano Principal</b>, feito pelo seu especialista. Para simular mudanças sem alterá-lo, crie um novo planejamento.</span></div>'+
   '<div class="secn" id="plsec">'+SECS.map(function(s){ return '<button data-s="'+s[0]+'" class="'+(s[0]===ST.sec?'on':'')+'">'+s[1]+'</button>'; }).join('')+'</div><div id="plsecb">'+secao(X)+'</div>'; }
 function novoPlanoCli(X){ var sug='Novo planejamento '+(X.ps.filter(function(q){ return !q.main; }).length+1);
@@ -591,6 +596,8 @@ function registraToursPlano(){ var W2=window, T2=W2.AgionTour2; if(!T2||!T2.conf
   if(W2.TUIC){ W2.TUIC['t-plano']='target'; W2.TUIC['c-inicio']='grid'; W2.TUIC['c-planejamento']='target'; W2.TUIC['c-jornada']='ladder'; W2.TUIC['c-gastos']='money'; W2.TUIC['c-cota']='layers'; } }catch(e){}
  return true; }
 (function rtp(n){ if(!registraToursPlano()&&n<80) setTimeout(function(){ rtp(n+1); },250); })(0);
+/* o plat2-tour.js recria a lista de grupos quando liga; garante os grupos antes de abrir a Central */
+if(R.tutoriais){ var _rtP=R.tutoriais; R.tutoriais=function(){ try{ registraToursPlano(); }catch(e){} return _rtP.apply(this,arguments); }; }
 
 /* liga o botão de WhatsApp das abas Minha cota e Início */
 var _co=corpo; corpo=function(){ _co(); var b=$('#plbody'); if(b) $$('[data-wa]',b).forEach(function(x){ if(!x._w){ x._w=1; x.onclick=function(){ falarEspecialista(); }; } }); };
