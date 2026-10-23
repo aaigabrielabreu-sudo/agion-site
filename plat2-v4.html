@@ -4291,6 +4291,28 @@ R.assembleias=function(v){if(!ASR){v.innerHTML='<div class="empty" style="margin
   $$('#gt th').forEach(function(t){t.onclick=function(){var i=+t.dataset.i;if(so===i)dir=-dir;else{so=i;dir=(i===0||i===11)?1:-1;}gt();};});$$('#gt tr[data-g]').forEach(function(r){r.onclick=function(){op=op===r.dataset.g?null:r.dataset.g;gt();};});}
  gt();};
 
+/* TOUR_ASSEMB_23OUT: tutorial da tela Assembleias (motor do plat2-tour.js; nada é alterado) */
+(function(){var W=window,D=document;
+function vq(s){return function(){var a=[].slice.call(D.querySelectorAll(s));for(var i=0;i<a.length;i++){var r=a[i].getBoundingClientRect();if(r.width>0&&r.height>0)return a[i];}return null;};}
+function rkLv(){var a=[].slice.call(D.querySelectorAll('#rks .rkb'));for(var i=0;i<a.length;i++)if(/menor lance livre/i.test(a[i].textContent))return a[i];return null;}
+function lvCol(){return vq('#gt td.lvtd:not(.lvz)')()||vq('#gt th[data-i="11"]')();}
+var TOUR={id:'t-assemb',page:'assembleias',navk:'ferramentas',v:1,g:'Ferramentas',title:'Assembleias',desc:'O resultado de cada mês por grupo, o calendário e o lance livre que contemplou em cada grupo.',steps:[
+ {t:null,title:'Resultado das assembleias',text:'O resultado de cada mês, grupo por grupo: quantas cotas saíram por sorteio e por lance. É só consulta: nada que você tocar aqui muda os dados.'},
+ {t:vq('#aadm'),title:'Administradora',text:'HS Consórcios ou Âncora.',demo:'click'},
+ {t:vq('#acat'),title:'Categoria do bem',text:'Imóvel, Automóvel e as outras categorias. O número ao lado é quantos grupos tiveram assembleia no mês.',optional:true},
+ {t:vq('#ames'),title:'Mês',text:'Escolha o mês. Na HS, quando sai o Resultado Final, ele entra no lugar do resultado do mês.',optional:true},
+ {t:vq('#calw'),title:'Próximas assembleias',text:'As datas cadastradas aparecem marcadas no calendário; as setas trocam o mês. As mesmas datas aparecem em Comercial › Calendário.',optional:true},
+ {t:vq('#view .g3.mb'),title:'Resumo do mês',text:'Grupos, contemplações, sorteio, lances e excluídas sorteadas no mês escolhido.',optional:true},
+ {t:vq('#rks'),title:'Rankings do mês',text:'Os 3 primeiros em cada critério: mais contemplações, mais cotas no sorteio, lance fixo, 2º lance fixo, lance limitado, lance fixo com menos parcelas e mais excluídas sorteadas.',optional:true},
+ {t:rkLv,title:'Menor lance livre (%)',text:'Os grupos onde o lance livre contemplou com o menor percentual do prazo. Lance que quitou a cota fica de fora.',optional:true},
+ {t:lvCol,title:'Livre %',text:'O lance livre que contemplou no mês, do mínimo ao máximo, em % do prazo do grupo (parcelas do lance ÷ prazo). A barra vai de 0 a 100%: o dourado é a faixa que saiu e o traço é o lance médio que a HS mostra no portal. “quitação” marca o lance que pagou tudo o que faltava da cota.',optional:true},
+ {t:vq('#gt'),title:'Grupos do mês',text:'Toque no título de uma coluna para ordenar (no celular, nos botões em cima da lista). Toque num grupo para ver as cotas contempladas em cada modalidade, com as parcelas de cada lance livre.',optional:true},
+ {t:vq('#asfi, #asim'),title:'Importar',text:'Importe o resultado do mês, o Resultado Final da HS ou as datas das assembleias. Você confere antes de gravar.',roles:['master'],optional:true}
+]};
+(function rt(n){var T2=W.AgionTour2;if(!(T2&&T2.config&&W.TUG)){if(n<120)setTimeout(function(){rt(n+1);},250);return;}
+ if(!T2.config.some(function(t){return t.id===TOUR.id;}))T2.config.push(TOUR);
+ try{var g=W.TUG.filter(function(x){return x[0]==='Ferramentas';})[0];if(g&&g[1].indexOf('t-assemb')<0){var i=g[1].indexOf('ferramentas');g[1].splice(i>=0?i+1:g[1].length,0,'t-assemb');}if(W.TUIC)W.TUIC['t-assemb']='cal';}catch(e){}})(0);
+})();
 /* ASSCAL_20261020: calendário de assembleias com setas para os outros meses e exclusão (toque na data → X → exclui) */
 function asInfo(a){return (admK(a.administradora)==='ANC'?'Âncora':'HS')+' · '+(ASLB[ASCAT[a.tipo]]||a.tipo||'')+(a.obs?' · '+a.obs:'');}
 function asCal(anim){var cal=$('#cal');if(!cal)return;var h=hojeD(),y=AS.calY,m=AS.calM,pri=new Date(y,m,1).getDay(),nd=new Date(y,m+1,0).getDate(),nAnt=new Date(y,m,0).getDate(),ev={},ed=isM()&&!RO(),atual=y===h.getFullYear()&&m===h.getMonth();
