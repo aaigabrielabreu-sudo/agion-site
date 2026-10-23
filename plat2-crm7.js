@@ -200,27 +200,37 @@ function abre(ctx){var k=ctx.k;
 /* "desmarcar reunião" (voltar para antes da reunião) entra junto com o que o pop-up gravar, uma vez só */
 var _aplica=aplica;aplica=function(ctx,campos,atvs,op){if(ctx.limpa&&!ctx.__lp){ctx.__lp=1;campos=Object.assign({},ctx.limpa,campos||{});atvs=(ctx.atvs0||[]).concat(atvs||[]);}return _aplica(ctx,campos,atvs,op);};
 
+/* CONTATO_AUTO_20261023: prazos do "Aguardando resposta" (mesma conta do robô: horas úteis, 9h–19h, seg a sex, Brasília) */
+function somaUteis(ms,h){var t=new Date(ms-3*36e5),rest=h*36e5,g=0;while(rest>0&&g++<400){var d=t.getUTCDay(),hr=t.getUTCHours()+t.getUTCMinutes()/60;
+ if(d===0||d===6||hr>=19){t=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth(),t.getUTCDate()+1,9,0,0));continue;}
+ if(hr<9)t=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth(),t.getUTCDate(),9,0,0));
+ var fim=Date.UTC(t.getUTCFullYear(),t.getUTCMonth(),t.getUTCDate(),19,0,0),dd=Math.min(rest,fim-t.getTime());t=new Date(t.getTime()+dd);rest-=dd;}return t;}
+function hmBR(t,dia){var z=function(n){return (n<10?'0':'')+n;},hoje=new Date(Date.now()-3*36e5),mesmo=t.getUTCDate()===hoje.getUTCDate()&&t.getUTCMonth()===hoje.getUTCMonth();return (mesmo&&!dia?'hoje ':z(t.getUTCDate())+'/'+z(t.getUTCMonth()+1)+' ')+'às '+t.getUTCHours()+'h'+z(t.getUTCMinutes());}
+function prazoContato(x){if(!x||x.contato_respondeu!=null)return null;var t0=Date.parse(x.etapa_crm_em||'');if(!t0||Date.now()-t0>5*864e5||Date.now()<t0)return null;
+ var l=somaUteis(t0,4),a=somaUteis(t0,8),n=Date.now()-3*36e5;return {lemb:l,auto:a,passouL:n>=l.getTime(),passouA:n>=a.getTime()};}
+function prazoTxt(p){if(!p)return '';if(p.passouA)return 'a Alice está voltando a chamar';return (p.passouL?'lembrete enviado · ':'lembrete '+hmBR(p.lemb)+' · ')+'sem marcação, a Alice volta a chamar '+hmBR(p.auto);}
+
 /* ---------- chips no card ---------- */
 function chips(d){var x=xl(d),k,o=[];try{k=W.AG7.colDe(d);}catch(e){return '';}
  if(d.perdido){if(!x.motivo_nao_conversao)o.push(['f','falta: motivo']);}
- else if(k==='1'){if(x.contato_respondeu===true)o.push(['ok','✅ Respondeu']);else if(x.contato_respondeu===false)o.push(['pt','🤖 Não respondeu: Alice chamando']);else o.push(['am','⏳ Aguardando resposta']);}
+ else if(k==='1'){if(x.contato_respondeu===true)o.push(['ok','✅ Respondeu']);else if(x.contato_respondeu===false)o.push(['pt','🤖 Não respondeu: Alice chamando']);else{var pz=prazoContato(x);o.push(['am','⏳ Aguardando resposta'+(pz&&!pz.passouA?' · Alice '+hmBR(pz.auto).replace(/^hoje /,''):'')]);}}
  else if(k==='agd'){if(x.compareceu===false)o.push(['rd','Faltou']);if(!x.reuniao_em)o.push(['f','falta: data da reunião']);}
  else if(k==='dia'){if(x.compareceu==null)o.push(['f','falta: compareceu']);}
  else if(k==='4'&&d.st!==4)o.push(['f','falta: ganho ou perdido']);
  return o.length?'<div class="c7ch">'+o.map(function(c){return '<span class="c7c '+c[0]+'">'+e4(c[1])+'</span>';}).join('')+'</div>':'';}
 
 /* ---------- painel no card aberto ---------- */
-function painel(d){var x=xl(d),k=W.AG7.colDe(d),bt=[],tx='';
+function painel(d){var x=xl(d),k=W.AG7.colDe(d),bt=[],tx='',sub='';
  if(d.perdido){tx='Perdido'+(x.motivo_nao_conversao?' · '+x.motivo_nao_conversao:'');if(!x.motivo_nao_conversao)bt.push(['mot','Informar motivo']);}
  else if(k==='1'){tx=x.contato_respondeu===true?'✅ Respondeu':x.contato_respondeu===false?'🤖 Não respondeu: Alice chamando':'⏳ Aguardando resposta';
-  if(x.contato_respondeu===true)bt.push(['parou','Cliente parou de responder']);else{bt.push(['sim','Respondeu']);bt.push(['nao','Não respondeu']);}}
+  if(x.contato_respondeu==null)sub=prazoTxt(prazoContato(x));if(x.contato_respondeu===true)bt.push(['parou','Cliente parou de responder']);else{bt.push(['sim','Respondeu']);bt.push(['nao','Não respondeu']);}}
  else if(k==='2'){tx='Estudo/Simulação';bt.push(['res','Anexar proposta resumida']);}
  else if(k==='agd'){tx=x.reuniao_em?'📅 '+dtBR(x.reuniao_em)+(x.reuniao_tipo==='R2'?' · 2ª reunião':''):'falta: data da reunião';if(x.compareceu===false)tx='Faltou · '+tx;bt.push(['reu',x.reuniao_em?'Mudar data':'Informar data da reunião']);}
  else if(k==='dia'){tx=x.compareceu==null?'falta: compareceu':'✅ Compareceu';if(x.compareceu==null)bt.push(['comp','Compareceu?']);bt.push(['cpl','Anexar proposta completa']);}
  else if(k==='3'){tx='Proposta enviada'+(x.data_decisao?' · decide até '+String(x.data_decisao).slice(0,10).split('-').reverse().join('/'):'');bt.push(['env','Registrar envio / data de decisão']);}
  else if(k==='4'&&d.st!==4){tx='falta: ganho ou perdido';bt.push(['fch','Marcar ganho ou perdido']);}
  else return '';
- return '<div class="c7p"><span class="c7pt"><small>'+e4(NOME[k]||'Etapa')+'</small><b>'+e4(tx)+'</b></span><span class="sp"></span>'+bt.map(function(b){return '<button class="ob c7pb" data-c7p="'+b[0]+'">'+e4(b[1])+'</button>';}).join('')+'</div>';}
+ return '<div class="c7p"><span class="c7pt"><small>'+e4(NOME[k]||'Etapa')+'</small><b>'+e4(tx)+'</b>'+(sub?'<small style="margin-top:2px">'+e4(sub)+'</small>':'')+'</span><span class="sp"></span>'+bt.map(function(b){return '<button class="ob c7pb" data-c7p="'+b[0]+'">'+e4(b[1])+'</button>';}).join('')+'</div>';}
 function acaoPainel(d,a,m){var fechaM=function(cb){var xb=m&&$('.x',m);if(xb)xb.click();setTimeout(cb,620);};var now=new Date().toISOString(),f={d:d,fill:true};
  if(!W.roOk())return;
  if(a==='sim'||a==='nao'||a==='parou'){f.k='1';var v=a==='sim';aplica(f,{contato_respondeu:v,contato_resp_em:now},[(a==='parou'?'Cliente parou de responder':'Contato feito: '+(v?'Respondeu':'Não respondeu'))+' · '+eu()+' · '+agora()]);setTimeout(function(){pinta(d,m);},60);return;}
@@ -286,7 +296,7 @@ function registraTour(){var T2=W.AgionTour2;if(!T2||!T2.config)return false;if(!
 /* ---------- ligar ---------- */
 function liga(){if(!W.AG7||!W.AG7.moverBase||typeof W.dealHTML!=='function'||typeof W.openDeal!=='function'||typeof W.sheet!=='function'){return setTimeout(liga,200);}
  if(W.CRM7)return;css();
- W.CRM7={mover:mover,chips:chips,popups:{contato:popContato,estudo:popEstudo,reuniao:popReuniao,diag:popDiag,proposta:popProposta,fechado:popFechado},motivos:MOTIVOS};
+ W.CRM7={prazoContato:prazoContato,somaUteis:somaUteis,mover:mover,chips:chips,popups:{contato:popContato,estudo:popEstudo,reuniao:popReuniao,diag:popDiag,proposta:popProposta,fechado:popFechado},motivos:MOTIVOS};
  var _dh=W.dealHTML;W.dealHTML=function(d,mini){var h=_dh.apply(this,arguments);try{var c=chips(d);if(c){var i=h.indexOf('<div class="dft">');if(i>0)h=h.slice(0,i)+c+h.slice(i);}}catch(e){}return h;};
  var _od=W.openDeal;W.openDeal=function(d){var r=_od.apply(this,arguments);try{var m=$$('.dm').pop();if(m&&d){setTimeout(function(){pinta(d,m);},80);var inn=$('.in',m);if(inn&&W.MutationObserver){var mo=new MutationObserver(function(){if(!m.isConnected){mo.disconnect();return;}if(!$('.c7p',inn))setTimeout(function(){pinta(d,m);},50);});mo.observe(inn,{childList:true});}}}catch(e){}return r;};
  W.perdidoFlow=perdidoFlow7;
