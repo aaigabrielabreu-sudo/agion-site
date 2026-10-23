@@ -22,6 +22,7 @@ function isoHoje(){var d=new Date();return d.getFullYear()+'-'+z(d.getMonth()+1)
 function dBR(s){if(!s)return '—';var p=String(s).slice(0,10).split('-');return p[2]+'/'+p[1]+'/'+p[0];}
 function dCurta(s){if(!s)return '—';var p=String(s).slice(0,10).split('-');return p[2]+'/'+p[1]+'/'+p[0].slice(2);}
 function rs(v){v=+v||0;return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function rs0(v){return 'R$ '+Math.round(+v||0).toLocaleString('pt-BR');}
 function pc(r){return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';}
 function num(s){s=String(s||'').replace(/[^\d,.-]/g,'');if(s.indexOf(',')>=0)s=s.replace(/\./g,'').replace(',','.');else if((s.match(/\./g)||[]).length>1||/\.\d{3}$/.test(s))s=s.replace(/\./g,'');return +s||0;}
 function papel(){try{return W.effRoleR();}catch(e){return 'especialista';}}
@@ -77,7 +78,7 @@ function resultado(k){var M=master(),o=ST.orig,emo=ORIG[o][0],tit=ORIG[o][1];
  h+=f;
  /* parcelas em lista (cabe no celular sem rolar para o lado) */
  h+='<div class="scph"><span>Parcelas</span><span>'+(emp?'Colaborador':quem())+'</span></div><div class="scps">'+ps.map(function(p){
-   return '<div class="scp"><span class="scpn">'+p.n+'ª</span><span class="scpd">'+dBR(p.data)+'</span><span class="scpv"><b>'+rs(p.func)+'</b>'+(M?'<small>Adm. '+rs(p.hs)+' · Agion '+rs(p.agion)+'</small>':'')+'</span></div>';}).join('')+'</div>';
+   return '<div class="scp"><span class="scpn">'+p.n+'ª</span><span class="scpd">'+dBR(p.data)+'</span><span class="scpv"><b>'+rs(p.func)+'</b>'+(M?'<small>Adm. '+rs0(p.hs)+' · Agion '+rs0(p.agion)+'</small>':'')+'</span></div>';}).join('')+'</div>';
  if(M)h+='<div class="scemp"><div><small>Administradora paga</small><b>'+rs(k.hsPre)+'</b><span>na venda'+(k.posHs>0?' · + '+rs(k.posHs)+' na contemplação':'')+'</span></div>'+
   '<div><small>Fica com a Agion</small><b>'+rs(k.agionPre)+'</b><span>na venda'+(k.posHs>0?' · + '+rs(k.posAgion)+' na contemplação':'')+'</span></div></div>';
  return h+'</div>';}
@@ -117,7 +118,7 @@ function css(){if($('#simcomcss'))return;var c=document.createElement('style');c
  '.sheet.simcom .scin input,.sheet.simcom .scin select{all:unset;box-sizing:border-box;width:100%;height:100%;padding:0 14px;font:500 15px "DM Sans",system-ui,sans-serif;color:var(--ink);cursor:pointer}'+
  '.sheet.simcom .scin i+input{padding-left:6px;font-weight:600;font-variant-numeric:tabular-nums;cursor:text}.sheet.simcom .scin input[type=date]{-webkit-appearance:none;appearance:none;line-height:48px;min-width:0}'+
  '.sheet.simcom .scin input[type=date]::-webkit-date-and-time-value{text-align:left}.sheet.simcom .scin input[type=date]::-webkit-calendar-picker-indicator{opacity:.55;cursor:pointer}'+
- '.sheet.simcom .scsel select{padding-right:36px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sheet.simcom .scsel::after{content:"";position:absolute;right:16px;top:50%;width:7px;height:7px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:translateY(-70%) rotate(45deg);pointer-events:none}'+
+ '.sheet.simcom .scin select{display:block;height:46px;line-height:46px}.sheet.simcom .scsel select{padding-right:36px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sheet.simcom .scsel::after{content:"";position:absolute;right:16px;top:50%;width:7px;height:7px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:translateY(-70%) rotate(45deg);pointer-events:none}'+
  /* resultado: um cartão só */
  '.sheet.simcom #scres{transition:opacity .14s}.sheet.simcom .scr{border:1px solid var(--line);border-radius:20px;padding:18px;background:var(--card)}.sheet.simcom .scr.au{box-shadow:inset 0 3px 0 var(--gold)}.sheet.simcom .scr.bl{box-shadow:inset 0 3px 0 #2E6A8A}'+
  '.sheet.simcom .scrt{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:12px}.sheet.simcom .scrm{min-width:0}'+
@@ -131,7 +132,7 @@ function css(){if($('#simcomcss'))return;var c=document.createElement('style');c
  '.sheet.simcom .scps{border:1px solid var(--line);border-radius:14px;overflow:hidden}'+
  '.sheet.simcom .scp{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}.sheet.simcom .scp:first-child{border-top:0}'+
  '.sheet.simcom .scpn{font:700 12px "DM Sans",system-ui,sans-serif;color:var(--goldd,#A3833F)}.sheet.simcom .scpd{font-size:13.5px;color:var(--mut);font-variant-numeric:tabular-nums}'+
- '.sheet.simcom .scpv{display:flex;flex-direction:column;align-items:flex-end;text-align:right}.sheet.simcom .scpv b{font:700 15px "DM Sans",system-ui,sans-serif;color:var(--ink);font-variant-numeric:tabular-nums}.sheet.simcom .scpv small{font-size:11px;color:var(--mut);margin-top:1px}'+
+ '.sheet.simcom .scpv{display:flex;flex-direction:column;align-items:flex-end;text-align:right}.sheet.simcom .scpv b{font:700 15px "DM Sans",system-ui,sans-serif;color:var(--ink);font-variant-numeric:tabular-nums}.sheet.simcom .scpv small{font-size:11px;color:var(--mut);margin-top:1px;white-space:nowrap}'+
  '.sheet.simcom .scemp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.sheet.simcom .scemp>div{padding:11px 13px;border-radius:14px;background:color-mix(in srgb,var(--ink) 5%,transparent);display:flex;flex-direction:column;gap:2px;min-width:0}'+
  '.sheet.simcom .scemp small{font:600 10.5px "DM Sans",system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}.sheet.simcom .scemp b{font:700 17px "DM Sans",system-ui,sans-serif;color:var(--ink)}.sheet.simcom .scemp span{font-size:11.5px;color:var(--mut);line-height:1.4}'+
  '.sheet.simcom .mu{color:var(--mut)}.sheet.simcom .scrod{font-size:11.8px;color:var(--mut);margin:12px 2px 0;line-height:1.5}'+
