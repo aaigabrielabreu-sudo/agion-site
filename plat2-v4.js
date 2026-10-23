@@ -59,15 +59,16 @@ function montar(){
   D.head.appendChild(st);
   wrap=D.createElement('div'); wrap.id='v4wrap';
   fr=D.createElement('iframe'); fr.title='Agion Wealth'; fr.setAttribute('allow','clipboard-read; clipboard-write; notifications');
-  var src=W.__V4SRC||('/plat2-v4.html?v=41');
+  var src=W.__V4SRC||('/plat2-v4.html?v=42');
   if(W.__V4SRCDOC) fr.srcdoc=W.__V4SRCDOC; else fr.src=src;
   wrap.appendChild(fr); D.body.appendChild(wrap); D.body.classList.add('v4on'); D.documentElement.classList.add('v4on');
-  fr.addEventListener('load',function(){ try{ if(D.documentElement.classList.contains('isApp')) fr.contentDocument.documentElement.classList.add('emapp'); }catch(e){} corApp(); });
+  fr.addEventListener('load',function(){ try{ if(D.documentElement.classList.contains('isApp')) fr.contentDocument.documentElement.classList.add('emapp'); }catch(e){} corApp(); marcaToast(); });
   if(!W.__v4cor) W.__v4cor=setInterval(corApp,1200);
   var b=D.createElement('button'); b.id='v4volta'; b.textContent='← Voltar ao novo visual'; b.onclick=mostrar; D.body.appendChild(b);
 }
-function mostrar(){ if(!wrap) return montar(); wrap.classList.remove('off'); D.body.classList.add('v4on'); D.documentElement.classList.add('v4on'); D.body.classList.remove('v4fb'); avisa(); corApp(); }
-function esconder(total){ if(!wrap) return; wrap.classList.add('off'); D.body.classList.remove('v4on'); D.documentElement.classList.remove('v4on'); if(!total) D.body.classList.add('v4fb'); else D.body.classList.remove('v4fb'); corApp(); }
+function v1Vis(on){ try{ D.documentElement.classList.toggle('v1on',!!on); }catch(e){} }
+function mostrar(){ if(!wrap) return montar(); v1Vis(false); wrap.classList.remove('off'); D.body.classList.add('v4on'); D.documentElement.classList.add('v4on'); D.body.classList.remove('v4fb'); avisa(); corApp(); }
+function esconder(total){ if(!wrap) return; if(!total) v1Vis(true); wrap.classList.add('off'); D.body.classList.remove('v4on'); D.documentElement.classList.remove('v4on'); if(!total) D.body.classList.add('v4fb'); else D.body.classList.remove('v4fb'); corApp(); }
 function avisa(){ clearTimeout(tAvisa); tAvisa=setTimeout(function(){ try{ fr&&fr.contentWindow&&fr.contentWindow.postMessage({v4:'dados'},location.origin); }catch(e){} },350); }
 
 /* ---------- sempre que a v1 redesenhar (realtime, loadCloud, ações), avisa o v4 ---------- */
@@ -77,6 +78,20 @@ function gancho(){
   var r=W.render, n=function(){ var o=r.apply(this,arguments); try{ if(wrap){ avisa(); if(!wrap.classList.contains('off')&&V1_SO.indexOf(view.page)>=0) esconder(); } }catch(e){} return o; };
   n.__v4=1; n.__v2=r.__v2; W.render=n;
 }
+/* ---------- V1_INVISIVEL_23OUT: com o visual novo na tela, aviso (flash) e pergunta (ask) da v1 ----------
+   saem no visual novo e uma vez só: se o visual novo já mostrou o aviso dele (até 2,5 s antes/0,4 s depois),
+   o da v1 é descartado; a pergunta da v1 abre na janela do visual novo. */
+function v4Win(){ try{ return (wrap&&!wrap.classList.contains('off')&&fr&&fr.contentWindow&&fr.contentWindow.AG)?fr.contentWindow:null; }catch(e){ return null; } }
+function marcaToast(){ try{ var cw=fr&&fr.contentWindow; if(!cw||typeof cw.toast!=='function'||cw.toast.__lt) return; var t0=cw.toast, tw=function(){ cw.__v4lt=Date.now(); return t0.apply(this,arguments); }; tw.__lt=1; cw.toast=tw; }catch(e){} }
+function v1Avisos(){
+  try{ if(typeof W.flash==='function'&&!W.flash.__v4){ var f0=W.flash, fl=function(m){ var cw=v4Win(); if(!cw) return f0.apply(this,arguments); marcaToast();
+      var t=Date.now(), txt=String(m==null?'':m); setTimeout(function(){ try{ var lt=cw.__v4lt||0; if(lt>t-2500) return; cw.toast(txt.replace(/[<>&]/g,function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]; }),'spark'); }catch(e){ f0(txt); } },400); };
+    fl.__v4=1; W.flash=fl; } }catch(e){}
+  try{ if(typeof W.ask==='function'&&!W.ask.__v4ask){ var a0=W.ask, ak=function(o){ var cw=v4Win(), tt=String((o&&o.title)||'');
+      if(!cw||!cw.AG||typeof cw.AG.ask!=='function'||/senha/i.test(tt)) return a0.apply(this,arguments); return cw.AG.ask(o||{}); };
+    ak.__v4ask=1; ak.__sen=W.ask.__sen; W.ask=ak; } }catch(e){}
+}
+
 /* ---------- entrada: logo da Agion animada + login no visual novo ---------- */
 /* SENHA_20261020: link de redefinição de senha. Antes a pergunta da v1 ficava escondida atrás da
    tela de entrada nova e a senha nunca era trocada. Agora o próprio login novo abre "Crie sua nova senha". */
@@ -212,7 +227,7 @@ function lgCss(){ var s=D.createElement('style'); s.textContent=
  '@keyframes v4spl{from{opacity:0;transform:scale(.6) rotate(-8deg)}to{opacity:1;transform:none}}@keyframes v4up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes v4ln{to{width:140px}}@keyframes v4rot{to{transform:rotate(360deg)}}'+
  'body.v4lg #loginView{visibility:hidden}';
  D.head.appendChild(s); }
-function lgMontar(){ if(LG) return; lgCss(); D.body.classList.add('v4lg'); W.AgionV4Ponte.splashFeito=true;
+function lgMontar(){ if(LG) return; lgCss(); D.body.classList.add('v4lg'); W.AgionV4Ponte.splashFeito=true; try{ D.documentElement.classList.add('v4ok'); }catch(e){}
  LG=D.createElement('div'); LG.id='v4login';
  LG.innerHTML='<div class="lgm"><img alt="Agion" src="'+LOGO+'"><b>AGION</b><small>Wealth</small><i></i></div>'+
   '<form class="lgc" autocomplete="on" novalidate><h1>Bem-vindo à <em>Agion</em></h1><p>Plataforma de planejamento financeiro</p>'+
@@ -242,11 +257,11 @@ function appCliente(){ try{ var a=D.getElementById('app'); return !!(a&&a.classL
 function telaLogin(){ var l=D.getElementById('loginView'); return !!(l&&l.offsetParent!==null&&getComputedStyle(l).display!=='none'); }
 
 function espera(){
-  gancho();
+  gancho(); v1Avisos();
   if(logado()){ if(!pronto){ pronto=true; lgPronto=false; lgT0=Date.now(); if(LG) lgEspera(); montar(); setTimeout(function(){ if(!lgPronto) lgSair(); },15000); } }
   else if(pronto && !logado()){ pronto=false; esconder(true); }
   if(!logado()){
-    if(appCliente()) lgSair();                                      /* cliente: segue a v1 */
+    if(appCliente()){ v1Vis(true); lgSair(); }                      /* cliente: segue a v1 (até o Planejamento novo) */
     else if(telaLogin()&&Date.now()-lgT0>1250) lgForm();             /* deslogado: depois da entrada, mostra o login */
   }
   setTimeout(espera, pronto?1500:250);

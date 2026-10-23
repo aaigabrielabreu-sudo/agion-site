@@ -3371,6 +3371,10 @@ var _go=go;go=function(k,arg,nohist){_go(k,arg,nohist);setTimeout(function(){set
 var _setRole=setRole;setRole=function(r){_setRole(r);buildTab();setTitle();};
 var _buildNav=buildNav;buildNav=function(){_buildNav();buildTab();};
 window.AG.go=go;window.AG.setRole=setRole;window.AG.instalar=instalar;
+/* V1_INVISIVEL_23OUT: pergunta da plataforma antiga (ask) abre aqui, no visual novo */
+window.AG.ask=function(o){o=o||{};var t=esc4(o.title||''),m=esc4(o.msg||''),ok=o.ok?esc4(o.ok):'';
+ if(o.input)return perguntar(t,m,'',ok||'Confirmar',o.value||'').then(function(v){return v==null?null:(v||o.value||'');});
+ return confirma(t,m,ok||undefined).then(function(y){return y?true:null;});};
 document.addEventListener('DOMContentLoaded',function(){});
 setTimeout(function(){
  if(isStandalone())document.body.classList.add('pwa');
