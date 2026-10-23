@@ -472,7 +472,10 @@ function edNova(X){ var sug='Simulação '+(X.ps.filter(function(q){ return !q.m
   X.c.plans.push(cp); try{ var lg=ev('logEvt'); if(lg) lg('plano_copiar','planos','Criou simulação "'+cp.titulo+'"'); }catch(e){}
   if(edSalvar()){ toast('Simulação criada · o Plano Principal continua igual','copy'); ED.pid=cp.id; edMonta(ED.el,ED.cid); } }); }
 function edExcluiPlano(X,pid){ var q=X.ps.filter(function(x){ return x.id===pid; })[0]; if(!q||q.main) return;
- confirma('Excluir “'+(q.titulo||'Simulação')+'”?','O Plano Principal não é afetado.','Excluir').then(function(ok){ if(!ok) return; X.c.plans=X.c.plans.filter(function(x){ return x.id!==pid; }); if(ED.pid===pid) ED.pid=null; if(edSalvar()){ toast('Simulação excluída','ok'); edMonta(ED.el,ED.cid); } }); }
+ confirma('Excluir “'+(q.titulo||'Simulação')+'”?','O Plano Principal não é afetado.','Excluir').then(function(ok){ if(!ok) return; X.c.plans=X.c.plans.filter(function(x){ return x.id!==pid; }); if(ED.pid===pid) ED.pid=null;
+  /* o salvamento da plataforma só grava (upsert); a simulação excluída precisa sair do banco também, senão volta no próximo carregamento */
+  try{ var sb=(typeof psb==='function')?psb():null; if(sb) sb.from('planos').delete().eq('id',pid).then(function(r){ if(r&&r.error) console.warn('[plano] excluir simulação',r.error); }); }catch(e){ console.warn('[plano] excluir simulação',e); }
+  if(edSalvar()){ toast('Simulação excluída','ok'); edMonta(ED.el,ED.cid); } }); }
 
 /* liga o botão de WhatsApp das abas Minha cota e Início */
 var _co=corpo; corpo=function(){ _co(); var b=$('#plbody'); if(b) $$('[data-wa]',b).forEach(function(x){ if(!x._w){ x._w=1; x.onclick=function(){ falarEspecialista(); }; } }); };
