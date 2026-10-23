@@ -2144,6 +2144,8 @@ function boot(){
  $('#tog').onclick=function(){$('#app').classList.toggle('mini');setTimeout(function(){moveInd(PARENT[cur]||cur);},560);};
  $('#hamb').onclick=function(){$('#app').classList.toggle('mob');};
  $('#ver').onclick=function(){go('novidades');};
+ /* VERLABEL_23OUT: número da versão no menu vem das Novidades reais (não fica preso em um número fixo) */
+ (function verLbl(n){try{var N=PW()&&PW().AgionNovidades,vs=N?(typeof N.versoes==='function'?N.versoes():N.versoes)||[]:[];var mx=vs.reduce(function(a,x){return Math.max(a,+x.v||0);},0);if(mx){var s=$('#ver span');if(s)s.textContent='Versão '+mx+' · Novidades';return;}}catch(e){}if(n<20)setTimeout(function(){verLbl(n+1);},500);})(0);
  $('#uc').onclick=function(){go('ajustes');};
 
  $('#main').addEventListener('scroll',function(){$('.tbar').classList.toggle('sh',$('#main').scrollTop>8);});

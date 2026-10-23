@@ -452,6 +452,8 @@ body.light .cms-wrap,body.light .cms-md{--csurf-2:var(--surface-2,rgba(14,74,65,
 
 `;
 function ensureCss(){ if(document.getElementById('cmsCss'))return; var st=document.createElement('style'); st.id='cmsCss'; st.textContent=CSS; document.head.appendChild(st); }
+/* CMSCSS_23OUT: no visual novo a aba é desenhada pela v4, então os pop-ups da v1 (Registrar venda, Editar…) abriam sem o CSS. Injeta já no carregamento. */
+try{ if(document.head) ensureCss(); else document.addEventListener('DOMContentLoaded',ensureCss); }catch(e){}
 function staffList(){ return (db.accounts||[]).filter(function(a){return a.real===true&&(a.role==='master'||a.role==='lider'||a.role==='especialista')&&a.ativo!==false;}).sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'');}); }
 function tag(t,cls){ return '<span class="cms-tag'+(cls?' '+cls:'')+'">'+t+'</span>'; }
 function pill(on,lbl,onclick,bad){ return '<button type="button" class="cms-pill'+(on?' on':'')+(bad?' bad':'')+(onclick?'':' ro')+'"'+(onclick?' onclick="'+onclick+'"':'')+'>'+lbl+'</button>'; }
@@ -872,6 +874,7 @@ window.cmsVerFunc=function(id){ _funcSel=id; repaint(false,true); };
 /* ===================== REGISTRAR VENDA ===================== */
 window.cmsNovaVenda=async function(pre){
   if(typeof roGuard==='function'&&roGuard())return;
+  if(document.getElementById('cmsSel'))return; /* CMSCSS_23OUT: toque duplo não abre dois pop-ups */
   pre=pre||{};
   var clis=(typeof visibleClients==='function'?visibleClients():(db.clients||[])).slice().sort(function(a,b){return (a.nome||'').localeCompare(b.nome||'');});
   if(!clis.length){ flash('Cadastre um cliente antes de registrar a venda.'); return; }
