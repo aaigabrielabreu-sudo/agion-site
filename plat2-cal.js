@@ -4,6 +4,7 @@
    "Calendários" para ligar e desligar cada agenda; clicar num horário cria um evento.
    Eventos criados aqui vão para a agenda Google da Agion da pessoa (nome@agionconsorcios.com.br).
    Google pessoal, Outlook e Apple recebem uma cópia (assinatura .ics), só para ver.
+   CAL_EXT_23OUT: e o caminho contrário — agendas do Google pessoal, Outlook e iCloud aparecem aqui (só para ver).
    Roda dentro do /plat2-v4.html.
    ========================================================================== */
 (function(){
@@ -14,7 +15,9 @@ function z(n){ return (n<10?'0':'')+n; }
 var TIPOS=[['evento','Agenda Agion','#C2724A','cal','Evento'],['tarefa','Tarefas','#C5A059','check','Tarefa'],['reuniao','Reuniões','#5B8FB9','cal','Reunião'],['crm','Prazos do CRM','#C99A2E','funnel','Prazo do CRM'],['proposta','Propostas','#3F8F6A','doc','Proposta'],['assembleia','Assembleias','#8E6FB5','trophy','Assembleia']];
 var TC={}; TIPOS.forEach(function(t){ TC[t[0]]=t; });
 var VISTAS=[['dia','Dia'],['semana','Semana'],['mes','Mês'],['ano','Ano']];
-var CS={ref:null,dia:null,vista:'mes',quem:'meus',off:{},offP:{},cust:[],ag:{email:'',google:false},carregado:false};
+var CS={ref:null,dia:null,vista:'mes',quem:'meus',off:{},offP:{},cust:[],ag:{email:'',google:false},carregado:false,ext:[],extEv:[],extJan:null,extBusy:false};
+/* CAL_EXT_23OUT: agendas de fora ligadas/desligadas ficam lembradas */
+try{ var ox=JSON.parse(localStorage.getItem('agcal_offx')||'{}'); Object.keys(ox).forEach(function(k){ if(k.charAt(0)==='x'&&ox[k]) CS.off[k]=true; }); }catch(e){}
 try{ var vs=localStorage.getItem('agcal_vista'); if(vs&&/^(dia|semana|mes|ano)$/.test(vs)) CS.vista=vs; }catch(e){}
 var HH=function(){ return W.innerWidth<860?44:48; };   /* altura de 1 hora na grade de Dia/Semana */
 var mob=function(){ return W.innerWidth<860; };
@@ -157,9 +160,86 @@ function eventos(tudo){ var ev=[], todos=equipeOn();
    if(c.dia_todo&&c.dia){ var p=String(c.dia).split('-'); d=new Date(+p[0],+p[1]-1,+p[2],12); f=d; } else { d=new Date(c.ini); f=new Date(c.fim||c.ini); }
    if(isNaN(d)) return;
    ev.push({tipo:'evento',dia:c.dia_todo?1:0,d:d,f:f,who:c.uid,t:c.titulo,c:c.titulo,s:(c.local||'')+(todos&&c.uid!==ME()?(c.local?' · ':'')+fn(c.uid):''),cust:c,go:function(el,ev2){ abrirEvento(c,el,ev2); }}); });
+ if(!RO()) (CS.extEv||[]).forEach(function(x){ var k='x'+x.cal; if(!TC[k]) return; var d, f;
+   if(x.dia_todo){ var p=String(x.dia).split('-'); d=new Date(+p[0],+p[1]-1,+p[2],12); f=d; } else { d=new Date(x.ini); f=new Date(x.fim||x.ini); if(!(f-d>=15*6e4)) f=new Date(d.getTime()+30*6e4); }
+   if(isNaN(d)) return; ev.push({tipo:k,dia:x.dia_todo?1:0,d:d,f:f,who:ME(),t:x.titulo,c:x.titulo,s:x.local||'',ext:x,go:function(el,e2){ verExt(x,el,e2); }}); });
  return ev.filter(function(e){ return tudo||(!CS.off[e.tipo]&&!(e.who&&CS.offP[e.who])); }).sort(function(a,b){ return a.d-b.d; }); }
 function carregaCust(){ return Promise.resolve(papi('/api/cal/eventos'+(equipeOn()?'?equipe=1':''),{method:'GET'})).then(function(r){
   if(r&&r.ok&&r.data){ CS.cust=r.data.eventos||[]; if(r.data.agion) CS.ag=r.data.agion; } CS.carregado=true; if(cur==='calendario') pinta(); },function(){ CS.carregado=true; }); }
+
+
+/* ---------- CAL_EXT_23OUT: agendas de fora (só para ver) ---------- */
+var CORX=['#4F86C6','#D65C7A','#4FA38A','#E08E3C','#7A6FD0','#3C9CB0','#B5654A','#8C9A3E'];
+var ORGX={Google:'Google',Outlook:'Outlook',iCloud:'iPhone (iCloud)',Outro:'app de origem'};
+function regExt(){ Object.keys(TC).forEach(function(k){ if(k.charAt(0)==='x'&&!CS.ext.some(function(c){ return 'x'+c.id===k; })) delete TC[k]; });
+ CS.ext.forEach(function(c){ TC['x'+c.id]=['x'+c.id,c.nome,c.cor,'globe',c.nome]; }); }
+function extJanela(){ var r=CS.ref||sod(new Date()); if(CS.vista==='ano') return [new Date(r.getFullYear()-1,11,1),new Date(r.getFullYear()+1,1,1)];
+ return [new Date(r.getFullYear(),r.getMonth()-2,1),new Date(r.getFullYear(),r.getMonth()+14,1)]; }
+function extCobre(){ if(!CS.extJan) return false; var p=periodo(); return p[0]>=CS.extJan[0]&&p[1]<=CS.extJan[1]; }
+function carregaExt(forca){ if(RO()||CS.extBusy) return Promise.resolve(); if(!forca&&extCobre()) return Promise.resolve(); var j=extJanela(); CS.extBusy=true;
+ return Promise.resolve(papi('/api/cal/externos?de='+ymd(j[0])+'&ate='+ymd(j[1]),{method:'GET'})).then(function(r){ CS.extBusy=false; CS.extJan=j;
+   if(r&&r.ok&&r.data&&r.data.ok){ CS.ext=r.data.calendarios||[]; CS.extEv=r.data.eventos||[]; regExt(); if(cur==='calendario') pinta(); } },
+  function(){ CS.extBusy=false; CS.extJan=j; }); }
+function salvaOffX(){ try{ var o={}; Object.keys(CS.off).forEach(function(k){ if(k.charAt(0)==='x'&&CS.off[k]) o[k]=1; }); localStorage.setItem('agcal_offx',JSON.stringify(o)); }catch(e){} }
+function linkOuTexto(t){ t=String(t||''); return /^https?:\/\/\S+$/.test(t)?'<a href="'+e4(t)+'" target="_blank" rel="noopener">'+e4(t.length>48?t.slice(0,46)+'…':t)+'</a>':e4(t); }
+function verExt(x,el,ev){ var c=TC['x'+x.cal]||['','Agenda de fora','#888'], k=CS.ext.filter(function(a){ return a.id===x.cal; })[0]||{}, quando;
+ if(x.dia_todo){ var p=String(x.dia).split('-'), d=new Date(+p[0],+p[1]-1,+p[2]); quando=cap(rotDia(d))+' · dia todo'; }
+ else { var a=new Date(x.ini), b=new Date(x.fim||x.ini); quando=cap(rotDia(a))+' · '+hmD(a)+(b>a?' – '+hmD(b):''); }
+ var h='<div class="cev cxv"><div class="cxvh"><i style="background:'+c[2]+'"></i><b>'+e4(x.titulo)+'</b></div><p>'+e4(quando)+'</p>'+(x.local?'<p class="cxl">'+I('pin',14)+'<span>'+linkOuTexto(x.local)+'</span></p>':'')+
+  '<div class="ccal"><i style="background:'+c[2]+'"></i><span>'+e4(c[1])+'<small> · só para ver</small></span></div>'+
+  '<div class="csync">Para mudar este evento, use o '+e4(ORGX[k.origem]||'app de origem')+'. Os eventos que você cria aqui vão para a Agenda Agion.</div></div>';
+ abrePop(h,330,el,ev); }
+function passosX(o){ var P={
+  Google:['No computador, abra <b>calendar.google.com</b> e clique na engrenagem › <b>Configurações</b>.','Na esquerda, em “Configurações das minhas agendas”, clique na agenda que quer trazer.','Desça até <b>Integrar agenda</b> e copie o <b>Endereço secreto no formato iCal</b>.','Cole o link aqui embaixo.'],
+  Outlook:['Abra o Outlook na web (<b>outlook.com</b> ou <b>outlook.office.com</b>) › Configurações › <b>Calendário</b> › <b>Calendários compartilhados</b>.','Em <b>Publicar um calendário</b>, escolha a agenda, marque “Pode ver todos os detalhes” e clique em <b>Publicar</b>.','Copie o <b>link ICS</b>.','Cole o link aqui embaixo.'],
+  iCloud:['No iPhone, abra o app <b>Calendário</b> e toque em <b>Calendários</b>, embaixo.','Toque no <b>ⓘ</b> ao lado da agenda e ligue <b>Calendário Público</b>.','Toque em <b>Compartilhar Link…</b> › <b>Copiar</b>.','Cole o link aqui embaixo (ele começa com webcal://).']};
+ var N={Google:'O endereço secreto é privado: só você e a plataforma veem.',Outlook:'Use o link ICS (não o HTML).',iCloud:'Com o Calendário Público ligado, quem tiver o link consegue ver a agenda. Aqui ele fica guardado só para você.'};
+ return '<ol>'+P[o].map(function(t){ return '<li>'+t+'</li>'; }).join('')+'</ol><p class="cxn">'+N[o]+'</p>'; }
+function coresX(sel){ return '<div class="cxcs">'+CORX.map(function(c){ return '<button type="button" data-c="'+c+'" style="background:'+c+'"'+(c===sel?' class="on"':'')+' aria-label="Cor"></button>'; }).join('')+'</div>'; }
+function ligaCores(s){ $$('.cxcs button',s).forEach(function(b){ b.onclick=function(){ $$('.cxcs button',s).forEach(function(x){ x.classList.toggle('on',x===b); }); }; }); }
+function addExterno(){ if(RO()){ toast('Saia do “Ver como” para trazer agendas','eye'); return; } fechaPop();
+ var org='Google', cor0=CORX[CS.ext.length%CORX.length];
+ var s=sheet('<h2>Trazer uma agenda de fora</h2><p style="color:var(--mut);font-size:13px;line-height:1.55;margin:6px 0 12px">Os eventos do seu <b>Google pessoal</b>, <b>Outlook</b> ou <b>iPhone</b> aparecem aqui no Calendário, <b>só para ver</b>. Atualiza sozinho a cada 15 minutos.</p>'+
+  '<div class="cxtab" id="cxtab"><button data-o="Google" class="on">Google</button><button data-o="Outlook">Outlook</button><button data-o="iCloud">iPhone (iCloud)</button></div>'+
+  '<div class="cxpass" id="cxpass">'+passosX(org)+'</div>'+
+  '<div class="cev cxf"><input id="cxu" placeholder="Cole o link aqui (https://… ou webcal://…)" autocomplete="off" spellcheck="false">'+
+  '<input id="cxn" placeholder="Nome (opcional) · ex.: Pessoal" maxlength="60">'+coresX(cor0)+
+  '<div class="cerr" id="cxer"></div><div class="cbt"><span class="sp"></span><button class="btn sm ol" id="cxcan">Cancelar</button><button class="btn sm gd" id="cxok">Adicionar</button></div></div>'+
+  '<p class="cxn" style="margin-top:10px">O link fica guardado só para você: ninguém da equipe vê a sua agenda pessoal. Os eventos que você cria no Calendário continuam indo para a Agenda Agion.</p>',520);
+ $$('#cxtab button',s).forEach(function(b){ b.onclick=function(){ org=b.dataset.o; $$('#cxtab button',s).forEach(function(x){ x.classList.toggle('on',x===b); }); $('#cxpass',s).innerHTML=passosX(org); }; });
+ ligaCores(s); $('#cxcan',s).onclick=function(){ closeSheet(); };
+ var ocupado=false;
+ $('#cxok',s).onclick=function(){ if(ocupado) return; var er=$('#cxer',s), u=$('#cxu',s).value.trim(); er.textContent='';
+  if(!/^(https?|webcals?):\/\/\S+$/i.test(u)){ er.textContent='Cole o link da agenda (começa com https:// ou webcal://).'; $('#cxu',s).focus(); return; }
+  var cb=$('.cxcs .on',s), btn=this; ocupado=true; btn.textContent='Lendo a agenda…';
+  Promise.resolve(papi('/api/cal/externos',{method:'POST',body:JSON.stringify({acao:'adicionar',url:u,nome:$('#cxn',s).value.trim(),cor:cb?cb.dataset.c:''})})).then(function(r){ ocupado=false;
+    if(!r||!r.ok||!r.data||!r.data.ok){ btn.textContent='Adicionar'; er.textContent=(r&&r.data&&(r.data.erro||r.data.error))||'Não consegui ler essa agenda agora. Tente de novo.'; return; }
+    closeSheet(); toast('“'+r.data.calendario.nome+'” no seu Calendário','cal'); carregaExt(true); },
+   function(){ ocupado=false; btn.textContent='Adicionar'; er.textContent='Sem conexão com o robô. Tente de novo.'; }); }; }
+function editExterno(id){ var c=CS.ext.filter(function(a){ return a.id===id; })[0]; if(!c) return; fechaPop();
+ var s=sheet('<h2>'+e4(c.nome)+'</h2><p style="color:var(--mut);font-size:13px;margin:6px 0 12px">Agenda de fora · '+e4(ORGX[c.origem]||'outro app')+' · só para ver'+(c.erro?'<br><span style="color:var(--bad)">Última tentativa: '+e4(c.erro)+'</span>':'')+'</p>'+
+  '<div class="cev cxf"><input id="cxn" value="'+e4(c.nome)+'" maxlength="60" placeholder="Nome">'+coresX(c.cor)+'<div class="cerr" id="cxer"></div>'+
+  '<div class="cbt"><button class="cdel" id="cxdel">Remover</button><button class="btn sm ol" id="cxat">'+I('refresh',14)+'Atualizar agora</button><span class="sp"></span><button class="btn sm gd" id="cxok">Salvar</button></div></div>',440);
+ ligaCores(s);
+ $('#cxat',s).onclick=function(){ var b=this; b.disabled=true; Promise.resolve(papi('/api/cal/externos',{method:'POST',body:JSON.stringify({acao:'atualizar'})})).then(function(){ closeSheet(); carregaExt(true).then(function(){ toast('Agendas de fora atualizadas','refresh'); }); },function(){ b.disabled=false; }); };
+ $('#cxok',s).onclick=function(){ var cb=$('.cxcs .on',s); Promise.resolve(papi('/api/cal/externos',{method:'POST',body:JSON.stringify({acao:'editar',id:c.id,nome:$('#cxn',s).value.trim(),cor:cb?cb.dataset.c:''})})).then(function(r){
+   if(!r||!r.ok){ $('#cxer',s).textContent=(r&&r.data&&r.data.erro)||'Não consegui salvar agora.'; return; } closeSheet(); carregaExt(true); }); };
+ $('#cxdel',s).onclick=function(){ var x=this; if(!x.dataset.ok){ x.dataset.ok=1; x.textContent='Confirmar: remover'; return; } x.textContent='Removendo…';
+  Promise.resolve(papi('/api/cal/externos',{method:'POST',body:JSON.stringify({acao:'remover',id:c.id})})).then(function(r){
+   if(!r||!r.ok){ x.textContent='Remover'; delete x.dataset.ok; $('#cxer',s).textContent=(r&&r.data&&r.data.erro)||'Não consegui remover agora.'; return; }
+   CS.ext=CS.ext.filter(function(a){ return a.id!==c.id; }); CS.extEv=CS.extEv.filter(function(a){ return a.cal!==c.id; }); delete CS.off['x'+c.id]; salvaOffX(); regExt(); closeSheet(); pinta(); toast('Agenda removida do Calendário','x'); }); }; }
+(function(){ if(document.getElementById('calxcss')) return; var s=document.createElement('style'); s.id='calxcss'; s.textContent=
+ '.ckr .cxg{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:var(--mut);flex:none}.ckr .cxg:hover{background:var(--bg2);color:var(--ink)}.ckr .cxg svg{width:14px;height:14px}.ckr small.cxe{color:var(--bad);white-space:normal}'+
+ '.cxadd{display:flex;align-items:center;gap:9px;width:100%;padding:9px 8px;border-radius:10px;font:600 13px "DM Sans";color:var(--goldd,var(--gold));text-align:left}.cxadd:hover{background:var(--bg)}'+
+ '.cxtab{display:flex;gap:6px;background:var(--bg);padding:4px;border-radius:13px;margin-bottom:12px}.cxtab button{flex:1;height:34px;border-radius:10px;font:600 13px "DM Sans";color:var(--ink2)}.cxtab button.on{background:var(--card);box-shadow:var(--shadow);color:var(--ink)}'+
+ '.cxpass ol{margin:0 0 6px;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:13.2px;line-height:1.5;color:var(--ink2)}.cxpass b{color:var(--ink)}'+
+ '.cxn{font-size:11.8px;line-height:1.5;color:var(--mut);margin:4px 0 12px}'+
+ '.cxf{gap:10px}.cxcs{display:flex;gap:8px;flex-wrap:wrap;padding:2px}.cxcs button{width:24px;height:24px;border-radius:50%;box-shadow:0 0 0 2px var(--card);transition:transform .15s}.cxcs button.on{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--ink2)}.cxcs button:hover{transform:scale(1.1)}'+
+ '.cxf .cbt .btn svg{width:14px;height:14px;margin-right:4px}'+
+ '.cxv p{font-size:13px;color:var(--ink2);line-height:1.45;margin:0}.cxv .cxvh{display:flex;align-items:flex-start;gap:9px}.cxv .cxvh i{width:11px;height:11px;border-radius:50%;flex:none;margin-top:5px}.cxv .cxvh b{font:600 16px "DM Sans";color:var(--ink);line-height:1.3;word-break:break-word}'+
+ '.cxv .cxl{display:flex;gap:6px;align-items:flex-start}.cxv .cxl svg{width:14px;height:14px;flex:none;margin-top:2px;color:var(--mut)}.cxv .cxl a{color:var(--goldd,var(--gold));word-break:break-all}'+
+ '@media(max-width:860px){.cxf input{font-size:16px!important;height:44px!important}.cxtab button{font-size:12.3px}}';
+ document.head.appendChild(s); })();
 
 /* ---------- tela ---------- */
 R.calendario=function(v){ var h=new Date(); if(!CS.ref) CS.ref=sod(h); if(!CS.dia) CS.dia=sod(h);
@@ -178,7 +258,7 @@ R.calendario=function(v){ var h=new Date(); if(!CS.ref) CS.ref=sod(h); if(!CS.di
  if(isM()) bindSeg('calq',function(k){ CS.quem=k; pinta(); carregaCust(); });
  $('#calcals').onclick=calendarios; $('#calnovo').onclick=function(ev){ var d=CS.dia||sod(new Date()), a=agoraRedondo(d); novoEvento({ini:a},null,ev); };
  $('#calsync').onclick=sincronizar;
- pinta(); carregaCust();
+ pinta(); carregaCust(); carregaExt();
  try{ if(typeof carregaAss==='function'&&!(typeof AGD!=='undefined'&&AGD.length)) carregaAss().then(function(){ if(cur==='calendario') pinta(); }); }catch(e){} };
 function agoraRedondo(d){ var n=new Date(), x=new Date(d.getFullYear(),d.getMonth(),d.getDate(),9,0); if(chave(d)===chave(n)){ x=new Date(n.getTime()); x.setMinutes(n.getMinutes()<30?30:60,0,0); } return x; }
 function anda(n){ var r=CS.ref; if(CS.vista==='mes') CS.ref=new Date(r.getFullYear(),r.getMonth()+n,1); else if(CS.vista==='semana') CS.ref=addD(r,7*n); else if(CS.vista==='dia'){ CS.ref=addD(r,n); CS.dia=CS.ref; } else CS.ref=new Date(r.getFullYear()+n,0,1); pinta(); }
@@ -189,7 +269,7 @@ function titulo(){ var r=CS.ref;
  var a=iniSem(r), b=addD(a,6); return a.getMonth()===b.getMonth()?a.getDate()+' – '+b.getDate()+' de '+MESES[a.getMonth()]+' <span>'+b.getFullYear()+'</span>':a.getDate()+' '+MES3[a.getMonth()]+' – '+b.getDate()+' '+MES3[b.getMonth()]+' <span>'+b.getFullYear()+'</span>'; }
 var ITENS=[];
 function reg(e){ var i=ITENS.length; ITENS.push(e); return i; }
-function pinta(){ var b=$('#calb'); if(!b) return; ITENS=[]; var E=eventos(), por={}; E.forEach(function(e){ var k=chave(e.d); (por[k]=por[k]||[]).push(e); });
+function pinta(){ var b=$('#calb'); if(!b) return; ITENS=[]; if(!CS.extBusy&&!RO()&&CS.extJan&&!extCobre()) carregaExt(); var E=eventos(), por={}; E.forEach(function(e){ var k=chave(e.d); (por[k]=por[k]||[]).push(e); });
  $('#calt').innerHTML=titulo(); dots();
  if(CS.vista==='mes') pintaMes(b,por); else if(CS.vista==='ano') pintaAno(b,por); else pintaGrade(b,E,por);
  pintaSide(E,por); }
@@ -256,7 +336,7 @@ function pintaSide(E,por){ var el=$('#cald'); if(!el) return; var d=CS.dia||sod(
  el.innerHTML=h; $('#caddia',el).onclick=function(ev){ novoEvento({ini:agoraRedondo(d)},this,ev); }; liga(el); }
 function rotDia(d){ var r=relDia(d); return (r?r+' · ':'')+DIAS[d.getDay()]+', '+d.getDate()+' de '+MESES[d.getMonth()]; }
 function itemHTML(e){ var c=TC[e.tipo];
- return '<div class="cali" data-ev="'+reg(e)+'"><span class="h'+(e.dia?' td':'')+'">'+hm(e)+'</span><div class="cbox" style="border-color:'+c[2]+';background:'+cor(e,9)+'"><b>'+e4(e.t)+'</b><small><em style="color:'+c[2]+'">'+c[4]+'</em>'+(e.s?'<span>'+e4(e.s)+'</span>':'')+(e.tipo!=='evento'||e.dia?'':'<span>'+hmD(e.d)+' – '+hmD(e.f)+'</span>')+'</small></div></div>'; }
+ return '<div class="cali" data-ev="'+reg(e)+'"><span class="h'+(e.dia?' td':'')+'">'+hm(e)+'</span><div class="cbox" style="border-color:'+c[2]+';background:'+cor(e,9)+'"><b>'+e4(e.t)+'</b><small><em style="color:'+c[2]+'">'+c[4]+'</em>'+(e.s?'<span>'+e4(e.s)+'</span>':'')+((e.tipo!=='evento'&&!e.ext)||e.dia?'':'<span>'+hmD(e.d)+(e.ext&&e.ext.fim===e.ext.ini?'':' – '+hmD(e.f))+'</span>')+'</small></div></div>'; }
 function liga(b){ $$('[data-ev]',b).forEach(function(x){ x.onclick=function(ev){ ev.stopPropagation(); var e=ITENS[+x.dataset.ev]; if(e&&e.go) e.go(x,ev); }; }); }
 
 /* ---------- pop-ups (no jeito da Apple) ---------- */
@@ -280,13 +360,15 @@ function calendarios(){ var bt=$('#calcals'), ini=periodo(), cnt={}, cntP={};
  eventos(true).forEach(function(e){ if(e.d>=ini[0]&&e.d<ini[1]){ cnt[e.tipo]=(cnt[e.tipo]||0)+1; if(e.who) cntP[e.who]=(cntP[e.who]||0)+1; } });
  var em=CS.ag.email||'';
  var h='<h6>Meus calendários</h6>'+TIPOS.map(function(t){ return '<label class="ckr'+(CS.off[t[0]]?' off':'')+'" data-t="'+t[0]+'" style="--c:'+t[2]+'"><span class="cckb">'+CHK+'</span><span><b>'+t[1]+(t[0]==='evento'?'<i class="cpr">principal</i>':'')+'</b>'+(t[0]==='evento'?'<small>'+(em?e4(em):'seu e-mail da Agion')+'</small>':'')+'</span><em>'+(cnt[t[0]]||'')+'</em></label>'; }).join('');
+ if(!RO()){ h+='<h6>Outras agendas · só para ver</h6>'+CS.ext.map(function(c){ var k='x'+c.id; return '<label class="ckr'+(CS.off[k]?' off':'')+'" data-t="'+k+'" style="--c:'+c.cor+'"><span class="cckb">'+CHK+'</span><span><b>'+e4(c.nome)+'</b>'+(c.erro?'<small class="cxe">Não atualizou: '+e4(c.erro)+'</small>':'<small>'+e4(ORGX[c.origem]||'outro app')+'</small>')+'</span><em>'+(cnt[k]||'')+'</em><span class="cxg" data-x="'+c.id+'" title="Ajustar">'+I('gear',14)+'</span></label>'; }).join('')+
+  '<button class="cxadd" id="cpadd">'+I('plus',16)+'Trazer Google pessoal, Outlook ou iPhone</button>'; }
  if(equipeOn()){ var eq=(typeof EQUIPE!=='undefined'?EQUIPE:[]).filter(function(u){ return U[u]; });
   if(eq.length) h+='<h6>Equipe</h6>'+eq.map(function(u){ var n=un(u); return '<label class="ckr'+(CS.offP[u]?' off':'')+'" data-p="'+u+'" style="--c:'+avc(n)+'"><span class="cckb">'+CHK+'</span><span><b>'+e4(n)+(u===ME()?' <small style="display:inline;color:var(--mut)">(você)</small>':'')+'</b></span><em>'+(cntP[u]||'')+'</em></label>'; }).join(''); }
  h+='<h6>Espelhos</h6><button class="cplink" id="cpesp">'+I('globe',16)+'Ver no Google pessoal, Outlook ou Apple</button>'+
-  '<div class="cpnote">'+(CS.ag.google?'Os eventos que você cria aqui vão direto para a agenda Google de <b>'+e4(em)+'</b>.':em?'Os eventos que você cria aqui vão para a agenda Google de <b>'+e4(em)+'</b> assim que a conexão com o Google for ativada. Até lá ficam salvos aqui e nos espelhos.':'Os eventos que você cria ficam salvos aqui e nos espelhos. Para irem para a sua agenda Google da Agion, o seu e-mail da empresa precisa estar cadastrado em Ajustes.')+' Os outros calendários (Google pessoal, Outlook, Apple) recebem uma cópia para você ver.</div>';
+  '<div class="cpnote">'+(CS.ag.google?'Os eventos que você cria aqui vão direto para a agenda Google de <b>'+e4(em)+'</b>.':em?'Os eventos que você cria aqui vão para a agenda Google de <b>'+e4(em)+'</b> assim que a conexão com o Google for ativada. Até lá ficam salvos aqui e nos espelhos.':'Os eventos que você cria ficam salvos aqui e nos espelhos. Para irem para a sua agenda Google da Agion, o seu e-mail da empresa precisa estar cadastrado em Ajustes.')+' Os outros calendários (Google pessoal, Outlook, Apple) recebem uma cópia para você ver, e as agendas deles podem aparecer aqui em “Outras agendas”.</div>';
  var p=abrePop(h,320,bt,null,true);
- $$('.ckr',p).forEach(function(l){ l.onclick=function(ev){ ev.preventDefault(); if(l.dataset.t){ var k=l.dataset.t; CS.off[k]=!CS.off[k]; l.classList.toggle('off',!!CS.off[k]); } else { var u=l.dataset.p; CS.offP[u]=!CS.offP[u]; l.classList.toggle('off',!!CS.offP[u]); } pinta(); }; });
- $('#cpesp',p).onclick=function(){ fechaPop(); sincronizar(); }; }
+ $$('.ckr',p).forEach(function(l){ l.onclick=function(ev){ ev.preventDefault(); var g=ev.target.closest&&ev.target.closest('.cxg'); if(g){ ev.stopPropagation(); editExterno(g.dataset.x); return; } if(l.dataset.t){ var k=l.dataset.t; CS.off[k]=!CS.off[k]; l.classList.toggle('off',!!CS.off[k]); if(k.charAt(0)==='x') salvaOffX(); } else { var u=l.dataset.p; CS.offP[u]=!CS.offP[u]; l.classList.toggle('off',!!CS.offP[u]); } pinta(); }; });
+ $('#cpesp',p).onclick=function(){ fechaPop(); sincronizar(); }; if($('#cpadd',p)) $('#cpadd',p).onclick=addExterno; }
 
 /* Novo evento / editar */
 function abrirEvento(c,el,ev){ novoEvento({ini:c.dia_todo?(function(){ var p=String(c.dia).split('-'); return new Date(+p[0],+p[1]-1,+p[2],9); })():new Date(c.ini),fim:c.dia_todo?null:new Date(c.fim),dia_todo:!!c.dia_todo,cust:c},el,ev); }
@@ -342,8 +424,10 @@ function sincronizar(){ if(RO()){ toast('Saia do “Ver como” para pegar o seu
    ['o365','Outlook da empresa (Microsoft 365)','Conta de trabalho ou escola','https://outlook.office.com/calendar/0/addfromweb?url='+encodeURIComponent(u)+'&name='+nm,'mail']];
   l.innerHTML=op.map(function(o,i){ return (i===1?'<h6>Espelhos · só para ver</h6>':'')+'<a href="'+e4(o[3])+'" data-op="'+o[0]+'" target="_blank" rel="noopener"'+(i===0?' class="pri"':'')+'><span class="ic">'+I(o[4],18)+'</span><span>'+o[1]+'<small>'+e4(o[2])+'</small></span></a>'; }).join('')+
    '<button class="op" id="cscp"><span class="ic">'+I('copy',18)+'</span><span>Copiar o link<small>Para qualquer outro app de calendário</small></span></button>'+
+   '<h6>Trazer para cá</h6><button class="op" id="csext"><span class="ic">'+I('dl',18)+'</span><span>Ver aqui as agendas do Google pessoal, Outlook ou iPhone<small>Só para ver, atualiza a cada 15 minutos</small></span></button>'+
    '<p style="font-size:11.8px;color:var(--mut);line-height:1.5;margin-top:10px">O Google e o Outlook atualizam calendários assinados de tempos em tempos (pode levar algumas horas). O link é só seu: não compartilhe. <a href="#" id="cstr" style="color:var(--goldd);display:inline;padding:0;background:none;font:inherit">Trocar o link</a> se precisar invalidar o antigo.</p>';
   var ap=$('[data-op="apple"]',l); if(ap) ap.onclick=function(ev){ ev.preventDefault(); try{ (W.top||W).location.href=wc; }catch(e){ W.location.href=wc; } };
+  $('#csext',l).onclick=function(){ closeSheet(); setTimeout(addExterno,60); };
   $('#cscp',l).onclick=function(){ try{ navigator.clipboard.writeText(u); toast('Link copiado','copy'); }catch(e){ perguntar('Seu link do calendário','Copie o link abaixo.','',  'Ok',u); } };
   $('#cstr',l).onclick=function(ev){ ev.preventDefault(); confirma('Trocar o link?','O link antigo para de funcionar. Depois é preciso assinar de novo com o novo link.','Trocar').then(function(ok){ if(!ok) return;
    Promise.resolve(papi('/api/cal/link',{method:'POST',body:JSON.stringify({trocar:true})})).then(function(){ closeSheet(); toast('Link trocado. Assine de novo com o novo link.','ok'); sincronizar(); }); }); };
@@ -357,9 +441,9 @@ try{ if(typeof V4OK!=='undefined') V4OK.calendario=1;
 }catch(e){ console.warn('[calendario] menu',e); }
 
 /* ---------- tutorial da aba ---------- */
-var TOUR={id:'t-cal',page:'calendario',v:2,g:'Comercial',title:'Calendário',desc:'Tudo que tem data, num lugar só, e como levar para o Google, Outlook ou Apple.',steps:[
+var TOUR={id:'t-cal',page:'calendario',v:3,g:'Comercial',title:'Calendário',desc:'Tudo que tem data, num lugar só, e como levar para o Google, Outlook ou Apple.',steps:[
  {t:function(){ return document.querySelector('#calb'); },title:'O seu calendário',text:'Tarefas com prazo, reuniões do CRM, os prazos do “Aguardando resposta”, a data em que o cliente decide a proposta e as assembleias.'},
- {t:function(){ return document.querySelector('#calcals'); },title:'Calendários',text:'Ligue e desligue cada calendário: Agenda Agion, tarefas, reuniões, prazos, propostas e assembleias.',optional:true},
+ {t:function(){ return document.querySelector('#calcals'); },title:'Calendários',text:'Ligue e desligue cada calendário: Agenda Agion, tarefas, reuniões, prazos, propostas e assembleias. Em “Outras agendas” você traz o seu Google pessoal, Outlook ou iPhone para ver aqui.',optional:true},
  {t:function(){ return document.querySelector('#calv'); },title:'Dia, Semana, Mês e Ano',text:'Como no Calendário da Apple. Clique num horário (ou no + do dia) para criar um evento: ele vai para a sua agenda Google da Agion.',optional:true},
  {t:function(){ return document.querySelector('#calsync'); },title:'No seu celular',text:'“Adicionar ao meu calendário” leva tudo para o Google Agenda, o Outlook ou o app Calendário da Apple, em qualquer e-mail seu.'}
 ]};

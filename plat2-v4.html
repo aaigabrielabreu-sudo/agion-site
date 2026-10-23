@@ -3875,7 +3875,7 @@ async function tplPop(anchor,c){if(!roOk())return;var L0=await tplLista();pop(an
  if(!r||!r.ok){toast('Falha: '+((r&&r.data&&r.data.error)||'sem conexão'),'x');return;}toast('Template enviado','send');setTimeout(function(){if(CVF.id===c.id){var cc=CONV.filter(function(x){return x.id===c.id;})[0];if(cc)cvMsgs(cc).then(function(){go('conversas',{id:c.id},1);});}},1500);});}
 async function novaConversa(){if(!roOk())return;var L0=await tplLista();var s=sheet('<div class="lbl" style="color:var(--gold)">Conversas</div><h2>Nova conversa</h2><p style="color:var(--mut);font-size:13px">Envia a 1ª mensagem para um número novo (pelo WhatsApp oficial só dá para abrir com template aprovado).</p><div class="g2" style="gap:12px;margin-top:14px"><div class="fi"><label>Nome do cliente</label><input id="ncn" placeholder="Ex: Cliente Exemplo R"></div><div class="fi"><label>WhatsApp (com DDD)</label><input id="ncf" inputmode="tel" placeholder="(51) 9…"></div></div><div class="lbl">Mensagem de abertura (template)</div><div class="opts" id="nct">'+(L0.length?L0.map(function(t,i){return '<button class="opt'+(i===0?' on':'')+'" data-k="'+t[0]+'">'+esc4(t[1])+'</button>';}).join(''):'<span style="font-size:13px;color:var(--mut)">Nenhum template aprovado ainda.</span>')+'</div><div style="display:flex;justify-content:flex-end;gap:10px"><button class="btn ol" onclick="closeSheet()">Cancelar</button><button class="btn gd" id="ncok">'+I('send',15)+'Iniciar conversa</button></div>',560);
  $$('#nct .opt',s).forEach(function(o){o.onclick=function(){$$('#nct .opt',s).forEach(function(x){x.classList.toggle('on',x===o);});};});
- $('#ncok',s).onclick=async function(){var nm=$('#ncn',s).value.trim(),f=$('#ncf',s).value.replace(/\D/g,''),ob=$('#nct .on',s);if(f.length<10){toast('Número inválido','x');return;}if(!ob){toast('Nenhum template aprovado ainda','x');return;}
+ $('#ncok',s).onclick=async function(){var nm=$('#ncn',s).value.trim(),f=$('#ncf',s).value.replace(/\D/g,''),ob=$('#nct .on',s);if(f.length<10){toast('Número inválido','x');return;}var f2=f.replace(/^55(?=\d{11}$)/,'');if(f2.length===11&&f2.charAt(2)!=='9'){toast('Confira o número: celular tem 9 logo depois do DDD','x');$('#ncf',s).focus();return;}/* FONE9_20261023 */if(!ob){toast('Nenhum template aprovado ainda','x');return;}
   var t=L0.filter(function(x){return x[0]===ob.dataset.k;})[0],ps=await tplParams(t,nm);if(ps===null)return;var r=await papi('/api/send_template',{method:'POST',body:JSON.stringify({phone:f,template:t[0],params:ps,nome:nm})});
   if(!r||!r.ok){toast('Falha: '+((r&&r.data&&r.data.error)||'sem conexão'),'x');return;}closeSheet();toast('Conversa iniciada · a Alice acompanha a resposta','send');await cvCarregaLista();go('conversas',{phone:f,nome:nm},1);};}
 
@@ -5525,7 +5525,7 @@ vcMontar();
 <script src="/plat2-histferr.js?v=4"></script>
 <script src="/plat2-crm7.js?v=3"></script>
 <script src="/plat2-plano.js?v=7"></script>
-<script src="/plat2-cal.js?v=8"></script>
+<script src="/plat2-cal.js?v=9"></script>
 <script src="/plat2-simcom.js?v=5"></script>
 <script id="b-tab-estavel">/* Chat B 19/out: abas do celular respondem no 1º toque.
  Causa: a barra era REFEITA (innerHTML) a cada atualização de números/badges (CRM, conversas, recarga a cada poucos segundos);
