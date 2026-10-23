@@ -256,6 +256,44 @@ W.addEventListener('message',function(e){ if(e.data&&e.data.v4==='pronto'&&fr&&e
 function appCliente(){ try{ var a=D.getElementById('app'); return !!(a&&a.classList.contains('show')&&session&&session.role==='cliente'); }catch(e){ return false; } }
 function telaLogin(){ var l=D.getElementById('loginView'); return !!(l&&l.offsetParent!==null&&getComputedStyle(l).display!=='none'); }
 
+/* ---------- APARELHOS_23OUT: aparelhos com a conta ativa (Ajustes › Aparelhos conectados) ----------
+   Cada aparelho logado avisa o robô que está ativo (a cada 5 min e quando volta para a tela).
+   Se alguém desconectar este aparelho pelo X em Ajustes, no próximo aviso a plataforma sai da
+   conta aqui e para de receber notificações. Vale para equipe e cliente. */
+var APK='agion_aparelho', apUlt=0, apSaindo=false;
+function apUid(){ try{ return (session&&session.userId)||null; }catch(e){ return null; } }
+function apId(uid){ if(!uid) return null; try{ var o=JSON.parse(localStorage.getItem(APK)||'null'); if(o&&o.uid===uid&&o.id) return o.id;
+  var id='a'+Math.random().toString(36).slice(2,10)+Date.now().toString(36); localStorage.setItem(APK,JSON.stringify({uid:uid,id:id})); return id; }catch(e){ return null; } }
+function apApp(){ try{ return !!(W.Capacitor||W.cordova||W.navigator.standalone===true||(W.matchMedia&&W.matchMedia('(display-mode: standalone)').matches)); }catch(e){ return false; } }
+function apEndpoint(){ try{ if(!('serviceWorker' in navigator)||!navigator.serviceWorker.getRegistrations) return Promise.resolve(null);
+  return navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all((rs||[]).map(function(r){ return r.pushManager?r.pushManager.getSubscription().catch(function(){ return null; }):null; })); })
+   .then(function(ss){ var s=(ss||[]).filter(Boolean)[0]; return s?s.endpoint:null; }).catch(function(){ return null; }); }catch(e){ return Promise.resolve(null); } }
+function apPing(forca){ try{ if(apSaindo||typeof apiFetch!=='function') return; var uid=apUid(); if(!uid) return; if(!forca&&Date.now()-apUlt<60000) return; apUlt=Date.now();
+  var id=apId(uid); if(!id) return;
+  apEndpoint().then(function(ep){ return apiFetch('/api/aparelho/ping',{method:'POST',body:JSON.stringify({id:id,ua:String(navigator.userAgent||'').slice(0,240),app:apApp(),endpoint:ep||null,plataforma:(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||''})}); })
+   .then(function(r){ if(r&&r.data&&r.data.revogado) apDesconectado(); }).catch(function(){}); }catch(e){} }
+function apLimpaLocal(){ try{ localStorage.removeItem(APK); localStorage.setItem('agion_push_ok','0'); }catch(e){}
+  try{ if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations) navigator.serviceWorker.getRegistrations().then(function(rs){ (rs||[]).forEach(function(r){ if(r.pushManager) r.pushManager.getSubscription().then(function(s){ if(s) s.unsubscribe(); }).catch(function(){}); }); }).catch(function(){}); }catch(e){} }
+function apDesconectado(){ if(apSaindo) return; apSaindo=true; apLimpaLocal();
+  try{ W.AgionV4Ponte._sair0(); }catch(e){ try{ logout(); }catch(_){} }
+  setTimeout(function(){ apSaindo=false; try{ lgForm(); lgMsg('Este aparelho foi desconectado da sua conta. Entre de novo para continuar.'); }catch(e){} },1500); }
+/* ponte para a tela de Ajustes (iframe) */
+W.AgionV4Ponte._sair0=W.AgionV4Ponte.sair;
+W.AgionV4Ponte.sair=function(){ /* sair pelo botão: este aparelho some da lista */ var uid=apUid(), id=null; try{ var o=JSON.parse(localStorage.getItem(APK)||'null'); if(o&&o.uid===uid) id=o.id; }catch(e){}
+  var fim=function(){ apLimpaLocal(); try{ W.AgionV4Ponte._sair0(); }catch(e){ try{ logout(); }catch(_){} } };
+  if(!id||typeof apiFetch!=='function') return fim();
+  var feito=false, t=setTimeout(function(){ if(!feito){ feito=true; fim(); } },1800);
+  apiFetch('/api/aparelho/desconectar',{method:'POST',body:JSON.stringify({id:id})}).then(function(){ if(!feito){ feito=true; clearTimeout(t); fim(); } },function(){ if(!feito){ feito=true; clearTimeout(t); fim(); } }); };
+W.AgionV4Ponte.aparelhos={
+  meu:function(){ return apId(apUid()); },
+  listar:function(){ apPing(true); return apiFetch('/api/aparelhos',{method:'GET'}); },
+  desconectar:function(id){ return apiFetch('/api/aparelho/desconectar',{method:'POST',body:JSON.stringify({id:id})}); }
+};
+setInterval(function(){ apPing(false); },5*60000);
+D.addEventListener('visibilitychange',function(){ if(!D.hidden) apPing(false); });
+(function apIni(n){ if(apUid()){ apPing(true); return; } if(n<300) setTimeout(function(){ apIni(n+1); },1000); })(0);
+
+
 function espera(){
   gancho(); v1Avisos();
   if(logado()){ if(!pronto){ pronto=true; lgPronto=false; lgT0=Date.now(); if(LG) lgEspera(); montar(); setTimeout(function(){ if(!lgPronto) lgSair(); },15000); } }

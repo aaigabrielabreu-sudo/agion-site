@@ -5357,6 +5357,30 @@ if(typeof R!=='undefined'&&R.ajustes){var _ra=R.ajustes;R.ajustes=function(v,a){
   var x=$('#ajpushx',d);if(x)x.onclick=function(e){e.preventDefault();teste();toast('Teste enviado. Deve chegar em alguns segundos.','ok');};}
  pinta();var p=c.querySelector('p');if(c.id==='ajcel'&&p)p.parentNode.insertBefore(d,p.nextSibling);else if(p)c.insertBefore(d,p);else c.appendChild(d);};}
 
+/* APARELHOS_23OUT: Ajustes › Aparelhos conectados (onde a conta está aberta + X para desconectar) */
+if(typeof R!=='undefined'&&R.ajustes){var _raDev=R.ajustes;R.ajustes=function(v,a){_raDev.apply(this,arguments);try{apPainel(v);}catch(e){console.warn('[aparelhos]',e);}};}
+function apNome(ua,app){ua=String(ua||'');var so=/iPhone/.test(ua)?'iPhone':/iPad/.test(ua)?'iPad':/Android/.test(ua)?'Android':/Windows/.test(ua)?'Windows':/Macintosh|Mac OS X/.test(ua)?'Mac':/CrOS/.test(ua)?'Chromebook':/Linux/.test(ua)?'Linux':'Aparelho';
+ var nav=/Edg(A|iOS)?\//.test(ua)?'Edge':/OPR\//.test(ua)?'Opera':/Firefox\/|FxiOS/.test(ua)?'Firefox':/CriOS|Chrome\//.test(ua)?'Chrome':/Safari\//.test(ua)?'Safari':'';
+ return {so:so,txt:so+' · '+(app?'app da Agion':(nav?nav:'navegador')),cel:/iPhone|Android/.test(so)};}
+function apQuando(ts){if(!ts)return 'sem acesso registrado ainda';var s=Date.now()/1000-ts;if(s<300)return 'ativo agora';if(s<3600)return 'último acesso há '+Math.max(1,Math.round(s/60))+' min';if(s<86400)return 'último acesso há '+Math.round(s/3600)+' h';var d=Math.round(s/86400);return d<=1?'último acesso ontem':'último acesso há '+d+' dias';}
+function apPainel(v){var c=$('#ajcel',v),api=px().aparelhos;if(!c||!api||$('#ajdev',v))return;
+ if(!document.getElementById('apcss')){var s=document.createElement('style');s.id='apcss';s.textContent='#ajdev .apl{display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}#ajdev .apl:last-child{border-bottom:0}#ajdev .api{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:var(--bg);color:var(--goldd)}#ajdev .apl.eu .api{background:var(--ink);color:var(--gold2)}#ajdev .apn{font:600 13.5px "DM Sans"}#ajdev .aps{font-size:11.8px;color:var(--mut);margin-top:2px;line-height:1.45}#ajdev .aps b{color:var(--ok);font-weight:700}#ajdev .apx{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;color:var(--mut);transition:.25s}#ajdev .apx:hover{background:var(--badb);color:var(--bad)}#ajdev .apr{display:flex;align-items:center;gap:8px}';document.head.appendChild(s);}
+ var d=document.createElement('div');d.className='panel';d.id='ajdev';d.style.marginTop='18px';
+ d.innerHTML='<div class="ph"><h3>'+I('lock',18)+'Aparelhos conectados</h3><span class="sp"></span><button class="btn sm ol" id="ajdvr" title="Atualizar">'+I('refresh',13)+'</button></div><p style="font-size:12.8px;color:var(--mut);line-height:1.5;margin-bottom:6px">Onde a sua conta está aberta. Toque no <b>X</b> para desconectar um aparelho: ele sai da conta e para de receber notificações.</p><div id="ajdvl"><div class="empty" style="padding:16px">Carregando…</div></div>';
+ c.parentNode.insertBefore(d,c.nextSibling);
+ function carrega(){var l=$('#ajdvl',d);Promise.resolve(api.listar()).then(function(r){var L=(r&&r.data&&r.data.aparelhos)||[],eu=api.meu();
+  if(!r||!r.ok){l.innerHTML='<div class="empty" style="padding:16px">Não consegui buscar os aparelhos agora.</div>';return;}
+  L.sort(function(a,b){return (b.id===eu)-(a.id===eu)||((b.visto||0)-(a.visto||0));});
+  l.innerHTML=L.length?L.map(function(x){var n=apNome(x.ua,x.app),me=x.id===eu;
+   return '<div class="apl'+(me?' eu':'')+'"><div class="api">'+I(n.cel?'phone':'grid',18)+'</div><div><div class="apn">'+esc4(n.txt)+(me?' <span class="pill ok" style="margin-left:6px">este aparelho</span>':'')+'</div><div class="aps">'+(me?'<b>ativo agora</b>':esc4(apQuando(x.visto)))+(x.push?' · recebe notificações':'')+(x.so_notificacao?' · só notificações':'')+'</div></div><div class="apr"><button class="apx" data-dv="'+esc4(x.id)+'" data-eu="'+(me?1:0)+'" title="'+(me?'Sair da conta neste aparelho':'Desconectar este aparelho')+'">'+I('x',16)+'</button></div></div>';}).join(''):'<div class="empty" style="padding:16px">Nenhum aparelho registrado ainda.</div>';
+  $$('[data-dv]',l).forEach(function(b){b.onclick=function(){if(RO()){toast('Saia do “Ver como” para mudar isso.','eye');return;}
+   if(b.dataset.eu==='1'){confirma('Sair da conta neste aparelho?','Você volta para a tela de entrada aqui.','Sair').then(function(ok){if(ok)px().sair();});return;}
+   var row=b.closest('.apl'),nm=row?$('.apn',row).textContent:'este aparelho';
+   confirma('Desconectar '+nm.replace(' este aparelho','')+'?','Ele sai da sua conta na próxima vez que abrir a plataforma e para de receber notificações agora.','Desconectar').then(function(ok){if(!ok)return;b.disabled=true;b.style.opacity=.4;
+    Promise.resolve(api.desconectar(b.dataset.dv)).then(function(r){if(r&&r.ok){toast('Aparelho desconectado','ok');if(row){row.style.transition='opacity .35s,transform .35s';row.style.opacity=0;row.style.transform='translateX(12px)';setTimeout(carrega,380);}else carrega();}else{b.disabled=false;b.style.opacity=1;toast('Não consegui desconectar agora','x');}},function(){b.disabled=false;b.style.opacity=1;toast('Não consegui desconectar agora','x');});});};});
+ },function(){l.innerHTML='<div class="empty" style="padding:16px">Não consegui buscar os aparelhos agora.</div>';});}
+ $('#ajdvr',d).onclick=carrega;carrega();}
+
 /* (2) aviso no Painel */
 var NAO='agp-push-nao';
 function quieto(){try{return Date.now()-Number(localStorage.getItem(NAO)||0)<5*864e5;}catch(e){return false;}}
