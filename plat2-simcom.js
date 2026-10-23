@@ -20,6 +20,7 @@ function ic(n,s){try{return W.I(n,s||15);}catch(e){return '';}}
 function z(n){return (n<10?'0':'')+n;}
 function isoHoje(){var d=new Date();return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate());}
 function dBR(s){if(!s)return '—';var p=String(s).slice(0,10).split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function dCurta(s){if(!s)return '—';var p=String(s).slice(0,10).split('-');return p[2]+'/'+p[1]+'/'+p[0].slice(2);}
 function rs(v){v=+v||0;return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function pc(r){return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';}
 function num(s){s=String(s||'').replace(/[^\d,.-]/g,'');if(s.indexOf(',')>=0)s=s.replace(/\./g,'').replace(',','.');else if((s.match(/\./g)||[]).length>1||/\.\d{3}$/.test(s))s=s.replace(/\./g,'');return +s||0;}
@@ -28,7 +29,7 @@ function master(){return papel()==='master';}
 function eu(){try{return W.ME();}catch(e){return null;}}
 function nomeDe(id){try{return (W.U[id]||{}).n||'—';}catch(e){return '—';}}
 function papelDe(id){try{return (W.U[id]||{}).role||'';}catch(e){return '';}}
-var CATS=[['AUTOMOVEL','🚗 Automóvel','HS Consórcios'],['IMOVEL','🏠 Imóvel','HS Consórcios'],['INVESTIMENTO','📈 Investimento','HS Consórcios'],['SERVICOS','✨ Serviços','Âncora']];
+var CATS=[['AUTOMOVEL','🚗 Automóvel','HS'],['IMOVEL','🏠 Imóvel','HS'],['INVESTIMENTO','📈 Investimento','HS'],['SERVICOS','✨ Serviços','Âncora']];
 var ST={cred:300000,cat:'IMOVEL',data:null,vend:null};
 
 /* quem pode ser simulado: especialista = ele; líder = ele + equipe; proprietário = todos (ele mesmo = venda da empresa) */
@@ -53,7 +54,8 @@ function prodLeads(){/* produção de leads da empresa da pessoa nesta competên
   var all=(W.VENDAS||[]).map(function(v){return v.raw;}).concat([raw]);k=W.pcall('cmsCalc',raw,all);}catch(e){}
  return k?(+k.prod||0):0;}
 
-function linhaParc(p,M){return '<tr><td>'+p.n+'ª</td><td>'+dBR(p.data)+'</td><td class="r"><b>'+rs(p.func)+'</b></td>'+(M?'<td class="r mu">'+rs(p.hs)+'</td><td class="r mu">'+rs(p.agion)+'</td>':'')+'</tr>';}
+function quem(){return ST.vend===eu()?'Você recebe':(nomeDe(ST.vend).split(' ')[0]+' recebe');}
+function linhaParc(p,M){return '<tr><td>'+p.n+'ª</td><td>'+dCurta(p.data)+'</td><td class="r"><b>'+rs(p.func)+'</b></td>'+(M?'<td class="r mu">'+rs(p.hs)+'</td><td class="r mu">'+rs(p.agion)+'</td>':'')+'</tr>';}
 function coluna(tit,emo,k,orig){var M=master();if(!k)return '<div class="scc"><div class="sch">'+emo+' '+tit+'</div><div class="scv">—</div><p class="mu">Não consegui calcular agora.</p></div>';
  var emp=!!k.empresa,serv=!!k.serv,tot=(+k.funcPre||0),pos=(+k.posFunc||0);
  var taxa=emp?'Venda da empresa: sem comissão de colaborador':serv?(orig==='CLIENTE_PROPRIO'?'0,50% ao mês × 4 = 2,00% do crédito':'0,25% ao mês × 4 = 1,00% do crédito'):orig==='CLIENTE_PROPRIO'?'1,00% na venda + 1,00% depois da contemplação':'Cluster '+pc(k.rate)+' (produção de leads da competência: '+rs(k.prod)+')';
@@ -62,7 +64,7 @@ function coluna(tit,emo,k,orig){var M=master();if(!k)return '<div class="scc"><d
  if(!emp&&pos>0)h+='<div class="scpos">'+ic('star',14)+'<span>+ <b>'+rs(pos)+'</b> a receber depois da contemplação</span></div>';
  else if(!emp&&!serv&&orig==='LEAD_AGION')h+='<div class="scpos mu">'+ic('star',14)+'<span>Lead da empresa não tem comissão pós-contemplação para o colaborador.</span></div>';
  if(!emp&&k.jan&&k.jan.tipo==='ANTECIPACAO'&&k.rate>k.rate20&&k.ajuste>0)h+='<div class="scpos">'+ic('trend',14)+'<span>Inclui <b>'+rs(k.ajuste)+'</b> de ajuste de cluster, pago em '+dBR(k.ajusteData)+'.</span></div>';
- h+='<table class="sctb"><thead><tr><th>Parcela</th><th>Data</th><th class="r">'+(emp?'Colab.':'Você recebe')+'</th>'+(M?'<th class="r">Adm. paga</th><th class="r">Agion fica</th>':'')+'</tr></thead><tbody>'+(k.parcelas||[]).map(function(p){return linhaParc(p,M);}).join('')+'</tbody></table>';
+ h+='<div class="sctw"><table class="sctb"><thead><tr><th>Parc.</th><th>Data</th><th class="r">'+(emp?'Colaborador':quem())+'</th>'+(M?'<th class="r">Adm. paga</th><th class="r">Agion fica</th>':'')+'</tr></thead><tbody>'+(k.parcelas||[]).map(function(p){return linhaParc(p,M);}).join('')+'</tbody></table></div>';
  if(M){h+='<div class="scemp"><div><small>Administradora paga</small><b>'+rs(k.hsPre)+'</b><span>na venda</span>'+(k.posHs>0?'<span>+ '+rs(k.posHs)+' na contemplação</span>':'')+'</div>'+
   '<div><small>Fica com a Agion</small><b>'+rs(k.agionPre)+'</b><span>na venda</span>'+(k.posHs>0?'<span>+ '+rs(k.posAgion)+' na contemplação</span>':'')+'</div></div>';}
  return h+'</div>';}
@@ -81,8 +83,8 @@ function abrir(){ST.data=ST.data||isoHoje();if(!ST.vend||pessoas().indexOf(ST.ve
  var sel=L.length>1?'<div class="fi"><label>Colaborador</label><select id="scv">'+L.map(function(id){return '<option value="'+e4(id)+'"'+(id===ST.vend?' selected':'')+'>'+e4(nomeDe(id))+(id===me?' (você)':'')+(papelDe(id)==='master'?' · venda da empresa':'')+'</option>';}).join('')+'</select></div>':'';
  var s=W.sheet('<div class="lbl" style="color:var(--gold)">Comissões</div><h2>Simular comissão</h2><p style="color:var(--mut);font-size:13px;margin:4px 0 14px">Digite o crédito e veja na hora quanto dá como cliente próprio e como lead da empresa.</p>'+
   '<div class="scf">'+sel+'<div class="fi"><label>Crédito da carta</label><input id="scc" inputmode="decimal" value="'+ST.cred.toLocaleString('pt-BR')+'"></div>'+
-  '<div class="fi"><label>Categoria</label><select id="sck">'+CATS.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===ST.cat?' selected':'')+'>'+c[1]+' · '+c[2]+'</option>';}).join('')+'</select></div>'+
-  '<div class="fi"><label>Data da venda</label><input type="date" id="scd" value="'+ST.data+'"></div></div><div id="scres"></div>',760);
+  '<div class="fi"><label>Categoria</label><select id="sck">'+CATS.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===ST.cat?' selected':'')+'>'+c[1]+' ('+c[2]+')</option>';}).join('')+'</select></div>'+
+  '<div class="fi"><label>Data da venda</label><input type="date" id="scd" value="'+ST.data+'"></div></div><div id="scres"></div>',master()?940:760);
  s.classList.add('simcom');
  var t=null,re=function(){clearTimeout(t);t=setTimeout(function(){ST.cred=num($('#scc',s).value);ST.cat=$('#sck',s).value;ST.data=$('#scd',s).value||isoHoje();var v=$('#scv',s);if(v)ST.vend=v.value;pinta(s);},120);};
  ['#scc','#sck','#scd','#scv'].forEach(function(q){var el=$(q,s);if(el){el.addEventListener('input',re);el.addEventListener('change',re);}});
@@ -99,6 +101,7 @@ function css(){if($('#simcomcss'))return;var c=document.createElement('style');c
  '.sheet.simcom .scv{font:600 28px Lora,Georgia,serif;color:var(--ink);margin:2px 0}.sheet.simcom .sct{font-size:12.3px;color:var(--mut);line-height:1.45}'+
  '.sheet.simcom .scpos{display:flex;gap:8px;align-items:flex-start;font-size:12.6px;margin-top:10px;line-height:1.45}.sheet.simcom .scpos .i{flex:none;margin-top:2px;color:var(--gold)}'+
  '.sheet.simcom .sctb{width:100%;border-collapse:collapse;margin-top:12px;font-size:12.6px}.sheet.simcom .sctb th{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:600;text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}'+
+ '.sheet.simcom .sctw{overflow-x:auto;-webkit-overflow-scrolling:touch}.sheet.simcom .sctb th,.sheet.simcom .sctb td{white-space:nowrap}'+
  '.sheet.simcom .sctb td{padding:7px 4px;border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent)}.sheet.simcom .sctb .r{text-align:right;font-variant-numeric:tabular-nums}'+
  '.sheet.simcom .mu{color:var(--mut)}.sheet.simcom .scrod{font-size:11.8px;margin-top:12px;line-height:1.5}'+
  '.sheet.simcom .scemp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.sheet.simcom .scemp>div{padding:10px 12px;border-radius:12px;background:color-mix(in srgb,currentColor 5%,transparent);display:flex;flex-direction:column;gap:2px}'+
