@@ -36,7 +36,7 @@ var CS={mes:null,dia:null,vista:'mes',quem:'meus',off:{}};
 /* ---------- eventos ---------- */
 function tkData(t){ var p=null; try{ p=pcall('tkPrazo',t.raw); }catch(e){} if(!p&&t.prazo) p=new Date(t.prazo); return (p&&!isNaN(p))?p:null; }
 function eventos(){ var ev=[], todos=isM()&&CS.quem==='equipe';
- try{ (todos?TASKS:mine(TASKS)).forEach(function(t){ if(t.done||t.arq) return; var d=tkData(t); if(!d) return; var L=t.lead?(LEADS.filter(function(x){ return x.id===t.lead; })[0]):null;
+ try{ (todos?TASKS:TASKS.filter(function(t){ return t.resp===ME(); })).forEach(function(t){ if(t.done||t.arq) return; var d=tkData(t); if(!d) return; var L=t.lead?(LEADS.filter(function(x){ return x.id===t.lead; })[0]):null;
    ev.push({tipo:'tarefa',d:d,t:t.t,s:(L?L.nome:(t.l||''))+(todos&&t.resp?' · '+fn(t.resp):''),go:function(){ go('tarefas'); }}); }); }catch(e){}
  try{ var LL=isM()?LEADS:mine(LEADS); LL.forEach(function(l){ if(l.perdido) return; var x=XL[l.uid]||{}, meu=!isM()||l.resp===ME()||todos;
    var abre=function(el){ if(typeof openDeal==='function') openDeal(l,el); else go('cliente',{lead:l}); };
