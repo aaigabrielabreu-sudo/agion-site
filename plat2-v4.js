@@ -35,7 +35,12 @@ W.AgionV4Ponte={
 var LINK=null; try{ LINK=JSON.parse(sessionStorage.getItem('agion:conv')||'null'); }catch(e){}
 var wrap=null, fr=null, pronto=false, tAvisa=null;
 var V1_SO=['editor','compare'];   /* telas que só existem na v1 (abrem por cima, com “Voltar ao novo visual”) */
-function logado(){ try{ var a=D.getElementById('app'); return !!(a&&a.classList.contains('show')&&session&&session.role&&session.role!=='cliente'&&db&&(db.accounts||[]).some(function(x){return x.real;})); }catch(e){ return false; } }
+/* CLIENTE_V4_23OUT: o cliente também entra no visual novo (Início, Planejamento, Jornada, Gastos, Minha cota).
+   Freio de emergência: localStorage agion_cli_v4 = '0' volta o cliente para a tela anterior. */
+function cliV4(){ try{ return localStorage.getItem('agion_cli_v4')!=='0'; }catch(e){ return true; } }
+function logado(){ try{ var a=D.getElementById('app'); if(!(a&&a.classList.contains('show')&&session&&session.role&&db)) return false;
+  if(session.role==='cliente') return cliV4()&&(db.clients||[]).length>0;
+  return (db.accounts||[]).some(function(x){return x.real;}); }catch(e){ return false; } }
 /* 19/out · app instalado: a faixa do relógio (#agStatusBand, que evita o desfoque do iOS 26) e a barra
    do sistema ficam da MESMA cor do fundo do visual novo (dia/noite), e o v4 começa logo abaixo dela. */
 var COR0=null;

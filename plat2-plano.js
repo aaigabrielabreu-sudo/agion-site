@@ -544,7 +544,7 @@ function novoPlanoCli(X){ var sug='Novo planejamento '+(X.ps.filter(function(q){
 function tq(sel){ return function(){ var L=[].slice.call(document.querySelectorAll(sel)); for(var i=0;i<L.length;i++){ var r=L[i].getBoundingClientRect(); if(r.width>0&&r.height>0) return L[i]; } return null; }; }
 function tsec(k){ return function(){ var b=document.querySelector('#edsecn button[data-es="'+k+'"]'); if(b&&!b.classList.contains('on')) b.click(); }; }
 function tplsec(k){ return function(){ var b=document.querySelector('#plsec button[data-s="'+k+'"]'); if(b&&!b.classList.contains('on')) b.click(); }; }
-function tficha(){ var b=document.querySelector('#ctab button[data-k="plano"]'); if(b&&!b.classList.contains('on')) b.click(); }
+function tficha(){ if(document.querySelector('#tabc .edhead')) return; try{ var a=window.curArg||{}; if(window.cur==='cliente'&&a.id&&!a.lead){ window.go('cliente',{id:a.id,tab:'plano'},1); return; } }catch(e){} var bt=document.querySelector('#ctab button[data-k="plano"]'); if(bt) bt.click(); }
 var TOURS_PLANO=[
  {id:'t-plano',page:'clientes',ficha:'cliente',v:1,g:'Carteira',title:'Planejamento do cliente',desc:'O editor do plano: seções, simulações, comparação e o que o cliente vê.',steps:[
   {act:tficha,t:tq('#tabc .edhead'),title:'O planejamento do cliente',text:'Na ficha do cliente, a aba Planejamento é o editor do plano. Tudo o que você muda é salvo na hora; o selo “Salvo” confirma.'},
