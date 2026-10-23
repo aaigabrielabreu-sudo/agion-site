@@ -4817,6 +4817,21 @@ window.addEventListener('message',function(e){if(e.origin!==location.origin&&e.o
 var V4OK={painel:1,kpis:1,tarefas:1,crm:1,conversas:1,clientes:1,cliente:1,cadastro:1,comissoes:1,ferramentas:1,assembleias:1,contas:1,atividades:1,tutoriais:1,novidades:1,ajustes:1,feed:1,chat:1,captacao:1,marketing:1,disparos:1,consultoria:1,meuplano:1};
 var _goV4=go;go=function(k,arg,nohist){if(k&&!V4OK[k]&&k!=='vazio'){var id=V1ID[k]||k;try{px().irV1(id);}catch(e){}return;}return _goV4(k,arg,nohist);};
 window.AG.go=go;
+/* ATUALIZA_DADOS_23OUT: o que a equipe muda aparece para todos sem F5.
+   A atualização automática da v1 nunca rodava com o visual novo na tela (o foco fica no iframe e ela achava que a pessoa
+   estava digitando). Agora: ao entrar no CRM (e nas outras abas com dados) recarrega na hora; parado na aba, a cada 5 min;
+   ao voltar para a janela, também. Se um card ou pop-up estiver aberto, espera fechar para redesenhar. */
+var ATZ={ultimo:0,rodando:null,ABAS:{crm:1,tarefas:1,painel:1,calendario:1,clientes:1,kpis:1}};
+function atualizaDados(){if(ATZ.rodando)return ATZ.rodando;
+ ATZ.rodando=(async function(){try{_rvAt=Date.now();try{await Promise.resolve(px().recarregar());}catch(e){}await carregar();ATZ.ultimo=Date.now();_rvAt=Date.now();
+  try{buildNavKeep();}catch(e){}try{bellUpd();}catch(e){}
+  var aba=cur,arg0=curArg;if(ATZ.ABAS[aba])(function tenta(n){if(cur!==aba)return;if(ocupado()){if(n<40)setTimeout(function(){tenta(n+1);},1500);return;}
+   var m=$('#main'),y=m?m.scrollTop:0;_rvAt=Date.now();go(aba,arg0,1);setTimeout(function(){if(m)m.scrollTop=y;},260);})(0);
+ }catch(e){console.warn('[v4] atualiza dados',e);}ATZ.rodando=null;})();return ATZ.rodando;}
+var _goAtz=go;go=function(k,arg,nohist){var antes=cur,r=_goAtz.apply(this,arguments);try{if(ATZ.ABAS[k]&&antes!==k&&Date.now()-ATZ.ultimo>15000)setTimeout(atualizaDados,60);}catch(e){}return r;};
+window.AG.go=go;window.AG.atualizaDados=atualizaDados;
+setInterval(function(){if(document.hidden||!ATZ.ABAS[cur])return;if(Date.now()-ATZ.ultimo>=5*60000-5000)atualizaDados();},30000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&ATZ.ABAS[cur]&&Date.now()-ATZ.ultimo>60000)atualizaDados();});
 /* sair */
 function sairR(){try{px().sair();}catch(e){}}
 /* PWA/ícone ficam na página de cima (o iframe não instala) */
