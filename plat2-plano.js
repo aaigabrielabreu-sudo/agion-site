@@ -107,22 +107,23 @@ function salvar(){ try{ pcall('save'); return true; }catch(e){ toast('Não conse
 
 /* ---------------- tela ---------------- */
 var ABAS=[['inicio','Início'],['plano','Planejamento'],['jornada','Jornada'],['gastos','Gastos'],['cota','Minha cota']];
-R.meuplano=function(v,arg){ arg=arg||{}; if(arg.cid&&arg.cid!==ST.cid){ ST.cid=arg.cid; ST.pid=null; ST.sec='resumo'; } if(arg.aba) ST.aba=arg.aba; if(arg.sec) ST.sec=arg.sec;
+R.meuplano=function(v,arg){ arg=arg||{}; if(arg.cid&&arg.cid!==ST.cid){ ST.cid=arg.cid; ST.pid=null; ST.sec='resumo'; } if(arg.aba) ST.aba=arg.aba; if(arg.sec) ST.sec=arg.sec; ST.cli=!!arg.cli;
  var X=ctx(); if(!X){ v.innerHTML='<div class="empty">Cliente não encontrado.</div>'; return; }
- var c=X.c, staff=!ehCliente();
+ var c=X.c, cliM=ST.cli, staff=!ehCliente()&&!cliM;
  v.innerHTML='<div class="hx rv"><div><h1 class="h1">Olá, <em>'+e4(nome1(c.nome))+'</em></h1><div class="sub">'+(X.R?(X.R.saude>=75?'Seu plano está num bom caminho':X.R.saude>=50?'Seu plano está em construção':'Vamos fortalecer seu plano juntos'):'Planejamento financeiro')+'</div></div><span class="sp"></span>'+
   (staff?'<button class="btn ol" id="plvolta">'+I('back',16)+'Ficha do cliente</button>':'')+'</div>'+
   (staff?'<div class="banner rv">'+I('eye',16)+'<span>Você está vendo o que <b>'+e4(c.nome)+'</b> vê na plataforma (somente leitura).</span></div>':'')+
-  sn('plnav',ABAS,ST.aba)+'<div id="plbody"></div>';
+  (cliM?faixaVerComo():'')+(cliM?'':sn('plnav',ABAS,ST.aba))+'<div id="plbody"></div>';
  if($('#plvolta')) $('#plvolta').onclick=function(){ var cc=(CLIENTES||[]).filter(function(x){ return x.uid===c.id||x.id===c.id; })[0]; go('cliente',{id:cc?cc.id:c.id}); };
- bindSeg('plnav',function(k){ ST.aba=k; corpo(); });
+ if(cliM) ligaFaixa(v); else bindSeg('plnav',function(k){ ST.aba=k; corpo(); });
  corpo(); };
 function corpo(){ var b=$('#plbody'); if(!b) return; var X=ctx(); if(!X||!X.p){ b.innerHTML='<div class="panel"><div class="empty">'+I('target',22)+'<br>O seu especialista ainda está montando o seu plano. Assim que ficar pronto, ele aparece aqui.</div></div>'; return; }
- var f={inicio:abaInicio,plano:abaPlano,jornada:abaJornada,gastos:abaGastos,cota:abaCota}[ST.aba]||abaInicio;
+ var f={inicio:abaInicio,plano:(ST.cli?abaPlanoCli:abaPlano),jornada:abaJornada,gastos:abaGastos,cota:abaCota}[ST.aba]||abaInicio;
  b.style.opacity=0; b.style.transform='translateY(10px)'; b.innerHTML=f(X);
  requestAnimationFrame(function(){ b.style.transition='opacity .45s var(--ez),transform .55s var(--ez)'; b.style.opacity=1; b.style.transform='none'; });
  ligaChart(b,X.R); anima(b); if(typeof reveal==='function') reveal(b); if(typeof counts==='function') counts(b);
- var ac={inicio:ligaInicio,plano:ligaPlano,gastos:ligaGastos}[ST.aba]; if(ac) ac(b,X); }
+ var ac={inicio:ligaInicio,plano:ligaPlano,gastos:ligaGastos}[ST.aba]; if(ac) ac(b,X);
+ if(ST.cli&&ST.aba==='plano'&&X.p&&!X.p.main){ var pc=$('#plcli',b); if(pc) edMonta(pc,X.c.id,{pid:X.p.id,cli:1}); } }
 
 /* ---------- Início ---------- */
 function kpis(R,p){ return '<div class="plk">'+
@@ -172,7 +173,7 @@ function abaInicio(X){ var p=X.p,R=X.R; if(!R) return '<div class="empty">Não c
   '<p class="pldisc">Valores estimados para planejamento, a partir das informações fornecidas. Não constituem garantia de rentabilidade nem recomendação de investimento.</p>'; }
 function ligaInicio(b){ var m=$('#plmelh',b); if(m) m.onclick=function(){ ST.aba='plano'; ST.sec='projecao'; trocaAba(); };
  $$('[data-wa]',b).forEach(function(x){ x.onclick=function(){ falarEspecialista(); }; }); }
-function trocaAba(){ var s=$('#plnav'); if(s){ $$('button',s).forEach(function(x){ x.classList.toggle('on',x.dataset.k===ST.aba); }); try{ slide(s); }catch(e){} } corpo(); }
+function trocaAba(){ if(ST.cli){ go(rotaDaAba(ST.aba)); return; } var s=$('#plnav'); if(s){ $$('button',s).forEach(function(x){ x.classList.toggle('on',x.dataset.k===ST.aba); }); try{ slide(s); }catch(e){} } corpo(); }
 function falarEspecialista(){ var X=ctx(); var tel='5551993078590'; try{ var o=(X&&X.c&&X.c.ownerId)?(base().accounts||[]).filter(function(a){ return a.id===X.c.ownerId; })[0]:null; if(o&&(o.whatsapp||o.tel)){ var d=String(o.whatsapp||o.tel).replace(/\D/g,''); if(d.length>=10) tel=(d.length<=11?'55':'')+d; } }catch(e){}
  if(!ehCliente()){ toast('Para o cliente, este botão abre o WhatsApp do especialista dele','wa'); return; } window.open('https://wa.me/'+tel+'?text='+encodeURIComponent('Olá! Vi uma oportunidade no meu planejamento da Agion e quero conversar.'),'_blank'); }
 
@@ -210,7 +211,7 @@ function seAjustar(p,R){ var base0=R.prob, sc=[];
   var gr=(p.goals||[]).filter(function(x){ return x.tipo==='renda'; })[0]; if(gr){ var d=clone(p); d.goals.filter(function(x){ return x.tipo==='renda'; })[0].valor=Math.round(gr.valor*0.9); sc.push(['Reduzir a renda-alvo em 10%',projeta(d).prob]); }
   var e=clone(p); e.perfil='Arrojado'; e.rent=Math.round(((+p.rent||0)+1.5)*10)/10; sc.push(['Carteira mais arrojada (+1,5% a.a.)',projeta(e).prob]); }catch(x){}
  return '<table class="pltab"><tbody>'+sc.map(function(s){ var dd=s[1]-base0; return '<tr><td>'+e4(s[0])+'</td><td class="r"><b>'+s[1]+'%</b></td><td class="r">'+(dd>1?'<span style="color:var(--ok)">▲ +'+dd+' pp</span>':dd<-1?'<span style="color:var(--bad)">▼ '+dd+' pp</span>':'<span style="color:var(--mut)">≈</span>')+'</td></tr>'; }).join('')+'</tbody></table><p style="font-size:11.5px;color:var(--mut);margin-top:10px">Comparado com a sua situação de hoje ('+base0+'%). pp = pontos percentuais.</p>'; }
-function ligaPlano(b,X){ $$('[data-pl]',b).forEach(function(x){ x.onclick=function(){ ST.pid=x.dataset.pl; corpo(); }; });
+function ligaPlano(b,X){ $$('.plplans [data-pl]',b).forEach(function(x){ x.onclick=function(){ ST.pid=x.dataset.pl; corpo(); }; }); var nv=$('.plplans [data-novo]',b); if(nv) nv.onclick=function(){ novoPlanoCli(ctx()); };
  $$('#plsec button',b).forEach(function(x){ x.onclick=function(){ ST.sec=x.dataset.s; $$('#plsec button',b).forEach(function(y){ y.classList.toggle('on',y===x); }); var sb=$('#plsecb',b); sb.innerHTML=secao(ctx()); ligaChart(sb,ctx().R); anima(sb); if(typeof reveal==='function') reveal(sb); ligaSim(sb); }; });
  ligaSim(b); }
 function ligaSim(b,X0){ var A=$('#slA',b); if(!A) return; var I2=$('#slI',b), Rr=$('#slR',b), X=X0||ctx(), p0=X.p;
@@ -428,17 +429,17 @@ function edSecao(X){ var k=ED.sec;
 function edTopo(X){ var R=X.R||{}; return '<div><small>Probabilidade</small><b style="color:'+cor(R.prob||0)+'">'+(R.prob||0)+'%</b></div><div><small>Saúde financeira</small><b>'+(R.saude||0)+'<span style="font-size:12px;color:var(--mut)">/100</span></b></div><div><small>Patrimônio aos '+X.p.apos+'</small><b>'+brlK(R.patApos||0)+'</b></div><div><small>Aporte por mês</small><b>'+brlK(R.sobra||0)+'</b></div>'; }
 
 /* ---------- montagem ---------- */
-function edMonta(el,cid,o){ o=o||{}; ED.el=el; if(cid!==ED.cid){ ED.cid=cid; ED.pid=null; ED.sec='resumo'; } if(o.sec) ED.sec=o.sec; if(o.pid) ED.pid=o.pid;
+function edMonta(el,cid,o){ o=o||{}; ED.el=el; ED.cli=!!o.cli; if(cid!==ED.cid){ ED.cid=cid; ED.pid=null; ED.sec='resumo'; } if(o.sec) ED.sec=o.sec; if(o.pid) ED.pid=o.pid;
  var X=edCtx(); if(!X){ el.innerHTML='<div class="empty">Cliente não encontrado.</div>'; return; }
  if(!X.p){ el.innerHTML='<div class="ph"><h3>'+I('target',18)+'Planejamento</h3></div><div class="empty">Este cliente ainda não tem plano.</div>'; return; }
- var ro=edRO(), p=X.p;
+ var ro=edRO(), p=X.p, SS=ED.cli?ESECS.filter(function(s){ return s[0]!=='balanco'; }):ESECS; if(ED.cli&&ED.sec==='balanco') ED.sec='resumo';
  el.innerHTML='<div class="edwrap"><div class="edhead"><h3 style="font:600 17px Lora,serif;display:flex;align-items:center;gap:8px">'+I('target',18)+'Planejamento financeiro</h3><span class="sp"></span>'+
    (ro?'<span class="pill">'+I('eye',12)+'somente leitura</span>':'<span class="edsv" id="edsv"><i></i><span>Salvo</span></span>')+
-   '<button class="btn sm ol" id="edvc">'+I('eye',13)+'Ver como o cliente vê</button></div>'+
-  '<div class="plplans" id="edpls">'+X.ps.map(function(q){ return '<button data-pl="'+q.id+'" class="'+(q.id===p.id?'on':'')+'">'+(q.main?'★ Plano Principal':e4(q.titulo||'Simulação'))+'</button>'; }).join('')+(ro?'':'<button data-nova="1" style="background:transparent;border:1px dashed var(--line)">'+I('plus',12)+' Nova simulação</button>')+'</div>'+
-  '<div class="banner" id="edbn">'+I(p.main?'star':'copy',16)+'<span>'+(p.main?'Este é o <b>Plano Principal</b>. O que você muda aqui é salvo na hora e o cliente já vê a versão atualizada.':'Você está numa <b>simulação</b> ('+e4(p.titulo||'')+'). O Plano Principal continua intacto.')+'</span>'+(!p.main&&!ro?'<span class="sp" style="flex:1"></span><button class="btn sm ol" data-delpl="'+p.id+'">Excluir simulação</button>':'')+'</div>'+
+   (ED.cli?'':'<button class="btn sm ol" id="edvc">'+I('eye',13)+'Ver como o cliente vê</button>')+'</div>'+
+  '<div class="plplans" id="edpls">'+X.ps.map(function(q){ return '<button data-pl="'+q.id+'" class="'+(q.id===p.id?'on':'')+'">'+(q.main?'★ Plano Principal':e4(q.titulo||'Simulação'))+'</button>'; }).join('')+(ro?'':'<button data-nova="1" style="background:transparent;border:1px dashed var(--line)">'+I('plus',12)+(ED.cli?' Novo planejamento':' Nova simulação')+'</button>')+'</div>'+
+  '<div class="banner" id="edbn">'+I(p.main?'star':'copy',16)+'<span>'+(ED.cli?'Você está editando <b>'+e4(p.titulo||'o seu planejamento')+'</b>, uma cópia sua. O Plano Principal continua intacto.':p.main?'Este é o <b>Plano Principal</b>. O que você muda aqui é salvo na hora e o cliente já vê a versão atualizada.':'Você está numa <b>simulação</b> ('+e4(p.titulo||'')+'). O Plano Principal continua intacto.')+'</span>'+(!p.main&&!ro?'<span class="sp" style="flex:1"></span><button class="btn sm ol" data-delpl="'+p.id+'">'+(ED.cli?'Excluir este planejamento':'Excluir simulação')+'</button>':'')+'</div>'+
   '<div class="edtop" id="edtop">'+edTopo(X)+'</div>'+
-  '<div class="secn" id="edsecn">'+ESECS.map(function(s){ return '<button data-es="'+s[0]+'" class="'+(s[0]===ED.sec?'on':'')+'">'+s[1]+'</button>'; }).join('')+'</div><div id="edbody"></div>'+
+  '<div class="secn" id="edsecn">'+SS.map(function(s){ return '<button data-es="'+s[0]+'" class="'+(s[0]===ED.sec?'on':'')+'">'+s[1]+'</button>'; }).join('')+'</div><div id="edbody"></div>'+
   '<p class="pldisc">Valores estimados para planejamento, a partir das informações fornecidas. Não constituem garantia de rentabilidade nem recomendação de investimento.</p></div>';
  if(!el._edb){ el._edb=1; el.addEventListener('change',edMuda); el.addEventListener('click',edClique); el.addEventListener('keydown',function(e){ var t=e.target; if(e.key==='Enter'&&t&&t.dataset){ if(t.dataset.ns!=null){ e.preventDefault(); edPasso(+t.dataset.ns); } else if(t.dataset.p){ e.preventDefault(); t.blur(); } } }); }
  edPinta(true); }
@@ -454,10 +455,10 @@ function edMuda(e){ var t=e.target; if(!t||!t.dataset||!t.dataset.p||edRO()) ret
  setPath(X.p,t.dataset.p,t.value,t.dataset.t); edSalvar(); setTimeout(function(){ edPinta(false); },0); }
 function edClique(e){ var t=e.target.closest?e.target.closest('button'):null; if(!t||!ED.el.contains(t)) return; var X=edCtx(); if(!X) return; var d=t.dataset;
  if(d.es){ ED.sec=d.es; $$('#edsecn button',ED.el).forEach(function(x){ x.classList.toggle('on',x===t); }); edPinta(true); return; }
- if(d.pl){ ED.pid=d.pl; edMonta(ED.el,ED.cid); return; }
+ if(d.pl){ if(ED.cli){ ST.pid=d.pl; corpo(); return; } ED.pid=d.pl; edMonta(ED.el,ED.cid); return; }
  if(t.id==='edvc'){ go('meuplano',{cid:X.c.id,aba:'inicio'}); return; }
  if(edRO()){ return; }
- if(d.nova){ edNova(X); return; }
+ if(d.nova){ if(ED.cli){ novoPlanoCli(ctx()); return; } edNova(X); return; }
  if(d.delpl){ edExcluiPlano(X,d.delpl); return; }
  if(d.add){ var p=X.p; if(!Array.isArray(p[d.add])) p[d.add]=[]; var nv=JSON.parse(JSON.stringify(DEF[d.add]||{})); if(d.add==='goals') nv.idade=p.apos; p[d.add].push(nv); edSalvar(); edPinta(false);
   setTimeout(function(){ var ns=ED.el.querySelectorAll('[data-p^="'+d.add+':'+(p[d.add].length-1)+':"]'); if(ns[0]) try{ ns[0].focus(); }catch(_){} },30); return; }
@@ -472,10 +473,124 @@ function edNova(X){ var sug='Simulação '+(X.ps.filter(function(q){ return !q.m
   X.c.plans.push(cp); try{ var lg=ev('logEvt'); if(lg) lg('plano_copiar','planos','Criou simulação "'+cp.titulo+'"'); }catch(e){}
   if(edSalvar()){ toast('Simulação criada · o Plano Principal continua igual','copy'); ED.pid=cp.id; edMonta(ED.el,ED.cid); } }); }
 function edExcluiPlano(X,pid){ var q=X.ps.filter(function(x){ return x.id===pid; })[0]; if(!q||q.main) return;
- confirma('Excluir “'+(q.titulo||'Simulação')+'”?','O Plano Principal não é afetado.','Excluir').then(function(ok){ if(!ok) return; X.c.plans=X.c.plans.filter(function(x){ return x.id!==pid; }); if(ED.pid===pid) ED.pid=null;
+ confirma('Excluir “'+(q.titulo||'Simulação')+'”?','O Plano Principal não é afetado.','Excluir').then(function(ok){ if(!ok) return; X.c.plans=X.c.plans.filter(function(x){ return x.id!==pid; }); if(ED.pid===pid) ED.pid=null; if(ED.cli) ST.pid=null;
   /* o salvamento da plataforma só grava (upsert); a simulação excluída precisa sair do banco também, senão volta no próximo carregamento */
   try{ var sb=(typeof psb==='function')?psb():null; if(sb) sb.from('planos').delete().eq('id',pid).then(function(r){ if(r&&r.error) console.warn('[plano] excluir simulação',r.error); }); }catch(e){ console.warn('[plano] excluir simulação',e); }
-  if(edSalvar()){ toast('Simulação excluída','ok'); edMonta(ED.el,ED.cid); } }); }
+  if(edSalvar()){ toast(ED.cli?'Planejamento excluído':'Simulação excluída','ok'); if(ED.cli) corpo(); else edMonta(ED.el,ED.cid); } }); }
+
+/* ==========================================================================
+   CLIENTE NO VISUAL NOVO · CLIENTE_V4_23OUT
+   O cliente entra direto aqui (sem a plataforma antiga): Início, Planejamento,
+   Jornada, Gastos, Minha cota, Tutoriais e Ajustes. No Planejamento ele vê o
+   Plano Principal (só leitura) e cria/edita os próprios planejamentos (cópias).
+   ========================================================================== */
+function ehCli(){ try{ return effRoleR()==='cliente'; }catch(e){ return false; } }
+function meuCid(){ try{ var id=pcall('effCliId'); if(id) return id; }catch(e){} try{ var cs=base().clients||[]; return cs.length===1?cs[0].id:null; }catch(e){ return null; } }
+var CLI_ROTAS=[['inicio','Início','grid','inicio'],['planejamento','Planejamento','target','plano'],['jornada','Jornada','ladder','jornada'],['gastos','Gastos','money','gastos'],['cota','Minha cota','layers','cota']];
+var CLI_OK={inicio:1,planejamento:1,jornada:1,gastos:1,cota:1,ajustes:1,tutoriais:1,meuplano:1};
+function rotaDaAba(a){ var r=CLI_ROTAS.filter(function(x){ return x[3]===a; })[0]; return r?r[0]:'inicio'; }
+(function(){ if(document.getElementById('clicss')) return; var s=document.createElement('style'); s.id='clicss'; s.textContent=
+ 'body.cli #sk,body.cli #bell,body.cli #vc,body.cli #ver,body.cli .vcw{display:none!important}'+
+ '.clivc{display:flex;align-items:center;gap:10px;flex-wrap:wrap}';
+ document.head.appendChild(s); })();
+try{
+ if(typeof NAV!=='undefined') NAV.cliente=[['Meu plano',CLI_ROTAS.map(function(r){ return [r[0],r[1],r[2]]; })],['Ajuda',[['tutoriais','Tutoriais','book'],['ajustes','Ajustes','gear']]]];
+ if(typeof V4OK!=='undefined') CLI_ROTAS.forEach(function(r){ V4OK[r[0]]=1; });
+ if(typeof window.navGrupos==='function'){ var _ngC=window.navGrupos; window.navGrupos=function(){ if(ehCli()&&NAV.cliente) return NAV.cliente; return _ngC.apply(this,arguments); }; }
+ if(typeof window.go==='function'){ var _goC=window.go; window.go=function(k,arg,nh){ var c=ehCli(); try{ document.body.classList.toggle('cli',c); }catch(e){}
+   if(c&&!CLI_OK[k]) k='inicio'; return _goC.call(this,k,arg,nh); }; try{ if(window.AG) window.AG.go=window.go; }catch(e){} }
+ if(typeof window.meCard==='function'){ var _mcC=window.meCard; window.meCard=function(){ if(!ehCli()) return _mcC.apply(this,arguments); var c=cliente(meuCid())||{}, uc=$('#uc');
+   if(uc) uc.innerHTML=av(c.nome||'Cliente')+'<div><b>'+e4(c.nome||'Cliente')+'</b><small>Cliente Agion'+(RO()?' · somente leitura':'')+'</small></div>'; }; }
+ CLI_ROTAS.forEach(function(r){ R[r[0]]=function(v){ R.meuplano(v,{cid:meuCid(),aba:r[3],cli:1}); }; });
+ /* Ajustes do cliente: o mesmo quadro, sem o que é só da equipe */
+ if(R.ajustes){ var _ajC=R.ajustes; R.ajustes=function(v,a){ _ajC.apply(this,arguments); if(!ehCli()) return; try{
+   var c=cliente(meuCid())||{}, ac=$('#ajc',v), em=''; try{ var s=px().session(); em=(s&&s.email)||c.email||''; }catch(e){ em=c.email||''; }
+   if(ac){ var b=ac.querySelector('b'); if(b) b.textContent=c.nome||'Cliente'; var sm=b&&b.nextElementSibling; if(sm) sm.textContent=(em?em+' · ':'')+'Cliente'; var pp=ac.querySelector('p'); if(pp) pp.textContent='Sua foto aparece no menu e para o seu especialista.'; }
+   var n=$('#ajn',v); if(n) n.style.display='none'; var bn=$('#ajsn button[data-k="not"]',v); if(bn) bn.style.display='none';
+   var cel=$('#ajcel',v); if(cel){ var p=cel.querySelector('p'); if(p) p.textContent='Receba no celular os avisos da sua carta, das assembleias e do seu planejamento, mesmo com o app fechado.'; }
+   var sub=$('.hx .sub',v); if(sub) sub.textContent='Aparência, celular e conta';
+  }catch(e){ console.warn('[cliente] ajustes',e); } }; }
+}catch(e){ console.warn('[cliente] modo cliente',e); }
+/* entrada do cliente: menu e cartão do cliente e a aba Início logo de cara */
+setTimeout(function(){ try{ if(!ehCli()) return; document.body.classList.add('cli'); try{ buildNav(); }catch(e){} try{ if(typeof buildTab==='function') buildTab(); }catch(e){} try{ meCard(); }catch(e){}
+ if(!CLI_OK[cur]) go('inicio',null,1); }catch(e){ console.warn('[cliente] entrada',e); } },0);
+/* equipe usando o "Ver como" um cliente (pela plataforma antiga): faixa para voltar */
+function faixaVerComo(){ try{ var s=px().session(); if(!(s&&s.viewAs&&s.role!=='cliente')) return ''; return '<div class="banner rv clivc">'+I('eye',16)+'<span>Você está vendo como <b>'+e4(s.viewAs.nome||'o cliente')+'</b> (somente leitura).</span><span class="sp" style="flex:1"></span><button class="btn sm ol" id="clisai">Voltar para a minha visão</button></div>'; }catch(e){ return ''; } }
+function ligaFaixa(v){ var b=$('#clisai',v); if(b) b.onclick=function(){ try{ pcall('sairVerComo'); }catch(e){} try{ recarregarV4('clientes'); }catch(e){ go('clientes'); } }; }
+
+/* Planejamento do cliente: Plano Principal só leitura + os planejamentos dele editáveis */
+function abaPlanoCli(X){ var p=X.p;
+ var plans='<div class="plplans">'+X.ps.map(function(q){ return '<button data-pl="'+q.id+'" class="'+(q.id===p.id?'on':'')+'">'+(q.main?'★ Plano Principal':e4(q.titulo||'Planejamento'))+'</button>'; }).join('')+(RO()?'':'<button data-novo="1" style="background:transparent;border:1px dashed var(--line)">'+I('plus',12)+' Novo planejamento</button>')+'</div>';
+ if(!p.main) return plans+'<div id="plcli"></div>';
+ return plans+'<div class="banner rv">'+I('star',16)+'<span>Este é o seu <b>Plano Principal</b>, feito pelo seu especialista. Para simular mudanças sem alterá-lo, crie um novo planejamento.</span></div>'+
+  '<div class="secn" id="plsec">'+SECS.map(function(s){ return '<button data-s="'+s[0]+'" class="'+(s[0]===ST.sec?'on':'')+'">'+s[1]+'</button>'; }).join('')+'</div><div id="plsecb">'+secao(X)+'</div>'; }
+function novoPlanoCli(X){ var sug='Novo planejamento '+(X.ps.filter(function(q){ return !q.main; }).length+1);
+ perguntar('Criar novo planejamento','Cria uma cópia editável do seu plano. O Plano Principal continua como está.',sug,'Criar',sug).then(function(nome){ if(nome===null||nome===undefined) return;
+  var src=X.mp||X.p, cp=JSON.parse(JSON.stringify(src)), uid=ev('uuid'); cp.id=uid?uid():('c'+Date.now()); cp.main=false; cp.parent=src.id; cp.titulo=String(nome).trim()||sug; cp.criadoEm=Date.now();
+  X.c.plans.push(cp); try{ var lg=ev('logEvt'); if(lg) lg('plano_copiar','planos','Criou novo planejamento "'+cp.titulo+'"'); }catch(e){}
+  if(salvar()){ toast('Novo planejamento criado','copy'); ST.pid=cp.id; corpo(); } }); }
+
+/* ==========================================================================
+   TUTORIAIS DO PLANEJAMENTO NO VISUAL NOVO · TOUR_PLANO_23OUT
+   Equipe: "Planejamento do cliente" (o editor na ficha). Cliente: Início,
+   Planejamento, Jornada, Gastos e Minha cota. Mesmo motor dos outros
+   tutoriais (plat2-tour.js); nada é alterado durante a demonstração.
+   ========================================================================== */
+function tq(sel){ return function(){ var L=[].slice.call(document.querySelectorAll(sel)); for(var i=0;i<L.length;i++){ var r=L[i].getBoundingClientRect(); if(r.width>0&&r.height>0) return L[i]; } return null; }; }
+function tsec(k){ return function(){ var b=document.querySelector('#edsecn button[data-es="'+k+'"]'); if(b&&!b.classList.contains('on')) b.click(); }; }
+function tplsec(k){ return function(){ var b=document.querySelector('#plsec button[data-s="'+k+'"]'); if(b&&!b.classList.contains('on')) b.click(); }; }
+function tficha(){ var b=document.querySelector('#ctab button[data-k="plano"]'); if(b&&!b.classList.contains('on')) b.click(); }
+var TOURS_PLANO=[
+ {id:'t-plano',page:'clientes',ficha:'cliente',v:1,g:'Carteira',title:'Planejamento do cliente',desc:'O editor do plano: seções, simulações, comparação e o que o cliente vê.',steps:[
+  {act:tficha,t:tq('#tabc .edhead'),title:'O planejamento do cliente',text:'Na ficha do cliente, a aba Planejamento é o editor do plano. Tudo o que você muda é salvo na hora; o selo “Salvo” confirma.'},
+  {act:tficha,t:tq('#edpls'),title:'Plano Principal e simulações',text:'O Plano Principal é o que o cliente vê. “Nova simulação” faz uma cópia para testar mudanças (aposentar antes, aportar mais, outra carta) sem mexer no principal.',optional:true},
+  {t:tq('#edtop'),title:'O impacto na hora',text:'Probabilidade, saúde financeira, patrimônio na aposentadoria e aporte por mês. Recalculam a cada mudança, em qualquer seção.',optional:true},
+  {act:tsec('dados'),t:tq('#edsecn'),title:'As seções do plano',text:'Resumo, Projeção, Dados & Premissas, Patrimônio, Consórcio, Receitas & Despesas, Balanço ano a ano, Objetivos, Proteção, Cenários, Plano de Ação, Diagnóstico e Glossário.',demo:'click'},
+  {act:tsec('dados'),t:tq('#edbody .edgrid'),title:'Dados & Premissas',text:'Idade, aposentadoria, expectativa de vida, perfil de risco, rentabilidade real e a renda que o cliente quer na aposentadoria.',optional:true},
+  {act:tsec('patrimonio'),t:tq('#edbody .panel'),title:'Patrimônio e dívidas',text:'Cada ativo com a classe e o valor. “+ Ativo” e “+ Dívida” adicionam linhas e o X remove. A composição e o balanço se atualizam sozinhos.',optional:true},
+  {act:tsec('consorcio'),t:tq('#edbody .edcons, #edbody .panel'),title:'Consórcio',text:'Cada carta: crédito, prazo, mês previsto da contemplação, parcela, estratégia (rentabilizar, expandir com aluguel, ágio ou aquisição) e lance. Mais abaixo: patrimônio com × sem consórcio e o efeito de contemplar em 6, 12 ou 24 meses.',optional:true},
+  {act:tsec('fluxo'),t:tq('#edbody .panel'),title:'Receitas & Despesas',text:'Mensais ou anuais, e por quantos anos. A sobra do mês é o aporte do plano.',optional:true},
+  {act:tsec('cenarios'),t:tq('#edbody .panel'),title:'Cenários',text:'Plano Principal × simulações: aporte, patrimônio na aposentadoria, meta e probabilidade, com o gráfico lado a lado.',optional:true},
+  {act:tsec('acao'),t:tq('#edbody .edgoal, #edbody .panel'),title:'Plano de Ação',text:'Os passos de cada meta. O que você escreve aqui o cliente vê na Jornada.',optional:true},
+  {act:tsec('resumo'),t:tq('#edvc'),title:'Ver como o cliente vê',text:'Abre as telas do cliente (Início, Planejamento, Jornada, Gastos e Minha cota) do jeito que ele vê.',optional:true}
+ ]},
+ {id:'c-inicio',page:'inicio',v:1,g:'Seu plano',title:'Início',desc:'Seu resumo: probabilidade, projeção, carteira e recomendações.',steps:[
+  {t:null,title:'Bem-vindo(a) à sua plataforma',text:'Aqui fica o seu planejamento financeiro feito com o seu especialista da Agion. Vamos passar por cada parte, direto na tela.'},
+  {t:tq('.plhero'),title:'Em resumo',text:'A frase do topo diz como está o seu plano. “Como melhorar” leva para o simulador.',optional:true},
+  {t:tq('.plk'),title:'Seus números',text:'Saúde financeira, patrimônio líquido, patrimônio previsto na aposentadoria e quanto sobra por mês.',optional:true},
+  {t:tq('.plgauge'),title:'Probabilidade de sucesso',text:'A chance de o seu patrimônio sustentar a renda desejada até o fim do plano, medida em centenas de simulações de mercado.',optional:true},
+  {t:tq('.plchart'),title:'Projeção do patrimônio',text:'Passe o dedo ou o mouse no gráfico para ver o valor em cada idade, nos cenários atual, otimista e pessimista.',optional:true},
+  {t:tq('.pldon'),title:'Sua carteira',text:'Como os seus investimentos estão divididos hoje e como deveriam estar para o seu perfil.',optional:true},
+  {t:tq('.plops'),title:'Oportunidades',text:'Ideias para o seu patrimônio a partir do que você tem hoje. O botão chama o seu especialista no WhatsApp.',optional:true}
+ ]},
+ {id:'c-planejamento',page:'planejamento',v:1,g:'Seu plano',title:'Planejamento',desc:'O Plano Principal, os seus planejamentos e o simulador.',steps:[
+  {t:tq('.plplans'),title:'Seus planos',text:'O Plano Principal é o que o seu especialista montou. “Novo planejamento” cria uma cópia sua para simular mudanças sem alterar o principal.',optional:true},
+  {act:tplsec('resumo'),t:tq('#plsec'),title:'As partes do plano',text:'Resumo, Projeção, Cenários, Diagnóstico e Glossário.',optional:true},
+  {act:tplsec('projecao'),t:tq('#slA'),title:'Simulador ao vivo',text:'Arraste os controles (aporte extra, adiar a aposentadoria, reduzir a renda) e veja a probabilidade mudar na hora.',optional:true},
+  {act:tplsec('diagnostico'),t:tq('#plsecb .panel'),title:'Diagnóstico',text:'O que está bem e o que vale ajustar no seu plano.',optional:true},
+  {act:tplsec('resumo'),t:null,title:'Pronto',text:'Quando criar um planejamento seu, ele abre aqui mesmo para editar, com as mesmas seções do especialista.'}
+ ]},
+ {id:'c-jornada',page:'jornada',v:1,g:'Seu plano',title:'Jornada',desc:'Suas metas e os passos até elas.',steps:[
+  {t:tq('.plroad'),title:'As etapas do seu plano',text:'Do diagnóstico à independência financeira.',optional:true},
+  {t:tq('.plgoal'),title:'Suas metas',text:'Cada meta na ordem em que vai acontecer, com os passos que o seu especialista definiu.',optional:true}
+ ]},
+ {id:'c-gastos',page:'gastos',v:1,g:'Seu dinheiro',title:'Gastos',desc:'Para onde vai o seu dinheiro, mês a mês.',steps:[
+  {t:tq('.plsum'),title:'Seu mês',text:'Receitas, despesas e o saldo do mês.',optional:true},
+  {t:tq('#glmeta'),title:'Metas de gasto',text:'Defina quanto quer gastar, no máximo, em cada categoria. Passou da meta, aparece o aviso.',optional:true},
+  {t:tq('#glnovo'),title:'Lançamentos',text:'Toque em “Lançamento” para registrar uma receita ou despesa. O X apaga.',optional:true}
+ ]},
+ {id:'c-cota',page:'cota',v:1,g:'Seu plano',title:'Minha cota',desc:'A sua carta de consórcio.',steps:[
+  {t:tq('.plcota, #plbody .panel'),title:'Sua carta',text:'Crédito, parcela, prazo e a meta de contemplação por lance.',optional:true},
+  {t:tq('#plbody [data-wa]'),title:'Boletos, lances e assembleias',text:'Segunda via do boleto, oferta de lance e resultado das assembleias: fale com o seu especialista pelo WhatsApp.',optional:true}
+ ]}
+];
+function registraToursPlano(){ var W2=window, T2=W2.AgionTour2; if(!T2||!T2.config||!W2.TUG) return false;
+ TOURS_PLANO.forEach(function(t){ if(!T2.config.some(function(x){ return x.id===t.id; })) T2.config.push(t); });
+ try{ var g=W2.TUG.filter(function(x){ return x[0]==='Carteira'; })[0]; if(g&&g[1].indexOf('t-plano')<0){ var i=g[1].indexOf('ficha-cliente'); g[1].splice(i>=0?i+1:g[1].length,0,'t-plano'); }
+  if(!W2.TUG.some(function(x){ return x[0]==='Seu plano'; })) W2.TUG.push(['Seu plano',['c-inicio','c-planejamento','c-jornada','c-gastos','c-cota']]);
+  if(W2.TUIC){ W2.TUIC['t-plano']='target'; W2.TUIC['c-inicio']='grid'; W2.TUIC['c-planejamento']='target'; W2.TUIC['c-jornada']='ladder'; W2.TUIC['c-gastos']='money'; W2.TUIC['c-cota']='layers'; } }catch(e){}
+ return true; }
+(function rtp(n){ if(!registraToursPlano()&&n<80) setTimeout(function(){ rtp(n+1); },250); })(0);
 
 /* liga o botão de WhatsApp das abas Minha cota e Início */
 var _co=corpo; corpo=function(){ _co(); var b=$('#plbody'); if(b) $$('[data-wa]',b).forEach(function(x){ if(!x._w){ x._w=1; x.onclick=function(){ falarEspecialista(); }; } }); };
