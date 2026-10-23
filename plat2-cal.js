@@ -29,9 +29,9 @@ var CS={mes:null,dia:null,vista:'mes',quem:'meus',off:{}};
  '.calw{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));margin:0 0 8px}.calw div{font:700 10.5px "DM Sans";letter-spacing:.14em;text-transform:uppercase;color:var(--mut);padding:2px 10px}.calw div.fds{color:var(--mut2)}'+
  '.calg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:18px;overflow:hidden}'+
  '.calg .dc{min-height:112px;background:var(--card);padding:8px 7px 7px;cursor:pointer;position:relative;display:flex;flex-direction:column;gap:3px;transition:background .2s;min-width:0}'+
- '.calg .dc.fds{background:color-mix(in srgb,var(--bg) 55%,var(--card))}.calg .dc:hover{background:color-mix(in srgb,var(--gold3) 38%,var(--card))}'+
+ '.calg .dc.fds{background:color-mix(in srgb,var(--bg) 55%,var(--card))}.calg .dc:hover{background:color-mix(in srgb,var(--gold) 9%,var(--card))}'+
  '.calg .dc.fora{background:color-mix(in srgb,var(--bg2) 45%,var(--card))}.calg .dc.fora .dn{color:var(--mut2)}.calg .dc.fora .ev{opacity:.55}'+
- '.calg .dc.sel{background:color-mix(in srgb,var(--gold3) 55%,var(--card));box-shadow:inset 0 0 0 2px var(--gold)}'+
+ '.calg .dc.sel{background:color-mix(in srgb,var(--gold) 20%,var(--card));box-shadow:inset 0 0 0 2px var(--gold)}'+
  '.calg .dn{font:600 12.5px "DM Sans";min-width:26px;height:26px;padding:0 4px;border-radius:999px;display:inline-grid;place-items:center;align-self:flex-start;color:var(--ink2);margin-bottom:1px}'+
  '.calg .dc.hoje .dn{background:var(--gg);color:#0B2A26;font-weight:800;box-shadow:0 4px 12px -4px rgba(163,131,63,.7)}'+
  '.calg .ev{display:flex;flex-direction:column;font:600 11.4px/1.3 "DM Sans";padding:3px 7px 3px 7px;border-radius:7px;border-left:2.5px solid;color:var(--ink);min-width:0}'+
@@ -81,7 +81,7 @@ function eventos(tudo){ var ev=[], todos=isM()&&CS.quem==='equipe';
   }); }catch(e){}
  try{ (typeof AGD!=='undefined'?AGD:[]).forEach(function(a){ var dd=String(a.data_assembleia||'').slice(0,10).split('-'); if(dd.length!==3) return;
    var tp={IMOVEL:'Imóvel',AUTOMOVEL:'Automóvel',SERVICOS:'Serviços'}[String(a.tipo||'').toUpperCase()]||a.tipo||''; var adm=/anc|âncora/i.test(a.administradora||'')?'Âncora':'HS';
-   ev.push({tipo:'assembleia',dia:1,d:new Date(+dd[0],+dd[1]-1,+dd[2],12),t:'Assembleia '+adm+(tp?' · '+tp:''),c:adm+(tp?' · '+tp:''),s:a.obs||'',go:function(){ go('assembleias'); }}); }); }catch(e){}
+   ev.push({tipo:'assembleia',dia:1,d:new Date(+dd[0],+dd[1]-1,+dd[2],12),t:'Assembleia '+adm+(tp?' · '+tp:''),c:adm+(tp?' · '+(tp==='Automóvel'?'Auto':tp):''),s:a.obs||'',go:function(){ go('assembleias'); }}); }); }catch(e){}
  return ev.filter(function(e){ return tudo||!CS.off[e.tipo]; }).sort(function(a,b){ return a.d-b.d; }); }
 function chave(d){ return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
 function hm(e){ return e.dia?'dia todo':z(e.d.getHours())+':'+z(e.d.getMinutes()); }
