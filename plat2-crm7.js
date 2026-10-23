@@ -90,7 +90,7 @@ function popDoc(ctx,tipo,tit,semKey,extra){var d=ctx.d,inicio=Date.now();
  var s=folha(ctx,tit,tipo==='completa'?'Ela não vai para o cliente: serve para a Alice saber o que foi montado.':'É o documento que mais ajuda a Alice a puxar para a reunião.',
   (extra||'')+'<div class="c7o">'+opc('arq','📎','Importar do computador','PDF ou imagem')+opc('txt','📝','Colar o texto','Cole a proposta como texto')+opc('ger','✨','Gerar no Gerador de propostas',d.resp?'Abre o gerador já com este lead':'Designe o lead antes de gerar',!d.resp)+opc('lst','🗂️','Escolher uma já enviada','Propostas que este lead já tem')+'</div>'+
   '<div class="c7x" id="c7x"></div><input type="file" id="c7f" accept="application/pdf,image/*" hidden><button class="c7sem" data-c7="sem">Prosseguir sem a '+(tipo==='completa'?'completa':'resumida')+'</button>',true);   /* SEM_DUPLO_20261022: o "Prosseguir sem…" já faz o papel do "Pular por agora" */
- var x=$('#c7x',s),fin=function(atv){ctx.fecha();aplica(ctx,ctx.campos||{},(ctx.atvs||[]).concat([atv]));};
+ var x=$('#c7x',s),fin=function(atv,semDoc){ctx.fecha();aplica(ctx,ctx.campos||{},(ctx.atvs||[]).concat([atv]));if(tipo==='resumida'&&!semDoc)ofertaEnvio(d);};   /* EMAIL_ESPEC_23OUT */
  $('[data-o="arq"]',s).onclick=function(){$('#c7f',s).click();};
  $('#c7f',s).onchange=async function(){var f=this.files&&this.files[0];if(!f)return;x.innerHTML='<div class="c7w">Enviando '+e4(f.name)+'…</div>';
   try{await sobeArquivo(d,f,tipo);fin('Anexou a proposta '+(tipo==='completa'?'completa':'resumida')+': '+f.name);}catch(e){x.innerHTML='<div class="c7w er">Não consegui enviar: '+e4(e.message||e)+'</div>';}};
@@ -105,7 +105,7 @@ function popDoc(ctx,tipo,tit,semKey,extra){var d=ctx.d,inicio=Date.now();
   $$('.c7l button',s).forEach(function(b){b.onclick=async function(){var o=L[+b.dataset.i];b.disabled=true;
    try{if(o.fonte==='arq')await salvaDoc(d,{tipo:tipo,titulo:o.t,arquivo_path:o.path});else if(o.x.tipo!==tipo)await salvaDoc(d,{tipo:tipo,titulo:o.x.titulo||o.t,arquivo_path:o.x.arquivo_path||null,url:o.x.url||null,texto:o.x.texto||null});
     fin('Escolheu a proposta '+(tipo==='completa'?'completa':'resumida')+': '+o.t);}catch(e){b.disabled=false;toast('Não salvou: '+(e.message||e),'x');}};});};
- $('[data-c7="sem"]',s).onclick=function(){semDoc(ctx,semKey,function(){popDoc(ctx,tipo,tit,semKey,extra);},function(){fin('Seguiu sem a proposta '+(tipo==='completa'?'completa':'resumida'));});};
+ $('[data-c7="sem"]',s).onclick=function(){semDoc(ctx,semKey,function(){popDoc(ctx,tipo,tit,semKey,extra);},function(){fin('Seguiu sem a proposta '+(tipo==='completa'?'completa':'resumida'),1);});};
  return s;}
 function semDoc(ctx,key,anexar,seguir){var tt={a:'Seguir sem a resumida?',b:'Seguir sem a completa?',c:'Seguir sem registrar o envio?'}[key];
  var s=W.sheet('<div class="lbl c7lb">'+NOME[ctx.k]+'</div><h2 class="c7h">'+tt+'</h2><p class="c7s" style="font-size:14px;line-height:1.55">'+SEM[key]+'</p><div class="c7f"><button class="btn gd" data-c7="an">'+ic('doc')+'Anexar agora</button><span class="sp"></span><button class="btn ol" data-c7="sg">Seguir mesmo assim</button></div>',480);
@@ -117,7 +117,8 @@ function vigiaGerador(d,tipo,inicio){var tent=0,t=setInterval(async function(){t
  try{var c=sb();if(!c||!c.storage)return;var l=await c.storage.from('propostas').list(dirDe(d),{limit:50,sortBy:{column:'name',order:'desc'}});
   var novos=(l.data||[]).filter(function(f){return /\.pdf$/i.test(f.name)&&+(f.name.split('-')[0])>=inicio;});
   if(!novos.length)return;var f=novos[0],p=dirDe(d)+'/'+f.name;await salvaDoc(d,{tipo:tipo,titulo:/completo/.test(f.name)?'Proposta completa (gerador)':'Proposta resumida (gerador)',arquivo_path:p});
-  W.leadAtv(d,'Proposta '+(tipo==='completa'?'completa':'resumida')+' gerada no Gerador e ligada ao card');W.leadExtra(d,{atividades:d.raw.atividades});toast('A proposta do gerador entrou no card de '+nm(d),'doc');}catch(e){}},1000);}
+  W.leadAtv(d,'Proposta '+(tipo==='completa'?'completa':'resumida')+' gerada no Gerador e ligada ao card');W.leadExtra(d,{atividades:d.raw.atividades});toast('A proposta do gerador entrou no card de '+nm(d),'doc');if(tipo==='resumida')ofertaEnvio(d);}catch(e){}},1000);}
+function ofertaEnvio(d){setTimeout(function(){try{compoe(d,'resumida',{titulo:'Mandar a resumida para '+nm(d)+' agora?',agoraNao:1});}catch(e){}},480);}
 
 /* ---------- 3 · Estudo/Simulação ---------- */
 function popEstudo(ctx){popDoc(ctx,'resumida','Anexe a proposta resumida de '+e4(nm(ctx.d)),'a');}
@@ -129,12 +130,15 @@ function popReuniao(ctx){var d=ctx.d,x=xl(d),pad=function(n){return String(n).pa
  var r2=x.reuniao_tipo==='R2'||ctx.from==='dia'||x.compareceu===true;
  var s=folha(ctx,'Quando é a reunião com '+e4(nm(d))+'?','A reunião entra na agenda e a Alice manda a confirmação e os lembretes (3 h, 15 min e na hora).',
   '<div class="fi"><label>Data e hora</label><input type="datetime-local" id="c7d" value="'+v+'"></div><div class="fi"><label>Link da reunião (opcional)</label><input id="c7k" placeholder="Meet ou Zoom" value="'+e4(x.link_meet||'')+'"></div>'+
-  '<div class="lbl" style="margin:4px 0 8px">Tipo</div><div class="opts" id="c7r"><button class="opt'+(r2?'':' on')+'" data-v="R1">1ª reunião</button><button class="opt'+(r2?' on':'')+'" data-v="R2">2ª reunião</button></div>'+
+  reuniaoCampos(d)+'<div class="lbl" style="margin:4px 0 8px">Tipo</div><div class="opts" id="c7r"><button class="opt'+(r2?'':' on')+'" data-v="R1">1ª reunião</button><button class="opt'+(r2?' on':'')+'" data-v="R2">2ª reunião</button></div>'+
   '<div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn gd" id="c7ok">'+ic('cal')+'Marcar reunião</button></div>');
  var tp=r2?'R2':'R1';$$('#c7r .opt',s).forEach(function(o){o.onclick=function(){tp=o.dataset.v;$$('#c7r .opt',s).forEach(function(q){q.classList.toggle('on',q===o);});};});
  $('#c7ok',s).onclick=function(){var val=$('#c7d',s).value;if(!val){toast('Escolha a data e a hora','cal');return;}var dt=new Date(val);if(isNaN(+dt)){toast('Data inválida','x');return;}
-  var iso=dt.toISOString(),lk=$('#c7k',s).value.trim();ctx.fecha();
-  aplica(ctx,{reuniao_em:iso,link_meet:lk||null,reuniao_tipo:tp,compareceu:null},['Reunião marcada para '+dtBR(iso)+' ('+(tp==='R2'?'2ª reunião':'1ª reunião')+')']);};}
+  var iso=dt.toISOString(),lk=$('#c7k',s).value.trim(),em=($('#c7em',s)||{}).value||'',cv=$('#c7cv',s);em=em.trim();
+  if(cv&&cv.checked&&em&&!emailOk(em)){toast('E-mail do cliente inválido','x');return;}
+  var c={reuniao_em:iso,link_meet:lk||null,reuniao_tipo:tp,compareceu:null};if(em&&emailOk(em)&&!(d.email||x.email))c.email=em;ctx.fecha();
+  Promise.resolve(aplica(ctx,c,['Reunião marcada para '+dtBR(iso)+' ('+(tp==='R2'?'2ª reunião':'1ª reunião')+')'])).then(function(ok){   /* EMAIL_ESPEC_23OUT: convite no nome do especialista */
+   if(ok===false||!cv||!cv.checked)return;if(!emailOk(em)){toast('Sem e-mail do cliente: o convite não foi enviado','cal');return;}convite(d,em);});};}
 
 /* ---------- 5 · Diagnóstico ---------- */
 function popDiag(ctx){var d=ctx.d;
@@ -149,10 +153,12 @@ function popDiag(ctx){var d=ctx.d;
 /* ---------- 6 · Proposta enviada ---------- */
 function popProposta(ctx){var d=ctx.d,x=xl(d);
  var s=folha(ctx,'Como a proposta chegou a '+e4(nm(d))+'?','Assim a Alice sabe o que a pessoa tem em mãos para acompanhar a decisão.',
-  '<div class="c7o">'+opc('plat','📤','Enviar pela plataforma','Disponível quando o e-mail de cada especialista for conectado',true)+opc('fora','💬','Já enviei por fora','WhatsApp ou e-mail próprio')+'</div>'+
+  '<div class="c7o">'+opc('plat','📤','Enviar pela plataforma','E-mail no seu nome, com a sua assinatura e a proposta anexada')+opc('fora','💬','Já enviei por fora','WhatsApp ou e-mail próprio')+'</div>'+
   '<div class="fi" style="margin-top:12px"><label>Quando deve decidir? (opcional)</label><input type="date" id="c7dd" value="'+e4((x.data_decisao||'').slice(0,10))+'"></div>'+
   '<button class="c7sem" data-c7="sem">Prosseguir sem registrar</button>',true);   /* SEM_DUPLO_20261022 */
  var dd=function(){var v=$('#c7dd',s).value;return v?{data_decisao:v}:{};};
+ $('[data-o="plat"]',s).onclick=function(){var c=dd();ctx.fecha();   /* EMAIL_ESPEC_23OUT */
+  compoe(d,'completa',{titulo:'Enviar a proposta para '+nm(d),depois:function(i){aplica(ctx,c,['Proposta enviada pela plataforma para '+i.para+(c.data_decisao?' · decide até '+c.data_decisao.split('-').reverse().join('/'):'')]);},cancela:function(){if(!ctx.fill)volta();}});};
  $('[data-o="fora"]',s).onclick=async function(){var b=this;b.disabled=true;try{await salvaDoc(d,{tipo:'material',titulo:'Proposta enviada por fora',enviado_em:new Date().toISOString(),enviado_por:W.realId()});}catch(e){}
   ctx.fecha();var c=dd();aplica(ctx,c,['Proposta enviada por fora (WhatsApp ou e-mail próprio)'+(c.data_decisao?' · decide até '+c.data_decisao.split('-').reverse().join('/'):'')]);};
  $('[data-c7="sem"]',s).onclick=function(){var c=dd();semDoc(ctx,'c',function(){popProposta(ctx);},function(){ctx.fecha();aplica(ctx,c,['Seguiu sem registrar o envio da proposta']);});};}
@@ -185,7 +191,7 @@ function mover(d,k){var A=W.AG7;if(!d||!A)return A&&A.moverBase(d,k);var from=A.
  var x=xl(d),ctx={d:d,k:k,from:from,pulou:puladas(from,k)};
  /* voltar para antes da reunião desmarca a reunião (como antes) */
  if(['0','1','2'].indexOf(k)>=0&&(from==='agd'||from==='dia'||x.reuniao_em||x.compareceu!=null)&&(x.reuniao_em||x.compareceu!=null)){
-  W.confirma('Tirar de “'+NOME[from]+'”?',e4(d.nome)+(x.reuniao_em?' tem reunião em '+dtBR(x.reuniao_em)+'.':'.')+' Ao voltar para “'+NOME[k]+'” a reunião é desmarcada na plataforma.','Desmarcar e mover').then(function(ok){
+  W.confirma('Tirar de “'+NOME[from]+'”?',e4(d.nome)+(x.reuniao_em?' tem reunião em '+dtBR(x.reuniao_em)+'.':'.')+' Ao voltar para “'+NOME[k]+'” a reunião é desmarcada na plataforma (se o convite foi por e-mail, o cliente recebe o cancelamento).','Desmarcar e mover').then(function(ok){
    if(!ok){volta();return;}ctx.atvs0=['Reunião desmarcada'];ctx.limpa={reuniao_em:null,compareceu:null};abre(ctx);});return;}
  abre(ctx);}
 function abre(ctx){var k=ctx.k;
@@ -198,7 +204,9 @@ function abre(ctx){var k=ctx.k;
  if(k==='4')return popFechado(ctx);
  return W.AG7.moverBase(ctx.d,k);}
 /* "desmarcar reunião" (voltar para antes da reunião) entra junto com o que o pop-up gravar, uma vez só */
-var _aplica=aplica;aplica=function(ctx,campos,atvs,op){if(ctx.limpa&&!ctx.__lp){ctx.__lp=1;campos=Object.assign({},ctx.limpa,campos||{});atvs=(ctx.atvs0||[]).concat(atvs||[]);}return _aplica(ctx,campos,atvs,op);};
+var _aplica=aplica;aplica=function(ctx,campos,atvs,op){var lp=0;if(ctx.limpa&&!ctx.__lp){ctx.__lp=1;lp=1;campos=Object.assign({},ctx.limpa,campos||{});atvs=(ctx.atvs0||[]).concat(atvs||[]);}var p=_aplica(ctx,campos,atvs,op);
+ if(lp)Promise.resolve(p).then(function(ok){if(ok===false)return;api('/api/reuniao/convite',{lead_id:ctx.d.uid,cancelar:true}).then(function(r){if(r&&r.ok&&r.data&&r.data.cancelado)toast('O cliente recebeu o cancelamento do convite','cal');});});   /* EMAIL_ESPEC_23OUT */
+ return p;};
 
 /* CONTATO_AUTO_20261023: prazos do "Aguardando resposta" (mesma conta do robô: horas úteis, 9h–19h, seg a sex, Brasília) */
 function somaUteis(ms,h){var t=new Date(ms-3*36e5),rest=h*36e5,g=0;while(rest>0&&g++<400){var d=t.getUTCDay(),hr=t.getUTCHours()+t.getUTCMinutes()/60;
@@ -224,10 +232,10 @@ function painel(d){var x=xl(d),k=W.AG7.colDe(d),bt=[],tx='',sub='';
  if(d.perdido){tx='Perdido'+(x.motivo_nao_conversao?' · '+x.motivo_nao_conversao:'');if(!x.motivo_nao_conversao)bt.push(['mot','Informar motivo']);}
  else if(k==='1'){tx=x.contato_respondeu===true?'✅ Respondeu':x.contato_respondeu===false?'🤖 Não respondeu: Alice chamando':'⏳ Aguardando resposta';
   if(x.contato_respondeu==null)sub=prazoTxt(prazoContato(x));if(x.contato_respondeu===true)bt.push(['parou','Cliente parou de responder']);else{bt.push(['sim','Respondeu']);bt.push(['nao','Não respondeu']);}}
- else if(k==='2'){tx='Estudo/Simulação';bt.push(['res','Anexar proposta resumida']);}
- else if(k==='agd'){tx=x.reuniao_em?'📅 '+dtBR(x.reuniao_em)+(x.reuniao_tipo==='R2'?' · 2ª reunião':''):'falta: data da reunião';if(x.compareceu===false)tx='Faltou · '+tx;bt.push(['reu',x.reuniao_em?'Mudar data':'Informar data da reunião']);}
+ else if(k==='2'){tx='Estudo/Simulação';bt.push(['res','Anexar proposta resumida']);bt.push(['envr','Enviar ao cliente']);}
+ else if(k==='agd'){tx=x.reuniao_em?'📅 '+dtBR(x.reuniao_em)+(x.reuniao_tipo==='R2'?' · 2ª reunião':''):'falta: data da reunião';if(x.compareceu===false)tx='Faltou · '+tx;bt.push(['reu',x.reuniao_em?'Mudar data':'Informar data da reunião']);if(x.reuniao_em)bt.push(['conv','Enviar convite']);}
  else if(k==='dia'){tx=x.compareceu==null?'falta: compareceu':'✅ Compareceu';if(x.compareceu==null)bt.push(['comp','Compareceu?']);bt.push(['cpl','Anexar proposta completa']);}
- else if(k==='3'){tx='Proposta enviada'+(x.data_decisao?' · decide até '+String(x.data_decisao).slice(0,10).split('-').reverse().join('/'):'');bt.push(['env','Registrar envio / data de decisão']);}
+ else if(k==='3'){tx='Proposta enviada'+(x.data_decisao?' · decide até '+String(x.data_decisao).slice(0,10).split('-').reverse().join('/'):'');bt.push(['envp','Enviar por e-mail']);bt.push(['env','Registrar envio / data de decisão']);}
  else if(k==='4'&&d.st!==4){tx='falta: ganho ou perdido';bt.push(['fch','Marcar ganho ou perdido']);}
  else return '';
  return '<div class="c7p"><span class="c7pt"><small>'+e4(NOME[k]||'Etapa')+'</small><b>'+e4(tx)+'</b>'+(sub?'<small style="margin-top:2px">'+e4(sub)+'</small>':'')+'</span><span class="sp"></span>'+bt.map(function(b){return '<button class="ob c7pb" data-c7p="'+b[0]+'">'+e4(b[1])+'</button>';}).join('')+'</div>';}
@@ -241,7 +249,10 @@ function acaoPainel(d,a,m){var fechaM=function(cb){var xb=m&&$('.x',m);if(xb)xb.
   else if(a==='comp'){f.k='dia';popDiagFill(f);}
   else if(a==='env'){f.k='3';popProposta(f);}
   else if(a==='fch'){f.k='4';popFechado(f);}
-  else if(a==='mot'){motivoFill(d);}});}
+  else if(a==='mot'){motivoFill(d);}
+  else if(a==='envr'){compoe(d,'resumida',{});}
+  else if(a==='envp'){compoe(d,'completa',{});}
+  else if(a==='conv'){conviteSheet(d);}});}
 function popDiagFill(f){var d=f.d,s=folha(f,e4(nm(d))+' compareceu à reunião?','','<div class="c7o">'+opc('sim','✅','Compareceu','')+opc('nao','📅','Faltou','O card volta para Reunião agendada.')+'</div>');
  $('[data-o="sim"]',s).onclick=function(){f.fecha();aplica(f,{compareceu:true},['Compareceu à reunião (diagnóstico)']);};
  $('[data-o="nao"]',s).onclick=function(){f.fecha();var g={d:d,k:'agd',from:'dia'};aplica(g,{compareceu:false},['Faltou à reunião']);};}
@@ -252,6 +263,99 @@ function pinta(d,m){if(!m||!m.isConnected)return;var inn=$('.in',m);if(!inn)retu
  if(!h){if(old)old.remove();return;}
  if(old)old.outerHTML=h;else{var ref=$('.stl7',inn)||$('.stl',inn);if(ref)ref.insertAdjacentHTML('afterend',h);else return;}
  $$('[data-c7p]',inn).forEach(function(b){b.onclick=function(ev){ev.stopPropagation();acaoPainel(d,b.dataset.c7p,m);};});}
+
+/* ---------- EMAIL_ESPEC_23OUT: proposta e convite pelo e-mail de quem atende ----------
+   · Estudo/Simulação: depois de anexar a resumida, já oferece mandar ao cliente (e-mail ou o seu WhatsApp).
+   · Reunião agendada: o convite vai por e-mail no nome do especialista, com o Gabriel junto.
+   · Proposta enviada: "Enviar pela plataforma" manda a proposta por e-mail, com assinatura e anexo.
+   O robô (email_espec.py) escolhe sozinho: e-mail da pessoa (Google ligado) ou e-mail da Agion com o nome dela. */
+var EU=null;
+function api(path,body){return Promise.resolve(W.papi(path,body?{method:'POST',body:JSON.stringify(body)}:{})).then(function(r){
+  if(r&&typeof r.json==='function')return r.json().then(function(j){return {ok:r.ok,data:j||{}};},function(){return {ok:r.ok,data:{}};});
+  return r||{ok:false,data:{}};},function(){return {ok:false,data:{erro:'sem conexão com o robô'}};});}
+function quemEnvia(forca){if(EU&&!forca)return Promise.resolve(EU);return api('/api/esp/eu').then(function(r){if(r&&r.ok&&r.data&&r.data.eu)EU=r.data;return EU;});}
+function viaTxt(e){if(!e||!e.eu)return '';var u=e.eu;return u.modo==='google'?'Sai do seu e-mail ('+u.email_empresa+'), com a sua assinatura.':'Sai do e-mail da Agion com o seu nome e a sua assinatura. A resposta do cliente vai para '+(u.resposta||'você')+'.';}
+function emailOk(v){return /^[^@\s,;]+@[^@\s,;]+\.[a-z]{2,}$/i.test(String(v||'').trim());}
+function telDig(d){var t=String(d&&d.tel||'').replace(/\D/g,'');if(t&&t.length<=11)t='55'+t;return t;}
+function msgPadrao(d,tipo){var n=nm(d);n=n.charAt(0).toUpperCase()+n.slice(1).toLowerCase();
+ return tipo==='completa'?'Oi, '+n+', tudo bem?\n\nObrigado pela nossa conversa. Segue a proposta completa que montamos, com a estrutura das cartas e a estratégia que combinamos.\n\nQualquer dúvida, é só responder este e-mail ou me chamar no WhatsApp.'
+  :'Oi, '+n+', tudo bem?\n\nConforme conversamos, segue a simulação que preparei para você, com o crédito, a parcela e o prazo.\n\nDá uma olhada com calma e me diga o que achou. Se fizer sentido, marcamos uma conversa rápida para eu te mostrar a estratégia de contemplação.';}
+function regEnvio(d,txt){try{W.leadAtv(d,txt);W.leadExtra(d,{atividades:d.raw.atividades});}catch(e){}}
+
+/* folha "Enviar a proposta": para, qual proposta, assunto e mensagem */
+function compoe(d,tipo,op){op=op||{};var fechou=false,L=[];
+ var s=W.sheet('<div class="lbl c7lb">'+(tipo==='completa'?'Proposta enviada':'Estudo/Simulação')+'</div><h2 class="c7h">'+e4(op.titulo||('Enviar a '+(tipo==='completa'?'proposta':'simulação')+' para '+nm(d)))+'</h2>'+
+  '<p class="c7s c7via" id="c7via">'+e4(viaTxt(EU)||'Sai em e-mail no seu nome, com a sua assinatura e a proposta anexada.')+'</p>'+
+  '<div class="fi"><label>E-mail do cliente</label><input type="email" id="c7pa" placeholder="nome@email.com" value="'+e4(d.email||xl(d).email||'')+'"></div>'+
+  '<div class="fi"><label>Proposta</label><select id="c7dc"><option value="">Procurando as propostas do card…</option></select></div>'+
+  '<div class="fi"><label>Assunto</label><input id="c7as" value="'+e4(tipo==='completa'?'Sua proposta · Agion Consórcios':'Sua simulação · Agion Consórcios')+'"></div>'+
+  '<div class="fi"><label>Mensagem</label><textarea id="c7ms" rows="7">'+e4(msgPadrao(d,tipo))+'</textarea></div>'+
+  '<div class="c7x" id="c7er"></div>'+
+  '<div class="c7f"><button class="btn ol" data-c7="x">'+(op.agoraNao?'Agora não':'Cancelar')+'</button><span class="sp"></span>'+(tipo==='resumida'?'<button class="btn ol" data-c7="wa">'+ic('wa')+'No meu WhatsApp</button>':'')+'<button class="btn gd" data-c7="ok">'+ic('send')+'Enviar e-mail</button></div>',560);
+ s.classList.add('c7');
+ var sai=function(cancelou){if(fechou)return;fechou=true;W.closeSheet();if(cancelou&&op.cancela)op.cancela();};
+ $('[data-c7="x"]',s).onclick=function(){sai(true);};var xb=$('.x',s);if(xb)xb.onclick=function(){sai(true);};var ov=$('#ov');if(ov)ov._close=function(){sai(true);};
+ quemEnvia().then(function(e){var v=$('#c7via',s);if(v&&e)v.textContent=viaTxt(e);});
+ jaEnviadas(d).then(function(l){L=l.filter(function(o){return o.fonte==='arq'||(o.x&&(o.x.arquivo_path||o.x.url||o.x.texto)&&!/^Enviada/.test(o.x.titulo||''));});
+  var sel=$('#c7dc',s);if(!sel)return;
+  if(!L.length){sel.innerHTML='<option value="">Este card ainda não tem proposta anexada</option>';$('#c7er',s).innerHTML='<div class="c7w">Anexe a '+(tipo==='completa'?'completa':'resumida')+' no card antes de enviar.</div>';return;}
+  var pref=-1;L.forEach(function(o,i){var t=o.x?o.x.tipo:(/completo/.test(o.path)?'completa':'resumida');if(pref<0&&t===tipo)pref=i;});if(pref<0)pref=0;
+  sel.innerHTML=L.map(function(o,i){return '<option value="'+i+'"'+(i===pref?' selected':'')+'>'+e4(o.t)+(o.q?' · '+new Date(o.q).toLocaleDateString('pt-BR'):'')+'</option>';}).join('');});
+ var doc=function(){var o=L[+($('#c7dc',s).value||-1)];return o||null;};
+ $('[data-c7="ok"]',s).onclick=function(){var b=this,para=$('#c7pa',s).value.trim(),o=doc(),er=$('#c7er',s);
+  if(!emailOk(para)){er.innerHTML='<div class="c7w er">Informe um e-mail válido do cliente.</div>';$('#c7pa',s).focus();return;}
+  if(!o){er.innerHTML='<div class="c7w er">Escolha a proposta que vai no e-mail.</div>';return;}
+  var corpo={lead_id:d.uid,para:para,tipo:tipo,assunto:$('#c7as',s).value.trim(),mensagem:$('#c7ms',s).value.trim()};
+  if(o.fonte==='arq'){corpo.arquivo_path=o.path;corpo.titulo=o.t;}else corpo.doc_id=o.x.id;
+  b.disabled=true;b.innerHTML=ic('send')+'Enviando…';er.innerHTML='';
+  api('/api/proposta/enviar',corpo).then(function(r){var j=(r&&r.data)||{};
+   if(!r||!r.ok||!j.ok){b.disabled=false;b.innerHTML=ic('send')+'Enviar e-mail';er.innerHTML='<div class="c7w er">'+e4(j.erro||j.error||'Não consegui enviar agora.')+'</div>';return;}
+   if(!d.email){d.email=para;W.XL[d.uid]=Object.assign(W.XL[d.uid]||{},{email:para});}
+   regEnvio(d,'Proposta '+(tipo==='completa'?'completa':'resumida')+' enviada por e-mail para '+para+' · '+(j.nome||eu())+' · '+agora());
+   fechou=true;W.closeSheet();toast('E-mail enviado para '+para,'send');if(op.depois)op.depois({para:para,via:j.via,doc:o.t});});};
+ var wb=$('[data-c7="wa"]',s);if(wb)wb.onclick=async function(){var o=doc(),t=telDig(d),er=$('#c7er',s);
+  if(!t){er.innerHTML='<div class="c7w er">O card não tem o WhatsApp do cliente.</div>';return;}
+  var link='';try{if(o){var p=o.fonte==='arq'?o.path:o.x.arquivo_path;if(p){var c=sb(),r=await c.storage.from('propostas').createSignedUrl(p,60*60*24*30);link=(r&&r.data&&r.data.signedUrl)||'';}else if(o.x&&o.x.url)link=o.x.url;}}catch(e){}
+  var txt=$('#c7ms',s).value.trim()+(link?'\n\n'+link:'');
+  try{W.open('https://wa.me/'+t+'?text='+encodeURIComponent(txt),'_blank');}catch(e){}
+  if(o)try{await salvaDoc(d,{tipo:tipo,titulo:'Enviada pelo WhatsApp: '+o.t,arquivo_path:o.fonte==='arq'?o.path:(o.x.arquivo_path||null),url:o.x?o.x.url||null:null,enviado_em:new Date().toISOString(),enviado_por:W.realId()});}catch(e){}
+  regEnvio(d,'Proposta '+(tipo==='completa'?'completa':'resumida')+' enviada pelo WhatsApp de '+eu()+' · '+agora());
+  fechou=true;W.closeSheet();toast('Abri o seu WhatsApp com a mensagem pronta','chat');if(op.depois)op.depois({para:'WhatsApp',via:'whatsapp',doc:o&&o.t});};
+ return s;}
+
+/* convite da reunião (o card já gravou a data) */
+function convite(d,para,reenviar){return api('/api/reuniao/convite',{lead_id:d.uid,para:para||undefined,reenviar:!!reenviar}).then(function(r){var j=(r&&r.data)||{};
+  if(r&&r.ok&&j.ok){if(j.ja){toast('O convite desta data já foi enviado para '+j.para,'cal');return j;}if(j.nada)return j;
+   if(!d.email&&j.para){d.email=j.para;W.XL[d.uid]=Object.assign(W.XL[d.uid]||{},{email:j.para});}
+   regEnvio(d,'Convite da reunião enviado por e-mail para '+j.para+((j.cc&&j.cc.length)?' (cópia: '+j.cc.join(', ')+')':'')+' · '+agora());
+   toast('Convite enviado para '+j.para,'cal');return j;}
+  toast(j.erro==='sem_email'?'Sem e-mail do cliente: o convite não foi enviado':('O convite não saiu: '+(j.erro||'tente de novo')),'x');return j;});}
+function conviteSheet(d){var x=xl(d);
+ var s=W.sheet('<div class="lbl c7lb">Reunião agendada</div><h2 class="c7h">Enviar o convite para '+e4(nm(d))+'</h2><p class="c7s">Reunião '+e4(dtBR(x.reuniao_em))+'. O convite vai no seu nome e o Gabriel recebe junto. Se a data mudou, o cliente recebe a atualização.</p>'+
+  '<div class="fi"><label>E-mail do cliente</label><input type="email" id="c7cvm" placeholder="nome@email.com" value="'+e4(d.email||x.email||'')+'"></div><div class="c7x" id="c7cve"></div>'+
+  '<div class="c7f"><button class="btn ol" data-c7="x">Cancelar</button><span class="sp"></span><button class="btn gd" data-c7="ok">'+ic('cal')+'Enviar convite</button></div>',480);
+ s.classList.add('c7');$('[data-c7="x"]',s).onclick=function(){W.closeSheet();};
+ $('[data-c7="ok"]',s).onclick=function(){var em=$('#c7cvm',s).value.trim();if(!emailOk(em)){$('#c7cve',s).innerHTML='<div class="c7w er">Informe um e-mail válido.</div>';return;}
+  this.disabled=true;W.closeSheet();convite(d,em,true);};}
+function reuniaoCampos(d){var x=xl(d);return '<div class="fi"><label>E-mail do cliente (para o convite)</label><input type="email" id="c7em" placeholder="nome@email.com" value="'+e4(d.email||x.email||'')+'"></div>'+
+ '<label class="c7ck"><input type="checkbox" id="c7cv" checked><span>Mandar o convite por e-mail no meu nome (o Gabriel recebe junto)</span></label>';}
+
+/* Ajustes: de onde saem os e-mails (o master define o e-mail da empresa de cada um) */
+function painelEmail(v){var ref=$('#ajdev',v)||$('#ajcel',v)||$('#ajc',v);if(!ref||$('#ajmail',v))return;
+ try{var rl=W.effRoleR?W.effRoleR():'';if(['master','lider','especialista'].indexOf(rl)<0)return;}catch(e){return;}
+ var p=document.createElement('div');p.className='panel';p.id='ajmail';p.style.marginTop='18px';
+ p.innerHTML='<div class="ph"><h3>'+ic('mail',18)+'E-mail das propostas e convites</h3></div><div id="ajml"><div class="empty" style="padding:14px">Carregando…</div></div>';
+ ref.parentNode.insertBefore(p,ref.nextSibling);
+ quemEnvia(true).then(function(e){var l=$('#ajml',p);if(!e){l.innerHTML='<div class="empty" style="padding:14px">Não consegui falar com o robô agora.</div>';return;}
+  var u=e.eu,h='<p style="font-size:13px;color:var(--mut);line-height:1.55;margin-bottom:10px">'+e4(viaTxt(e))+(u.modo==='google'?'':' Quando o Google da empresa estiver ligado, sai direto da sua caixa e o convite entra na sua agenda com link do Meet.')+'</p>';
+  if(e.equipe&&!(W.RO&&W.RO())){h+='<div class="lbl" style="margin:6px 0 8px">E-mail da empresa de cada pessoa</div>'+e.equipe.map(function(q){
+    return '<div class="set" style="gap:10px;flex-wrap:wrap"><div class="t" style="min-width:150px"><b>'+e4(q.nome||'')+'</b><small>'+(q.google?'<span style="color:var(--ok)">● Google ligado</span>':'Pelo e-mail da Agion')+' · login '+e4(q.email_login||'—')+'</small></div>'+
+     '<input type="email" data-ue="'+e4(q.uid)+'" value="'+e4(q.email_empresa||'')+'" placeholder="nome@agionconsorcios.com.br" style="flex:1;min-width:200px;padding:9px 11px;border-radius:11px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit">'+
+     '<button class="btn sm ol" data-us="'+e4(q.uid)+'">Salvar</button></div>';}).join('')+
+    (e.google_pronto?'':'<p style="font-size:12px;color:var(--mut);margin-top:10px">O Google da empresa ainda não está ligado: por enquanto tudo sai do e-mail '+e4(e.smtp||'da Agion')+' com o nome de quem atende.</p>');}
+  l.innerHTML=h;
+  $$('[data-us]',l).forEach(function(b){b.onclick=function(){var i=$('[data-ue="'+b.dataset.us+'"]',l),em=i.value.trim();if(em&&!emailOk(em)){toast('E-mail inválido','x');return;}b.disabled=true;
+   api('/api/esp/email',{uid:b.dataset.us,email:em}).then(function(r){b.disabled=false;if(r&&r.ok&&r.data&&r.data.ok){toast('Salvo','ok');EU=null;}else toast('Não consegui salvar','x');});};});});}
 
 /* ---------- CSS ---------- */
 function css(){if(document.getElementById('c7css'))return;var s=document.createElement('style');s.id='c7css';s.textContent=
@@ -268,6 +372,7 @@ function css(){if(document.getElementById('c7css'))return;var s=document.createE
  '.c7c.f{border-style:dashed;background:transparent}.c7c.ok{background:rgba(63,143,106,.85);color:#fff;border-color:transparent}.c7c.am{background:rgba(229,201,123,.9);color:#3b2d06;border-color:transparent}.c7c.pt{background:rgba(14,124,123,.85);color:#fff;border-color:transparent}.c7c.rd{background:rgba(194,70,59,.88);color:#fff;border-color:transparent}'+
  '.dm .c7p{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 4px;padding:10px 12px;border-radius:16px;background:color-mix(in srgb,currentColor 9%,transparent);border:1px solid color-mix(in srgb,currentColor 16%,transparent)}'+
  '.dm .c7p .sp{flex:1}.dm .c7pt{display:flex;flex-direction:column}.dm .c7pt small{opacity:.7;font-size:11px}.dm .c7pt b{font-size:13.5px}.dm .c7pb{padding:7px 12px!important;font-size:12.5px!important}'+
+ '.c7ck{display:flex;align-items:flex-start;gap:10px;margin:2px 0 14px;font-size:13px;color:var(--ink);cursor:pointer;line-height:1.4}.c7ck input{width:18px;height:18px;margin-top:1px;accent-color:var(--gold);flex:none}.sheet.c7 .c7via{font-size:12.5px;margin:0 0 12px}'+
  '@media (max-width:860px){.c7f .btn{flex:1 1 auto}.c7f .sp{display:none}.dm .c7p .c7pb{flex:1 1 auto}}';
  document.head.appendChild(s);}
 
@@ -277,16 +382,16 @@ function colQ(k){return function(){var c=$('#kb .col[data-col="'+k+'"]');return 
 function vaiCol(k){return function(){try{if(W.F&&W.F.modo!=='quadro')W.F.modo='quadro';if(W.cur!=='crm')W.go('crm');}catch(e){}
  setTimeout(function(){var kb=$('#kb'),c=kb&&$('.col[data-col="'+k+'"]',kb);if(kb&&c){try{kb.scrollTo({left:Math.max(0,c.offsetLeft-12),behavior:'smooth'});}catch(e){kb.scrollLeft=c.offsetLeft-12;}}
   var b=$('#kbs button[data-i="'+ORDEM.indexOf(k)+'"]');if(b&&W.isMob&&W.isMob())b.click();},W.cur==='crm'?60:700);};}
-var TOUR={id:'t-crm7',page:'crm',navk:'crm',v:1,g:'Comercial',title:'CRM em 7 etapas',inv:'Como funcionam os pop-ups do CRM',
+var TOUR={id:'t-crm7',page:'crm',navk:'crm',v:2,g:'Comercial',title:'CRM em 7 etapas',inv:'Como funcionam os pop-ups do CRM',
  desc:'Cada etapa do CRM pergunta o que a Alice precisa saber. Nada trava: todo pop-up tem “Pular por agora”.',
  abas:['Contato feito','Estudo/Simulação','Reunião agendada','Diagnóstico','Proposta enviada','Fechado','Preencher depois'],
  steps:[
   {act:vaiCol('0'),t:null,title:'O CRM em 7 etapas',text:'Quando o card entra numa etapa (arrastando, pela régua do card aberto ou pelas setas), abre um pop-up curto com o que a Alice precisa saber para seguir sozinha. Em Novo lead não abre nada.'},
   {a:0,act:vaiCol('1'),t:colQ('1'),wait:3000,title:'Contato feito: teve resposta?',text:'Depois de chamar o cliente no seu WhatsApp, marque: Respondeu (você conduz e a Alice para o WhatsApp dela), Não respondeu (a Alice volta a chamar na hora) ou Ainda vou ver (em 4 h úteis chega um lembrete).'},
-  {a:1,act:vaiCol('2'),t:colQ('2'),wait:3000,title:'Estudo/Simulação: a proposta resumida',text:'Anexe a resumida: importe do computador, cole o texto, gere no Gerador de propostas ou escolha uma já enviada. Com ela, a Alice cita crédito, parcela e prazo nos follow-ups.'},
-  {a:2,act:vaiCol('agd'),t:colQ('agd'),wait:3000,title:'Reunião agendada: data e hora',text:'Informe quando é a reunião, o link (Meet ou Zoom) e se é a 1ª ou a 2ª. A Alice confirma e manda os lembretes de 3 h, 15 min e na hora.'},
+  {a:1,act:vaiCol('2'),t:colQ('2'),wait:3000,title:'Estudo/Simulação: a proposta resumida',text:'Anexe a resumida: importe do computador, cole o texto, gere no Gerador de propostas ou escolha uma já enviada. Com ela, a Alice cita crédito, parcela e prazo nos follow-ups. Depois de anexar, já dá para mandar ao cliente por e-mail (no seu nome, com a sua assinatura) ou pelo seu WhatsApp.'},
+  {a:2,act:vaiCol('agd'),t:colQ('agd'),wait:3000,title:'Reunião agendada: data e hora',text:'Informe quando é a reunião, o link (Meet ou Zoom) e se é a 1ª ou a 2ª. A Alice confirma e manda os lembretes de 3 h, 15 min e na hora, e o convite vai por e-mail no seu nome, com o Gabriel junto.'},
   {a:3,act:vaiCol('dia'),t:colQ('dia'),wait:3000,title:'Diagnóstico: compareceu?',text:'Se faltou, o card volta para Reunião agendada e a Alice entra na remarcação. Se compareceu, anexe a proposta completa: ela não vai para o cliente, serve para a Alice saber o que foi montado.'},
-  {a:4,act:vaiCol('3'),t:colQ('3'),wait:3000,title:'Proposta enviada',text:'Registre como a proposta chegou ao cliente e, se quiser, quando ele deve decidir. O envio pela plataforma liga quando o e-mail de cada especialista for conectado.'},
+  {a:4,act:vaiCol('3'),t:colQ('3'),wait:3000,title:'Proposta enviada',text:'Envie pela plataforma: o e-mail sai no seu nome, com a sua assinatura e a proposta anexada, e fica no card. Se já mandou por fora, registre e, se quiser, informe quando ele deve decidir.'},
   {a:5,act:vaiCol('4'),t:colQ('4'),wait:3000,title:'Fechado: ganho ou perdido',text:'Ganho vira cliente e a Alice para tudo. Perdido pede o motivo, e a Alice faz a recuperação de 3, 6 e 9 meses. Sem marcar, o card fica em Fechado e a Alice não manda nada.'},
   {a:6,act:vaiCol('1'),t:function(){return $$('#kb .c7c').filter(vis)[0]||colQ('1')();},wait:3000,title:'Pulou? Preencha depois',text:'Todo pop-up tem “Pular por agora”. O que faltou aparece no card como “falta: …” e dá para marcar depois no card aberto. Também dá para pular etapas: de Novo lead direto para Proposta, abre só o pop-up da etapa de destino.'}
  ]};
@@ -300,6 +405,8 @@ function liga(){if(!W.AG7||!W.AG7.moverBase||typeof W.dealHTML!=='function'||typ
  var _dh=W.dealHTML;W.dealHTML=function(d,mini){var h=_dh.apply(this,arguments);try{var c=chips(d);if(c){var i=h.indexOf('<div class="dft">');if(i>0)h=h.slice(0,i)+c+h.slice(i);}}catch(e){}return h;};
  var _od=W.openDeal;W.openDeal=function(d){var r=_od.apply(this,arguments);try{var m=$$('.dm').pop();if(m&&d){setTimeout(function(){pinta(d,m);},80);var inn=$('.in',m);if(inn&&W.MutationObserver){var mo=new MutationObserver(function(){if(!m.isConnected){mo.disconnect();return;}if(!$('.c7p',inn))setTimeout(function(){pinta(d,m);},50);});mo.observe(inn,{childList:true});}}}catch(e){}return r;};
  W.perdidoFlow=perdidoFlow7;
+ try{if(W.R&&W.R.ajustes&&!W.R.ajustes.__em){var _raE=W.R.ajustes;W.R.ajustes=function(v){var r=_raE.apply(this,arguments);try{painelEmail(v);}catch(e){console.warn('[email]',e);}return r;};W.R.ajustes.__em=1;}}catch(e){}   /* EMAIL_ESPEC_23OUT */
+ W.CRM7E={compoe:compoe,convite:convite,quemEnvia:quemEnvia};
  (function rt(n){if(!registraTour()&&n<60)setTimeout(function(){rt(n+1);},250);})(0);
  try{if(W.cur==='crm'&&$('#kb'))W.renderBoard(true);}catch(e){}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',liga);else liga();
