@@ -221,7 +221,11 @@ function build(){
  $('doc').innerHTML=out;window.__docHTML=out;
 }
 function openTab(){const w=window.open('','_blank');if(!w){alert('Permita pop-ups');return;}
- w.document.open();w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Escada Financeira · Agion</title>'+Array.from(document.querySelectorAll('style')).map(e=>e.outerHTML).join('')+'</head><body style="background:#efeae0"><div class="app" style="padding-top:16px"><div class="doc">'+window.__docHTML+'</div></div></body></html>');w.document.close();}
+ w.document.open();w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Escada Financeira · Agion</title>'+Array.from(document.querySelectorAll('style')).map(e=>e.outerHTML).join('')+'</head><body style="background:#efeae0"><div class="app" style="padding-top:16px"><div class="doc">'+window.__docHTML+'</div></div>
+<style id="ag-sem-zoom">/* SEM_ZOOM_24OUT: no celular o campo precisa de 16px, senão o iPhone dá zoom ao digitar */
+@media (max-width:600px),(pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}}
+</style>
+</body></html>');w.document.close();}
 ['f_agio','f_rende','f_nome'].forEach(id=>$(id).addEventListener('input',build));
 renderForm();build();
 </script>
