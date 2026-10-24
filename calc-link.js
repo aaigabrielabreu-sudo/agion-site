@@ -9,7 +9,7 @@
 (function(W){
  if(W.AgCalcLink)return;
  var API='https://bot.agionconsorcios.com.br';
- var FERR={'calc-alavancagem':'Calculadora de alavancagem','calc-financiamento':'Calculadora de financiamento'};
+ var FERR={'calc-alavancagem':'Calculadora de alavancagem','calc-financiamento':'Calculadora de financiamento','calc-avista':'Calculadora consórcio × à vista'};/* AVISTA_24OUT */
  var SEL_KEY='ag_link_prop', CACHE='ag_links_cache';
  function tok(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('sb-')===0&&k.indexOf('auth-token')>-1){var v=JSON.parse(localStorage.getItem(k));return v&&(v.access_token||(v.currentSession&&v.currentSession.access_token));}}}catch(e){}return null;}
  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -47,15 +47,16 @@
  /* HIST_20261020 — o que o cliente simula no link: cada configuração em que ele parou 3 s ou mais
     vira uma linha no histórico (campos, modos e os resultados principais). Só roda no link do cliente. */
  var RES={'calc-alavancagem':[['o_lucro','Lucro na venda da carta'],['o_pini','Parcela inicial'],['o_credlib','Crédito liberado'],['p_patrim','Patrimônio construído']],
-  'calc-financiamento':[['o_c_ent','Entrada (consórcio)'],['o_c_parc','Parcela do consórcio'],['o_f_parc','Parcela do financiamento'],['v_eco','Patrimônio a mais no fim']]};
- var SEGN={segTipo:'Tipo de carta',segSys:'Financiamento',segCEnt:'Entrada (consórcio) em',segFEnt:'Entrada (financiamento) em',segFRate:'Taxa do financiamento em'};
+  'calc-financiamento':[['o_c_ent','Entrada (consórcio)'],['o_c_parc','Parcela do consórcio'],['o_f_parc','Parcela do financiamento'],['v_eco','Patrimônio a mais no fim']],
+  'calc-avista':[['o_c_ent','Entrada ou lance (consórcio)'],['o_c_parc','Parcela do consórcio'],['o_a_preco','Preço à vista'],['v_eco','Patrimônio a mais no fim'],['v_emp','Rendimento de empate']]};
+ var SEGN={segDC:'Desconto vale na carta',segTipo:'Tipo de carta',segSys:'Financiamento',segCEnt:'Entrada (consórcio) em',segFEnt:'Entrada (financiamento) em',segFRate:'Taxa do financiamento em'};
  function pagAtual(){return location.pathname.replace(/^\/+|\.html$/g,'');}
  function rotulo(el){var f=el.closest('.f,.fld');var l=f&&f.querySelector('label');if(!l)return el.getAttribute('placeholder')||el.id;var c=l.cloneNode(true);c.querySelectorAll('small,.q').forEach(function(x){x.remove();});return c.textContent.replace(/\s+/g,' ').trim()||el.id;}
- var UN={cred:'R$',c_parc:'R$',c_taxa:'%',c_prazo:'meses',c_ptot:'meses',c_pdec:'meses',c_cont:'meses',c_reaj:'% a.a.',cdi:'% a.a.',rinv:'% a.m.',f_prazo:'meses'};
+ var UN={c_parcc:'R$',p_bem:'R$',p_desc:'%',p_val:'% a.a.',din:'R$',ir:'%',c_cred:'R$',c_emb:'%',cred:'R$',c_parc:'R$',c_taxa:'%',c_prazo:'meses',c_ptot:'meses',c_pdec:'meses',c_cont:'meses',c_reaj:'% a.a.',cdi:'% a.a.',rinv:'% a.m.',f_prazo:'meses'};
  function unid(el){var f=el.closest('.f,.fld');if(!f)return UN[el.id]||'';var u=f.querySelector('.u');if(u)return u.textContent.trim();var g=f.querySelector('.seg .on');return g?g.textContent.trim():(UN[el.id]||'');}
  function foto(){var cp=[],md=[],rs=[];
   document.querySelectorAll('input[id],select[id]').forEach(function(el){if(el.type==='hidden'||el.type==='checkbox'||el.offsetParent===null||el.closest('.agl'))return;cp.push([el.id,rotulo(el),norm(el.value),unid(el)]);});
-  document.querySelectorAll('.seg[id]').forEach(function(g){if(g.offsetParent===null||g.closest('.agl')||(g.id!=='segTipo'&&g.id!=='segSys'))return;var on=g.querySelector('.on');if(on)md.push([g.id,SEGN[g.id]||g.id,on.textContent.trim()]);});
+  document.querySelectorAll('.seg[id],.snav[id]').forEach(function(g){if(g.offsetParent===null||g.closest('.agl')||(g.id!=='segTipo'&&g.id!=='segSys'&&g.id!=='segDC'))return;var on=g.querySelector('.on');if(on)md.push([g.id,SEGN[g.id]||g.id,on.textContent.trim()]);});
   (RES[pagAtual()]||[]).forEach(function(r){var e=document.getElementById(r[0]);if(e&&e.offsetParent!==null){var t=e.textContent.replace(/\s+/g,' ').trim();if(t&&t!=='—')rs.push([r[1],t]);}});
   return {campos:cp,modos:md,res:rs};}
  function norm(v){v=String(v==null?'':v).trim().replace(/^R\$\s*/,'');if(/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(v))return v.replace(/\./g,'').replace(',','.');if(/^-?\d+,\d+$/.test(v))return v.replace(',','.');return v;}

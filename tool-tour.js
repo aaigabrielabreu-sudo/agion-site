@@ -1,6 +1,6 @@
 /* ==========================================================================
    Agion — tool-tour.js · tutoriais das ferramentas que abrem em nova aba
-   (Financiamento × Consórcio, Escada Financeira, Alavancagem, Gerador de Propostas)
+   (Financiamento × Consórcio, Consórcio × À vista, Escada Financeira, Alavancagem, Gerador de Propostas)
    - Botão "? Como usar esta ferramenta" em cada ferramenta; convite na 1ª visita; ?tour=1 inicia direto.
    - Nada é gravado: só destaca e explica. Troca de modo usada na demonstração (ex.: Carta nova) volta ao fim.
    - Conclusão fica em localStorage 'agion:tooltour:done' e a Central de Tutoriais (plat-tour.js) lê e sincroniza.
@@ -20,27 +20,41 @@ var RM=W.matchMedia?W.matchMedia('(prefers-reduced-motion: reduce)'):{matches:fa
 
 /* ---------------------------------------------------------------- CONTEÚDO */
 var TOURS={
- 'calc-financiamento':{id:'t-financ',v:1,title:'Financiamento × Consórcio',
+ 'calc-financiamento':{id:'t-financ',v:3,title:'Financiamento × Consórcio',/* FIN_V2_24OUT */
   save:function(){ var on=$('#segTipo button.on'); return on?on.getAttribute('data-t'):'CONT'; },
   restore:function(s){ clickSeg('#segTipo button[data-t="'+(s||'CONT')+'"]'); },
   steps:[
-   {t:null,title:'A mesma compra, dois futuros',text:'Esta calculadora compara, para o mesmo bem, quanto o cliente paga no financiamento e no consórcio, e mostra o que acontece quando ele investe a diferença de parcela. Tudo recalcula na hora; nada é gravado.'},
-   {t:up('#cred','.f'),title:'Crédito e investimento',text:'Valor do bem (o crédito da carta), o rendimento mensal para investir a sobra e o CDI de referência, usado como comparação no texto final.'},
-   {t:up('#segTipo'),title:'Tipo de carta',text:'Escolha o tipo de consórcio. “Carta contemplada”: o cliente compra uma carta já contemplada. “Carta nova”: entra num grupo e paga meia parcela até contemplar. Os campos mudam conforme a escolha.',go:function(){ clickSeg('#segTipo button[data-t="CONT"]'); }},
-   {t:up('#c_ent','.f'),title:'Carta contemplada · entrada',text:'A entrada é o valor pago a quem está vendendo a carta contemplada. Ela não abate o saldo: depois disso o cliente assume o crédito e as parcelas. Use % do crédito ou R$.'},
-   {t:up('#c_parc','.f'),title:'Parcela integral',text:'Digite a parcela da carta, como vem da administradora. Se ficar vazio, a calculadora estima pela taxa total e pelo prazo. Na carta contemplada a parcela é sempre integral, do início ao fim.'},
-   {t:up('#c_prazo','.f'),title:'Prazo e taxa',text:'Na carta contemplada, o prazo é o número de parcelas que faltam. A taxa total (administração + fundo de reserva) só é usada quando a parcela fica vazia.'},
-   {t:up('#c_ptot','.f'),title:'Carta nova · prazo do grupo',text:'Na carta nova informe o prazo total do grupo e quantos meses ele já andou. A cota paga só o prazo que falta.',go:function(){ clickSeg('#segTipo button[data-t="NOVA"]'); }},
-   {t:up('#c_pdec','.f'),title:'Meses que o grupo já andou',text:'Exemplo: grupo de 200 meses que já andou 100. O cliente não pagou essas 100 parcelas; elas são somadas quando ele contemplar, com o reajuste acumulado até lá.'},
-   {t:up('#c_cont','.f'),title:'Contemplação prevista',text:'Até esse mês o cliente paga meia parcela. Na contemplação somam-se as parcelas do período que o grupo já andou e as metades não pagas; tudo é diluído nos meses restantes junto com a parcela cheia. O lance, se houver, sai nesse mês e abate o saldo.'},
-   {t:up('#c_reaj','.f'),title:'Reajuste',text:'Os dois tipos de carta são reajustados todo ano por este percentual. A parcela mês a mês e os totais já consideram o reajuste.'},
-   {t:up('#f_juro','.f'),title:'Financiamento',text:'Price (parcela fixa) ou SAC (parcela que cai), entrada em % ou R$, taxa ao mês ou CET ao ano, e o prazo. É o que o banco ofereceu ao cliente.'},
-   {t:up('.verdict'),title:'Veredito',text:'O resumo em uma frase: quanto o consórcio deixa a mais no bolso no fim, somando a diferença investida. Embaixo, o patrimônio a mais, quanto a sobra vira e o mês em que ela já pagaria a carta inteira.'},
-   {t:up('.cmp'),title:'Lado a lado',text:'O custo efetivo (CET) de cada opção, entrada, parcelas, custo além do crédito e total desembolsado. Na carta nova aparecem a meia parcela, o valor somado na contemplação e a parcela depois de contemplar.'},
-   {t:up('#ch1','.card'),title:'Parcela mês a mês',text:'Quanto sai do bolso todo mês em cada opção, e a sobra que pode ser investida. Na carta nova dá para ver o degrau da contemplação.'},
-   {t:up('#ch2','.card'),title:'Três jeitos de usar a sobra',text:'A: acumular tudo. B: deixar render e, depois do ponto de virada, usar só o rendimento para pagar a parcela. C: resgatar o rendimento todo mês. Logo abaixo, quanto o cliente termina com cada um.'},
-   {t:up('.big-cta'),title:'A virada',text:'O mês em que a diferença investida já vale a carta inteira. É o argumento mais forte para a conversa: mostre com as premissas à mostra, sem prometer rendimento.'},
-   {t:up('#pdfbtn'),title:'Baixar PDF',text:'Abre a impressão do navegador: escolha “Salvar como PDF”. Sai em A4, com o texto nítido e os gráficos, pronto para enviar ao cliente.'}
+   {t:null,title:'A mesma compra, dois futuros',text:'Esta calculadora compara, para o mesmo bem, quanto o cliente paga no financiamento e no consórcio, e o que acontece quando ele investe a diferença de parcela. Tudo recalcula na hora; nada é gravado.'},
+   {t:up('#segTipo'),title:'Tipo de carta',text:'“Carta contemplada”: o cliente compra uma carta já contemplada. “Carta nova”: entra num grupo e paga meia parcela até contemplar. Os campos mudam conforme a escolha.',go:function(){ clickSeg('#segTipo button[data-t="CONT"]'); }},
+   {t:up('#cred','.panel'),title:'O bem e o investimento',text:'O valor do bem (o crédito), quanto a sobra rende ao mês (arraste a barra e veja tudo mudar) e o CDI de referência, usado como comparação no texto.'},
+   {t:up('#c_parcc','.panel'),title:'Carta contemplada',text:'Entrada paga a quem vende a carta (em % ou R$), a parcela e o prazo que vêm na carta. Não há taxa a somar: a parcela × o prazo já é o que falta pagar.'},
+   {t:up('#c_cont','.fld'),title:'Carta nova',text:'Prazo do grupo, quanto ele já andou e o mês previsto da contemplação. Até lá, meia parcela; na contemplação somam-se as parcelas do período que o grupo já andou e as metades, diluídas no prazo restante. O lance sai nesse mês.',go:function(){ clickSeg('#segTipo button[data-t="NOVA"]'); }},
+   {t:up('#f_juro','.panel'),title:'O financiamento',text:'Price (parcela fixa) ou SAC (parcela que cai), entrada em % ou R$, taxa ao mês ou CET ao ano, e o prazo. É o que o banco ofereceu ao cliente.'},
+   {t:up('.verdict'),title:'Veredito',text:'Quanto o consórcio deixa a mais no bolso no fim, somando a diferença investida. As barras mostram o total de cada opção: o mesmo crédito, mais o custo da carta (sem juros) ou os juros do financiamento.'},
+   {t:up('.kpis'),title:'Os números que explicam',text:'Patrimônio a mais, quanto a sobra investida vira, o mês em que ela já pagaria a carta inteira e o custo efetivo de cada opção.'},
+   {t:up('.cmp'),title:'Lado a lado',text:'Entrada, parcelas, custo além do crédito, juros e total desembolsado. Na carta nova aparecem a meia parcela, o valor somado na contemplação e a parcela depois de contemplar.'},
+   {t:up('#vir'),title:'A virada',text:'O mês em que a diferença investida já vale a carta inteira. É o argumento mais forte da conversa — mostre com as premissas à vista, sem prometer rendimento.'},
+   {t:up('#tlp'),title:'A jornada',text:'Os marcos no tempo: a compra (ou a contemplação), quando a sobra vale a carta, o fim do consórcio e o fim do financiamento.'},
+   {t:up('#ch2','.panel'),title:'Três jeitos de usar a sobra',text:'A: acumular tudo. B: deixar render até a parcela do consórcio passar a do financiamento; daí a aplicação ajuda a pagar — B1 paga a parcela inteira, B2 usa só o rendimento (o que faltar sai do bolso). C: resgatar o rendimento todo mês desde o início. Embaixo de cada uma: quanto a aplicação pagou das parcelas e com quanto termina.'},
+   {t:up('#ch3','.panel'),title:'Quem vence, conforme o rendimento',text:'Para cada rendimento da sobra, quanto o consórcio fica na frente (dourado) ou atrás (vermelho) do financiamento.'},
+   {t:up('#pdfbtn'),title:'Baixar e link para o cliente',text:'“Baixar” gera o estudo em PDF (A4) ou numa imagem PNG para o WhatsApp. “Link para o cliente” cria um link temporário: ele simula sozinho e tudo aparece no Histórico de ferramentas.'}
+  ]},
+ 'calc-avista':{id:'t-avista',v:1,title:'Consórcio × À vista',/* AVISTA_24OUT */
+  save:function(){ var on=$('#segTipo button.on'); return on?on.getAttribute('data-t'):'CONT'; },
+  restore:function(s){ clickSeg('#segTipo button[data-t="'+(s||'CONT')+'"]'); },
+  steps:[
+   {t:null,title:'Pagar à vista ou deixar o dinheiro trabalhando',text:'Esta calculadora compara, para o mesmo bem, pagar tudo à vista com comprar pelo consórcio e deixar o dinheiro investido, pagando as parcelas com ele. No fim o bem é o mesmo; a diferença é quanto dinheiro sobra. Tudo recalcula na hora; nada é gravado.'},
+   {t:up('#segTipo'),title:'Tipo de carta',text:'“Carta contemplada”: compra o bem já, com uma entrada a quem vende a carta e a parcela integral até o fim. “Carta nova”: meia parcela até contemplar, aluguel enquanto espera e lance na contemplação. Os campos mudam conforme a escolha.',go:function(){ clickSeg('#segTipo button[data-t="CONT"]'); }},
+   {t:up('#p_bem','.panel'),title:'O bem',text:'Preço de tabela, o desconto que o vendedor dá para quem paga à vista (dá para arrastar a barra) e quanto o bem valoriza por ano. A valorização vale para as duas opções e pesa na carta nova, que compra mais tarde.'},
+   {t:up('#din','.panel'),title:'O dinheiro do cliente',text:'Quanto ele tem hoje (vazio = o preço à vista), quanto o dinheiro rende ao mês e o imposto de renda. No à vista fica investido só o que sobrar; no consórcio o dinheiro continua investido e paga as parcelas. Arraste a barra do rendimento e veja o resultado mudar.'},
+   {t:up('#c_parcc','.fld'),title:'Entrada, parcela e prazo',text:'Na carta contemplada não há taxa a somar: digite a entrada (em % do crédito ou em R$), a parcela e o prazo que vêm na carta — a parcela × o prazo já é o que falta pagar. A entrada sai do dinheiro hoje. “Desconto vale na carta?” serve para quando o vendedor dá o desconto também para quem paga com a carta.'},
+   {t:up('#c_cont','.fld'),title:'Carta nova · contemplação, lance e aluguel',text:'Informe o prazo do grupo, quanto ele já andou e o mês previsto da contemplação. O lance próprio sai do dinheiro investido nesse mês; o embutido sai da própria carta. O aluguel entra enquanto o cliente espera (0 se não precisa). Se o bem valorizou mais que a carta, o cliente completa a diferença.',go:function(){ clickSeg('#segTipo button[data-t="NOVA"]'); }},
+   {t:up('.verdict'),title:'Veredito',text:'Quem vence e por quanto, no fim do prazo. As barras mostram o patrimônio de cada opção: o bem (igual nas duas) e o dinheiro que sobrou investido.'},
+   {t:up('.kpis'),title:'Os números que explicam',text:'Patrimônio a mais, quanto do que o consórcio cobra sai só do rendimento, o rendimento de empate (acima dele o consórcio vence) e o custo efetivo da carta.'},
+   {t:up('.cmp'),title:'As duas opções lado a lado',text:'O que sai em cada uma e o patrimônio no fim. A melhor fica em destaque.'},
+   {t:up('#tlp'),title:'A jornada no consórcio',text:'Os marcos no tempo: a compra do bem (ou a contemplação), quando o rendimento passa a pagar a parcela sozinho e a última parcela.'},
+   {t:up('#ch3','.panel'),title:'Quem vence, conforme o rendimento',text:'Para cada rendimento mensal, quanto o consórcio deixa a mais (dourado) ou a menos (azul). É o gráfico para mostrar ao cliente onde fica o ponto de virada.'},
+   {t:up('#pdfbtn'),title:'Baixar e link para o cliente',text:'“Baixar” gera o estudo em PDF (A4) ou numa imagem PNG para o WhatsApp. “Link para o cliente” cria um link temporário: ele simula sozinho e tudo aparece no Histórico de ferramentas.'}
   ]},
  'escada-financeira':{id:'t-escada',v:1,title:'Escada Financeira',
   steps:[
@@ -53,21 +67,26 @@ var TOURS={
    {t:up('#pdfbtn'),title:'Baixar PDF',text:'Gera o PDF do documento para enviar ao cliente. “Abrir em nova aba” mostra o documento sozinho, bom para apresentar numa chamada.'},
    {t:null,title:'Imprimir igual ao modelo',text:'Se imprimir pelo navegador, ative “Gráficos de fundo” e desmarque “Cabeçalhos e rodapés” para sair idêntico ao modelo. Lembre: são cenários com premissas, não promessa de ágio nem de rendimento.'}
   ]},
- 'calc-alavancagem':{id:'t-alav',v:1,title:'Alavancagem',
+ 'calc-alavancagem':{id:'t-alav',v:2,title:'Alavancagem',/* ALAV_V2_24OUT */
+  save:function(){ var on=$('#segScn button.on'); return on?on.getAttribute('data-t'):'S1'; },
+  restore:function(s){ clickSeg('#segScn button[data-t="'+(s||'S1')+'"]'); },
   steps:[
-   {t:null,title:'Consórcio não é dívida, é alavancagem',text:'Dois cenários numa tela só: vender a carta contemplada como investimento, ou usar a carta para comprar um imóvel de renda. Tudo recalcula na hora; nada é gravado.'},
-   {t:nth('.scn .scnhd',0),title:'Cenário 1 · vender a carta',text:'O consórcio como aplicação: o cliente paga parcela reduzida até contemplar, contempla com lance embutido e vende a carta com ágio.'},
-   {t:nth('.scn .flds',0),title:'Dados da carta',text:'Crédito, correção anual, parcela reduzida (meia parcela = 50%), prazo total e taxa de administração. Passe o mouse no “?” de cada campo para ver o que ele significa.'},
-   {t:nth('.scn .flds',1),title:'Contemplação e lance',text:'Lance embutido (sai da própria carta), mês da contemplação, ágio na venda e o rendimento de uma aplicação financeira para comparar.'},
-   {t:up('#o_lucro','.hero'),title:'Lucro na venda da carta',text:'O lucro líquido sobre o que o cliente aportou até contemplar, com o crédito liberado e o valor de venda logo abaixo.'},
-   {t:up('#o_pini','.panel'),title:'Projeção do investimento',text:'Parcela reduzida, parcela na contemplação, parcela depois, total aportado e o rendimento equivalente da operação.'},
-   {t:up('#o_b1','.panel'),title:'Consórcio vs aplicação',text:'Compara o lucro do consórcio com o que o mesmo dinheiro renderia numa aplicação financeira, no mesmo período.'},
-   {t:nth('.scn .scnhd',1),title:'Cenário 2 · imóvel de renda',text:'O cliente usa o crédito contemplado para comprar um imóvel, recebe o aluguel e constrói patrimônio. Usa o mês de contemplação do cenário 1.'},
-   {t:up('#p_imovel','.box'),title:'O imóvel e o aluguel',text:'Valor do imóvel, valorização ao ano, aluguel como % do imóvel por mês, reajuste do aluguel e imposto sobre a renda.'},
-   {t:up('#p_patrim','.hero'),title:'Patrimônio construído',text:'O valor futuro do imóvel, o aluguel líquido acumulado, o total pago no consórcio e quanto saiu do bolso do cliente.'},
-   {t:up('#p_brt','.panel'),title:'Quebra da operação',text:'Aluguel bruto, imposto, aluguel líquido, quanto do patrimônio já está pago e o custo de oportunidade.'},
-   {t:up('#p_badge','.rate'),title:'Do bolso sobre o patrimônio',text:'Quanto o cliente tirou do bolso em relação ao patrimônio futuro, com uma avaliação rápida da operação.'},
-   {t:up('#pdfbtn'),title:'Baixar PDF',text:'Gera o PDF com os dois cenários para enviar ao cliente. São simulações com premissas: valores reais dependem do grupo, da administradora e do mercado.'}
+   {t:null,title:'Consórcio não é dívida, é alavancagem',text:'Duas formas de usar o consórcio como investimento, cada uma na sua sub-aba. Tudo recalcula na hora; nada é gravado.'},
+   {t:up('#segScn'),title:'Financeira ou patrimonial',text:'“Alavancagem financeira”: o cliente vende a carta contemplada com ágio. “Alavancagem patrimonial”: usa a carta para comprar um imóvel que o aluguel ajuda a pagar. Os campos, resultados e gráficos mudam com a escolha.',go:function(){ clickSeg('#segScn button[data-t="S1"]'); }},
+   {t:up('#c_cred','.panel'),title:'A carta',text:'Crédito, prazo do plano, parcela reduzida (meia parcela = 50% do fundo comum) e taxa de administração. A correção anual atualiza o crédito até a contemplação.'},
+   {t:up('#c_emb','.panel'),title:'Contemplação e venda',text:'Lance embutido (sai da própria carta), o mês da contemplação (arraste a barra e veja tudo mudar), o ágio que o comprador paga pela carta contemplada e uma aplicação para comparar.'},
+   {t:up('#verd'),title:'O lucro na venda',text:'Quanto o cliente lucra vendendo a carta contemplada, sobre o que ele pagou até ali. As barras comparam com o que o mesmo dinheiro renderia na aplicação.',go:function(){ clickSeg('#segScn button[data-t="S1"]'); }},
+   {t:up('#o_lucro','.kpis'),title:'Os números da operação',text:'Lucro líquido, crédito liberado depois do lance embutido, valor de venda com o ágio e o rendimento equivalente ao mês.'},
+   {t:up('#o_pini','.cmp'),title:'Paga × recebe',text:'De um lado as parcelas até contemplar e o total aportado; do outro, o crédito, o lance embutido, o valor de venda e o lucro.'},
+   {t:up('#a1','.panel'),title:'E se contemplar em outro mês?',text:'Para cada mês de contemplação: quanto o cliente teria pago e quanto receberia vendendo. O marcador vermelho mostra a partir de quando deixa de compensar.'},
+   {t:up('#a2','.panel'),title:'Rendimento ao mês',text:'O lucro da venda dividido pelos meses, contra a aplicação. Enquanto o dourado estiver acima do azul, vender a carta rende mais.'},
+   {t:up('#segScn'),title:'Alavancagem patrimonial',text:'Agora o cliente usa a carta contemplada para comprar um imóvel e alugar. Usa os mesmos dados da carta e o mesmo mês de contemplação.',go:function(){ clickSeg('#segScn button[data-t="S2"]'); }},
+   {t:up('#p_imovel','.panel'),title:'O imóvel e o aluguel',text:'Valor do imóvel, valorização, aluguel em % do imóvel ao mês, reajuste e imposto. Se o crédito liberado não cobre o imóvel, o aviso mostra o complemento que o cliente paga na compra.'},
+   {t:up('#verd2'),title:'Patrimônio × bolso',text:'O imóvel no fim do grupo contra o que realmente saiu do bolso: parcelas mais o complemento na compra, menos o aluguel líquido.'},
+   {t:up('#p_bolso','.kpis'),title:'Do bolso sobre o patrimônio',text:'Patrimônio, aluguel líquido, quanto sai do bolso e a nota da operação: abaixo de 25% é excelente; até 40%, boa.'},
+   {t:up('#b1','.panel'),title:'Mês a mês',text:'O valor do imóvel, o aluguel acumulado e o que saiu do bolso ao longo do grupo. Passe o mouse para ver cada mês.'},
+   {t:up('#b2','.panel'),title:'E se a contemplação vier em outro mês?',text:'Quanto sai do bolso sobre o patrimônio para cada mês de contemplação, com as faixas excelente, bom e avaliar.'},
+   {t:up('#pdfbtn'),title:'Baixar e link para o cliente',text:'“Baixar” gera o estudo da sub-aba aberta em PDF (A4) ou numa imagem PNG para o WhatsApp. “Link para o cliente” cria um link temporário: ele simula sozinho e tudo aparece no Histórico de ferramentas.'}
   ]},
  'propostas':{id:'t-prop',v:1,title:'Gerador de Propostas',
   save:function(){ var on=$('.tabs .tab.on'); return on?on.getAttribute('data-t'):'resumido'; },
