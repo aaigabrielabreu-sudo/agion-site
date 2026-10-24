@@ -273,10 +273,16 @@ function apApp(){ try{ return !!(W.Capacitor||W.cordova||W.navigator.standalone=
 function apEndpoint(){ try{ if(!('serviceWorker' in navigator)||!navigator.serviceWorker.getRegistrations) return Promise.resolve(null);
   return navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all((rs||[]).map(function(r){ return r.pushManager?r.pushManager.getSubscription().catch(function(){ return null; }):null; })); })
    .then(function(ss){ var s=(ss||[]).filter(Boolean)[0]; return s?s.endpoint:null; }).catch(function(){ return null; }); }catch(e){ return Promise.resolve(null); } }
-function apPing(forca){ try{ if(apSaindo||typeof apiFetch!=='function') return; var uid=apUid(); if(!uid) return; if(!forca&&Date.now()-apUlt<60000) return; apUlt=Date.now();
-  var id=apId(uid); if(!id) return;
-  apEndpoint().then(function(ep){ return apiFetch('/api/aparelho/ping',{method:'POST',body:JSON.stringify({id:id,ua:String(navigator.userAgent||'').slice(0,240),app:apApp(),endpoint:ep||null,plataforma:(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||''})}); })
-   .then(function(r){ if(r&&r.data&&r.data.revogado) apDesconectado(); }).catch(function(){}); }catch(e){} }
+/* APARELHOS_INFO_24OUT: dicas para dar o nome certo ao aparelho (iPhone que se apresenta como Mac, modelo do Android, Windows 11…) */
+function apInfo(){ var o={}; try{ o.tq=navigator.maxTouchPoints||0; var sc=W.screen||{}, a=Math.round(sc.width||0), b=Math.round(sc.height||0); o.sw=Math.min(a,b); o.sh=Math.max(a,b); o.dpr=Math.round((W.devicePixelRatio||1)*100)/100; o.mob=!!(W.matchMedia&&W.matchMedia('(pointer:coarse)').matches); }catch(e){} return o; }
+var apCH=null;
+function apHints(){ if(apCH) return Promise.resolve(apCH); try{ var u=navigator.userAgentData; if(!u||!u.getHighEntropyValues) return Promise.resolve(apCH={});
+  return u.getHighEntropyValues(['model','platformVersion','fullVersionList']).then(function(h){ var br=((h&&h.fullVersionList)||u.brands||[]).filter(function(x){ return !/Not.?A.?Brand|Chromium/i.test(x.brand); })[0];
+   apCH={model:(h&&h.model)||'',pv:(h&&h.platformVersion)||'',m:!!((h&&h.mobile)||u.mobile),br:br?(br.brand+' '+String(br.version).split('.')[0]):''}; return apCH; }).catch(function(){ return apCH={}; }); }catch(e){ return Promise.resolve(apCH={}); } }
+function apPing(forca){ try{ if(apSaindo||typeof apiFetch!=='function') return Promise.resolve(); var uid=apUid(); if(!uid) return Promise.resolve(); if(!forca&&Date.now()-apUlt<60000) return Promise.resolve(); apUlt=Date.now();
+  var id=apId(uid); if(!id) return Promise.resolve();
+  return Promise.all([apEndpoint(),apHints()]).then(function(v){ var inf=apInfo(); inf.ch=v[1]||{}; return apiFetch('/api/aparelho/ping',{method:'POST',body:JSON.stringify({id:id,ua:String(navigator.userAgent||'').slice(0,240),app:apApp(),endpoint:v[0]||null,plataforma:(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||'',info:inf})}); })
+   .then(function(r){ if(r&&r.data&&r.data.revogado) apDesconectado(); }).catch(function(){}); }catch(e){ return Promise.resolve(); } }
 function apLimpaLocal(){ try{ localStorage.removeItem(APK); localStorage.setItem('agion_push_ok','0'); }catch(e){}
   try{ if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations) navigator.serviceWorker.getRegistrations().then(function(rs){ (rs||[]).forEach(function(r){ if(r.pushManager) r.pushManager.getSubscription().then(function(s){ if(s) s.unsubscribe(); }).catch(function(){}); }); }).catch(function(){}); }catch(e){} }
 function apDesconectado(){ if(apSaindo) return; apSaindo=true; apLimpaLocal();
@@ -291,7 +297,8 @@ W.AgionV4Ponte.sair=function(){ /* sair pelo botão: este aparelho some da lista
   apiFetch('/api/aparelho/desconectar',{method:'POST',body:JSON.stringify({id:id})}).then(function(){ if(!feito){ feito=true; clearTimeout(t); fim(); } },function(){ if(!feito){ feito=true; clearTimeout(t); fim(); } }); };
 W.AgionV4Ponte.aparelhos={
   meu:function(){ return apId(apUid()); },
-  listar:function(){ apPing(true); return apiFetch('/api/aparelhos',{method:'GET'}); },
+  listar:function(){ var go=function(){ return apiFetch('/api/aparelhos',{method:'GET'}); }; return Promise.resolve(apPing(true)).then(go,go); },
+  nomear:function(id,nome){ return apiFetch('/api/aparelho/nome',{method:'POST',body:JSON.stringify({id:id,nome:nome})}); },
   desconectar:function(id){ return apiFetch('/api/aparelho/desconectar',{method:'POST',body:JSON.stringify({id:id})}); }
 };
 setInterval(function(){ apPing(false); },5*60000);
