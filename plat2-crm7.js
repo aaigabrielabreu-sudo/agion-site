@@ -274,7 +274,10 @@ function api(path,body){return Promise.resolve(W.papi(path,body?{method:'POST',b
   if(r&&typeof r.json==='function')return r.json().then(function(j){return {ok:r.ok,data:j||{}};},function(){return {ok:r.ok,data:{}};});
   return r||{ok:false,data:{}};},function(){return {ok:false,data:{erro:'sem conexão com o robô'}};});}
 function quemEnvia(forca){if(EU&&!forca)return Promise.resolve(EU);return api('/api/esp/eu').then(function(r){if(r&&r.ok&&r.data&&r.data.eu)EU=r.data;return EU;});}
-function viaTxt(e){if(!e||!e.eu)return '';var u=e.eu;return u.modo==='google'?'Sai do seu e-mail ('+u.email_empresa+'), com a sua assinatura.':'Sai do e-mail da Agion com o seu nome e a sua assinatura. A resposta do cliente vai para '+(u.resposta||'você')+'.';}
+function copiaTxt(e){var c=(e&&e.copia)||[];return c.length?c.map(function(x){return (x.nome||'').split(' ')[0]||x.email;}).join(' e '):'';}
+function viaTxt(e){if(!e||!e.eu)return '';var u=e.eu,c=copiaTxt(e);/* EMAIL_COPIA_24OUT */
+ return (u.modo==='google'?'Sai do seu e-mail ('+u.email_empresa+'), com a sua assinatura.':'Sai do e-mail da Agion com o seu nome e a sua assinatura.')+
+  ' A resposta do cliente vai para '+(u.resposta||'você')+(c?' e para o '+c+', que também recebe cópia do e-mail.':'.');}
 function emailOk(v){return /^[^@\s,;]+@[^@\s,;]+\.[a-z]{2,}$/i.test(String(v||'').trim());}
 function telDig(d){var t=String(d&&d.tel||'').replace(/\D/g,'');if(t&&t.length<=11)t='55'+t;return t;}
 function msgPadrao(d,tipo){var n=nm(d);n=n.charAt(0).toUpperCase()+n.slice(1).toLowerCase();
@@ -311,7 +314,7 @@ function compoe(d,tipo,op){op=op||{};var fechou=false,L=[];
   api('/api/proposta/enviar',corpo).then(function(r){var j=(r&&r.data)||{};
    if(!r||!r.ok||!j.ok){b.disabled=false;b.innerHTML=ic('send')+'Enviar e-mail';er.innerHTML='<div class="c7w er">'+e4(j.erro||j.error||'Não consegui enviar agora.')+'</div>';return;}
    if(!d.email){d.email=para;W.XL[d.uid]=Object.assign(W.XL[d.uid]||{},{email:para});}
-   regEnvio(d,'Proposta '+(tipo==='completa'?'completa':'resumida')+' enviada por e-mail para '+para+' · '+(j.nome||eu())+' · '+agora());
+   regEnvio(d,'Proposta '+(tipo==='completa'?'completa':'resumida')+' enviada por e-mail para '+para+((j.cc&&j.cc.length)?' (cópia: '+j.cc.join(', ')+')':'')+' · '+(j.nome||eu())+' · '+agora());
    fechou=true;W.closeSheet();toast('E-mail enviado para '+para,'send');if(op.depois)op.depois({para:para,via:j.via,doc:o.t});});};
  var wb=$('[data-c7="wa"]',s);if(wb)wb.onclick=async function(){var o=doc(),t=telDig(d),er=$('#c7er',s);
   if(!t){er.innerHTML='<div class="c7w er">O card não tem o WhatsApp do cliente.</div>';return;}
@@ -348,14 +351,24 @@ function painelEmail(v){var ref=$('#ajdev',v)||$('#ajcel',v)||$('#ajc',v);if(!re
  ref.parentNode.insertBefore(p,ref.nextSibling);
  quemEnvia(true).then(function(e){var l=$('#ajml',p);if(!e){l.innerHTML='<div class="empty" style="padding:14px">Não consegui falar com o robô agora.</div>';return;}
   var u=e.eu,h='<p style="font-size:13px;color:var(--mut);line-height:1.55;margin-bottom:10px">'+e4(viaTxt(e))+(u.modo==='google'?'':' Quando o Google da empresa estiver ligado, sai direto da sua caixa e o convite entra na sua agenda com link do Meet.')+'</p>';
-  if(e.equipe&&!(W.RO&&W.RO())){h+='<div class="lbl" style="margin:6px 0 8px">E-mail da empresa de cada pessoa</div>'+e.equipe.map(function(q){
-    return '<div class="set" style="gap:10px;flex-wrap:wrap"><div class="t" style="min-width:150px"><b>'+e4(q.nome||'')+'</b><small>'+(q.google?'<span style="color:var(--ok)">● Google ligado</span>':'Pelo e-mail da Agion')+' · login '+e4(q.email_login||'—')+'</small></div>'+
-     '<input type="email" data-ue="'+e4(q.uid)+'" value="'+e4(q.email_empresa||'')+'" placeholder="nome@agionconsorcios.com.br" style="flex:1;min-width:200px;padding:9px 11px;border-radius:11px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit">'+
-     '<button class="btn sm ol" data-us="'+e4(q.uid)+'">Salvar</button></div>';}).join('')+
+  if(e.equipe&&!(W.RO&&W.RO())){h+='<div class="lbl" style="margin:10px 0 4px">E-mail da empresa de cada pessoa</div><p style="font-size:12.5px;color:var(--mut);line-height:1.5;margin:0 0 8px">A resposta dos clientes de cada pessoa vai para o e-mail dela'+(copiaTxt(e)?', com cópia para o '+e4(copiaTxt(e)):'')+'.</p>'+e.equipe.map(function(q){
+    var resp=q.email_empresa||q.email_login||'';
+    return '<div class="ajmr"><div class="ajmn"><b>'+e4(q.nome||'')+'</b><small>'+(q.google?'<span style="color:var(--ok)">● Google ligado</span> · ':'')+'login '+e4(q.email_login||'—')+'</small></div>'+
+     '<div class="ajmi"><input type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" data-ue="'+e4(q.uid)+'" value="'+e4(q.email_empresa||'')+'" placeholder="nome@agionconsorcios.com.br">'+
+     '<button class="btn sm gd" data-us="'+e4(q.uid)+'">Salvar</button></div>'+
+     '<small class="ajmo" data-uo="'+e4(q.uid)+'">'+(resp?'A resposta dos clientes vai para <b>'+e4(resp)+'</b>':'Sem e-mail ainda')+'</small></div>';}).join('')+
     (e.google_pronto?'':'<p style="font-size:12px;color:var(--mut);margin-top:10px">O Google da empresa ainda não está ligado: por enquanto tudo sai do e-mail '+e4(e.smtp||'da Agion')+' com o nome de quem atende.</p>');}
+  else if(e.eu&&!e.equipe){h+='<p style="font-size:12.5px;color:var(--mut);margin:0">Seu e-mail para as respostas: <b>'+e4(e.eu.resposta||'—')+'</b>. Quem define é o Gabriel, em Ajustes.</p>';}
   l.innerHTML=h;
-  $$('[data-us]',l).forEach(function(b){b.onclick=function(){var i=$('[data-ue="'+b.dataset.us+'"]',l),em=i.value.trim();if(em&&!emailOk(em)){toast('E-mail inválido','x');return;}b.disabled=true;
-   api('/api/esp/email',{uid:b.dataset.us,email:em}).then(function(r){b.disabled=false;if(r&&r.ok&&r.data&&r.data.ok){toast('Salvo','ok');EU=null;}else toast('Não consegui salvar','x');});};});});}
+  if(!document.getElementById('ajmcss')){var st=document.createElement('style');st.id='ajmcss';st.textContent='#ajmail .ajmr{display:grid;gap:6px;padding:12px 0;border-bottom:1px solid var(--line)}#ajmail .ajmr:last-of-type{border-bottom:0}#ajmail .ajmn b{display:block;font-size:13.5px}#ajmail .ajmn small{display:block;font-size:11.5px;color:var(--mut);margin-top:2px;word-break:break-all}#ajmail .ajmi{display:flex;gap:8px;align-items:center}#ajmail .ajmi input{flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:500 15px "DM Sans",system-ui}#ajmail .ajmi input:focus{outline:none;border-color:var(--gold)}#ajmail .ajmi .btn{flex:none}#ajmail .ajmo{font-size:11.5px;color:var(--mut);word-break:break-all}#ajmail .ajmo b{color:var(--ink)}#ajmail .ajmo.ok{color:var(--ok)}';document.head.appendChild(st);}
+  function salva(uid){var i=$('[data-ue="'+uid+'"]',l),b=$('[data-us="'+uid+'"]',l),o=$('[data-uo="'+uid+'"]',l),em=i.value.trim().toLowerCase();
+   if(em&&!emailOk(em)){toast('E-mail inválido','x');i.focus();return;}
+   b.disabled=true;b.textContent='Salvando…';
+   api('/api/esp/email',{uid:uid,email:em}).then(function(r){b.disabled=false;b.textContent='Salvar';
+    if(r&&r.ok&&r.data&&r.data.ok){i.value=em;toast(em?'Salvo: a resposta dos clientes vai para '+em:'E-mail removido','ok');if(o){o.className='ajmo ok';o.innerHTML=em?'✓ Salvo. A resposta dos clientes vai para <b>'+e4(em)+'</b>'+(r.data.google?' · Google ligado':''):'✓ Removido';}EU=null;}
+    else toast('Não consegui salvar'+((r&&r.data&&(r.data.erro||r.data.error))?': '+(r.data.erro||r.data.error):''),'x');});}
+  $$('[data-us]',l).forEach(function(b){b.onclick=function(){salva(b.dataset.us);};});
+  $$('[data-ue]',l).forEach(function(i){i.onkeydown=function(ev){if(ev.key==='Enter'){ev.preventDefault();i.blur();salva(i.dataset.ue);}};});});}
 
 /* ---------- CSS ---------- */
 function css(){if(document.getElementById('c7css'))return;var s=document.createElement('style');s.id='c7css';s.textContent=
