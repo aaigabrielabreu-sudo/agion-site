@@ -658,6 +658,9 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
 }
 @media screen and (max-width:760px){.premchip .pct{flex-direction:column;gap:2px}}
 @media print{.premchip,#premBtn{display:none!important}}
+
+/* PDF_IOS_25OUT · a imagem do gráfico (troca feita só para o PDF) nunca passa da largura do quadro na tela */
+@media screen{.chimg{display:block;width:100%!important;height:100%!important;max-width:100%!important;object-fit:contain}}
 </style>
 </head>
 <body>
@@ -1323,7 +1326,7 @@ W.baixarMenu=function(ev){ if(ev){ev.preventDefault();ev.stopPropagation();}
  if(byId('agDl')){fecharMenu();return;}
  var b=byId('pdfbtn'), r=b?b.getBoundingClientRect():{bottom:70,right:W.innerWidth-16};
  var m=D.createElement('div'); m.id='agDl'; m.className='agdl'; m.setAttribute('role','menu');
- m.innerHTML='<button type="button" role="menuitem" data-k="pdf"><span class="ii">'+IC_PDF+'</span><span><b>PDF</b><small>Folha A4, para imprimir ou mandar como documento</small></span></button>'+
+ m.innerHTML='<button type="button" role="menuitem" data-k="pdf"><span class="ii">'+IC_PDF+'</span><span><b>PDF</b><small>'+(ios()?'Um arquivo PDF, pronto para mandar ou imprimir':'Folha A4, para imprimir ou mandar como documento')+'</small></span></button>'+
   '<button type="button" role="menuitem" data-k="png"><span class="ii">'+IC_PNG+'</span><span><b>Imagem PNG</b><small>Uma imagem só, pronta para o WhatsApp</small></span></button>';
  m.style.top=Math.round(r.bottom+8)+'px'; m.style.right=Math.max(12,Math.round(W.innerWidth-r.right))+'px';
  D.body.appendChild(m);
@@ -1402,6 +1405,34 @@ W.baixarPNG=function(){ if(_gerando)return; _gerando=true; toast('Gerando a imag
  }).then(function(){ toast('Imagem pronta ✓',true); },function(e){ console.error(e); toast('Não consegui gerar a imagem: '+((e&&e.message)||e),true); })
  .then(function(){ _gerando=false; });
 };
+/* PDF_IOS_25OUT · no iPhone e no iPad o PDF sai da mesma página do PNG, num arquivo PDF.
+   O "imprimir" do iOS (ainda mais no app da Agion) não devolvia a tela: ela ficava escura e os gráficos
+   ficavam como imagem gigante, a página sobrando para o lado. */
+function jspdfLib(){ return (W.jspdf&&W.jspdf.jsPDF)?Promise.resolve(W.jspdf.jsPDF):new Promise(function(ok,no){ var s=D.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload=function(){ if(W.jspdf&&W.jspdf.jsPDF)ok(W.jspdf.jsPDF); else no(new Error('o gerador de PDF não carregou')); }; s.onerror=function(){ no(new Error('sem conexão para gerar o PDF')); }; D.head.appendChild(s); }); }
+W.agPdfImagem=function(){ if(_gerando)return; _gerando=true; toast('Gerando o PDF…');
+ Promise.all([W.agGerarPNG(),jspdfLib()]).then(function(r){ var cv=r[0],J=r[1],pw=595.28,ph=pw*cv.height/cv.width,k=ph>14000?14000/ph:1; pw*=k; ph*=k;
+   var pdf=new J({unit:'pt',format:[pw,Math.max(ph,100)],orientation:ph>=pw?'portrait':'landscape',compress:true});
+   pdf.addImage(cv.toDataURL('image/jpeg',0.92),'JPEG',0,0,pw,ph,undefined,'FAST');
+   return entregar(pdf.output('blob'),nomeArq()+'.pdf'); })
+ .then(function(){ toast('PDF pronto ✓',true); },function(e){ console.error(e); toast('Não consegui gerar o PDF: '+((e&&e.message)||e),true); })
+ .then(function(){ _gerando=false; });
+};
+if(ios()){ W.baixarPDF=W.agPdfImagem; W.addEventListener('load',function(){ W.baixarPDF=W.agPdfImagem; }); }
+})();
+/* PDF_IOS_25OUT · rede de segurança: se a impressão terminar sem avisar (afterprint), a tela volta sozinha
+   (os gráficos voltam a ser gráficos, os campos voltam ao tamanho normal). */
+(function(){
+ var W=window,D=document,mq=W.matchMedia?W.matchMedia('print'):null,t0=0;
+ function preso(){ return !!D.querySelector('img.chimg'); }
+ function volta(){ if(mq&&mq.matches)return; if(D.documentElement.classList.contains('agcap'))return; if(Date.now()-t0<1200)return;
+  if(preso()&&typeof W.__endPrint==='function'){ try{ W.__endPrint(); }catch(e){} try{ W.dispatchEvent(new Event('resize')); }catch(e){} } }
+ W.addEventListener('beforeprint',function(){ t0=Date.now(); });
+ if(mq){ var f=function(e){ if(e.matches)t0=Date.now(); else setTimeout(volta,1300); }; if(mq.addEventListener)mq.addEventListener('change',f); else if(mq.addListener)mq.addListener(f); }
+ W.addEventListener('focus',function(){ setTimeout(volta,1300); });
+ W.addEventListener('pageshow',function(){ setTimeout(volta,1300); });
+ D.addEventListener('visibilitychange',function(){ if(!D.hidden)setTimeout(volta,1300); });
+ D.addEventListener('touchstart',function(){ if(preso())setTimeout(volta,0); },{passive:true,capture:true});
+ D.addEventListener('scroll',function(){ if(preso())volta(); },{passive:true,capture:true});
 })();
 /* DOBRA_25OUT · premissas que abrem e fecham no celular e no tablet (no computador ficam sempre abertas).
    Toque no título do painel ou na setinha. Fechado, o painel mostra um resumo dos valores. A escolha fica guardada no aparelho. */
