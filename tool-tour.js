@@ -117,7 +117,7 @@ var TOURS={
    {t:up('#b2','.panel'),title:'E se a contemplação vier em outro mês?',text:'Quanto sai do bolso sobre o patrimônio para cada mês de contemplação, com as faixas excelente, bom e avaliar.'},
    {t:up('#pdfbtn'),title:'Baixar e link para o cliente',text:'“Baixar” gera o estudo da sub-aba aberta em PDF (A4) ou numa imagem PNG para o WhatsApp. “Link para o cliente” cria um link temporário: ele simula sozinho e tudo aparece no Histórico de ferramentas.'}
   ]},
- 'propostas':{id:'t-prop',v:1,title:'Gerador de Propostas',
+ 'propostas':{id:'t-prop',v:2,/* PROPOSTAS_V2_25OUT */title:'Gerador de Propostas',
   save:function(){ var on=$('.tabs .tab.on'); return on?on.getAttribute('data-t'):'resumido'; },
   restore:function(s){ try{ if(typeof W.setTipo==='function') W.setTipo(s||'resumido'); }catch(e){} },
   steps:[
@@ -131,13 +131,14 @@ var TOURS={
    {t:up('#r_cons','.grid3'),title:'Consultor, data e validade',text:'Saem no rodapé da proposta.'},
    {t:up('#form-completo'),title:'Proposta completa',text:'No deck: dados do cliente e do grupo, reajuste, custos do plano e as estratégias premium (ágio, lance embutido, renda). Cada campo alimenta uma página.',go:function(){ try{ W.setTipo&&W.setTipo('completo'); }catch(e){} }},
    {t:up('#c_cartas'),title:'Cartas',text:'Adicione quantas cartas quiser, padrão ou contemplada. Cada carta vira uma página do deck.'},
+   {t:up('#mp_info'),title:'Mapeamento de cartas',text:'A página “A sua cota no grupo”: na Melhores cartas, toque na cota que vai reservar e use “Levar para a proposta”; os dados da cota, do grupo e o print do mapa chegam aqui sozinhos. Também dá para preencher à mão e enviar uma imagem.',optional:true},
    {t:up('#c_strats'),title:'Estratégias',text:'Cada coluna é uma estratégia: digite quantas cotas de cada carta entram nela. Uma carta = alternativa; várias cartas = estratégia unificada. Estratégias diferentes nunca se somam: o cliente escolhe uma.'},
    {t:up('#c_pages'),title:'Páginas do deck',text:'Marque as páginas que entram na proposta e escolha o formato: vertical (documento) ou horizontal (slides 16:9).'},
    {t:up('#btnGerar','.btnrow'),title:'Gerar e baixar',text:'“Gerar prévia” monta a proposta logo abaixo. Confira os valores com a simulação da administradora e baixe em PNG ou PDF.'},
    {t:up('#preview'),title:'Prévia',text:'Aqui aparece a proposta exatamente como vai sair. Se algo estiver errado, ajuste os campos e gere de novo.'}
   ]},
  /* MCARTAS_20261021 */
- 'melhores-cartas':{id:'t-mcartas',v:2,/* TOURS_LV_23OUT */title:'Melhores cartas disponíveis',
+ 'melhores-cartas':{id:'t-mcartas',v:3,/* MAPA_PROPOSTA_25OUT *//* TOURS_LV_23OUT */title:'Melhores cartas disponíveis',
   steps:[
    {t:null,title:'Onde posicionar o cliente',text:'A ferramenta usa o Resultado de Assembleia Final da HS, mês a mês desde jun/2019, para mostrar em cada grupo as cotas que já saíram e as livres mais bem posicionadas perto delas.'},
    {t:up('#cats','.fld'),title:'Categoria',text:'Imóvel ou Automóvel. Cada categoria tem os próprios grupos.'},
@@ -153,6 +154,7 @@ var TOURS={
    {t:up('#fil'),title:'Filtros',text:'Veja só oportunidades, contempladas, disponíveis, clientes ou reservadas. “Ocultar clientes” esconde nomes e cotas da carteira para você mostrar a tela ao cliente.'},
    {t:up('#pop'),title:'Melhores oportunidades',text:'As livres com o maior bloco de contempladas colado, com quantos números do sorteio caem em cada uma; o + põe a cota na negociação. Na HS, se o número sorteado já saiu, a vez passa para a cota de cima e depois para a de baixo.'},
    {t:up('#det'),title:'Detalhe e ações',text:'Na cota escolhida: o bloco colado, os números do sorteio, posicionar cliente (a equipe toda vê), pôr na negociação, marcar como reservada ou indisponível quando o portal da HS mostrar que não dá, e desfazer depois.'},
+   {t:up('#dprop'),title:'Levar para a proposta',text:'Com a cota escolhida, este botão leva os dados da cota, do grupo e um print do mapa em volta dela para o Gerador de propostas, que abre na página “A sua cota no grupo”.',optional:true},
    {t:up('#tabs'),title:'Melhores grupos e grade global',text:'“Melhores grupos” ordena os grupos pelas contemplações do último mês: quanto mais o grupo anda, mais ele contempla. “Grade global” mostra a carteira de 1 a 3.000, em todos os grupos, e sugere números para espalhar os clientes.'},
    {t:null,title:'Sempre confirme na HS',text:'A ferramenta sugere; a reserva de verdade é no portal da HS. Se a cota já estiver reservada por outro corretor, marque aqui como reservada para a equipe não perder tempo.'}
   ]}

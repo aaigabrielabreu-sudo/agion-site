@@ -5,6 +5,8 @@
    - VERSOES: a mais nova primeiro. Para publicar uma novidade: acrescente uma
      versão no topo (número seguinte) e suba o ?v= deste arquivo no plataforma.html.
    - Cada item pode ter: roles (quem vê), tutorial (id do tutorial) e abrir (aba).
+   - NOVABAS_25OUT: aba (chave da aba no menu: 'crm', 'ferramentas'…) e onde (lugar na tela: '#id', 'tc:esc',
+     'deal:.atr', 'btn:texto') fazem a novidade aparecer também DENTRO da aba, com tutorial curto (plat2-novabas.js).
    - O pop-up aparece uma vez por versão para cada pessoa (servidor + cache local).
      Em "Ver como" nunca aparece. Quem não tem item na versão não vê o pop-up.
    ========================================================================== */
@@ -18,7 +20,11 @@ var S3=['master','lider','especialista'], ML=['master','lider'], M=['master'], T
 function v4w(){ try{ var f=D.querySelector('#v4wrap iframe'); if(f&&D.documentElement.classList.contains('v4on')&&f.contentWindow&&f.contentWindow.AgionTour2) return f.contentWindow; }catch(e){} return null; }
 function irV2(tab,tut){ var w=v4w(); if(w){ try{ if(tut) w.AgionTour2.start(tut); else w.go(tab); }catch(e){} return; } try{ go({painel:'dash',clientes:'users',ajustes:'config'}[tab]||tab); }catch(e){} }
 var VERSOES=[
- {v:30,rev:2,data:'25/10/2026',titulo:'Escadas, premissas que se escondem e tarefas mais limpas',sub:'A Escada Financeira virou Escadas, com a escada montada sozinha; as premissas das ferramentas se escondem com um toque; tarefas sem informação repetida; calculadoras no tablet e no celular.',itens:[ /* TAREFA_LIMPA_25OUT · rev 2 ESCADAS_25OUT */
+ {v:30,rev:3,data:'25/10/2026',titulo:'Escadas, propostas com a cota escolhida e novidades em cada aba',sub:'A Escada Financeira virou Escadas, com a escada montada sozinha; o Gerador de propostas ganhou visual novo e a página do mapeamento de cartas; cada aba mostra as próprias novidades; as premissas se escondem com um toque; tarefas mais limpas.',itens:[ /* TAREFA_LIMPA_25OUT · rev 2 ESCADAS_25OUT · rev 3 PROPOSTAS_V2_25OUT + NOVABAS_25OUT */
+   {g:'Ferramentas',roles:S3,ic:'doc',t:'Gerador de propostas de cara nova',d:'Visual novo no padrão das calculadoras: abas em pílula, campos mais claros e, no computador, os campos à esquerda com a prévia sempre à vista. Na Proposta Completa entrou a página “A sua cota no grupo”: o recorte do mapa da Melhores cartas com a cota escolhida em destaque, crédito, parcela, prazo, cotas do grupo e o porquê da escolha. Dá para preencher à mão e trocar o print por uma imagem sua.',aba:'ferramentas',onde:'tc:prop'},
+   {g:'Ferramentas',roles:S3,ic:'map',t:'Melhores cartas: Levar para a proposta',d:'Toque numa cota livre e, no detalhe, use Levar para a proposta: os dados da cota e do grupo e um print do mapa em volta dela vão direto para o Gerador de propostas, que abre na página “A sua cota no grupo”. Confira os valores e baixe o PDF. O botão não aparece em cota contemplada nem em cota já vendida.',aba:'ferramentas',onde:'tc:cartas'},
+   {g:'Visual novo',roles:S3,ic:'spark',t:'Novidades dentro de cada aba',d:'Cada aba mostra as novidades dela: uma faixa no topo enquanto houver algo que você não viu, o ✦ no topo para rever a qualquer hora, um pontinho dourado no menu e o selo Novo nas ferramentas. Em cada novidade, Ver como funciona mostra na tela, em poucos passos, onde ela está, sem alterar nada.',aba:'painel',onde:'#nvbBtn'},
+   {g:'Ferramentas',roles:S3,ic:'map',t:'Cartões das ferramentas mais limpos',d:'Os cartões da aba Ferramentas não têm mais a etiqueta do tipo (Calculadora, Estratégia, IA, Equipe). Os filtros por tipo continuam no topo da aba.',aba:'ferramentas',onde:'#fsn2'},
    {g:'Ferramentas',roles:S3,ic:'target',t:'Nova: Escadas (financeira e patrimonial)',d:'A Escada Financeira virou Escadas, com as duas na mesma página: a financeira vende cada carta contemplada com ágio e o rendimento paga o próximo degrau; a patrimonial compra imóveis cuja renda paga a escada. Escolha a carta inicial da tabela HS e a escada se monta sozinha: a base paga do bolso, os degraus que o capital paga, três perfis (conservadora, equilibrada e acelerada), lance embutido e a opção de dividir a carta em cotas menores para contemplar por proximidade. A proposta sai pronta em PDF ou PNG.'},
    {g:'Ferramentas',roles:S3,ic:'money',t:'Ocultar premissas',d:'Nas calculadoras e nas Escadas, o botão Ocultar premissas no topo deixa o resultado na tela inteira, com uma faixa de resumo para voltar. No celular e no tablet cada painel também fecha pela setinha. Na Melhores cartas, Ocultar painel esconde a coluna da direita; no Gerador de propostas, Ocultar campos. No PDF e no PNG as premissas saem sempre.'},
    {g:'Comercial',roles:S3,ic:'check',t:'Tarefas sem informação repetida',d:'Cada tarefa mostra a ação (ex.: Ligar · 1ª tentativa ou Chamar agora no WhatsApp), o nome do lead, quando e a etapa do follow-up, e embaixo a categoria e o valor que estão no card do lead hoje (antes vinham repetidos e às vezes com o valor antigo). No celular, sem o ícone grande repetido.',abrir:function(){ irV2('tarefas'); }},
@@ -215,7 +221,7 @@ async function marcar(v){ try{ localStorage.setItem(KEY(),String(v)); }catch(e){
 
 /* ---------- pop-up ---------- */
 function itemHtml(i,k){ return '<div class="nv-it"><span class="nv-ic">'+(IC[i.ic]||IC.spark)+'</span><div><h4>'+esc(i.t)+'</h4><p>'+esc(i.d)+'</p>'+
-  ((i.tutorial||i.abrir||i.v2tut)?'<div class="nv-ac">'+((i.tutorial||i.v2tut)?'<button class="g" data-tut="'+k+'">Ver como funciona</button>':'')+(i.abrir?'<button data-go="'+k+'">Abrir</button>':'')+'</div>':'')+'</div></div>'; }
+  ((i.tutorial||i.abrir||i.v2tut||i.aba)?'<div class="nv-ac">'+((i.tutorial||i.v2tut||i.aba)?'<button class="g" data-tut="'+k+'">Ver como funciona</button>':'')+(i.abrir?'<button data-go="'+k+'">Abrir</button>':'')+'</div>':'')+'</div></div>'; }
 function abrir(opts){
   opts=opts||{}; fechar(); var r=role(); if(!r) return;
   var lista=VERSOES.filter(function(v){ return itensDe(v).length; }); if(!lista.length) return;
@@ -231,7 +237,8 @@ function abrir(opts){
   $('#nvOk',bg).onclick=ok;
   var mais=$('#nvMais',bg); if(mais) mais.onclick=function(){ var o=$('#nvOld',bg); o.hidden=!o.hidden; mais.textContent=o.hidden?'Versões anteriores':'Esconder anteriores'; };
   bg.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('button[data-tut],button[data-go]'); if(b){ var it=idx[+(b.getAttribute('data-tut')||b.getAttribute('data-go'))]; marcar(MARCA); fechar();
-      if(b.hasAttribute('data-tut')&&it.v2tut){ irV2(null,it.v2tut); } else if(b.hasAttribute('data-tut')&&v4w()&&it.tutorial){ irV2(null,it.tutorial); } else if(b.hasAttribute('data-tut')&&W.AgionTour){ W.AgionTour.start(it.tutorial); } else if(it.abrir){ try{ it.abrir(); }catch(err){} } return; }
+      if(b.hasAttribute('data-tut')&&it.aba&&!it.v2tut&&!it.tutorial&&v4w()&&v4w().AgionNovAbas){ try{ v4w().AgionNovAbas.tutorial(it.t); }catch(err){} } /* NOVABAS_25OUT */
+      else if(b.hasAttribute('data-tut')&&it.v2tut){ irV2(null,it.v2tut); } else if(b.hasAttribute('data-tut')&&v4w()&&it.tutorial){ irV2(null,it.tutorial); } else if(b.hasAttribute('data-tut')&&W.AgionTour){ W.AgionTour.start(it.tutorial); } else if(it.abrir){ try{ it.abrir(); }catch(err){} } return; }
     if(e.target===bg) ok(); });
   D.addEventListener('keydown',esc_);
   setTimeout(function(){ try{ $('#nvOk',bg).focus({preventScroll:true}); }catch(e){} },50);

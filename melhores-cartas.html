@@ -1175,9 +1175,60 @@ function detalhe(g,c,ct,opm,cap){
   else if(!g.nossas[c])a2='<button class="btn ol" data-mk="reservada">Reservada</button><button class="btn ol" data-mk="indisponivel">Indisponível</button>';
   if(podeReservar(g,c)&&!g.nossas[c])a2=a2.replace('<button class="btn ol" data-mk="reservada">Reservada</button>','<button class="btn ol hsb" id="dres">'+IC.check+'Reservar no portal</button>');
   if((roboOc(g,c)||indisp(g))&&!g.nossas[c]&&!m.posicao&&!bloqueada(m)){a1='';a2='';F=F.filter(function(f){return f.indexOf('Já vendida')>=0;});}
-  if(a1||a2||m.avenda)A='<div class="acts">'+a1+(a2?'<div class="a2">'+a2+'</div>':'')+(m.avenda?'<button class="lk" data-tira="avenda">'+(S.H[g.k]&&S.H[g.k].cont[c]?'Desfazer “voltou à venda”':'Tirar da lista à venda')+'</button>':'')+'</div>';}
+  if(a1||a2||m.avenda)A='<div class="acts">'+a1+(a2?'<div class="a2">'+a2+'</div>':'')+(m.avenda?'<button class="lk" data-tira="avenda">'+(S.H[g.k]&&S.H[g.k].cont[c]?'Desfazer “voltou à venda”':'Tirar da lista à venda')+'</button>':'')+'</div>';
+  if(!((roboOc(g,c)||indisp(g))&&!g.nossas[c])){var bp='<button class="btn ol" id="dprop" title="Leva os dados da cota, do grupo e o mapa para o Gerador de propostas"><svg class="i" viewBox="0 0 24 24"><path d="M7 3.5h7.5L19 8v12.5H7z"/><path d="M14.5 3.5V8H19M10 13h6M10 16.5h4"/></svg>Levar para a proposta</button>';A=A?A.replace(/<\/div>$/,bp+'</div>'):'<div class="acts">'+bp+'</div>';}/* MAPA_PROPOSTA_25OUT */}
  return '<div class="det"><div class="dh"><span class="cel tile '+T.cl+(roboRa(g,c)?' ra':'')+(ng?' ng':'')+'">'+c+'</span><div class="dt"><div class="lbl">'+gl+'</div><h4>Cota '+c+'</h4>'+pill+'</div><button class="x" id="dx" aria-label="Fechar">'+IC.x+'</button></div><div class="fatos">'+F.join('')+'</div>'+A+'</div>';}
+/* MAPA_PROPOSTA_25OUT · leva a cota escolhida para o Gerador de propostas (dados + imagem do mapa) */
+function mapaImg(g,c){
+ var cels={},mx=0;$$('#mapa .cel[data-c]').forEach(function(e){var n=+e.dataset.c;if(n>0){cels[n]=e.className;if(n>mx)mx=n;}});
+ if(!mx)return '';
+ var COLS=20,ROWS=10,nRows=Math.ceil(mx/COLS),cr=Math.floor((c-1)/COLS),r0=Math.max(0,Math.min(cr-4,nRows-ROWS)),r1=Math.min(nRows,r0+ROWS);
+ var cw=64,ch=44,gp=8,pad=40,top=96,leg=86,K=1.5;
+ var Wd=pad*2+COLS*cw+(COLS-1)*gp,Hd=top+(r1-r0)*ch+(r1-r0-1)*gp+leg+pad;
+ var cv=document.createElement('canvas');cv.width=Math.round(Wd*K);cv.height=Math.round(Hd*K);var x=cv.getContext('2d');x.scale(K,K);
+ x.fillStyle='#FFFDF8';x.fillRect(0,0,Wd,Hd);
+ function rr(x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}
+ function stripes(x0,y0,w,h,a,b){x.save();rr(x0,y0,w,h,10);x.clip();x.fillStyle=a;x.fillRect(x0,y0,w,h);x.strokeStyle=b;x.lineWidth=5;for(var k=-h;k<w+h;k+=11){x.beginPath();x.moveTo(x0+k,y0+h);x.lineTo(x0+k+h,y0);x.stroke();}x.restore();}
+ function est(cl){cl=' '+cl+' ';
+  if(/ ct /.test(cl))return {st:['#CB4F4F','#B53E3E'],bd:'#A93A3A',tx:'#fff'};
+  if(/ (ns|gi) /.test(cl))return {bg:'#26875C',bd:'#0E4A33',tx:'#fff'};
+  if(/ pl /.test(cl))return {bg:'#EEF7F2',bd:'#1D7550',tx:'#16613F',ds:1};
+  if(/ oa /.test(cl))return {bg:'#7C47D9',bd:'#45208F',tx:'#fff'};
+  if(/ om /.test(cl))return {bg:'#CDB4F5',bd:'#9877DE',tx:'#2F1462'};
+  if(/ ob /.test(cl))return {bg:'#F3EDFE',bd:'#D9C9F7',tx:'#5A3D9C'};
+  if(/ rs /.test(cl))return {st:['#F3EFE6','#E2DBCC'],bd:'#D8D0BF',tx:'#857F73'};
+  if(/ oc /.test(cl))return {bg:'#F3DE96',bd:'#DDBF5C',tx:'#7A6320'};
+  return {bg:'#FBF8F0',bd:'#E6DCC6',tx:'#78817C'};}
+ var fam='"DM Sans",system-ui,sans-serif';
+ x.textBaseline='alphabetic';x.fillStyle='#A3833F';x.font='700 15px '+fam;x.fillText('MAPA DE COTAS · '+(g.adm==='ANC'?'ÂNCORA':String(g.adm).toUpperCase()),pad,40);
+ x.fillStyle='#0B2A26';x.font='600 28px Lora,Georgia,serif';x.fillText('Grupo '+g.grupo+' · cotas '+(r0*COLS+1)+' a '+Math.min(mx,r1*COLS),pad,76);
+ for(var r=r0;r<r1;r++)for(var k=0;k<COLS;k++){var n=r*COLS+k+1;if(n>mx)break;var x0=pad+k*(cw+gp),y0=top+(r-r0)*(ch+gp),E=est(cels[n]||'');
+  if(E.st)stripes(x0,y0,cw,ch,E.st[0],E.st[1]);else{rr(x0,y0,cw,ch,10);x.fillStyle=E.bg;x.fill();}
+  rr(x0+.5,y0+.5,cw-1,ch-1,10);x.strokeStyle=E.bd;x.lineWidth=E.ds?2:1.2;if(E.ds)x.setLineDash([5,4]);x.stroke();x.setLineDash([]);
+  if(/ av /.test(' '+(cels[n]||'')+' ')){x.fillStyle='#C79A3E';x.fillRect(x0+6,y0+ch-5,cw-12,3);}
+  if(n===c){rr(x0-5,y0-5,cw+10,ch+10,14);x.lineWidth=4;x.strokeStyle='#0B2A26';x.stroke();rr(x0-9,y0-9,cw+18,ch+18,17);x.lineWidth=3;x.strokeStyle='#C5A059';x.stroke();}
+  x.fillStyle=E.tx;x.font=(n===c?'800 17px ':'700 15px ')+fam;var t=String(n),tw=x.measureText(t).width;x.fillText(t,x0+(cw-tw)/2,y0+ch/2+6);}
+ var ly=top+(r1-r0)*(ch+gp)+28,lx=pad,L=[['Contemplada',{st:['#CB4F4F','#B53E3E'],bd:'#A93A3A'}],['Oportunidade alta',{bg:'#7C47D9',bd:'#45208F'}],['Média',{bg:'#CDB4F5',bd:'#9877DE'}],['Baixa',{bg:'#F3EDFE',bd:'#D9C9F7'}],['Cliente Agion',{bg:'#26875C',bd:'#0E4A33'}],['Já vendida',{bg:'#F3DE96',bd:'#DDBF5C'}],['Livre',{bg:'#FBF8F0',bd:'#E6DCC6'}]];
+ var temAv=false;for(var q in cels){if(/ av /.test(' '+cels[q]+' ')){temAv=true;break;}}if(temAv)L.push(['À venda na HS',{bg:'#FBF8F0',bd:'#E6DCC6',av:1}]);
+ x.font='600 15px '+fam;
+ L.forEach(function(it){var E=it[1];if(E.st)stripes(lx,ly,22,22,E.st[0],E.st[1]);else{rr(lx,ly,22,22,6);x.fillStyle=E.bg;x.fill();}rr(lx+.5,ly+.5,21,21,6);x.strokeStyle=E.bd;x.lineWidth=1;x.stroke();if(E.av){x.fillStyle='#C79A3E';x.fillRect(lx+3,ly+18,16,3);}x.fillStyle='#4B5A55';x.fillText(it[0],lx+30,ly+17);lx+=30+x.measureText(it[0]).width+26;});
+ rr(lx,ly-3,28,28,8);x.lineWidth=3;x.strokeStyle='#C5A059';x.stroke();x.fillStyle='#0B2A26';x.font='700 15px '+fam;x.fillText('Cota escolhida: '+c,lx+38,ly+17);
+ try{return cv.toDataURL('image/jpeg',.9);}catch(e){return '';}}
+function levarProposta(g,c){try{
+ var v=S.VG&&S.VG[g.k],kp={},lv={},fatos=[],OK=['Bloco colado','Contemplada mais perto','Contempladas em volta','Números do sorteio','À venda','Reservada pela Agion'];
+ $$('.kpis .kpi').forEach(function(k){var l=k.querySelector('small'),b=k.querySelector('b');if(l&&b)kp[l.textContent.trim()]=b.textContent.trim();});
+ $$('#lvh .lvk>div').forEach(function(d){var t=d.querySelector('small'),b=d.querySelector('b');if(t&&b)lv[t.textContent.trim()]=b.textContent.trim();});
+ $$('#det .fato').forEach(function(f){var k=((f.querySelector('small')||{}).textContent||'').trim(),vv=((f.querySelector('div')||{}).textContent||'').trim();if(OK.indexOf(k)>=0&&vv)fatos.push({k:k,v:vv});});
+ var d={v:1,ts:Date.now(),adm:g.adm==='ANC'?'Âncora':g.adm,cat:CATS[S.cat]||'',tipo:g.tipo,grupo:String(g.grupo),cota:c,
+  prazoRest:v&&v.prazo_restante||'',prazoOrig:v&&v.prazo_original||'',faixa:faixaCred(g),parcela:faixaParc(g),
+  cartas:(v&&v.cartas||[]).map(function(z){return {valor:+z.valor||0,parcela:+z.parcela||0};}),
+  total:kp['Total de cotas']||'',contempladas:kp['Contempladas']||'',lance:lv,fatos:fatos,img:mapaImg(g,c)};
+ localStorage.setItem('agion:mapa-proposta',JSON.stringify(d));
+ toast('Cota '+c+' do grupo '+g.grupo+' pronta para a proposta');
+ var w=window.open('/propostas?mapa=1','_blank');if(!w)location.href='/propostas?mapa=1';
+}catch(e){console.error(e);toast('Não consegui levar a cota para a proposta');}}
 function bindDet(g){var p=$('#dpos');if(p)p.onclick=function(){abrirDlg(g,S.sel);};
+ var dpp=$('#dprop');if(dpp)dpp.onclick=function(){levarProposta(g,S.sel);};
  var dr=$('#dres');if(dr)dr.onclick=function(){var c=S.sel,m=marcas(g)[c]||{};reservarHS(g,[c],m.posicao?m.posicao.cliente_nome:'');};
  var dv=$('#dvolta');if(dv)dv.onclick=function(){var c=S.sel;caixa({t:'A cota '+c+' voltou à venda?',p:'Grupo '+g.grupo+'. Use quando a HS mostra a cota à venda mesmo constando como contemplada (a contemplação foi cancelada). Ela volta a contar como livre na proximidade e a equipe toda vê. Dá para desfazer.',lab:'Observação (opcional)',ph:'ex.: à venda no portal da HS em '+hoje(),ok:'Voltou à venda'},function(v){marcar(g,c,'avenda',null,v||'voltou à venda');});};
  $$('#det [data-mk]').forEach(function(b){b.onclick=function(){pedeMarca(g,S.sel,b.dataset.mk);};});
@@ -1478,7 +1529,7 @@ window.AgionMC={S:S,pintar:pintar,captura:captura,ranking:ranking,recarregar:rec
 carregar().then(function(d){preparar(d);pintar();ligaImport();}).catch(function(e){$('#view').innerHTML='<div class="panel empty">Não consegui carregar os dados agora. Recarregue a página.<br><small>'+esc(e&&e.message||e)+'</small></div>';});
 })();
 </script>
-<script src="/tool-tour.js?v=6" defer></script>
+<script src="/tool-tour.js?v=11" defer></script>
 
 <style id="ag-sem-zoom">/* SEM_ZOOM_24OUT: no celular o campo precisa de 16px, senão o iPhone dá zoom ao digitar */
 @media (max-width:600px),(pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}#busca::placeholder{font-size:13px}}

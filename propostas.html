@@ -90,9 +90,10 @@ textarea{resize:vertical;min-height:44px}
 </style>
 </head>
 <body>
+<div class="ptop"><div class="ptopi"><a class="plogo" href="/plataforma" title="Voltar à plataforma"><img id="plogoImg" alt="Agion"><span><b>AGION</b><small>Wealth · Plataforma</small></span></a><span class="pcrumb"><a href="/plataforma?abrir=ferramentas">Ferramentas</a><i>›</i>Gerador de propostas</span></div></div>
 <div class="wrap">
-  <h1>Gerador de Propostas · Agion</h1>
-  <div class="sub">Preencha, gere na hora e baixe em PNG (foto) e PDF.</div>
+  <div class="phx"><div class="pey">Ferramentas · Propostas</div><h1>Gerador de <em>propostas</em></h1>
+  <div class="sub">Preencha, acompanhe a prévia e baixe em PDF ou PNG. Na Proposta Completa, a página <b>Mapeamento de cartas</b> mostra a cota escolhida no mapa do grupo.</div></div>
 
   <div class="panel">
     <div class="tabs">
@@ -186,6 +187,35 @@ textarea{resize:vertical;min-height:44px}
         <button class="addrow" onclick="addCarta('contemplada')">+ carta contemplada</button>
       </div>
 
+      <div class="section-t">Mapeamento de cartas <span class="hint">(a cota escolhida no mapa do grupo · vira a página “A sua cota no grupo”)</span></div>
+      <div class="mpbox">
+        <div class="btnrow mpbt">
+          <button type="button" class="addrow" onclick="mapaPuxar(true)">Puxar da Melhores cartas</button>
+          <a class="addrow" href="/melhores-cartas" target="_blank" rel="noopener">Abrir a Melhores cartas</a>
+          <button type="button" class="addrow mpcl" onclick="mapaLimpar()">Limpar</button>
+        </div>
+        <div class="note-inline" id="mp_info">Na Melhores cartas, toque na cota que você vai reservar para o cliente e use <b>Levar para a proposta</b>: os dados da cota, do grupo e a imagem do mapa vêm para cá. Também dá para preencher à mão e enviar um print.</div>
+        <div class="grid3">
+          <div class="field"><label>Administradora</label><input id="mp_adm" placeholder="HS"></div>
+          <div class="field"><label>Grupo</label><input id="mp_grupo" placeholder="1035"></div>
+          <div class="field"><label>Cota escolhida</label><input id="mp_cota" placeholder="24"></div>
+        </div>
+        <div class="grid3">
+          <div class="field"><label>Crédito da carta</label><input id="mp_cred" placeholder="R$ 261.704"></div>
+          <div class="field"><label>Parcela</label><input id="mp_parc" placeholder="R$ 894"></div>
+          <div class="field"><label>Prazo</label><input id="mp_prazo" placeholder="37 de 180 meses"></div>
+        </div>
+        <div class="grid3">
+          <div class="field"><label>Cotas do grupo</label><input id="mp_total" placeholder="1.000"></div>
+          <div class="field"><label>Já contempladas</label><input id="mp_cont" placeholder="547"></div>
+          <div class="field"><label>Lance livre (médio)</label><input id="mp_lance" placeholder="ex.: 42%"></div>
+        </div>
+        <div class="field"><label>Categoria</label><input id="mp_cat" placeholder="Imóvel"></div>
+        <div class="field"><label>Por que esta cota <span class="hint">(uma razão por linha)</span></label><textarea id="mp_porque" rows="4"></textarea></div>
+        <div class="field"><label>Aviso no fim da página</label><input id="mp_sit" placeholder="ex.: Cota reservada para você no portal da HS."></div>
+        <div class="field"><label>Imagem do mapa</label><div class="mpimg"><img id="mp_prev" alt=""><div><input type="file" id="mp_file" accept="image/*"><div class="hint">Vem sozinha da Melhores cartas. Se preferir, envie um print do mapa.</div></div></div></div>
+      </div>
+
       <div class="section-t">Estratégias <span class="hint">(alternativas separadas ou cartas unidas)</span></div>
       <div class="note-inline">Cada <b>coluna é uma estratégia</b>: digite quantas cotas de cada carta entram nela (0 = fora). <b>1 carta = alternativa</b>; <b>várias cartas = estratégia unificada</b> (crédito, parcelas e oportunidades somam só dentro dela). Estratégias diferentes nunca se somam — o cliente escolhe uma. Aparece no deck na página “Estratégias &amp; múltiplas cotas”.</div>
       <div class="btnrow" style="margin:0 0 10px">
@@ -252,6 +282,7 @@ const PAGES=[
  {id:'reajuste',label:'Reajuste anual (tabela)',on:true,numbered:true},
  {id:'metodoReal',label:'Método REAL',on:false,numbered:true},
  {id:'cartas',label:'Cartas (lado a lado)',on:true,numbered:true},
+ {id:'mapa',label:'Mapeamento de cartas',on:false,numbered:true},
  {id:'agio',label:'Rota: vender com ágio',on:false,numbered:true},
  {id:'darLance',label:'Rota: dar o lance',on:false,numbered:true},
  {id:'renda1',label:'Rota: carregar + renda 1%',on:false,numbered:true},
@@ -500,6 +531,7 @@ function renderCompleto(){
  if(pgOn('cartas')){const padr=cartas.filter(k=>k.tipo==='padrao');const cont=cartas.filter(k=>k.tipo==='contemplada');
   if(padr.length)seq.push({id:'cartasGrid',n:true,cartas:padr});
   cont.forEach(ct=>seq.push({id:'carta',n:true,ct}));}
+ if(pgOn('mapa'))seq.push({id:'mapa',n:true,mp:readMapa()});
  if(pgOn('agio'))seq.push({id:'agio',n:true});
  if(pgOn('darLance'))seq.push({id:'darLance',n:true});
  if(pgOn('renda1'))seq.push({id:'renda1',n:true});
@@ -511,7 +543,7 @@ function renderCompleto(){
  if(pgOn('glossario'))seq.push({id:'glossario',n:true});
  if(pgOn('passos'))seq.push({id:'passos',n:true});
  if(pgOn('cta'))seq.push({id:'cta',n:false});
- const NAMES={capa:'Capa',comoFunciona:'Como funciona',sobreAgion:'Sobre a Agion',formas:'Formas de contemplação',meiaParcela:'Meia parcela',pontoPartida:'Ponto de partida',reajuste:'Reajuste anual',metodoReal:'Método REAL',cartasGrid:'As cartas',agio:'Vender com ágio',darLance:'Dar o lance',renda1:'Carrego + renda',cotas:'Múltiplas cotas',estrComp:'Escolha a estratégia',comparativo:'Comparativo',premissas:'Premissas',glossario:'Glossário',passos:'Próximos passos',cta:'Contato'};
+ const NAMES={mapa:'A sua cota no grupo',capa:'Capa',comoFunciona:'Como funciona',sobreAgion:'Sobre a Agion',formas:'Formas de contemplação',meiaParcela:'Meia parcela',pontoPartida:'Ponto de partida',reajuste:'Reajuste anual',metodoReal:'Método REAL',cartasGrid:'As cartas',agio:'Vender com ágio',darLance:'Dar o lance',renda1:'Carrego + renda',cotas:'Múltiplas cotas',estrComp:'Escolha a estratégia',comparativo:'Comparativo',premissas:'Premissas',glossario:'Glossário',passos:'Próximos passos',cta:'Contato'};
  const DEN=seq.filter(s=>s.n).length;let pgc=0;const out=[];
  for(const s of seq){const pg=s.n?(++pgc):0;const nm=s.id==='carta'?(s.ct.rotulo||'Carta'):(s.id==='cotas'&&s.tot>1)?('Estratégia '+s.st.letra+(s.st.nome?(' · '+s.st.nome):'')):NAMES[s.id];const label=pg?(String(pg).padStart(2,'0')+' · '+nm):nm;out.push({cv:build(s,pg,DEN,D,cartas,cw,first),label,footer:s.n,id:s.id});}
  const fmt=(document.getElementById('c_formato')||{}).value;
@@ -717,6 +749,24 @@ function build(s,pg,DEN,D,cartas,cw,first){
   cs.forEach((ct,i)=>cartaCol(x,px+i*(cwid+gap),y,cwid,ch,ct,vs));y+=ch+30;
   y=noteBox(x,px,y,'A parcela é a reduzida do plano, até a contemplação. O lance embutido sai da própria carta e reduz o crédito líquido, sem mexer na parcela.',W-2*M);
   return crop(c,footer(x,y,pg,DEN));
+ }
+ if(s.id==='mapa'){/* PROPOSTAS_V2_25OUT · A sua cota no grupo */
+   const mp=s.mp,sh=168,fv=(t,mw)=>{for(const z of [38,34,30,26]){x.font=fLora(z,'700');if(tw(x,t)<=mw)return z;}return 26;};
+   y=eb(x,px,y,'MAPEAMENTO DE CARTAS');y=tit(x,px,y,'A sua cota no grupo',48);
+   y=para(x,px,y,'Escolhemos a cota '+(mp.cota||'—')+' do grupo '+(mp.grupo||'—')+(mp.adm?(' ('+mp.adm+')'):'')+' olhando o mapa de contemplações do grupo: a posição dela perto das cotas já contempladas aumenta as chances de contemplação por proximidade.',fPop(24,'400'),C.ink2,W-2*M,38);y+=26;
+   const im=window.__mapaImg,iw=W-2*M;
+   if(im){const ih=Math.round(im.height*iw/im.width);x.save();rr(x,px,y,px+iw,y+ih,18);x.clip();x.drawImage(im,px,y,iw,ih);x.restore();rr(x,px,y,px+iw,y+ih,18);x.strokeStyle=C.line;x.lineWidth=1.5;x.stroke();y+=ih+30;}
+   else{const ih=240;rr(x,px,y,px+iw,y+ih,18);x.fillStyle=C.cream2;x.fill();ctr(x,'Imagem do mapa de cotas',y+ih/2+8,fPop(22,'500'),C.mut,W);y+=ih+30;}
+   stat(x,px,y,cw,sh,'COTA ESCOLHIDA',String(mp.cota||'—'),'grupo '+(mp.grupo||'—')+(mp.adm?' · '+mp.adm:''),C.gold,C.goldd,48);
+   stat(x,px+cw+24,y,cw,sh,'CRÉDITO DA CARTA',mp.cred||'—',mp.cat||'',null,null,fv(mp.cred||'—',cw-56));y+=sh+20;
+   stat(x,px,y,cw,sh,'PARCELA',mp.parc||'—','reduzida até contemplar',null,null,fv(mp.parc||'—',cw-56));
+   stat(x,px+cw+24,y,cw,sh,'PRAZO',mp.prazo||'—','',null,null,fv(mp.prazo||'—',cw-56));y+=sh+20;
+   if(mp.total||mp.cont||mp.lance){if(mp.lance){stat(x,px,y,cw,sh,'COTAS DO GRUPO',mp.total||'—',mp.cont?(mp.cont+' já contempladas'):'',null,null,40);
+     stat(x,px+cw+24,y,cw,sh,'LANCE LIVRE',mp.lance,'média recente do grupo',null,null,fv(mp.lance,cw-56));}
+    else stat(x,px,y,W-2*M,sh,'COTAS DO GRUPO',mp.total||'—',mp.cont?(mp.cont+' já contempladas · '+(mp.total?'o mapa mostra onde elas estão':'')):'',null,null,40);y+=sh+28;}
+   if(mp.porque.length){left(x,'POR QUE ESTA COTA',px,y+14,fPop(15,'700'),C.goldd);y+=40;y=bullets(x,px,y,mp.porque,W-2*M);y+=8;}
+   if(mp.sit)y=noteBox(x,px,y,mp.sit,W-2*M);
+   return crop(c,footer(x,y,pg,DEN));
  }
  if(s.id==='carta'){
   const ct=s.ct;
@@ -966,7 +1016,7 @@ window.addEventListener('message',function(ev){
 try{parent.postMessage({type:'agion-ready'},'*');}catch(e){}
 </script>
 
-<script src="/tool-tour.js?v=2" defer></script>
+<script src="/tool-tour.js?v=11" defer></script>
 
 <script src="/calc-link.js?v=5"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js" async></script>
@@ -1088,6 +1138,120 @@ try{parent.postMessage({type:'agion-ready'},'*');}catch(e){}
  b.addEventListener('click',function(){set(!P.classList.contains('fmin'),true);});
  var ini=false;try{ini=localStorage.getItem(KEY)==='1';}catch(e){}set(ini,false);
 })();
+</script>
+<style id="ag-propostas-v2">/* PROPOSTAS_V2_25OUT · visual da plataforma (só aparência; as funções são as mesmas) */
+:root{--pbg:#F4EFE4;--pbg2:#ECE4D3;--pcard:#FFFDF8;--pline:#E6DCC6;--pline2:#EFE7D6;--pink:#0B2A26;--pink2:#2F4A44;--pmut:#6E7A75;--pgold:#C5A059;--pgoldd:#A3833F;--pgg:linear-gradient(135deg,#E8CC8B 0%,#C5A059 55%,#A8853E 100%)}
+body{background:var(--pbg);font-family:'Poppins',system-ui,sans-serif;color:var(--pink);-webkit-font-smoothing:antialiased}
+.ptop{position:sticky;top:0;z-index:30;background:rgba(244,239,228,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(230,220,198,.6)}
+.ptopi{max-width:1440px;margin:0 auto;padding:12px 28px;display:flex;align-items:center;gap:16px;min-height:64px}
+.plogo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--pink)}
+.plogo img{width:34px;height:auto}
+.plogo b{display:block;font:600 16px/1 Lora,serif;letter-spacing:.16em}
+.plogo small{display:block;font:700 9.5px/1 'Poppins',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--pgoldd);margin-top:4px}
+.pcrumb{font:700 10px 'Poppins',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--pgold);padding-left:16px;border-left:1px solid var(--pline);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcrumb a{color:#7C8580;text-decoration:none}.pcrumb i{font-style:normal;margin:0 7px;color:#B9B3A6}
+html.emb .ptop{display:none}
+.wrap{max-width:1440px;padding:18px 28px 48px}
+.phx{margin:4px 0 20px}
+.pey{font:700 11px 'Poppins',sans-serif;letter-spacing:.24em;text-transform:uppercase;color:var(--pgoldd)}
+h1{font:600 36px/1.12 Lora,serif;margin:10px 0 8px;color:var(--pink)}
+h1 em{font-style:italic;color:var(--pgoldd)}
+.sub{font-size:14px;line-height:1.55;color:var(--pmut);max-width:760px;margin:0}
+.sub b{color:var(--pink2)}
+.panel{background:var(--pcard);border:0;border-radius:24px;padding:22px 24px;box-shadow:0 1px 0 rgba(11,42,38,.03),0 20px 44px -30px rgba(11,42,38,.4)}
+.tabs{background:var(--pbg);padding:5px;border-radius:999px;gap:4px;margin-bottom:14px}
+.tab{border:0;border-radius:999px;background:transparent;padding:11px 14px;font:700 13.5px 'Poppins',sans-serif;color:var(--pmut);transition:background .25s,color .25s}
+.tab:hover{color:var(--pink)}
+.tab.on{background:var(--pink);color:#E8CC8B;box-shadow:0 8px 18px -10px rgba(11,42,38,.6)}
+label{font:600 12.5px/1.35 'Poppins',sans-serif;color:#3E4C47;margin:0 0 6px}
+input,select,textarea{border:0;box-shadow:inset 0 0 0 1px var(--pline);background:var(--pbg);border-radius:12px;padding:10px 12px;font:600 14px 'Poppins',sans-serif;color:var(--pink);transition:box-shadow .2s,background .2s}
+input:focus,select:focus,textarea:focus{outline:0;background:#fff;box-shadow:inset 0 0 0 1.5px var(--pgold),0 0 0 3px rgba(197,160,89,.2)}
+input[readonly]{background:#F8F4EA;color:#5F6B66}
+input[type=checkbox]{accent-color:#A3833F;width:16px;height:16px;box-shadow:none;padding:0}
+input[type=file]{box-shadow:none;background:none;padding:6px 0;font-weight:500;font-size:13px}
+.note-inline{background:#FBF3E2;border:0;border-radius:14px;padding:10px 14px;font-size:13px;line-height:1.5;color:#6A5B33}
+.hint{color:var(--pmut)}
+.section-t{font:600 17px/1.3 Lora,serif;color:var(--pink)}
+.section-t .hint{font:500 12px 'Poppins',sans-serif}
+@media (min-width:1101px){.section-t{margin:22px 0 12px;padding-top:18px;border-top:1px solid var(--pline2)}}
+.btn{border-radius:999px;padding:12px 20px;font:700 13.5px 'Poppins',sans-serif;transition:transform .2s,box-shadow .2s}
+.btn:not(:disabled):hover{transform:translateY(-1px)}
+.btn.gold{background:var(--pgg);color:#0B2A26;box-shadow:0 10px 22px -12px rgba(168,133,62,.8)}
+.btn.green{background:var(--pink);color:#F4E6C0}
+.addrow{display:inline-flex;align-items:center;gap:6px;background:var(--pbg);border:1.5px dashed var(--pgold);color:var(--pgoldd);border-radius:12px;padding:9px 14px;font:700 13px 'Poppins',sans-serif;text-decoration:none}
+.addrow:hover{background:#F3E7C9}
+.rowline button,.carta .rm,.sth .sx{background:#F6E1DC;color:#B33A2E;border-radius:10px}
+.carta{border:0;background:var(--pbg);border-radius:18px;padding:14px 16px}
+.badge{background:var(--pink);color:#E8CC8B;letter-spacing:.08em;padding:4px 11px}
+.pagecat{gap:8px 14px}
+.pagecat label{background:var(--pbg);border-radius:12px;padding:9px 12px;font:600 13px 'Poppins',sans-serif;color:var(--pink)}
+.stab{border:0;box-shadow:inset 0 0 0 1px var(--pline);border-radius:16px}
+.stab thead th{background:var(--pbg);font:700 12px 'Poppins',sans-serif}
+.stab tfoot td{background:#FBF8F0}
+.sth .sl{background:var(--pink);color:#E8CC8B}
+.previewWrap{background:#E9E2D2;border-radius:18px;padding:16px}
+.previewWrap canvas.pvc,.previewWrap img{border-radius:10px;box-shadow:0 18px 40px -18px rgba(11,42,38,.45)}
+#status{font:600 12.5px 'Poppins',sans-serif;color:var(--pmut)}
+.pcamp button{border:0;background:var(--pbg);color:var(--pink);font:700 12.5px 'Poppins',sans-serif;padding:8px 14px}
+.pcamp button.on{background:var(--pink);color:#E8CC8B}
+.mpbt{margin:0 0 10px!important}
+.mpcl{border-color:#D8CFBD;color:#8A8578}
+.mpimg{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+#mp_prev{display:none;width:240px;max-width:100%;border-radius:12px;box-shadow:0 10px 26px -14px rgba(11,42,38,.45)}
+#mp_prev.on{display:block}
+@media (min-width:1180px){
+ .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:22px;align-items:start}
+ .wrap>.phx{grid-column:1/-1}
+ .wrap>.panel{margin-bottom:0}
+ .wrap>.panel:last-of-type{position:sticky;top:84px;max-height:calc(100vh - 100px);overflow:auto}
+ html.emb .wrap>.panel:last-of-type{top:16px;max-height:calc(100vh - 32px)}
+ .wrap:has(>.panel.fmin){grid-template-columns:minmax(0,1fr)}
+ .wrap:has(>.panel.fmin)>.panel:last-of-type{position:static;max-height:none}
+}
+@media (max-width:760px){.ptopi{padding:10px 16px}.pcrumb{display:none}.wrap{padding:12px 14px 40px}h1{font-size:28px}.panel{padding:18px 16px;border-radius:20px}.grid,.grid3{grid-template-columns:1fr}.pagecat{grid-template-columns:1fr 1fr}}
+</style>
+<script>
+/* PROPOSTAS_V2_25OUT · topo, mapeamento de cartas */
+(function(){try{if(window.self!==window.top)document.documentElement.classList.add('emb');}catch(e){document.documentElement.classList.add('emb');}
+ var li=document.getElementById('plogoImg');if(li&&typeof LOGO!=='undefined')li.src=LOGO;})();
+var MAPA_KEY='agion:mapa-proposta';
+function readMapa(){var g=function(id){return ((document.getElementById(id)||{}).value||'').trim();};
+ return {adm:g('mp_adm'),cat:g('mp_cat'),grupo:g('mp_grupo'),cota:g('mp_cota'),cred:g('mp_cred'),parc:g('mp_parc'),prazo:g('mp_prazo'),total:g('mp_total'),cont:g('mp_cont'),lance:g('mp_lance'),sit:g('mp_sit'),
+  porque:g('mp_porque').split('\n').map(function(t){return t.trim();}).filter(Boolean)};}
+function mapaImg(src){var pv=document.getElementById('mp_prev');
+ if(!src){window.__mapaImg=null;if(pv){pv.removeAttribute('src');pv.classList.remove('on');}if(typeof liveUpdate==='function')liveUpdate();return;}
+ var im=new Image();im.onload=function(){window.__mapaImg=im;if(pv){pv.src=src;pv.classList.add('on');}if(typeof liveUpdate==='function')liveUpdate();};im.src=src;}
+function _mpSet(id,v){var e=document.getElementById(id);if(e)e.value=v==null?'':v;}
+function _mpMoney(v){return 'R$ '+Math.round(v).toLocaleString('pt-BR');}
+function mapaPuxar(manual){var o=null;try{o=JSON.parse(localStorage.getItem(MAPA_KEY)||'null');}catch(e){}
+ var info=document.getElementById('mp_info');
+ if(!o||!o.grupo){if(manual&&info)info.innerHTML='<b>Nada para puxar ainda.</b> Na Melhores cartas, toque na cota e use <b>Levar para a proposta</b>.';return false;}
+ var cs=(o.cartas||[]).filter(function(c){return c.valor>0;}),vs=cs.map(function(c){return c.valor;}),ps=cs.map(function(c){return c.parcela;}).filter(Boolean);
+ var faixa=function(a){if(!a.length)return '';var mn=Math.min.apply(null,a),mx=Math.max.apply(null,a);return Math.round(mn)===Math.round(mx)?_mpMoney(mn):(_mpMoney(mn)+' a '+_mpMoney(mx));};
+ _mpSet('mp_adm',o.adm);_mpSet('mp_cat',o.cat);_mpSet('mp_grupo',o.grupo);_mpSet('mp_cota',o.cota);
+ _mpSet('mp_cred',faixa(vs)||o.faixa||'');_mpSet('mp_parc',faixa(ps)||o.parcela||'');
+ _mpSet('mp_prazo',o.prazoRest?(o.prazoRest+(o.prazoOrig?' de '+o.prazoOrig:'')+' meses'):'');
+ _mpSet('mp_total',o.total);_mpSet('mp_cont',o.contempladas);
+ var lv=o.lance||{},lm=lv['Médio HS']||lv['Médio']||'';_mpSet('mp_lance',lm&&lm!=='—'?lm:'');
+ var tx={'Bloco colado':function(v){return 'Bloco de contempladas colado na cota: '+v+'.';},'Contempladas em volta':function(v){return v.replace(/\s*\(até[^)]*\)\s*\.?$/,'.');},
+  'Números do sorteio':function(v){return v;},'À venda':function(v){return 'Disponível no portal da HS'+(v.indexOf('prazo')>=0?' · '+v.slice(v.indexOf('prazo')).replace(/\.$/,''):'')+'.';},
+  'Reservada pela Agion':function(){return 'Reservada no portal da HS em nome da Agion.';},'Contemplada mais perto':function(v){return v;}};
+ var por=(o.fatos||[]).map(function(f){var fn=tx[f.k];return fn?fn(f.v):'';}).filter(Boolean).map(function(t){return t.replace(/\.\.$/,'.');});
+ _mpSet('mp_porque',por.join('\n'));
+ var res=(o.fatos||[]).some(function(f){return f.k==='Reservada pela Agion';});
+ _mpSet('mp_sit',res?'Cota reservada para você no portal da HS. A reserva vale por tempo limitado.':'A disponibilidade da cota é confirmada com a administradora no momento da reserva.');
+ mapaImg(o.img||'');
+ var cb=document.getElementById('pg_mapa');if(cb)cb.checked=true;
+ if(info){var d=new Date(o.ts||Date.now());info.innerHTML='<b>Puxado da Melhores cartas:</b> grupo '+o.grupo+', cota '+o.cota+' ('+d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'). Confira os valores antes de enviar.';}
+ if(typeof liveUpdate==='function')liveUpdate();return true;}
+function mapaLimpar(){['mp_adm','mp_cat','mp_grupo','mp_cota','mp_cred','mp_parc','mp_prazo','mp_total','mp_cont','mp_lance','mp_porque','mp_sit'].forEach(function(id){_mpSet(id,'');});
+ var f=document.getElementById('mp_file');if(f)f.value='';mapaImg('');var cb=document.getElementById('pg_mapa');if(cb)cb.checked=false;
+ var info=document.getElementById('mp_info');if(info)info.innerHTML='Na Melhores cartas, toque na cota que você vai reservar para o cliente e use <b>Levar para a proposta</b>: os dados da cota, do grupo e a imagem do mapa vêm para cá. Também dá para preencher à mão e enviar um print.';
+ if(typeof liveUpdate==='function')liveUpdate();}
+(function(){var f=document.getElementById('mp_file');if(f)f.addEventListener('change',function(){var fl=f.files&&f.files[0];if(!fl)return;var r=new FileReader();r.onload=function(){mapaImg(String(r.result));var cb=document.getElementById('pg_mapa');if(cb)cb.checked=true;};r.readAsDataURL(fl);});
+ var q=new URLSearchParams(location.search);
+ if(q.get('mapa')==='1'){setTimeout(function(){try{if(typeof setTipo==='function')setTipo('completo');}catch(e){}var cbn=document.getElementById('campBtn');if(cbn&&cbn.classList.contains('on'))cbn.click();
+  if(mapaPuxar(false)){var sec=document.getElementById('mp_info');if(sec)setTimeout(function(){sec.scrollIntoView({behavior:'smooth',block:'center'});},250);}},120);}})();
 </script>
 </body>
 </html>
