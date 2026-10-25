@@ -473,6 +473,39 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
  .side.stk>.panel{grid-column:1!important}
  .side.stk>.panel.tall{grid-column:2!important;grid-row:1/span 9!important}
 }
+
+/* DOBRA_25OUT · premissas que abrem e fecham no celular e no tablet (no computador ficam sempre abertas) */
+.dob,.ph .dsum{display:none}
+@media screen and (max-width:1100px){
+ html:not(.pngx):not(.agcap) .side>.panel>.ph{position:relative;padding-right:48px;min-height:36px}
+ html:not(.pngx):not(.agcap) .side>.panel>.ph h3{cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+ html:not(.pngx):not(.agcap) .side>.panel>.ph .dob{position:absolute;top:0;right:-6px;display:grid;place-items:center;width:38px;height:38px;border:0;border-radius:50%;background:var(--bg,#F4EFE4);color:var(--mut,#6E7A75);cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+ html:not(.pngx):not(.agcap) .side>.panel>.ph .dob:active{background:var(--bg2,#ECE4D3)}
+ .ph .dob svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transform:rotate(180deg);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+ html:not(.pngx):not(.agcap) .side>.panel.min .ph .dob svg{transform:none}
+ html:not(.pngx):not(.agcap) .side>.panel.min>:not(.ph){display:none!important}
+ html:not(.pngx):not(.agcap) .side>.panel.min>.ph{margin-bottom:0}
+ html:not(.pngx):not(.agcap) .side>.panel.min{padding-top:16px;padding-bottom:16px}
+ html:not(.pngx):not(.agcap) .side>.panel.min .ph .dsum{display:block;flex:1 1 100%;order:9;font:600 12px/1.35 var(--sans,"DM Sans",system-ui);color:var(--mut,#6E7A75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:2px 0 0;padding-left:27px}
+}
+
+/* PREMISSAS_25OUT · ocultar a coluna de premissas (em qualquer tela) */
+#premBtn.on{background:var(--ink,#0B2A26);color:#F4E6C0}
+#premBtn.on svg.i{color:var(--gold2,#E8CC8B)}
+.premchip{display:none}
+@media screen{
+ html.semprem:not(.pngx):not(.agcap) .g2{grid-template-columns:minmax(0,1fr)!important}
+ html.semprem:not(.pngx):not(.agcap) .g2>.side{display:none!important}
+ html.semprem:not(.pngx):not(.agcap) .premchip{display:flex;order:-9;align-items:center;gap:12px;width:100%;border:0;cursor:pointer;text-align:left;background:var(--card,#FFFDF8);border-radius:18px;padding:12px 16px;box-shadow:var(--shadow,0 6px 20px -12px rgba(11,42,38,.25));font:inherit;color:var(--ink,#0B2A26);-webkit-tap-highlight-color:transparent}
+ .premchip svg.i{flex:none;width:18px;height:18px;color:var(--gold,#C5A059)}
+ .premchip .pct{flex:1 1 auto;min-width:0;display:flex;align-items:baseline;gap:10px}
+ .premchip .pct b{flex:none;font:700 13px/1.3 var(--sans,"DM Sans",system-ui)}
+ .premchip .pcs{min-width:0;font:600 12.5px/1.3 var(--sans,"DM Sans",system-ui);color:var(--mut,#6E7A75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .premchip .pcm{flex:none;padding:6px 12px;border-radius:999px;background:var(--bg,#F4EFE4);font:700 12px/1.2 var(--sans,"DM Sans",system-ui);color:var(--goldd,#A3833F)}
+ .premchip:hover .pcm{background:var(--gold3,#F3E7C9)}
+}
+@media screen and (max-width:760px){.premchip .pct{flex-direction:column;gap:2px}}
+@media print{.premchip,#premBtn{display:none!important}}
 </style>
 </head>
 <body>
@@ -1071,6 +1104,83 @@ W.baixarPNG=function(){ if(_gerando)return; _gerando=true; toast('Gerando a imag
  }).then(function(){ toast('Imagem pronta ✓',true); },function(e){ console.error(e); toast('Não consegui gerar a imagem: '+((e&&e.message)||e),true); })
  .then(function(){ _gerando=false; });
 };
+})();
+/* DOBRA_25OUT · premissas que abrem e fecham no celular e no tablet (no computador ficam sempre abertas).
+   Toque no título do painel ou na setinha. Fechado, o painel mostra um resumo dos valores. A escolha fica guardada no aparelho. */
+(function(){
+ var D=document,W=window,KEY='agcalc-dob',st={};
+ try{st=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
+ var pg=(location.pathname||'').replace(/\.html$/,'').replace(/\/+$/,'').split('/').pop()||'calc';
+ var mq=W.matchMedia?W.matchMedia('(max-width:1100px)'):{matches:false};
+ var CH='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>';
+ function chave(p,i){var h=p.querySelector('.ph h3');return pg+':'+(p.id||(h?h.textContent.trim().replace(/\s+/g,' ').slice(0,40):'p'+i));}
+ function valor(f){
+  var sel=f.querySelector('select');if(sel&&W.getComputedStyle(sel).display!=='none'){var o=sel.options[sel.selectedIndex];var tx=o?o.text.replace(/\s·\sR\$\s[\d.,]+\/mês$/,''):'';return /^Não dividir/.test(tx)?'':tx;}
+  var ib=f.querySelector('.ib input'),seg=f.querySelector('.seg button.on'),sg=seg?seg.textContent.trim():'';
+  if(!ib)return sg;
+  var v=(ib.value||'').trim();if(!v)return '';
+  var pre=f.querySelector('.ib .u.pre'),u=f.querySelector('.ib .u:not(.pre)'),un=u?u.textContent.trim():'';
+  var cola=function(x,y){return y?(y.charAt(0)==='%'?x+y:x+' '+y):x;};
+  var t=(pre?pre.textContent.trim()+' ':'')+cola(v,un);
+  if(sg){if(sg==='R$')t='R$ '+v;else if(sg.charAt(0)==='%'||sg==='CET a.a.')t=cola(v,sg);else t=t+' · '+sg;}
+  return t;}
+ function resumo(p){
+  var fs=[].slice.call(p.querySelectorAll('.fld')).filter(function(f){return W.getComputedStyle(f).display!=='none'&&!f.classList.contains('pronly');});
+  var v=fs.map(valor).filter(Boolean);
+  if(!v.length){var n=p.querySelectorAll('.dgr').length;if(n)return n+' degraus';}
+  return v.slice(0,4).join(' · ');}
+ function upd(p){var s=p.querySelector('.ph .dsum');if(!s)return;var m=p.classList.contains('min');if(m)p.classList.remove('min');s.textContent=resumo(p);if(m)p.classList.add('min');}
+ function updAll(){[].slice.call(D.querySelectorAll('.side>.panel.min')).forEach(upd);}
+ function init(){var side=D.querySelector('.side');if(!side)return;
+  [].slice.call(side.children).forEach(function(p,i){
+   if(!p.classList||!p.classList.contains('panel'))return;
+   var ph=null;for(var c=p.firstElementChild;c;c=c.nextElementSibling){if(c.classList&&c.classList.contains('ph')){ph=c;break;}}
+   if(!ph||ph.querySelector('.dob'))return;
+   var k=chave(p,i),b=D.createElement('button');b.type='button';b.className='dob noprint';b.innerHTML=CH;ph.appendChild(b);
+   var sm=D.createElement('span');sm.className='dsum';ph.appendChild(sm);
+   function set(m){p.classList.toggle('min',m);b.setAttribute('aria-expanded',m?'false':'true');b.setAttribute('aria-label',m?'Mostrar':'Ocultar');b.title=m?'Mostrar':'Ocultar';
+    if(m)st[k]=1;else delete st[k];try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+   function tg(e){if(!mq.matches)return;if(e){e.preventDefault();e.stopPropagation();}upd(p);set(!p.classList.contains('min'));}
+   b.addEventListener('click',tg);var h3=ph.querySelector('h3');if(h3)h3.addEventListener('click',tg);
+   p.classList.toggle('min',!!st[k]);b.setAttribute('aria-expanded',st[k]?'false':'true');b.setAttribute('aria-label',st[k]?'Mostrar':'Ocultar');b.title=st[k]?'Mostrar':'Ocultar';
+   upd(p);});
+  var fila=0;function agenda(){if(fila)return;fila=1;(W.requestAnimationFrame||setTimeout)(function(){fila=0;updAll();if(W.agPremChip)W.agPremChip();});}
+  D.addEventListener('input',agenda,true);D.addEventListener('change',agenda,true);D.addEventListener('click',function(){setTimeout(agenda,60);},true);}
+ if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',init);else init();
+ W.agDobras=init;
+ W.agResumoPainel=function(p){var m=p.classList.contains('min');if(m)p.classList.remove('min');var r=resumo(p);if(m)p.classList.add('min');return r;};
+})();
+
+/* PREMISSAS_25OUT · botão "Ocultar premissas" no topo (computador, tablet e celular): a coluna de premissas some
+   e o resultado ocupa a tela toda. No lugar fica uma faixa com o resumo das premissas e "Mostrar". No PDF e no PNG
+   as premissas saem sempre. A escolha fica guardada no aparelho, por ferramenta. */
+(function(){
+ var D=document,W=window,H=D.documentElement,KEY='agcalc-prem',st={};
+ var side=D.querySelector('.side'),g2=D.querySelector('.g2'),topi=D.querySelector('.topi'),res=D.querySelector('.res');
+ if(!side||!g2||!topi||!res||D.getElementById('premBtn'))return;
+ try{st=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
+ var pg=(location.pathname||'').replace(/\.html$/,'').replace(/\/+$/,'').split('/').pop()||'calc';
+ if(/^escada-/.test(pg))pg='escadas';
+ var IC='<svg class="i" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/></svg>';
+ var b=D.createElement('button');b.type='button';b.className='btn noprint';b.id='premBtn';b.innerHTML=IC+'<span class="bt">Ocultar premissas</span>';
+ var ref=D.getElementById('agLinkBtn')||D.getElementById('pdfbtn');
+ if(ref&&ref.parentNode===topi)topi.insertBefore(b,ref);else topi.appendChild(b);
+ var ch=D.createElement('button');ch.type='button';ch.className='premchip noprint';ch.innerHTML=IC+'<span class="pct"><b>Premissas</b><span class="pcs"></span></span><span class="pcm">Mostrar</span>';
+ res.insertBefore(ch,res.firstChild);
+ function paineis(){return [].slice.call(side.children).filter(function(p){return p.classList&&p.classList.contains('panel')&&!p.classList.contains('noprint')&&W.getComputedStyle(p).display!=='none';});}
+ W.agPremChip=function(){if(!H.classList.contains('semprem'))return;
+  var was=H.classList.contains('semprem');H.classList.remove('semprem');
+  var t=paineis().map(function(p){return W.agResumoPainel?W.agResumoPainel(p):'';}).filter(Boolean).join(' · ');
+  if(was)H.classList.add('semprem');ch.querySelector('.pcs').textContent=t;};
+ function set(h,salva){H.classList.toggle('semprem',h);b.classList.toggle('on',h);
+  b.querySelector('.bt').textContent=h?'Mostrar premissas':'Ocultar premissas';b.title=h?'Mostrar as premissas':'Ocultar as premissas';b.setAttribute('aria-pressed',h?'true':'false');
+  if(salva){if(h)st[pg]=1;else delete st[pg];try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+  if(h)W.agPremChip();
+  setTimeout(function(){try{W.dispatchEvent(new Event('resize'));}catch(e){}},30);}
+ b.addEventListener('click',function(){var h=!H.classList.contains('semprem');set(h,true);
+  if(!h){var r=side.getBoundingClientRect();if(r.top<0||r.top>W.innerHeight*.6)W.scrollTo({top:Math.max(0,W.scrollY+r.top-90),behavior:'smooth'});}});
+ ch.addEventListener('click',function(){set(false,true);var r=side.getBoundingClientRect();if(r.top<0||r.top>W.innerHeight*.6)W.scrollTo({top:Math.max(0,W.scrollY+r.top-90),behavior:'smooth'});});
+ set(!!st[pg],false);
 })();
 </script>
 <script src="/calc-link.js?v=5"></script>

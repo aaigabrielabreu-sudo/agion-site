@@ -15,7 +15,7 @@
 'use strict';
 var W=window, D=document;
 if(W.__hfOn) return; W.__hfOn=1;
-var FER={financiamento:{n:'Financiamento × Consórcio',c:'#2E6A8A',p:'calc-financiamento',k:'Financiamento',o:'o',em:'no',de:'do'},alavancagem:{n:'Alavancagem',c:'#C5A059',p:'calc-alavancagem',k:'Alavancagem',o:'a',em:'na',de:'da'},escada:{n:'Escada Financeira',c:'#3F8F6A',p:'escada-financeira',k:'Escada',o:'a',em:'na',de:'da'},avista:{n:'Consórcio × À vista',c:'#C2724A',p:'calc-avista',k:'À vista',o:'a',em:'na',de:'da'}};/* AVISTA_24OUT */
+var FER={financiamento:{n:'Financiamento × Consórcio',c:'#2E6A8A',p:'calc-financiamento',k:'Financiamento',o:'o',em:'no',de:'do'},alavancagem:{n:'Alavancagem',c:'#C5A059',p:'calc-alavancagem',k:'Alavancagem',o:'a',em:'na',de:'da'},escada:{n:'Escadas',c:'#3F8F6A',p:'escada-financeira',k:'Escadas',o:'as',em:'nas',de:'das'},avista:{n:'Consórcio × À vista',c:'#C2724A',p:'calc-avista',k:'À vista',o:'a',em:'na',de:'da'}};/* AVISTA_24OUT */
 var TIPO={simulacao:['⌁','#C5A059'],abertura:['◉','#2E6A8A'],link:['↗','#0B2A26'],proposta:['▤','#A8457A'],envio:['✉','#A8457A'],tarefa:['✓','#6E7C78'],etapa:['→','#C2463B'],nota:['•','#8C9590'],email:['✉','#1E4E79'],whatsapp:['●','#2E8F57']};
 var H=36e5;
 var HF={links:[],ev:{},t:0,ok:true,load:null,atv:{},dias:30,sub:'ger',sel:null,mdet:false,q:'',fesp:''};

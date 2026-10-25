@@ -1483,4 +1483,40 @@ carregar().then(function(d){preparar(d);pintar();ligaImport();}).catch(function(
 <style id="ag-sem-zoom">/* SEM_ZOOM_24OUT: no celular o campo precisa de 16px, senão o iPhone dá zoom ao digitar */
 @media (max-width:600px),(pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}#busca::placeholder{font-size:13px}}
 </style>
+<style id="ag-lado">/* PAINEL_LADO_25OUT · ocultar o painel da direita */
+#ladoBtn.on{background:var(--ink);color:#F4E6C0}
+#ladoBtn.on svg.i{color:var(--gold2)}
+#ladoBtn[hidden]{display:none!important}
+@media (min-width:981px){
+ body.semlado .g2{grid-template-columns:minmax(0,1fr)!important}
+ body.semlado .g2>.side{display:none!important}
+}
+@media (max-width:980px){
+ body.semlado .g2>.side>:not(#det){display:none!important}
+ #ladoBtn .lbt{display:none}
+ #ladoBtn{padding:7px 10px}
+}
+</style>
+<script>
+/* PAINEL_LADO_25OUT */
+(function(){
+ var D=document,W=window,B=D.body,KEY='agmc-lado';
+ var topi=D.querySelector('.topi'),sp=topi&&topi.querySelector('.sp');if(!topi||D.getElementById('ladoBtn'))return;
+ var b=D.createElement('button');b.type='button';b.className='btn sm';b.id='ladoBtn';
+ b.innerHTML='<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M14.5 4.5v15"/></svg><span class="lbt">Ocultar painel</span>';
+ if(sp&&sp.nextSibling)topi.insertBefore(b,sp.nextSibling);else topi.appendChild(b);
+ function set(h,salva){B.classList.toggle('semlado',h);b.classList.toggle('on',h);
+  b.querySelector('.lbt').textContent=h?'Mostrar painel':'Ocultar painel';b.title=h?'Mostrar o painel (negociação, cartas e oportunidades)':'Ocultar o painel (negociação, cartas e oportunidades) e ver a grade inteira';
+  b.setAttribute('aria-pressed',h?'true':'false');
+  if(salva){try{if(h)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}catch(e){}}
+  setTimeout(function(){try{W.dispatchEvent(new Event('resize'));}catch(e){}},30);}
+ b.addEventListener('click',function(){set(!B.classList.contains('semlado'),true);});
+ /* no computador, tocar numa cota traz o painel de volta (é lá que aparece o detalhe) */
+ D.addEventListener('click',function(e){if(!B.classList.contains('semlado')||W.innerWidth<=980)return;var t=e.target;if(t&&t.closest&&t.closest('#mapa .cel'))set(false,true);},true);
+ /* o botão só aparece quando a tela tem o painel (aba "Por grupo") */
+ function vis(){b.hidden=!D.querySelector('.g2>.side');}
+ var v=D.getElementById('view');if(v&&W.MutationObserver)new MutationObserver(function(){vis();}).observe(v,{childList:true});
+ vis();var ini=false;try{ini=localStorage.getItem(KEY)==='1';}catch(e){}set(ini,false);
+})();
+</script>
 </body></html>

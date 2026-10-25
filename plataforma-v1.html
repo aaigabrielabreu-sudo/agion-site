@@ -2956,7 +2956,7 @@ function mktScanStale(){ flash('A retomada de leads parados agora é feita pelo 
 }
 async function renderFerramentas(C){
  setTop('Ferramentas');
- var tools=[["Financiamento × Consórcio","Compare custo real, CET, SAC/Price e invista a diferença que sobra.","/calc-financiamento","#3f8f9d"],["Escada Financeira","Monte a escada de cartas que se paga sozinha.","/escada-financeira","#c8a860"],["Alavancagem Patrimonial","Simule vender a carta contemplada ou virar renda de imóvel.","/calc-alavancagem","#2c6a76"],["Gerador de Propostas","Monte a proposta do cliente e gere o PDF profissional.","/propostas","#0b2a26"]];
+ var tools=[["Financiamento × Consórcio","Compare custo real, CET, SAC/Price e invista a diferença que sobra.","/calc-financiamento","#3f8f9d"],["Escadas","Escada financeira e patrimonial: a escada de cartas que se paga sozinha.","/escada-financeira","#c8a860"],["Alavancagem Patrimonial","Simule vender a carta contemplada ou virar renda de imóvel.","/calc-alavancagem","#2c6a76"],["Gerador de Propostas","Monte a proposta do cliente e gere o PDF profissional.","/propostas","#0b2a26"]];
  var w=document.createElement("div"); w.style.maxWidth="920px"; w.style.margin="0 auto";
  var h=document.createElement("div"); h.style.cssText="margin:2px 0 16px"; h.innerHTML='<div style="font-size:12px;letter-spacing:.14em;color:#a6853f;font-weight:700">FERRAMENTAS DE SIMULAÇÃO</div><div style="color:#6e8078;font-size:14px;margin-top:4px">Abrem em nova aba. Use na frente do cliente.</div>'; w.appendChild(h);
  var g=document.createElement("div"); g.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px";
@@ -4050,8 +4050,8 @@ function masterReportPDF(){
 <script src="/plat-crm-reeng.js?v=1"></script>
 <script src="/plat-contas-papel.js?v=1"></script>
 <script src="/plat-mkt.js?v=1"></script>
-<script src="/plat-tour.js?v=17"></script>
-<script src="/plat-novidades.js?v=63"></script>
+<script src="/plat-tour.js?v=18"></script>
+<script src="/plat-novidades.js?v=64"></script>
 
 <!-- ===== Propostas (anexos por lead) — identidade Agion ===== -->
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">

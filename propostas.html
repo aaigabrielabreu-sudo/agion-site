@@ -1036,5 +1036,58 @@ try{parent.postMessage({type:'agion-ready'},'*');}catch(e){}
 <style id="ag-sem-zoom">/* SEM_ZOOM_24OUT: no celular o campo precisa de 16px, senão o iPhone dá zoom ao digitar */
 @media (max-width:600px),(pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}}
 </style>
+<style id="ag-dobra">/* DOBRA_25OUT · seções que abrem e fecham no celular e no tablet */
+.dobb,.dob-only{display:none}
+@media (max-width:1100px){
+ #form-completo .section-t{position:relative;padding:10px 46px 10px 12px;margin:14px 0 8px;background:#f6f3ec;border-radius:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+ #form-completo .section-t.dob-only{display:block}
+ #form-completo .section-t .dobb{position:absolute;top:50%;right:6px;transform:translateY(-50%);display:grid;place-items:center;width:34px;height:34px;border:0;border-radius:50%;background:#fff;color:#6e7a75;padding:0;cursor:pointer}
+ #form-completo .section-t .dobb svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transform:rotate(180deg);transition:transform .3s}
+ #form-completo .section-t.min .dobb svg{transform:none}
+ #form-completo .dobx.min{display:none}
+}
+ /* PREMISSAS_25OUT · ocultar os campos (qualquer tela) */
+.pcamp{display:flex;justify-content:flex-end;margin:-6px 0 12px}
+.pcamp button{display:inline-flex;align-items:center;gap:7px;border:1px solid #d8dcd8;background:#fff;color:#4a544e;border-radius:999px;padding:7px 14px;font:600 13px/1.2 inherit;font-family:inherit;cursor:pointer}
+.pcamp button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .3s}
+.pcamp button.on{background:var(--ink);color:var(--goldl);border-color:var(--ink)}
+.pcamp button.on svg{transform:rotate(180deg)}
+.pcamp .pcn{display:none;flex:1;align-self:center;font-size:13px;color:#6e7a75}
+.fmin .pcamp .pcn{display:block}
+.fmin #form-resumido,.fmin #form-completo{display:none!important}
+</style>
+<script>
+/* DOBRA_25OUT · seções do formulário completo: toque no título para abrir ou fechar (celular e tablet) */
+(function(){
+ var F=document.getElementById('form-completo');if(!F||F.dataset.dob)return;F.dataset.dob='1';
+ var mq=window.matchMedia?window.matchMedia('(max-width:1100px)'):{matches:false},KEY='agprop-dob',st={};
+ try{st=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
+ var CH='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>';
+ /* os campos do começo (cliente, grupo, reajuste…) ganham um título só no celular */
+ var prim=null;for(var c=F.firstElementChild;c;c=c.nextElementSibling){if(c.classList.contains('grid3')){prim=c;break;}}
+ if(prim){var t=document.createElement('div');t.className='section-t dob-only';t.textContent='Dados da proposta';F.insertBefore(t,prim);}
+ [].slice.call(F.children).filter(function(h){return h.classList.contains('section-t');}).forEach(function(h){
+  var box=document.createElement('div');box.className='dobx';var n=h.nextElementSibling;
+  while(n&&!n.classList.contains('section-t')){var nx=n.nextElementSibling;box.appendChild(n);n=nx;}
+  h.parentNode.insertBefore(box,h.nextSibling);
+  var k=(h.firstChild&&h.firstChild.textContent||h.textContent).trim().slice(0,40);
+  var b=document.createElement('button');b.type='button';b.className='dobb';b.innerHTML=CH;h.appendChild(b);
+  function set(m){h.classList.toggle('min',m);box.classList.toggle('min',m);b.setAttribute('aria-expanded',m?'false':'true');b.setAttribute('aria-label',m?'Mostrar':'Ocultar');
+   if(m)st[k]=1;else delete st[k];try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+  h.addEventListener('click',function(e){if(!mq.matches)return;e.preventDefault();set(!h.classList.contains('min'));});
+  set(!!st[k]);});
+})();
+/* PREMISSAS_25OUT · botão para ocultar os campos do formulário (computador, tablet e celular) */
+(function(){
+ var tabs=document.querySelector('.tabs');if(!tabs||document.getElementById('campBtn'))return;var P=tabs.closest('.panel');if(!P)return;
+ var w=document.createElement('div');w.className='pcamp';
+ w.innerHTML='<span class="pcn">Campos ocultos. A prévia e os botões de baixar continuam aqui embaixo.</span><button type="button" id="campBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 14.5l5.5-5.5 5.5 5.5"/></svg><span>Ocultar campos</span></button>';
+ tabs.parentNode.insertBefore(w,tabs.nextSibling);var b=w.querySelector('button'),KEY='agprop-campos';
+ function set(h,salva){P.classList.toggle('fmin',h);b.classList.toggle('on',h);b.querySelector('span').textContent=h?'Mostrar campos':'Ocultar campos';b.setAttribute('aria-pressed',h?'true':'false');
+  if(salva){try{if(h)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}catch(e){}}}
+ b.addEventListener('click',function(){set(!P.classList.contains('fmin'),true);});
+ var ini=false;try{ini=localStorage.getItem(KEY)==='1';}catch(e){}set(ini,false);
+})();
+</script>
 </body>
 </html>

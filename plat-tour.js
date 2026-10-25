@@ -112,7 +112,7 @@ var CFG=[
  ]},
  {id:'ferramentas',page:'ferramentas',roles:S3,v:4,g:'Ferramentas',ic:'gear',title:'Ferramentas',desc:'Calculadoras para usar na frente do cliente e o gerador de propostas.',steps:[
    {t:q('[data-tour-target="tool-0"]'),title:'Financiamento × Consórcio',text:'Compara custo real, CET e SAC/Price, e mostra quanto sobra para investir. Abre em uma nova aba.',optional:true,wait:6000},
-   {t:q('[data-tour-target="tool-1"]'),title:'Escada Financeira',text:'Monta a escada de cartas que se paga sozinha.',optional:true},
+   {t:q('[data-tour-target="tool-1"]'),title:'Escadas',text:'Escada financeira e patrimonial: a escada de cartas que se paga sozinha.',optional:true},
    {t:q('[data-tour-target="tool-2"]'),title:'Alavancagem Patrimonial',text:'Simula vender a carta contemplada ou transformá-la em renda de imóvel.',optional:true},
    {t:q('[data-tour-target="tool-3"]'),title:'Gerador de Propostas',text:'Monta a proposta do cliente e gera o PDF.',optional:true},
    {t:q('[data-tour-target="tool-4"]'),title:'Assembleias',text:{master:'O resultado das assembleias de cada mês, por grupo: contemplações por sorteio e por lance (livre, fixo, 2º fixo, embutido), excluídos e o calendário. Você importa o PDF da administradora e a equipe consulta.',_:'O resultado das assembleias de cada mês, por grupo: contemplações por sorteio e por lance, excluídos e o calendário. Use para indicar ao cliente o grupo que mais contempla.'},optional:true},
@@ -121,7 +121,7 @@ var CFG=[
  /* ---- ferramentas que abrem em nova aba: o guia roda na própria página (tool-tour.js); ext = endereço ---- */
  {id:'t-financ',ext:'/calc-financiamento',roles:S3,v:3,g:'Ferramentas',ic:'money',title:'Financiamento × Consórcio',desc:'Carta contemplada ou carta nova contra o financiamento: parcelas, custo efetivo, a sobra investida e o PDF.',steps:STEPS(14)},
  {id:'t-avista',ext:'/calc-avista',roles:S3,v:1,g:'Ferramentas',ic:'money',title:'Consórcio × À vista',desc:'Pagar à vista ou comprar pelo consórcio e deixar o dinheiro rendendo: patrimônio no fim, rendimento de empate e o PDF.',steps:STEPS(12)},/* AVISTA_24OUT */
- {id:'t-escada',ext:'/escada-financeira',roles:S3,v:1,g:'Ferramentas',ic:'chart',title:'Escada Financeira',desc:'Premissas, degraus e o documento da escada de cartas que se paga sozinha.',steps:STEPS(8)},
+ {id:'t-escada',ext:'/escada-financeira',roles:S3,v:3,g:'Ferramentas',ic:'chart',title:'Escadas',desc:'Carta inicial, montagem automática, perfis e a proposta das escadas financeira e patrimonial.',steps:STEPS(15)},
  {id:'t-alav',ext:'/calc-alavancagem',roles:S3,v:2,g:'Ferramentas',ic:'target',title:'Alavancagem',desc:'Alavancagem financeira (vender a carta com ágio) e patrimonial (imóvel que o aluguel ajuda a pagar), cada uma na sua sub-aba.',steps:STEPS(16)},
  {id:'t-prop',ext:'/propostas',roles:S3,v:1,g:'Ferramentas',ic:'doc',title:'Gerador de Propostas',desc:'Proposta resumida e completa: tabela, estratégias, cartas, páginas do deck e o download.',steps:STEPS(14)},
  {id:'t-mcartas',ext:'/melhores-cartas',roles:S3,v:2,g:'Ferramentas',ic:'chart',title:'Melhores cartas disponíveis',desc:'Grade de cotas de cada grupo com todo o histórico da HS, o lance livre de cada grupo, oportunidades perto das contempladas, reservas e posições da equipe.',steps:STEPS(16)},
