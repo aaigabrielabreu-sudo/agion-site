@@ -3177,7 +3177,7 @@ function drawSeries(d,lb,meta,full,o){o=o||{};var bars=!!o.bars;var box=$('#char
   tip.innerHTML='<b style="text-transform:capitalize">'+(full?full[i]:lb[i])+'</b><div style="display:flex;justify-content:space-between;gap:14px;margin-top:6px"><span style="color:var(--goldd)">● Vendido</span><b>'+brl(d[i]*1000)+'</b></div>'+(meta>0?'<div style="display:flex;justify-content:space-between;gap:14px;color:var(--mut)"><span>– – Meta</span><b>'+brl(meta*1000)+'</b></div><div style="margin-top:6px;font-weight:700;color:'+(d[i]>=meta?'var(--okt)':'var(--badt)')+'">'+(d[i]>=meta?'▲ acima da meta':'▼ abaixo da meta')+'</div>':'');
   tip.style.left=Math.min(W-180,pts[i][0]+14)+'px';tip.style.top=Math.max(0,pts[i][1]-80)+'px';tip.classList.add('on');};
  box.onmouseleave=function(){tip.classList.remove('on');cx.style.opacity=0;cd.style.opacity=0;};}
-function taskMini(t){var late=t.when==='atrasada';return '<div class="li" data-t="'+t.id+'" style="padding:9px 8px"><button class="tkc" style="width:24px;height:24px;border-radius:50%;border:2px solid '+(late?'var(--bad)':'var(--line)')+';flex:none;transition:.3s var(--sp)"></button><div class="t"><b style="font-size:13px">'+(t.robo?'<span class="robo f">ROBÔ</span>':'')+t.t+'</b><small style="'+(late?'color:var(--bad);font-weight:700':'')+'">'+(late?'Atrasada · ':'')+t.h+(isM()&&t.resp!==ME()?' · '+fn(t.resp):'')+'</small></div></div>';}
+function taskMini(t){var late=t.when==='atrasada',VW=tkVista(t,t.lead?leadById(t.lead):null);return '<div class="li" data-t="'+t.id+'" style="padding:9px 8px"><button class="tkc" style="width:24px;height:24px;border-radius:50%;border:2px solid '+(late?'var(--bad)':'var(--line)')+';flex:none;transition:.3s var(--sp)"></button><div class="t"><b style="font-size:13px">'+esc4(VW.acao)+(t.robo?'<span class="robo">ROBÔ</span>':'')+'</b><small style="'+(late?'color:var(--bad);font-weight:700':'')+'">'+(late?'Atrasada · ':'')+t.h+(VW.nome?' · '+esc4(VW.nome):'')+(isM()&&t.resp!==ME()?' · '+fn(t.resp):'')+'</small></div></div>';}
 function bindTaskMini(root){$$('.tkc',root).forEach(function(b){b.onclick=function(){var li=b.closest('.li'),t=TASKS.filter(function(x){return x.id===+li.dataset.t;})[0];t.done=1;b.style.background='var(--ok)';b.style.borderColor='var(--ok)';b.style.transform='scale(1.15)';
   li.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateX(30px)'}],{duration:500,delay:350,fill:'forwards',easing:'cubic-bezier(.22,1,.36,1)'});setTimeout(function(){li.remove();buildNavKeep();},900);toast('Tarefa concluída ✓','check');};});}
 /* ================= KPIs (dashboard gerencial) ================= */
@@ -3558,8 +3558,8 @@ R.tarefas=function(v){if(TF.who===null)TF.who=tkGest()?'todas':'eu';var ps=pushS
  function list(quick){var fech=TF.st==='feitas'||TF.st==='nao';var G=[['atrasada','Atrasadas'],['hoje',fech?'Hoje':'Hoje · '+DIAS[h.getDay()]+', '+h.getDate()+' de '+MESES[h.getMonth()]],['amanha','Amanhã · '+DIAS[am.getDay()]+', '+am.getDate()],['semana','Próximos dias'],['antes','Antes']];
   var tl=$('#tl'),ES=TF.st==='pend'?tkEspeciais(TF):[];tl.innerHTML=G.map(function(g){var ts=base().filter(function(t){return grupo(t)===g[0]&&ok(t);}),es=ES.filter(function(x){return x.when===g[0];});if(!ts.length&&!es.length)return '';
    return '<div class="tgrp'+(g[0]==='atrasada'?' late':'')+'"><h5>'+(g[0]==='atrasada'?'<i style="width:8px;height:8px;border-radius:50%;background:var(--bad);animation:pulse 2s infinite"></i>':'')+g[1]+'<span class="pill'+(g[0]==='atrasada'?' bad':'')+'" style="margin-left:4px">'+(ts.length+es.length)+'</span></h5>'+es.map(function(x){return tkEspHTML(x,ES.indexOf(x));}).join('')+ts.map(function(t){var late=t.when==='atrasada'&&t.status==='pendente';
-    var tl2=t.lead?leadById(t.lead):null,op=TF.open===t.id,rs=tkResDe(t),dn=t.status!=='pendente',tel='';try{tel=pcall('tkTel',t.raw)||'';}catch(e){}
-    return '<div class="tk'+(late?' late':'')+(dn?' dn':'')+(op?' op':'')+'" data-id="'+t.id+'"><div class="tr"><button class="ck"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button><div class="ti" style="background:'+(TCOL[t.tp]||'#2E6A8A')+'">'+I(t.tp==='wa'?'wa':t.tp,19)+'</div><div class="tt"><b>'+(t.robo?'<span class="robo f">ROBÔ</span>':'')+esc4(t.t)+(t.res?'<span class="resb'+(/Não|Sem|Faltou|Cancel|Recus/.test(t.res)?' no':'')+'">'+esc4(t.res)+'</span>':'')+(t.status==='nao_feito'?'<span class="resb no">Não feita</span>':'')+'</b><small>'+(late?'<span style="color:var(--bad);font-weight:700">Atrasada · </span>':'')+'<span class="tmm">'+tkTempo(t)+'</span>'+[t.l?esc4(t.l):'',tl2?tkLeadInfo(tl2):'',tl2?esc4(tl2.nome):(t.raw.leadNome&&!t.l?esc4(t.raw.leadNome):''),tkGest()&&t.resp?'<span style="color:var(--ink2);font-weight:600">'+fn(t.resp)+'</span>':''].filter(Boolean).join(' · ')+'</small>'+(t.anot&&!op?'<div class="nota">📝 '+esc4(t.anot)+'</div>':'')+'</div>'+(tkGest()&&t.resp?av(un(t.resp),'','width:26px;height:26px;font-size:9.5px'):'')+'<span class="tm">'+(late?'⚠ ':'')+tkTempo(t)+'</span><div class="ab">'+(tel?'<a title="Ligar" href="tel:+'+tel+'" data-a="tel">'+I('phone',15)+'</a><button class="wa" data-a="wa" title="WhatsApp">'+I('wa',15)+'</button>':'')+'</div>'+I('chev',18).replace('class="i"','class="i chev"')+'</div>'+
+    var tl2=t.lead?leadById(t.lead):null,op=TF.open===t.id,rs=tkResDe(t),dn=t.status!=='pendente',tel='',VW=tkVista(t,tl2);try{tel=pcall('tkTel',t.raw)||'';}catch(e){}
+    return '<div class="tk'+(late?' late':'')+(dn?' dn':'')+(op?' op':'')+'" data-id="'+t.id+'"><div class="tr"><button class="ck"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button><div class="ti" style="background:'+(TCOL[t.tp]||'#2E6A8A')+'">'+I(t.tp==='wa'?'wa':t.tp,19)+'</div><div class="tt tkv"><b>'+esc4(VW.acao)+(t.robo?'<span class="robo">ROBÔ</span>':'')+(t.res?'<span class="resb'+(/Não|Sem|Faltou|Cancel|Recus/.test(t.res)?' no':'')+'">'+esc4(t.res)+'</span>':'')+(t.status==='nao_feito'?'<span class="resb no">Não feita</span>':'')+'</b>'+(VW.nome?'<div class="tkn">'+esc4(VW.nome)+'</div>':'')+'<small class="tkq">'+(late?'<span class="lt">Atrasada · </span>':'')+'<span class="tmm">'+tkTempo(t)+'</span>'+(VW.fuTxt?' · Follow-up '+esc4(VW.fuTxt):'')+'</small>'+((VW.meta.length||(tkGest()&&t.resp)||(!t.robo&&tl2))?'<small class="tkm">'+VW.meta.concat(!t.robo&&tl2?[((tl2.notas||[]).length+1)+'º contato']:[]).map(esc4).concat(tkGest()&&t.resp?['<span class="tkr">'+fn(t.resp)+'</span>']:[]).join(' · ')+'</small>':'')+(VW.nota?'<div class="tkh'+(VW.urg?' u':'')+'">'+esc4(VW.nota)+'</div>':'')+(t.anot&&!op?'<div class="nota">📝 '+esc4(t.anot)+'</div>':'')+'</div>'+(tkGest()&&t.resp?av(un(t.resp),'','width:26px;height:26px;font-size:9.5px'):'')+'<span class="tm">'+(late?'⚠ ':'')+tkTempo(t)+'</span><div class="ab">'+(tel?'<a title="Ligar" href="tel:+'+tel+'" data-a="tel">'+I('phone',15)+'</a><button class="wa" data-a="wa" title="WhatsApp">'+I('wa',15)+'</button>':'')+'</div>'+I('chev',18).replace('class="i"','class="i chev"')+'</div>'+
     '<div class="det"><div><div class="in2"><div class="lbl" style="margin-bottom:8px">Resposta / resultado</div><div class="opts" style="margin:0 0 12px">'+rs.map(function(r){return '<button class="opt'+(t.res===r?' on':'')+'" data-r="'+r+'">'+r+'</button>';}).join('')+'</div>'+
     '<div class="fi"><label>Anotação</label><textarea rows="2" class="an" placeholder="O que aconteceu, o que ficou combinado, próximo passo…">'+esc4(t.anot||'')+'</textarea></div><div class="g2" style="gap:12px"><div class="fi"><label>Prazo</label><input type="datetime-local" class="pz" value="'+dtLocal(t.prazo)+'"></div>'+(tkGest()?'<div class="fi"><label>Responsável</label><select class="ow">'+tkStaffR().map(function(k){return '<option value="'+k+'"'+(k===t.resp?' selected':'')+'>'+un(k)+'</option>';}).join('')+'</select></div>':'<div></div>')+'</div>'+
     (dn&&t.raw.concluidaEm?'<div style="font-size:12px;color:var(--mut);margin:-4px 0 10px">Concluída em '+fmtD(t.raw.concluidaEm)+' '+z2(new Date(t.raw.concluidaEm).getHours())+':'+z2(new Date(t.raw.concluidaEm).getMinutes())+'</div>':'')+
@@ -3611,6 +3611,29 @@ function bindTaskMini(root){$$('.tkc',root).forEach(function(b){b.onclick=functi
 /* ---------- tempo de cada tarefa e dados do lead ---------- */
 function tkTempo(t){if(t.prazo||t.when==='atrasada')return t.h;var c=t.raw&&t.raw.criadoEm?new Date(t.raw.criadoEm):null;if(!c||isNaN(c))return t.h;var d=Math.floor((Date.now()-+c)/864e5);return 'sem prazo · '+(d<=0?'criada hoje':d===1?'criada ontem':'há '+d+' dias');}
 function tkLeadInfo(l){var p=[];if(LCAT[l.cat])p.push(LCAT[l.cat].lb);if(l.valor)p.push(brlK(l.valor));var n=(l.notas||[]).length;p.push((n+1)+'º contato');return esc4(p.join(' · '));}
+/* ---------- TAREFA_LIMPA_20261025: o título do robô vira ação curta; nome, categoria e valor vêm do card do lead (uma vez só) ---------- */
+var TKCATW={imovel:'IMOVEL','imóvel':'IMOVEL',automovel:'AUTOMOVEL','automóvel':'AUTOMOVEL',carro:'AUTOMOVEL',investimento:'INVESTIMENTO',servicos:'SERVICOS','serviços':'SERVICOS'};
+function nomeCurto(n){return String(n||'').split('|')[0].replace(/\s+/g,' ').trim();}
+function tkValorTxt(x){var m=String(x||'').match(/R\$\s*([\d.,]+)\s*(mil|milh[aã]o|milh[oõ]es)?/i);if(!m)return 0;var n=parseFloat(m[1].replace(/\./g,'').replace(',','.'))||0;return /milh/i.test(m[2]||'')?n*1e6:/mil/i.test(m[2]||'')?n*1e3:n;}
+function tkVista(t,L){var s=String(t.t||'').replace(/\s+/g,' ').trim(),v={acao:'',nome:'',nota:'',fu:'',obj:'',cat:'',valor:0,urg:0},m;
+ if((m=s.match(/^[^A-Za-zÀ-ÿ]*(Ligar|Instagram|Tarefa)\s*:\s*(.+?)\s+—\s+(.+)$/))){var tipo=m[1],base=m[2],ps=m[3].split(' · ');v.nome=ps.shift();
+  ps.forEach(function(x){var f=x.match(/^follow-up\s+([A-Z0-9_]+)/i);if(f)v.fu=f[1].toUpperCase();else if(!v.obj)v.obj=x;});
+  var tn=base.match(/Tentativa de liga[cç][aã]o\s*(\d+)/i);
+  if(tn)v.acao='Ligar · '+tn[1]+'ª tentativa';
+  else if(tipo==='Instagram'){v.acao='Interagir no Instagram';v.nota=base.replace(/^Interagir no Instagram\s*/i,'').replace(/^\([^)]*\)\s*:?\s*/,'');}
+  else v.acao=(tipo==='Ligar'?'Ligar · ':'')+base;}
+ else if((m=s.match(/^[^A-Za-zÀ-ÿ]*(Chamar AGORA no seu WhatsApp|Designar e chamar)\s*:\s*(.+?)\s+—\s+(.+)$/i))){
+  v.acao=/designar/i.test(m[1])?'Designar e chamar agora':'Chamar agora no WhatsApp';v.urg=1;var pp=m[2].split(' · ');v.nome=pp.shift();
+  pp.forEach(function(x){var k=x.trim().toLowerCase();if(/R\$/.test(x))v.valor=tkValorTxt(x);else if(TKCATW[k])v.cat=TKCATW[k];});
+  v.nota='A Alice avisou o cliente que você chama em instantes';}
+ else if((m=s.match(/^[^A-Za-zÀ-ÿ]*URGENTE\s*·\s*(.+?)\s+respondeu o e-mail\s*—\s*ligar agora\s*:?\s*(.*)$/i))){
+  v.acao='Ligar agora · respondeu o e-mail';v.urg=1;v.nome=m[1];v.nota=m[2].replace(/^["“]+|["”]+$/g,'');}
+ else v.acao=s.replace(/^[^A-Za-zÀ-ÿ0-9"“(]+/,'')||'Tarefa';
+ if(v.obj){if(!v.valor)v.valor=tkValorTxt(v.obj);if(!v.cat)v.cat=/im[oó]vel/i.test(v.obj)?'IMOVEL':/carro|ve[ií]culo|autom[oó]vel/i.test(v.obj)?'AUTOMOVEL':'';}
+ if(L){if(L.ccat&&CCAT[L.ccat])v.cat=L.ccat;if(+L.valor>0)v.valor=+L.valor;v.sub=L.sub||'';}
+ v.nome=nomeCurto((L&&L.nome)||(t.raw&&t.raw.leadNome)||v.nome||(t.l&&!/^\d{1,2}\/\d{1,2}/.test(t.l)?t.l:'')||'');
+ v.meta=[v.cat&&CCAT[v.cat]?CCAT[v.cat].lb+(v.sub?' · '+v.sub:''):'',v.valor>0?brlK(v.valor):''].filter(Boolean);
+ v.fuTxt=v.fu?(FUNIV[v.fu]||v.fu):'';return v;}
 function tkDia(d){var h0=+hojeD(),d0=new Date(d);d0.setHours(0,0,0,0);var dif=Math.round((+d0-h0)/864e5);return dif<0?'atrasada':dif===0?'hoje':dif===1?'amanha':dif<7?'semana':null;}
 var FUNIV={N1:'1º contato',N1_ISCA:'1º contato',N2:'2º contato',REC3:'recuperação',REC9:'recuperação',FB_OP:'feedback'};
 /* ---------- tarefas especiais (calculadas dos dados reais, não ficam gravadas) ---------- */
@@ -5615,7 +5638,7 @@ vcMontar();
 <script src="/plat2-histferr.js?v=5"></script>
 <script src="/plat2-crm7.js?v=4"></script>
 <script src="/plat2-plano.js?v=7"></script>
-<script src="/plat2-cal.js?v=9"></script>
+<script src="/plat2-cal.js?v=10"></script>
 <script src="/plat2-simcom.js?v=5"></script>
 <script id="b-tab-estavel">/* Chat B 19/out: abas do celular respondem no 1º toque.
  Causa: a barra era REFEITA (innerHTML) a cada atualização de números/badges (CRM, conversas, recarga a cada poucos segundos);
@@ -5643,4 +5666,28 @@ vcMontar();
  document.addEventListener('click',function(e){if(Date.now()-ign<600&&e.target.closest&&e.target.closest('#mtab button')){e.stopPropagation();e.preventDefault();}},true);
 })();
 </script>
+<style id="tarefa-limpa-20261025">
+/* TAREFA_LIMPA_20261025 — cartão de tarefa: ação, nome do lead, quando e dados do card, cada um uma vez */
+.tk .tkv>b{display:flex;align-items:center;flex-wrap:wrap;gap:4px 7px;line-height:1.3;font-size:14.6px}
+.tk .tkv>b .robo{margin-left:0}
+.tk .tkv .tkn{font:600 13.6px/1.35 "DM Sans",system-ui,sans-serif;color:var(--ink);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tk .tkv small{display:block;line-height:1.45;margin-top:2px}
+.tk .tkv .tkq .lt{color:var(--bad);font-weight:700}
+.tk .tkv .tkm{color:var(--ink2)}
+.tk .tkv .tkr{font-weight:600}
+.tk .tkv .tkh{font-size:12.3px;line-height:1.4;color:var(--mut);margin-top:5px;padding-left:9px;border-left:2px solid var(--line)}
+.tk .tkv .tkh.u{color:var(--ink2);border-left-color:var(--gold)}
+.tk .tr>.tm{display:none}
+.tk .tkv .tmm{display:inline!important;font-weight:700;color:var(--ink2);margin-right:0!important}
+.tk .tkv .tmm:after{content:none!important}
+.tk.late .tkv .tmm{color:var(--ink)}
+@media (max-width:860px){
+ .tk .tr>.ti{display:none}
+ .tk .tr{align-items:flex-start}
+ .tk .tr>.ck{margin-top:1px}
+ .tk .tr>.ab{margin-left:36px}
+ .tk .tr>svg.chev{margin-left:auto;align-self:center}
+ .tk .det .in2{padding-left:0}
+}
+</style>
 </body></html>
