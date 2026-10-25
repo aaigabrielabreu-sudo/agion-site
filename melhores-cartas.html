@@ -1229,6 +1229,7 @@ function levarProposta(g,c){try{
 }catch(e){console.error(e);toast('Não consegui levar a cota para a proposta');}}
 function bindDet(g){var p=$('#dpos');if(p)p.onclick=function(){abrirDlg(g,S.sel);};
  var dpp=$('#dprop');if(dpp)dpp.onclick=function(){levarProposta(g,S.sel);};
+ if(dpp){var a2p=dpp.parentNode&&dpp.parentNode.querySelector('.a2');if(a2p)a2p.appendChild(dpp);}/* ACOES_COTA_25OUT */
  var dr=$('#dres');if(dr)dr.onclick=function(){var c=S.sel,m=marcas(g)[c]||{};reservarHS(g,[c],m.posicao?m.posicao.cliente_nome:'');};
  var dv=$('#dvolta');if(dv)dv.onclick=function(){var c=S.sel;caixa({t:'A cota '+c+' voltou à venda?',p:'Grupo '+g.grupo+'. Use quando a HS mostra a cota à venda mesmo constando como contemplada (a contemplação foi cancelada). Ela volta a contar como livre na proximidade e a equipe toda vê. Dá para desfazer.',lab:'Observação (opcional)',ph:'ex.: à venda no portal da HS em '+hoje(),ok:'Voltou à venda'},function(v){marcar(g,c,'avenda',null,v||'voltou à venda');});};
  $$('#det [data-mk]').forEach(function(b){b.onclick=function(){pedeMarca(g,S.sel,b.dataset.mk);};});
@@ -1570,4 +1571,11 @@ carregar().then(function(d){preparar(d);pintar();ligaImport();}).catch(function(
  vis();var ini=false;try{ini=localStorage.getItem(KEY)==='1';}catch(e){}set(ini,false);
 })();
 </script>
+<style id="acoes-cota-25out">/* ACOES_COTA_25OUT · botões do detalhe: quebram de linha e enchem a largura, sem cortar */
+.det .acts{gap:10px}
+.det .acts .a2{display:flex;flex-wrap:wrap;gap:8px}
+.det .acts .a2 .btn{flex:1 1 auto;min-width:0;width:auto;white-space:nowrap;padding:10px 14px;font-size:12.5px;justify-content:center}
+.det .acts .a2 .btn svg.i{width:15px;height:15px;flex:none}
+.det .acts>#dprop{padding:11px 16px}
+</style>
 </body></html>
