@@ -2084,7 +2084,7 @@ var PARENT={cliente:'clientes',lead:'crm',assembleias:'ferramentas',novidades:nu
 function go(k,arg,nohist){
  var allowed=navList().map(function(t){return t[0];}).concat(['cliente','assembleias','novidades','histferr','meuplano']);if(allowed.indexOf(k)<0)k='painel';
  cur=k;curArg=arg||null;var nk=k==='cliente'?(arg&&arg.lead?'crm':'clientes'):(PARENT[k]!==undefined?PARENT[k]:k);moveInd(nk);
- var t=navList().filter(function(x){return x[0]===nk;})[0];$('#crumb').innerHTML=(t?t[3]+' <span>· '+t[1]+'</span>':'Plataforma <span>· Novidades</span>');
+ var t=navList().filter(function(x){return x[0]===nk;})[0];$('#crumb').innerHTML=(t?(String(t[3]).toLowerCase()===String(t[1]).toLowerCase()?'Agion Wealth':t[3])+' <span>· '+t[1]+'</span>':'Plataforma <span>· Novidades</span>');
  if(!nohist)try{history.replaceState(null,'','#'+k);}catch(e){}
  var v=$('#view');v.style.transition='opacity .14s,transform .14s';v.style.opacity=0;v.style.transform='translateY(8px)';closeDrawer();closePop();closeSheet(true);$$('.dm').forEach(function(m){m.remove();});$('#ov').classList.remove('on');
  setTimeout(function(){v.innerHTML='';(R[k]||R.vazio)(v,arg);$('#main').scrollTop=0;v.style.opacity=1;v.style.transform='none';reveal(v);counts(v);},110);}
@@ -3318,7 +3318,7 @@ function tabOn(){var t=$('#mtab');if(!t)return;var k=cur==='cliente'?(curArg&&cu
  $$('button',t).forEach(function(b){var on=b.dataset.k===k;b.classList.toggle('on',on);if(on)hit=b;});if(!hit)hit=$('button[data-k="__mais"]',t),hit.classList.add('on');
  var ind=$('#mind');if(ind&&hit){ind.style.left=(hit.offsetLeft+hit.offsetWidth/2-24)+'px';}}
 function setTitle(){var k=PARENT[cur]!==undefined&&PARENT[cur]?PARENT[cur]:cur;if(cur==='cliente')k=curArg&&curArg.lead?'crm':'clientes';var t=navList().filter(function(x){return x[0]===k;})[0];
- if($('#mtitle'))$('#mtitle').textContent=cur==='cliente'?(curArg&&curArg.lead?'Lead':'Ficha do cliente'):t?t[1]:cur==='novidades'?'Novidades':'Agion';if($('#mgrp'))$('#mgrp').textContent=t?t[3]:'Agion Wealth';
+ if($('#mtitle'))$('#mtitle').textContent=cur==='cliente'?(curArg&&curArg.lead?'Lead':'Ficha do cliente'):t?t[1]:cur==='novidades'?'Novidades':'Agion';if($('#mgrp'))$('#mgrp').textContent=t&&String(t[3]).toLowerCase()!==String(t[1]).toLowerCase()?t[3]:'Agion Wealth';/* SEM_REPETIR_20261025 */
  var me=U[ME()];if($('#mav'))$('#mav').innerHTML=av(me.n,'','width:34px;height:34px;font-size:12px');}
 
 /* ---------- "Mais": todas as abas + conta + instalar ---------- */

@@ -155,7 +155,7 @@ var CSS='\
 #ttRoot .tt-b{border:1px solid rgba(255,255,255,.18);background:transparent;color:#f4efe3;border-radius:999px;padding:8px 14px;font-weight:600;font-size:12.5px;font-family:inherit;cursor:pointer}\
 #ttRoot .tt-b:disabled{opacity:.35;cursor:default}\
 #ttRoot .tt-b.g{background:linear-gradient(135deg,#c8a860,#e8cc8b);color:#0b2a26;border-color:transparent}\
-#ttRoot.sheet .tt-card{width:auto;left:10px;right:10px;max-width:none}\
+#ttRoot.sheet .tt-card{width:auto;left:10px;right:10px;max-width:none;max-height:calc(100% - 20px);overflow:auto}\
 .tt-help{position:fixed;right:18px;bottom:18px;z-index:2147482000;display:flex;align-items:center;gap:8px;background:#0b2a26;color:#f4efe3;border:1px solid rgba(232,204,139,.4);border-radius:999px;padding:9px 15px 9px 9px;font:600 13px "Inter","Poppins",system-ui,sans-serif;cursor:pointer;box-shadow:0 12px 30px -12px rgba(0,0,0,.45)}\
 .tt-help b{width:22px;height:22px;border-radius:50%;background:#e8cc8b;color:#0b2a26;display:inline-flex;align-items:center;justify-content:center;font-size:13px}\
 .tt-inv{position:fixed;right:18px;bottom:70px;z-index:2147482001;width:330px;max-width:calc(100vw - 36px);background:#fff;color:#0b2a26;border:1px solid #e7dec9;border-radius:18px;padding:16px 18px;box-shadow:0 24px 60px -20px rgba(11,42,38,.5);font-family:"Inter","Poppins",system-ui,sans-serif}\
@@ -183,8 +183,9 @@ function build(){
   UI.prev.onclick=function(){ go(RUN.i-1,-1); };
   UI.next.onclick=function(){ if(RUN.i>=T.steps.length-1) done(); else go(RUN.i+1,1); };
   $('.tt-x',r).onclick=function(){ stop(); };
-  $('.tt-veil',r).onclick=function(){};
+  $('.tt-veil',r).onclick=function(){ place(); };
   W.addEventListener('resize',place); W.addEventListener('scroll',place,true); D.addEventListener('keydown',key,true);
+  try{ if(W.visualViewport) W.visualViewport.addEventListener('resize',place); }catch(e){}
   return UI;
 }
 function destroy(){ if(!UI) return; W.removeEventListener('resize',place); W.removeEventListener('scroll',place,true); D.removeEventListener('keydown',key,true); UI.root.remove(); UI=null; }
@@ -201,7 +202,10 @@ function place(){
     UI.ring.style.left=x+'px'; UI.ring.style.top=y+'px'; UI.ring.style.width=w+'px'; UI.ring.style.height=h+'px'; UI.ring.classList.remove('off'); }
   else UI.ring.classList.add('off');
   var cw=c.offsetWidth, ch=c.offsetHeight, m=12, cx, cy;
-  if(sheet){ cy=(on&&(r.top+r.bottom)/2>vh*0.5)?10:vh-ch-10; if(on&&cy>10&&r.bottom>cy-6) cy=10; c.style.transform='translate(0,'+cy+'px)'; return; }
+  /* CELULAR_20261025: no celular o cartão fica preso à borda de baixo (ou de cima) da tela visível — no iPhone (app instalado) o innerHeight pode ser maior que a área visível e o cartão sumia */
+  if(sheet){ var vvh=(W.visualViewport&&W.visualViewport.height)||vh, topo=!!(on&&(r.top+r.bottom)/2>vvh*0.5); if(on&&!topo&&r.bottom>vvh-ch-16) topo=true;
+    c.style.transform='none'; if(topo){ c.style.top='calc(10px + env(safe-area-inset-top,0px))'; c.style.bottom='auto'; } else { c.style.top='auto'; c.style.bottom='calc(10px + env(safe-area-inset-bottom,0px))'; } return; }
+  c.style.top=''; c.style.bottom='';
   if(!on){ cx=(vw-cw)/2; cy=(vh-ch)/2; }
   else{ var g=22;
     if(vw-r.right>=cw+g+m){ cx=r.right+g; cy=clamp(r.top+r.height/2-ch/2,m,vh-ch-m); }
