@@ -559,6 +559,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
 .lcinfo .ib2 p{margin:0 0 10px}
 .lcnote{font-size:12px;line-height:1.55;color:var(--mut);padding:0 6px}
 .lcvz{padding:18px;text-align:center;color:var(--mut);font-size:13px}
+.fld.stk{grid-template-columns:1fr}.fld.stk .ctl{justify-content:flex-start}
 @media screen and (max-width:760px){
  .lct thead{display:none}
  .lct,.lct tbody{display:block}
@@ -578,7 +579,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
  .lct{font-size:9.5px;border-spacing:0 3px}.lct th{font-size:7px;padding:2px 6px}.lct td{padding:5px 6px}.lct td small{font-size:8px}
  .lct tr.on td{background:#0B2A26!important;color:#F4EFE4!important}
  .lch{grid-template-columns:repeat(6,1fr);gap:6px}.lch .m{padding:6px 8px}.lch .m b{font-size:11px}.lch .m em{font-size:8.5px}.lch .m small{font-size:7px}
- .lcinfo summary .chv{display:none}.lcinfo .ib2{font-size:9.5px}
+ #p_info{display:none!important}
  .lcnote{font-size:9px}
  .lcmore{display:none!important}
 }
@@ -626,7 +627,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
    <div class="panel rv" style="animation-delay:.15s">
     <div class="ph"><h3><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Grupos</h3></div>
     <div class="fld"><label for="lc_and">Prazo andado até<small>grupo mais andado fica fora</small></label><div class="ctl"><div class="ib"><input id="lc_and" value="40" inputmode="numeric"><span class="u">%</span></div></div></div>
-    <div class="fld"><label>Modalidade<small>meia parcela até contemplar</small></label><div class="ctl"><span class="seg xs" id="segMod"><button type="button" data-m="meia_seguro_contemplacao" class="on">Seguro na contemplação</button><button type="button" data-m="meia_taxa_antecipada">Taxa antecipada</button></span></div></div>
+    <div class="fld stk"><label>Modalidade<small>meia parcela até contemplar</small></label><div class="ctl"><span class="seg xs" id="segMod"><button type="button" data-m="meia_seguro_contemplacao" class="on">Seguro na contemplação</button><button type="button" data-m="meia_taxa_antecipada">Taxa antecipada</button></span></div></div>
     <div class="aviso" id="aviso"></div>
    </div>
   </aside>
@@ -671,7 +672,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
     </div>
    </details>
 
-   <div class="lcnote">Estudo com base no histórico de lances livres do grupo e nas cartas do portal da HS. Não é garantia de contemplação: o resultado de cada assembleia depende dos lances daquele mês. Confirme o lance com o seu especialista Agion antes de ofertar.</div>
+   <div class="lcnote">Como a conta é feita: o lance alvo é a média, em parcelas, dos lances livres que contemplaram no grupo nos últimos 6 meses; 1 parcela de lance é a parcela cheia do plano (crédito + taxa de administração + fundo de reserva, dividido pelo prazo). Estudo com base no histórico de lances livres do grupo e nas cartas do portal da HS. Não é garantia de contemplação: o resultado de cada assembleia depende dos lances daquele mês. Confirme o lance com o seu especialista Agion antes de ofertar.</div>
   </section>
  </div>
 </main>
