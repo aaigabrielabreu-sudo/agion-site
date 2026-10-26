@@ -88,6 +88,27 @@ textarea{resize:vertical;min-height:44px}
 .stab tfoot td{font-size:11.5px;color:#4a544e;line-height:1.5;border-bottom:none;background:#fafbfa}
 .stab tfoot td.cl{font-weight:700;color:#3a463f}
 </style>
+<style id="prop-mob-26out">/* AGL_COMPACTO_26OUT + PROP_MOB_26OUT */
+.agl{border:1px solid #e0d6bf;background:#fbf8f1;border-radius:14px;padding:10px 12px;margin:12px 0}
+.agl-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.agl-ic{font-size:16px;line-height:1}
+.agl-tx{flex:1;min-width:140px}.agl-tx b{display:block;font:700 13.5px Poppins,system-ui;color:#0a2823}.agl-tx span{display:block;font-size:12px;color:#586b62;line-height:1.35;margin-top:1px}
+.agl .agl-inc{display:inline-flex!important;gap:6px;align-items:center;font:600 12.5px Poppins,system-ui!important;color:#0a2823;cursor:pointer;white-space:nowrap;width:auto!important;margin:0!important;text-transform:none!important;letter-spacing:0!important}
+.agl .agl-inc input{width:auto!important;margin:0!important;min-height:0!important}
+.agl-bt{border:1px solid #c5a059;background:#fff;color:#0a2823;border-radius:999px;padding:7px 14px;font:700 12.5px Poppins,system-ui;cursor:pointer;white-space:nowrap}.agl-bt.on{background:#0a2823;color:#e8cc8b;border-color:#0a2823}
+.agl-bd{margin-top:10px;padding-top:10px;border-top:1px dashed #e0d6bf}.agl-d{font-size:12px;color:#586b62;margin-bottom:8px}
+@media (max-width:760px){
+ .tabs .tab{padding:10px 8px!important;font-size:13px!important;line-height:1.25!important;text-align:center}
+ .tabs .tab .tsub{display:block;font-size:11px!important;margin-top:2px;white-space:nowrap}
+ .tabs .tab .tw{display:none}
+ .tabs .tab{font-size:14px!important}
+ .rowline{display:grid!important;grid-template-columns:1fr 40px!important;gap:6px!important;padding:8px 0 10px;border-bottom:1px solid #eee5d3;align-items:center}
+ .rowline input:first-child{grid-column:1/-1;font-weight:600}
+ .rowline input{min-width:0;width:100%}
+ .agl-tx{min-width:0;flex-basis:calc(100% - 30px)}.agl-inc{margin-left:26px!important}.agl-bt{margin-left:auto}
+}
+@media (max-width:430px){ .pagecat{grid-template-columns:1fr!important} }
+html,body{max-width:100%;overflow-x:clip}
+</style>
 </head>
 <body>
 <div class="ptop"><div class="ptopi"><a class="plogo" href="/plataforma" title="Voltar à plataforma"><img id="plogoImg" alt="Agion"><span><b>AGION</b><small>Wealth · Plataforma</small></span></a><span class="pcrumb"><a href="/plataforma?abrir=ferramentas">Ferramentas</a><i>›</i>Gerador de propostas</span></div></div>
@@ -97,8 +118,8 @@ textarea{resize:vertical;min-height:44px}
 
   <div class="panel">
     <div class="tabs">
-      <div class="tab on" data-t="resumido" onclick="setTipo('resumido')">Proposta Resumida <span style="opacity:.7;font-weight:400">(1 página)</span></div>
-      <div class="tab" data-t="completo" onclick="setTipo('completo')">Proposta Completa <span style="opacity:.7;font-weight:400">(deck modular)</span></div>
+      <div class="tab on" data-t="resumido" onclick="setTipo('resumido')"><span class="tw">Proposta </span>Resumida <span class="tsub" style="opacity:.7;font-weight:400">(1 página)</span></div>
+      <div class="tab" data-t="completo" onclick="setTipo('completo')"><span class="tw">Proposta </span>Completa <span class="tsub" style="opacity:.7;font-weight:400">(deck modular)</span></div>
     </div>
 
     <!-- ===== FORM RESUMIDO ===== -->
@@ -1026,15 +1047,17 @@ try{parent.postMessage({type:'agion-ready'},'*');}catch(e){}
  function inc(){try{return localStorage.getItem(INC)!=='0';}catch(e){return true;}}
  function sel(){var s=window.AgCalcLink&&AgCalcLink.selecionado();return (s&&s.expira>Date.now()/1000)?s:null;}
  function info(){var el=document.getElementById('aglInfo');if(!el)return;var s=window.AgCalcLink&&AgCalcLink.selecionado();
-  if(!s){el.innerHTML='Nenhum link na proposta ainda. Escolha o cliente, gere o link e ele entra na proposta.';return;}
+  if(!s){el.innerHTML='Nenhum link na proposta ainda';return;}
   if(s.expira<=Date.now()/1000){el.innerHTML='<span style="color:#b0503f">O link escolhido expirou — gere outro para a proposta.</span>';return;}
-  el.innerHTML='Na proposta: <b>'+(AgCalcLink.FERR[s.pagina]||'calculadora')+(s.cliente?' · '+s.cliente:'')+'</b> — válido até '+AgCalcLink.quando(s.expira)+'.';}
+  el.innerHTML='<b style="font-weight:600;color:#0a2823">'+(AgCalcLink.FERR[s.pagina]||'calculadora')+(s.cliente?' · '+s.cliente:'')+'</b> · até '+AgCalcLink.quando(s.expira);}
  function montar(){var gb=document.getElementById('btnGerar');if(!gb||document.getElementById('aglBox')||!window.AgCalcLink)return;var row=gb.closest('.btnrow');
-  var box=document.createElement('div');box.id='aglBox';box.style.cssText='border:1px solid #e0d6bf;background:#fbf8f1;border-radius:16px;padding:16px 18px;margin:16px 0';
-  box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px"><div><div style="font:700 15px Poppins,system-ui;color:#0a2823">🔗 Link temporário da calculadora</div><div style="font-size:12.5px;color:#586b62;margin-top:2px">O cliente abre a calculadora sem login até o prazo acabar. Pode gerar vários, cada um com o seu tempo.</div></div>'+
-   '<label style="display:flex;gap:7px;align-items:center;font:600 13px Poppins,system-ui;color:#0a2823;cursor:pointer;white-space:nowrap;width:auto;margin:0"><input type="checkbox" id="aglInc" style="width:auto;margin:0"'+(inc()?' checked':'')+'> Incluir na proposta</label></div>'+
-   '<div id="aglInfo" style="font-size:12.5px;color:#586b62;margin-bottom:12px"></div><div id="aglMount"></div>';
+  var box=document.createElement('div');box.id='aglBox';box.className='agl';/* AGL_COMPACTO_26OUT: compacto, o resto abre no botão */
+  box.innerHTML='<div class="agl-hd"><span class="agl-ic">🔗</span><div class="agl-tx"><b>Link da calculadora</b><span id="aglInfo"></span></div>'+
+   '<label class="agl-inc" title="Colocar a página “Simule você mesmo” com o link na proposta"><input type="checkbox" id="aglInc"'+(inc()?' checked':'')+'> Na proposta</label>'+
+   '<button type="button" class="agl-bt" id="aglTg" aria-expanded="false">Gerar link</button></div>'+
+   '<div class="agl-bd" id="aglCorpo" hidden><div class="agl-d">O cliente abre a calculadora sem login até o prazo acabar. Pode gerar vários, cada um com o seu tempo.</div><div id="aglMount"></div></div>';
   row.parentNode.insertBefore(box,row);
+  document.getElementById('aglTg').onclick=function(){var c=document.getElementById('aglCorpo'),ab=c.hidden;c.hidden=!ab;this.setAttribute('aria-expanded',ab?'true':'false');this.textContent=ab?'Fechar':'Gerar link';this.classList.toggle('on',ab);};
   document.getElementById('aglInc').onchange=function(){try{localStorage.setItem(INC,this.checked?'1':'0');}catch(e){}if(typeof liveUpdate==='function')liveUpdate();};
   var o={pagina:'calc-alavancagem',escolher:true,selecionavel:true,onSel:function(){info();if(typeof liveUpdate==='function')liveUpdate();}};/* HISTFERR_20261020: o cliente da proposta já vem escolhido e a busca usa os leads que a pessoa vê */try{var P=window.parent&&window.parent.AgionV4Ponte,cx=window.parent&&window.parent.__agPropCtx;if(P){var d=P.db(),A={};(d.accounts||[]).forEach(function(a){A[a.id]=a.nome||'';});var VL=[];try{VL=P.call('visibleLeads')||[];}catch(e){VL=d.crm||[];}o.leads=VL.map(function(l){return {id:l.id,nome:l.nome||'—',etapa:AgCalcLink.etapaDe({stage:l.stage,perdido:l.perdido}),esp:A[l.ownerId]||'',tel:l.contato||''};});if(cx&&cx.kind==='lead'){var L=o.leads.filter(function(x){return x.id===cx.cid;})[0];if(L)o.lead=L;}}}catch(e){}AgCalcLink.mount(document.getElementById('aglMount'),o);info();
   setInterval(info,30000);}

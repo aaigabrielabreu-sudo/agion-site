@@ -64,7 +64,7 @@ function montar(){
   D.head.appendChild(st);
   wrap=D.createElement('div'); wrap.id='v4wrap';
   fr=D.createElement('iframe'); fr.title='Agion Wealth'; fr.setAttribute('allow','clipboard-read; clipboard-write; notifications');
-  var src=W.__V4SRC||('/plat2-v4.html?v=52');
+  var src=W.__V4SRC||('/plat2-v4.html?v=53');
   if(W.__V4SRCDOC) fr.srcdoc=W.__V4SRCDOC; else fr.src=src;
   wrap.appendChild(fr); D.body.appendChild(wrap); D.body.classList.add('v4on'); D.documentElement.classList.add('v4on');
   fr.addEventListener('load',function(){ try{ if(D.documentElement.classList.contains('isApp')) fr.contentDocument.documentElement.classList.add('emapp'); }catch(e){} corApp(); marcaToast(); });
@@ -204,6 +204,9 @@ function pkConvite(){ pkSuporte().then(function(ok){ if(!ok||pkAtivo()||pkLs('ag
   pkAtivar().then(function(){ x.querySelector('.b').innerHTML='<b>Pronto!</b><p style="margin:0">Da próxima vez toque em “'+pkRotulo()+'” na tela de entrada.</p>'; setTimeout(function(){ x.remove(); },2600); })
    .catch(function(e){ b.disabled=false; b.textContent='Tentar de novo'; x.querySelector('.m').textContent=pkErro(e); pkPrep('reg').catch(function(){}); }); };
 }); }
+/* ABRE_LOGADO_26OUT: com sessão salva no aparelho, a abertura não mostra o login nem o verde — só a cor de fundo do app até ele abrir */
+function temSessaoSalva(){ try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i)||''; if(/^sb-.*-auth-token$/.test(k)){ var v=localStorage.getItem(k)||''; if(v.indexOf('refresh_token')>=0) return true; } } }catch(e){} return false; }
+var SALVA=temSessaoSalva();
 var LG=null, lgMsgT=null, lgT0=Date.now(), lgPronto=false, LOGO='/plat2-v4/logo-hd.png', LOGO2='https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png';
 function lgCss(){ var s=D.createElement('style'); s.textContent=
  '@font-face{font-family:"DM Sans";src:url(/plat2-v4/DM-Sans-Variable.ttf) format("truetype");font-weight:100 1000}@font-face{font-family:Lora;src:url(/plat2-v4/Lora-Variable.ttf) format("truetype");font-weight:400 700}@font-face{font-family:Lora;font-style:italic;src:url(/plat2-v4/Lora-Italic-Variable.ttf) format("truetype");font-weight:400 700}'+
@@ -230,10 +233,11 @@ function lgCss(){ var s=D.createElement('style'); s.textContent=
  '#v4login .lgt{margin-top:22px;font:italic 400 13px Lora,Georgia,serif;color:#C5A059;text-align:center;opacity:.9}'+
  '#v4login .lgw{margin-top:18px;width:26px;height:26px;border-radius:50%;border:2px solid rgba(232,204,139,.25);border-top-color:#E8CC8B;animation:v4rot .9s linear infinite;opacity:0;transition:opacity .3s}#v4login.esp .lgw{opacity:1}#v4login.form .lgw{display:none}'+
  '@keyframes v4spl{from{opacity:0;transform:scale(.6) rotate(-8deg)}to{opacity:1;transform:none}}@keyframes v4up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes v4ln{to{width:140px}}@keyframes v4rot{to{transform:rotate(360deg)}}'+
+ '#v4login.cl{background:var(--v4clbg,#F4EFE4)!important}#v4login.cl .lgm,#v4login.cl .lgt,#v4login.cl .lgc{display:none!important}#v4login.cl .lgw{border-color:rgba(163,131,63,.18);border-top-color:#A3833F;width:22px;height:22px}'+
  'body.v4lg #loginView{visibility:hidden}';
  D.head.appendChild(s); }
 function lgMontar(){ if(LG) return; lgCss(); D.body.classList.add('v4lg'); W.AgionV4Ponte.splashFeito=true; try{ D.documentElement.classList.add('v4ok'); }catch(e){}
- LG=D.createElement('div'); LG.id='v4login';
+ LG=D.createElement('div'); LG.id='v4login'; if(SALVA) LG.className='cl esp';
  LG.innerHTML='<div class="lgm"><img alt="Agion" src="'+LOGO+'"><b>AGION</b><small>Wealth</small><i></i></div>'+
   '<form class="lgc" autocomplete="on" novalidate><h1>Bem-vindo à <em>Agion</em></h1><p>Plataforma de planejamento financeiro</p>'+
   '<label for="v4em">E-mail</label><input id="v4em" type="email" inputmode="email" autocomplete="username" placeholder="seu@email.com">'+
@@ -254,7 +258,7 @@ function lgEntrar(){ PWLOGIN=true; var em=LG.querySelector('#v4em').value.trim()
  var a=D.getElementById('logEmail'), b=D.getElementById('logPass'), m=D.getElementById('loginMsg'); if(!a||!b||typeof W.doLogin!=='function'){ lgMsg('Serviço de login indisponível. Recarregue a página.'); return; }
  a.value=em; b.value=pw; if(m) m.textContent=''; lgMsg('',0); var bt=LG.querySelector('.lgb'); bt.disabled=true; bt.textContent='Entrando…';
  try{ Promise.resolve(W.doLogin()).catch(function(){}); }catch(x){} lgEspelha(); }
-function lgForm(){ if(RECON) return; if(!LG) lgMontar(); if(LG.classList.contains('form')) return; LG.classList.remove('esp','fora'); LG.classList.add('form'); var bt=LG.querySelector('.lgb'); bt.disabled=false; bt.textContent='Entrar'; setTimeout(function(){ var i=LG.querySelector('#v4em'); if(i&&!i.value&&W.innerWidth>760) i.focus(); },700); }
+function lgForm(){ if(RECON) return; if(!LG) lgMontar(); if(LG.classList.contains('form')) return; LG.classList.remove('esp','fora','cl'); LG.classList.add('form'); var bt=LG.querySelector('.lgb'); bt.disabled=false; bt.textContent='Entrar'; setTimeout(function(){ var i=LG.querySelector('#v4em'); if(i&&!i.value&&W.innerWidth>760) i.focus(); },700); }
 function lgEspera(){ if(RECON) return; if(!LG) lgMontar(); LG.classList.remove('form','fora'); LG.classList.add('esp'); }
 function lgSair(){ if(RECON) return; if(!LG) return; if(PWLOGIN){ PWLOGIN=false; setTimeout(pkConvite,2200); } LG.classList.add('fora'); D.body.classList.remove('v4lg'); var x=LG; setTimeout(function(){ if(x.parentNode) x.parentNode.removeChild(x); },650); LG=null; }
 W.addEventListener('message',function(e){ if(e.data&&e.data.v4==='pronto'&&fr&&e.source===fr.contentWindow){ lgPronto=true; setTimeout(lgSair, Math.max(0,1300-(Date.now()-lgT0))); } });
@@ -312,7 +316,7 @@ function espera(){
   else if(pronto && !logado()){ pronto=false; esconder(true); }
   if(!logado()){
     if(appCliente()){ v1Vis(true); lgSair(); }                      /* cliente: segue a v1 (até o Planejamento novo) */
-    else if(telaLogin()&&Date.now()-lgT0>1250) lgForm();             /* deslogado: depois da entrada, mostra o login */
+    else if(telaLogin()&&Date.now()-lgT0>(SALVA?12000:1250)) lgForm();   /* ABRE_LOGADO_26OUT: com sessão salva espera ela voltar */             /* deslogado: depois da entrada, mostra o login */
   }
   setTimeout(espera, pronto?1500:250);
 }
@@ -320,6 +324,8 @@ function inicio(){ lgMontar();
  if(REC==='ok') lgNovaSenha(false); else if(REC==='conv') lgNovaSenha(true);
  else if(REC==='exp'){ limpaUrl(); lgT0=0; lgForm(); lgMsg('Esse link de redefinição expirou ou já foi usado. Toque em “Esqueci minha senha” para receber outro e abra o e-mail mais recente.'); }
  try{ var sb=supaV1(); if(sb&&sb.auth) sb.auth.onAuthStateChange(function(ev){ if(ev==='PASSWORD_RECOVERY'&&!RECON) lgNovaSenha(); }); }catch(e){}
+ if(SALVA){ (function confere(n){ var sb2=supaV1(); if(!sb2||!sb2.auth){ if(n<40) setTimeout(function(){ confere(n+1); },150); return; }   /* sessão salva mas inválida -> mostra o login */
+   sb2.auth.getSession().then(function(r){ if(!(r&&r.data&&r.data.session)){ SALVA=false; lgT0=0; } },function(){ SALVA=false; lgT0=0; }); })(0); }
  espera(); }
 if(D.readyState==='loading') D.addEventListener('DOMContentLoaded',inicio); else inicio();
 })();

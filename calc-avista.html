@@ -377,6 +377,19 @@ body.mbon .tt-help{bottom:calc(84px + env(safe-area-inset-bottom,0px))!important
  .panel,.pane,.kpi,.verdict,.tle,.cmp,.kpis,.g2c>*{break-inside:avoid;page-break-inside:avoid}
  .rv{opacity:1!important;transform:none!important;animation:none!important}
 }
+/* PARCELA_REND_26OUT · as duas formas de pagar a parcela */
+.mpw{display:flex;flex-direction:column;gap:12px;min-width:0}
+.mph h3{margin:4px 2px 0;font:600 20px/1.25 var(--serif);display:flex;align-items:center;gap:9px}
+.mph h3 svg.i{width:20px;height:20px;color:var(--gold)}
+.mph p{margin:4px 2px 0;color:var(--mut);font-size:13px;line-height:1.45}
+.mpo{cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none}
+.mpo:not(.win):hover{transform:translateY(-2px)}
+.mpo:focus-visible{box-shadow:0 0 0 3px rgba(197,160,89,.5)}
+.mpo .line.hi .v{font-size:19px}
+.mpo .v.neg{color:var(--bad)}
+.mpo.win .v.neg{color:#F0A496}
+#mp_n{margin:0 4px}
+@media print{.mph h3{font-size:15px}.mph p{font-size:9.5px}.mpo .line.hi .v{font-size:13px}}
 </style>
 <style>/* AG_EXPORT_24OUT · Baixar (PDF ou PNG) + apresentação sem cortes — vale para as 3 calculadoras */
 .kpi .kt{flex:1 1 auto;min-width:0}
@@ -489,7 +502,16 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
  .premchip .pcm{flex:none;padding:6px 12px;border-radius:999px;background:var(--bg,#F4EFE4);font:700 12px/1.2 var(--sans,"DM Sans",system-ui);color:var(--goldd,#A3833F)}
  .premchip:hover .pcm{background:var(--gold3,#F3E7C9)}
 }
-@media screen and (max-width:760px){.premchip .pct{flex-direction:column;gap:2px}}
+@media screen and (max-width:760px){.premchip .pct{flex-direction:column;align-items:stretch;gap:2px}.premchip .pcs{white-space:normal!important;display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.35}}
+/* MOB_LARGURA_26OUT · no celular nada pode passar da largura da tela (a faixa de premissas empurrava a página para o lado) */
+@media screen{
+ .premchip,.premchip .pct{max-width:100%;overflow:hidden}
+ .premchip .pcs{display:block;max-width:100%}
+ html:not(.pngx):not(.agcap),html:not(.pngx):not(.agcap) body{max-width:100%;overflow-x:clip}
+ /* o gráfico nunca passa da largura do quadro (no iPhone ele chegava a ficar 4x mais largo depois do Baixar) */
+ html:not(.pngx):not(.agcap) .cvb{max-width:100%;min-width:0;overflow:hidden}
+ html:not(.pngx):not(.agcap) .cvb>canvas{max-width:100%!important}
+}
 @media print{.premchip,#premBtn{display:none!important}}
 
 /* PDF_IOS_25OUT · a imagem do gráfico (troca feita só para o PDF) nunca passa da largura do quadro na tela */
@@ -533,6 +555,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
     <div class="fld"><label for="rinv">Rendimento<small>ao mês, antes do imposto</small></label><div class="ctl"><div class="ib"><input id="rinv" value="1" inputmode="decimal"><span class="u">% a.m.</span></div></div>
      <div class="rgw"><input class="rg" type="range" data-for="rinv" min="0.3" max="2" step="0.01"><small data-cap="rinv"></small></div></div>
     <div class="fld"><label for="ir">Imposto de renda<small>sobre o rendimento</small></label><div class="ctl"><div class="ib"><input id="ir" value="15" inputmode="decimal"><span class="u">%</span></div></div></div>
+    <div class="fld mpf"><label>A parcela sai<small id="mp_h">o que faltar sai do bolso</small></label><div class="ctl"><span class="seg xs" id="segMP"><button type="button" data-m="REND" class="on">Do rendimento</button><button type="button" data-m="TUDO">Rendimento + capital</button></span></div></div>
    </div>
 
    <div class="panel rv" style="animation-delay:.15s">
@@ -604,6 +627,29 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
     </div>
    </div>
 
+   <div class="mpw rv" id="mpw" style="animation-delay:.28s">
+    <div class="mph"><h3><svg class="i" viewBox="0 0 24 24"><path d="M4 11.5L12 5l8 6.5"/><path d="M6 10v9h12v-9"/><path d="M9.5 14.5h5"/></svg>Quanto o bem custou de verdade</h3><p>As duas formas de pagar a parcela da carta, lado a lado. Toque em uma para ela entrar na conta.</p></div>
+    <div class="cmp" id="cmpMP">
+     <div class="pane mpo" id="mpR" data-m="REND" role="button" tabindex="0">
+      <h4>Só o rendimento <span class="pill gd best">NA CONTA</span></h4>
+      <div class="cet" id="mpR_s">—</div>
+      <div class="line"><span class="k">Do bolso, no prazo todo<small id="mpR_aps">o que o rendimento não cobriu</small></span><span class="v" id="mpR_ap">—</span></div>
+      <div class="line"><span class="k">Dinheiro investido no fim<small id="mpR_cps">o capital não é usado nas parcelas</small></span><span class="v" id="mpR_cap">—</span></div>
+      <div class="line"><span class="k">Custo real do bem<small id="mpR_cuss">entrada + o que saiu do bolso</small></span><span class="v" id="mpR_cus">—</span></div>
+      <div class="line hi"><span class="k">Desconto efetivo<small id="mpR_dss">sobre o preço do bem</small></span><span class="v" id="mpR_ds">—</span></div>
+     </div>
+     <div class="pane mpo" id="mpT" data-m="TUDO" role="button" tabindex="0">
+      <h4>Rendimento + capital <span class="pill gd best">NA CONTA</span></h4>
+      <div class="cet" id="mpT_s">—</div>
+      <div class="line"><span class="k">Capital usado nas parcelas<small id="mpT_aps">quando o rendimento não cobre</small></span><span class="v" id="mpT_ap">—</span></div>
+      <div class="line"><span class="k">Dinheiro investido no fim<small id="mpT_cps">o que sobra do capital</small></span><span class="v" id="mpT_cap">—</span></div>
+      <div class="line"><span class="k">Custo real do bem<small id="mpT_cuss">entrada + capital gasto</small></span><span class="v" id="mpT_cus">—</span></div>
+      <div class="line hi"><span class="k">Desconto efetivo<small id="mpT_dss">sobre o preço do bem</small></span><span class="v" id="mpT_ds">—</span></div>
+     </div>
+    </div>
+    <p class="cnote" id="mp_n">—</p>
+   </div>
+
    <div class="panel rv pgb" id="tlp" style="animation-delay:.3s">
     <div class="chd"><div><h3><svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/><path d="M7 12h3M14 12h3"/></svg>A jornada no consórcio</h3><p id="tl_s">O que acontece mês a mês, do primeiro pagamento à última parcela.</p></div></div>
     <div class="tlt" id="tlt"><div class="bar" id="tlbar"></div></div>
@@ -662,7 +708,7 @@ const money=v=>(v<-.5?'−':'')+'R$ '+brl(v);
 const moneyK=v=>{const a=Math.abs(v),s=v<-.5?'−':'';if(a>=1e6)return s+'R$ '+(a/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+' mi';if(a>=1e4)return s+'R$ '+(a/1e3).toLocaleString('pt-BR',{maximumFractionDigits:a>=1e5?0:1})+' mil';return s+'R$ '+brl(a);};
 const pct=(v,d=1)=>(+v).toLocaleString('pt-BR',{maximumFractionDigits:d})+'%';
 const anos=m=>{const a=Math.floor(m/12),r=m%12;return (a?a+(a===1?' ano':' anos'):'')+(a&&r?' e ':'')+(r?r+(r===1?' mês':' meses'):'')||'0 meses';};
-let TIPO='CONT', DC='NAO', CENT='PCT', LANCE='PCT', ALUG='PCT';
+let TIPO='CONT', DC='NAO', CENT='PCT', LANCE='PCT', ALUG='PCT', MP='REND';   /* PARCELA_REND_26OUT: REND = só o rendimento paga a parcela (o que faltar sai do bolso); TUDO = rendimento + capital */
 function voltar(){ if(window.__agLinkTemp) return; try{window.close();}catch(e){} setTimeout(function(){ try{location.href='/plataforma';}catch(_){ } },150); }
 
 function cetMensal(C,ent,pmts,k){
@@ -675,7 +721,8 @@ function cetMensal(C,ent,pmts,k){
  return (lo+hi)/2;
 }
 /* o modelo inteiro (rInv em % ao mês, antes do IR) — usado pela tela, pela taxa de empate e pelo gráfico de sensibilidade */
-function modelo(rInv){
+function modelo(rInv,mpx){
+ const mp=mpx||MP;
  const P=Math.max(0,num('p_bem')), d=Math.min(100,Math.max(0,num('p_desc')))/100, vA=num('p_val')/100;
  const Pv=P*(1-d), D=vazio('din')?Pv:num('din');
  const ir=Math.min(100,Math.max(0,num('ir')))/100, rl=(rInv/100)*(1-ir);
@@ -702,20 +749,35 @@ function modelo(rInv){
  }
  let inv=D-ent-comp0, av=D-Pv;
  const inv0=inv, aC=[inv], aA=[av], yM=[], oM=[], pM=[];
- let usedY=0,totOut=0,runout=null,totParc=0,totAlug=0,pLast=0,pFirst=0,cobreDesde=null;
+ let usedY=0,totOut=0,runout=null,totParc=0,totAlug=0,pLast=0,pFirst=0,cobreDesde=null,totAp=0,mesAp=0,apIni=null,apMax=0;
+ const apM=[];
  for(let m=0;m<n;m++){
    const p=base[m]*Math.pow(1+rA,Math.floor(m/12)); if(m===0)pFirst=p; pLast=p; totParc+=p;
    const a=(NOVA&&m<k)?A0*Math.pow(1+rA,Math.floor(m/12)):0; totAlug+=a;
    const ex=(NOVA&&m===k-1)?(L+compK):0;
    const o=p+a+ex, y=Math.max(0,inv)*rl;
-   usedY+=Math.min(y,o); totOut+=o;
-   inv=inv*(1+rl)-o; av=av*(1+rl);
+   let ap=0;
+   if(mp==='REND'){
+     /* só o rendimento paga parcela e aluguel; sobra volta para o investimento; o que faltar sai do bolso.
+        Lance e complemento (ex) saem do capital, como a entrada. No à vista, o mesmo dinheiro do bolso fica investido. */
+     const reg=p+a; usedY+=Math.min(y,reg); totOut+=o;
+     if(y>=reg)inv=inv+(y-reg); else ap=reg-y;
+     inv-=ex; av=av*(1+rl)+ap;
+     if(ap>0.005){totAp+=ap;mesAp++;if(apIni===null)apIni=m+1;if(ap>apMax)apMax=ap;}
+   } else {
+     usedY+=Math.min(y,o); totOut+=o;
+     inv=inv*(1+rl)-o; av=av*(1+rl);
+   }
    if(inv<0&&runout===null)runout=m+1;
-   aC.push(inv); aA.push(av); yM.push(y); oM.push(p+a); pM.push(p);
+   aC.push(inv); aA.push(av); yM.push(y); oM.push(p+a); pM.push(p); apM.push(ap);
  }
  for(let m=n-1;m>=0;m--){ if(yM[m]>=oM[m]-.005) cobreDesde=m+1; else break; }
  const T=n, bemT=P*Math.pow(1+vA,T/12), diff=inv-av;
- return {P,d,Pv,D,ir,rl,Pref,C,taxa,rA,NOVA,n,k,ent,comp0,parcBase,meia,parcPos,somaK,L,E,Ck,Pk,compK,nDec,nTot,fK,A0,base,inv0,
+ /* custo real do bem = o dinheiro que de fato foi para o bem: entrada/complemento de hoje + lance/complemento da contemplação
+    + o que saiu do bolso (só rendimento) ou o capital que foi gasto (rendimento + capital). O que o rendimento pagou não entra. */
+ const exTot=NOVA?(L+compK):0, d0=D-inv0;
+ const custo=mp==='REND'?d0+exTot+totAp:d0+Math.max(0,inv0-inv), dscP=P>0?(P-custo)/P*100:0;
+ return {mp,totAp,mesAp,apIni,apMax,apM,custo,dscP,P,d,Pv,D,ir,rl,Pref,C,taxa,rA,NOVA,n,k,ent,comp0,parcBase,meia,parcPos,somaK,L,E,Ck,Pk,compK,nDec,nTot,fK,A0,base,inv0,
    invT:inv,avT:av,aC,aA,yM,oM,pM,usedY,totOut,runout,totParc,totAlug,pFirst,pLast,cobreDesde,T,bemT,diff};
 }
 function empate(){
@@ -874,7 +936,7 @@ function calc(){
  if(R.D<R.Pv-1) av.push('O dinheiro disponível ('+money(R.D)+') não cobre o preço à vista ('+money(R.Pv)+'): faltam '+money(R.Pv-R.D)+'.');
  if(!NOVA&&R.ent>R.D+1) av.push('A entrada ao vendedor ('+money(R.ent)+') é maior que o dinheiro disponível.');
  if(!NOVA&&R.parcBase<=0) av.push('Digite a parcela da carta: com o prazo, ela diz quanto falta pagar.');
- if(R.runout) av.push('No consórcio o dinheiro investido acaba no mês '+R.runout+'. Daí em diante as parcelas saem do bolso; na conta, esse valor fica como saldo negativo.');
+ if(R.runout) av.push(R.mp==='REND'?'O lance e o complemento passam do dinheiro investido no mês '+R.runout+'.':'No consórcio o dinheiro investido acaba no mês '+R.runout+'. Daí em diante as parcelas saem do bolso; na conta, esse valor fica como saldo negativo.');
  $('aviso').innerHTML=av.join('<br>'); $('aviso').classList.toggle('on',av.length>0);
  /* empate */
  if(EMP.tipo==='r'){ $('v_emp').textContent=pct(EMP.r,2)+' a.m.'; $('v_emp_s').textContent='≈ '+pct((Math.pow(1+EMP.r/100,12)-1)*100)+' ao ano · acima disso o consórcio vence'; }
@@ -891,19 +953,43 @@ function calc(){
  ANI.v_big=ANI.__vb==null?Math.abs(net):ANI.__vb;anim('v_big',Math.abs(net),money);ANI.__vb=Math.abs(net);
  const tg=$('v_tag');tg.textContent=consWin?'Consórcio vence':'À vista vence';tg.classList.toggle('av',!consWin);
  $('v_prazo').textContent=anos(R.n)+' · bem vale '+moneyK(R.bemT);
- $('v_sub').textContent=(consWin?'Deixando '+moneyK(R.inv0)+' investidos a '+pct(rinv)+' ao mês, o rendimento paga '+pct(rp,0)+' do que a carta cobra e o dinheiro guardado termina maior que o do à vista.':'O custo da carta ('+moneyK(custoExtra)+' além do crédito'+(NOVA&&R.totAlug>0?', mais '+moneyK(R.totAlug)+' de aluguel':'')+') pesa mais que o rendimento do dinheiro a '+pct(rinv)+' ao mês.')+(EMP.tipo==='r'?' O ponto de virada é '+pct(EMP.r,2)+' ao mês.':'');
+ $('v_sub').textContent=(consWin?'Deixando '+moneyK(R.inv0)+' investidos a '+pct(rinv)+' ao mês, o rendimento paga '+pct(rp,0)+' do que a carta cobra'+(R.mp==='REND'?(R.totAp>0?' (o resto, '+moneyK(R.totAp)+' no prazo todo, sai do bolso)':'')+', o capital nunca é tocado':'')+' e o dinheiro guardado termina maior que o do à vista.':'O custo da carta ('+moneyK(custoExtra)+' além do crédito'+(NOVA&&R.totAlug>0?', mais '+moneyK(R.totAlug)+' de aluguel':'')+') pesa mais que o rendimento do dinheiro a '+pct(rinv)+' ao mês.')+(EMP.tipo==='r'?' O ponto de virada é '+pct(EMP.r,2)+' ao mês.':'');
  $('mb_k').textContent=consWin?'Consórcio vence':'À vista vence';$('mb_v').textContent=moneyK(Math.abs(net))+' a mais em '+anos(R.n);
  /* notas dos gráficos */
  $('lg_out').textContent=NOVA&&R.totAlug>0?'Parcela + aluguel':'Parcela';
- $('ch2_n').innerHTML=R.cobreDesde?(R.cobreDesde<=1?'O rendimento <b>já paga a parcela inteira desde o primeiro mês</b>.':'A partir do <b>mês '+R.cobreDesde+'</b> o rendimento paga a parcela sozinho.')+' No total, o rendimento cobre <b>'+pct(rp,0)+'</b> do que sai.':'O rendimento cobre <b>'+pct(rp,0)+'</b> de tudo o que sai no consórcio; o resto sai do próprio dinheiro investido.';
+ $('ch2_n').innerHTML=R.cobreDesde?(R.cobreDesde<=1?'O rendimento <b>já paga a parcela inteira desde o primeiro mês</b>.':'A partir do <b>mês '+R.cobreDesde+'</b> o rendimento paga a parcela sozinho.')+' No total, o rendimento cobre <b>'+pct(rp,0)+'</b> do que sai.':'O rendimento cobre <b>'+pct(rp,0)+'</b> de tudo o que sai no consórcio; o resto sai '+(R.mp==='REND'?'do bolso, sem tocar no dinheiro investido.':'do próprio dinheiro investido.');
  $('ch3_n').innerHTML=EMP.tipo==='r'?'Com o dinheiro rendendo <b>'+pct(rinv,2)+'</b> ao mês, '+(consWin?'o consórcio vence por <b>'+money(net)+'</b>':'o à vista vence por <b>'+money(-net)+'</b>')+'. A virada acontece em <b>'+pct(EMP.r,2)+' ao mês</b> (≈ '+pct((Math.pow(1+EMP.r/100,12)-1)*100)+' ao ano, antes do IR).':(EMP.tipo==='sempre'?'O consórcio vence em qualquer rendimento.':'Nesta configuração o à vista vence em qualquer rendimento até 5% ao mês.');
  /* textos */
- $('note').innerHTML='Nos dois casos o cliente começa com <b>'+money(R.D)+'</b> e termina com o mesmo bem; a comparação é o dinheiro que sobra no fim do prazo do consórcio ('+anos(R.n)+'). O imposto de renda é descontado do rendimento todo mês (aproximação: na prática ele é pago no resgate). Custo efetivo da carta calculado sem o reajuste. Rendimento, reajuste, valorização, ágio e data de contemplação reais dependem do mercado e do grupo. Simulação para fins de apresentação.';
+ $('note').innerHTML='Nos dois casos o cliente começa com <b>'+money(R.D)+'</b> e termina com o mesmo bem; a comparação é o dinheiro que sobra no fim do prazo do consórcio ('+anos(R.n)+'). '+(R.mp==='REND'?'Na conta, a parcela sai <b>só do rendimento</b>: o que sobra do rendimento volta para o investimento e o que falta sai do bolso; para a comparação ser justa, esse mesmo dinheiro do bolso fica investido no lado do à vista. ':'Na conta, a parcela sai do rendimento <b>e do próprio capital</b> quando o rendimento não cobre. ')+'Custo real do bem = o dinheiro que de fato foi para o bem (entrada, lance e complemento, mais o que saiu do bolso ou do capital); o que o rendimento pagou não entra. Valores nominais. O imposto de renda é descontado do rendimento todo mês (aproximação: na prática ele é pago no resgate). Custo efetivo da carta calculado sem o reajuste. Rendimento, reajuste, valorização, ágio e data de contemplação reais dependem do mercado e do grupo. Simulação para fins de apresentação.';
  $('resumo').innerHTML='<b>Resumo.</b> '+(consWin?('Comprar pelo consórcio e deixar o dinheiro trabalhando deixa <b>'+money(net)+'</b> a mais no patrimônio do cliente. O rendimento paga '+pct(rp,0)+' do que a carta cobra'+(R.cobreDesde?' e, a partir do mês '+R.cobreDesde+', cobre a parcela inteira':'')+'.'):('Nesta configuração, pagar à vista deixa <b>'+money(-net)+'</b> a mais.'+(EMP.tipo==='r'?' Para o consórcio virar, o dinheiro precisa render mais que <b>'+pct(EMP.r,2)+' ao mês</b> (antes do IR), ou a carta precisa sair mais barata — menos entrada, taxa menor ou desconto também na carta.':'')))+' Custo efetivo da carta: '+pct(cetA)+' ao ano.';
+ mpBloco(R,rinv);
  explica(R,consWin,net,cetA,totPago,rp);
  jornada(R);
  try{ draw(R,EMP,rinv); }catch(e){ console.warn(e); }
  window.__AV=R;
+}
+/* PARCELA_REND_26OUT · bloco "Quanto o bem custou de verdade": as duas formas lado a lado */
+function mpBloco(R,rinv){
+ const A=R.mp==='REND'?R:modelo(rinv,'REND'), B=R.mp==='TUDO'?R:modelo(rinv,'TUDO');
+ const ds=(X,id)=>{const e=$(id);e.textContent=X.dscP>=0?pct(X.dscP,1):'+'+pct(-X.dscP,1);e.classList.toggle('neg',X.dscP<0);$(id+'s').textContent=X.dscP>=0?'abaixo do preço do bem ('+moneyK(X.P)+')':'acima do preço do bem ('+moneyK(X.P)+')';};
+ /* só o rendimento */
+ $('mpR_s').innerHTML=A.totAp>0.5?'O rendimento paga a parcela; o que falta sai do bolso'+(A.apIni>1?' a partir do <b>mês '+A.apIni+'</b>':'')+'.':'O rendimento paga a parcela inteira, todo mês. Nada sai do bolso.';
+ $('mpR_ap').textContent=money(A.totAp);
+ $('mpR_aps').textContent=A.totAp>0.5?(A.mesAp+' de '+A.n+' meses · em média '+money(A.totAp/Math.max(1,A.mesAp))+' por mês'):'o rendimento cobre tudo';
+ $('mpR_cap').textContent=money(A.invT);
+ $('mpR_cps').textContent=A.invT>=A.inv0-1?'começou com '+moneyK(A.inv0)+' e nunca foi tocado':'começou com '+moneyK(A.inv0)+(A.NOVA&&(A.L+A.compK)>0?' · lance e complemento saem dele':'');
+ $('mpR_cus').textContent=money(A.custo); $('mpR_cuss').textContent=(A.NOVA?'lance e complemento':'entrada')+(A.totAp>0.5?' + o que saiu do bolso':' · as parcelas saíram do rendimento'); ds(A,'mpR_ds');
+ /* rendimento + capital */
+ const usado=Math.max(0,B.inv0-B.invT);
+ $('mpT_s').innerHTML=B.runout?'O dinheiro investido <b>acaba no mês '+B.runout+'</b>; daí em diante a parcela sai do bolso.':(usado>0.5?'Quando o rendimento não cobre, a parcela tira do próprio capital.':'O rendimento cobre a parcela e ainda sobra: o capital cresce.');
+ $('mpT_ap').textContent=money(usado);
+ $('mpT_aps').textContent=usado>0.5?'de '+moneyK(B.inv0)+' investidos no começo':'nada: o capital só cresce';
+ $('mpT_cap').textContent=money(B.invT);
+ $('mpT_cps').textContent=B.invT<0?'saldo negativo = saiu do bolso':'o que sobra do capital';
+ $('mpT_cus').textContent=money(B.custo); $('mpT_cuss').textContent=(B.NOVA?'lance e complemento':'entrada')+(usado>0.5?' + capital gasto':' · as parcelas saíram do rendimento'); ds(B,'mpT_ds');
+ $('mpR').classList.toggle('win',R.mp==='REND'); $('mpT').classList.toggle('win',R.mp==='TUDO');
+ const S=R.mp==='REND'?A:B;
+ $('mp_n').innerHTML=S.dscP>=0?('Do jeito que está na conta, o bem de <b>'+money(S.P)+'</b> sai, de verdade, por <b>'+money(S.custo)+'</b>: <b>'+pct(S.dscP,1)+' de desconto</b>, e no fim ainda sobram <b>'+money(S.invT)+'</b> investidos (começou com '+moneyK(S.inv0)+').'):('Do jeito que está na conta, o bem de <b>'+money(S.P)+'</b> sai por <b>'+money(S.custo)+'</b> ('+pct(-S.dscP,1)+' acima do preço)'+(S.invT<0?' e o dinheiro investido acaba antes do fim.':', sobrando '+money(S.invT)+' investidos.'));
 }
 function explica(R,consWin,net,cetA,totPago,rp){
  const st=(n,ti,v,p,hl)=>'<div class="st'+(hl?' hl':'')+'"><div class="n">'+n+'</div><div class="t">'+ti+'</div><div class="v">'+v+'</div><p>'+p+'</p></div>';
@@ -920,6 +1006,9 @@ function ind(){const s=$('segTipo'),b=s.querySelector('button.on'),i=s.querySele
 document.querySelectorAll('#segTipo button').forEach(b=>b.onclick=()=>{TIPO=b.dataset.t;document.querySelectorAll('#segTipo button').forEach(x=>x.classList.toggle('on',x===b));ind();syncRanges();calc();});
 function modeSeg(segId,onPick){document.querySelectorAll('#'+segId+' button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#'+segId+' button').forEach(x=>x.classList.toggle('on',x===b));onPick(b.dataset.m);calc();});}
 modeSeg('segDC',m=>{DC=m;});
+function setMP(m){ MP=m; document.querySelectorAll('#segMP button').forEach(x=>x.classList.toggle('on',x.dataset.m===m)); $('mp_h').textContent=m==='REND'?'o que faltar sai do bolso':'se faltar, sai do capital'; }
+modeSeg('segMP',m=>{setMP(m);});
+document.querySelectorAll('.mpo').forEach(el=>{const go=()=>{if(MP===el.dataset.m)return;setMP(el.dataset.m);calc();};el.addEventListener('click',go);el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});});
 modeSeg('segCEnt',m=>{ if(m===CENT)return; const R=modelo(num('rinv')); if(m==='VAL'){$('c_ent').value=brl(R.C*num('c_ent')/100);} else {$('c_ent').value=R.C>0?(+(num('c_ent')/R.C*100).toFixed(1)).toLocaleString('pt-BR'):0;} CENT=m; $('c_ent_h').textContent=m==='VAL'?'em reais · sai do dinheiro':'% do crédito · sai do dinheiro'; });
 modeSeg('segLance',m=>{ if(m===LANCE)return; const R=modelo(num('rinv')); if(m==='VAL'){$('c_lance').value=brl(R.Ck*num('c_lance')/100);} else {$('c_lance').value=R.Ck>0?(+(num('c_lance')/R.Ck*100).toFixed(1)).toLocaleString('pt-BR'):0;} LANCE=m; $('c_lance_h').textContent=m==='VAL'?'em reais · sai do dinheiro':'% do crédito · sai do dinheiro'; });
 modeSeg('segAlug',m=>{ if(m===ALUG)return; const P=num('p_bem'); if(m==='VAL'){$('c_alug').value=brl(P*num('c_alug')/100);} else {$('c_alug').value=P>0?(+(num('c_alug')/P*100).toFixed(2)).toLocaleString('pt-BR'):0;} ALUG=m; $('c_alug_h').textContent=m==='VAL'?'R$ por mês · 0 se não precisa':'% do preço ao mês · 0 se não precisa'; });
@@ -1104,8 +1193,8 @@ W.agGerarPNG=function(){ /* devolve o canvas (usado pelo Baixar e pelo teste) */
     var F=['400 12px "DM Sans"','500 12px "DM Sans"','600 12px "DM Sans"','700 12px "DM Sans"','600 12px "Lora"','italic 600 12px "Lora"','500 12px "Lora"'];
     return Promise.all(F.map(function(f){ return doc.fonts.load(f).catch(function(){}); })).then(function(){ return doc.fonts.ready; });
    }});
- }).then(function(cv){ D.documentElement.classList.remove('agcap'); if(typeof W.__endPrint==='function')W.__endPrint(); W.scrollTo(sx,sy); return cv; },
-   function(e){ D.documentElement.classList.remove('agcap'); try{ if(typeof W.__endPrint==='function')W.__endPrint(); }catch(_){ } W.scrollTo(sx,sy); throw e; });
+ }).then(function(cv){ D.documentElement.classList.remove('agcap'); if(typeof W.__endPrint==='function')W.__endPrint(); W.scrollTo(sx,sy); W.agChartsFit&&W.agChartsFit(true); return cv; },
+   function(e){ D.documentElement.classList.remove('agcap'); try{ if(typeof W.__endPrint==='function')W.__endPrint(); }catch(_){ } W.scrollTo(sx,sy); W.agChartsFit&&W.agChartsFit(true); throw e; });
 };
 W.baixarPNG=function(){ if(_gerando)return; _gerando=true; toast('Gerando a imagem…');
  W.agGerarPNG().then(function(cv){
@@ -1221,6 +1310,26 @@ if(ios()){ W.baixarPDF=W.agPdfImagem; W.addEventListener('load',function(){ W.ba
  ch.addEventListener('click',function(){set(false,true);var r=side.getBoundingClientRect();if(r.top<0||r.top>W.innerHeight*.6)W.scrollTo({top:Math.max(0,W.scrollY+r.top-90),behavior:'smooth'});});
  set(!!st[pg],false);
 })();
+
+/* MOB_LARGURA_26OUT · gráfico do tamanho do quadro, sempre. No iPhone, depois do Baixar (PNG/PDF) ou de girar a tela,
+   o Chart.js às vezes ficava com a largura da página de captura (1400 px) e a página sobrava para o lado.
+   Aqui todo gráfico mais largo que o quadro é redimensionado de novo. */
+(function(){
+ var W=window,D=document;
+ function lista(){ var C=W.Chart; if(!C||!C.instances)return []; var o=C.instances; return Object.keys(o).map(function(k){return o[k];}).filter(Boolean); }
+ W.agChartsFit=function(depois){
+  if(D.documentElement.classList.contains('agcap'))return;
+  lista().forEach(function(ch){ try{ var cv=ch.canvas,p=cv&&cv.parentElement; if(!p||cv.style.display==='none')return;
+   var pw=p.clientWidth,cw=cv.getBoundingClientRect().width,iw=parseFloat(cv.style.width)||cw;
+   if(pw>0&&(iw>pw+2||Math.abs(cw-pw)>2)){ ch.resize(); } }catch(e){} });
+  if(depois){ setTimeout(function(){W.agChartsFit();},350); setTimeout(function(){W.agChartsFit();},1200); }
+ };
+ var t=0; function logo(){ clearTimeout(t); t=setTimeout(function(){W.agChartsFit(true);},120); }
+ W.addEventListener('resize',logo); W.addEventListener('orientationchange',logo); W.addEventListener('pageshow',logo);
+ D.addEventListener('visibilitychange',function(){ if(!D.hidden)logo(); });
+ if(W.visualViewport)W.visualViewport.addEventListener('resize',logo);
+ setInterval(function(){ if(!D.hidden)W.agChartsFit(); },2500);
+})();
 </script>
 <script src="/calc-link.js?v=5"></script>
 <script id="ag-calc-link">/* link temporário para o cliente */
@@ -1231,7 +1340,7 @@ if(ios()){ W.baixarPDF=W.agPdfImagem; W.addEventListener('load',function(){ W.ba
  $('agLinkBtn').onclick=function(){if(window.AgCalcLink)AgCalcLink.modal({pagina:'calc-avista'});};
 })();
 </script>
-<script src="/tool-tour.js?v=9" defer></script>
+<script src="/tool-tour.js?v=11" defer></script>
 <style id="ag-sem-zoom">/* SEM_ZOOM_24OUT: no celular o campo precisa de 16px, senão o iPhone dá zoom ao digitar */
 @media (max-width:600px),(pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}}
 </style>

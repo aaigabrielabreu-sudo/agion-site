@@ -4051,7 +4051,7 @@ function masterReportPDF(){
 <script src="/plat-contas-papel.js?v=1"></script>
 <script src="/plat-mkt.js?v=1"></script>
 <script src="/plat-tour.js?v=18"></script>
-<script src="/plat-novidades.js?v=67"></script>
+<script src="/plat-novidades.js?v=68"></script>
 
 <!-- ===== Propostas (anexos por lead) — identidade Agion ===== -->
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -4092,10 +4092,30 @@ function masterReportPDF(){
     </div>
     <div id="propAnexos"></div>
    </div>
-   <div id="propGenWrap" style="display:none">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font-family:'Lora',Georgia,serif;font-size:1.1rem;color:#12463D">Prévia</span><span id="propHint" style="color:#6E8078;font-size:.82rem"></span></div>
-    <iframe id="propGen" title="Gerador de propostas" style="width:100%;height:72vh;min-height:560px;border:1px solid #E7DEC9;border-radius:16px;display:block;background:#fff"></iframe>
+   <div id="propGenWrap" class="pgw" style="display:none"><!-- GERADOR_GRANDE_26OUT: o gerador abre num pop-up do tamanho da tela; ao salvar, volta para as propostas do cliente -->
+    <div class="pgw-card">
+     <div class="pgw-top">
+      <button type="button" class="pgw-volta" onclick="propGenFechar()"><span aria-hidden="true">←</span> <span id="propGenVolta">Voltar</span></button>
+      <div class="pgw-tt"><small>Montar proposta</small><b id="propGenNome">—</b></div>
+      <span id="propHint" class="pgw-hint"></span>
+     </div>
+     <iframe id="propGen" title="Gerador de propostas" class="pgw-if"></iframe>
+    </div>
    </div>
+   <style>
+    #propGenWrap.pgw{position:fixed;inset:0;z-index:720;background:rgba(4,12,14,.74);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));box-sizing:border-box}
+    #propGenWrap.pgw.on{display:flex!important;align-items:stretch;justify-content:center}
+    #propGenWrap .pgw-card{background:#FBFAF6;width:100%;max-width:1480px;border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 34px 90px rgba(0,0,0,.55);font-family:'Poppins',system-ui,sans-serif}
+    #propGenWrap .pgw-top{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid #E7DEC9;background:linear-gradient(180deg,#FBF6EC,#FBFAF6);flex:none}
+    #propGenWrap .pgw-volta{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #E7DEC9;color:#12463D;border-radius:11px;padding:9px 14px;cursor:pointer;font:600 .85rem 'Poppins',system-ui,sans-serif;white-space:nowrap;max-width:46vw;overflow:hidden;text-overflow:ellipsis}
+    #propGenWrap .pgw-volta:hover{border-color:#C5A059}
+    #propGenWrap .pgw-tt{min-width:0}
+    #propGenWrap .pgw-tt small{display:block;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:#A6853F;font-weight:700}
+    #propGenWrap .pgw-tt b{display:block;font-family:'Lora',Georgia,serif;font-weight:500;font-size:1.12rem;color:#12463D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #propGenWrap .pgw-hint{margin-left:auto;color:#6E8078;font-size:.8rem;text-align:right}
+    #propGenWrap .pgw-if{flex:1;width:100%;min-height:0;border:0;display:block;background:#fff}
+    @media (max-width:640px){#propGenWrap.pgw{padding:0}#propGenWrap .pgw-card{border-radius:0;padding-top:env(safe-area-inset-top)}#propGenWrap .pgw-hint{display:none}#propGenWrap .pgw-top{padding:8px 12px;gap:10px}#propGenWrap .pgw-tt b{font-size:1rem}}
+   </style>
   </div>
  </div>
 </div>
@@ -4106,7 +4126,12 @@ function masterReportPDF(){
  function b64toBlob(b64,mime){const bin=atob(b64),len=bin.length,arr=new Uint8Array(len);for(let i=0;i<len;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mime});}
  function fileB64(f){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(String(r.result).split(',')[1]);};r.onerror=rej;r.readAsDataURL(f);});}
  function el(id){return document.getElementById(id);}
- function openGen(hint){pending=pending||null;el('propGenWrap').style.display='block';el('propHint').textContent=hint||'';el('propGen').src='propostas.html';}
+ try{ var _pgw=document.getElementById('propGenWrap'); if(_pgw&&_pgw.parentNode!==document.body)document.body.appendChild(_pgw); }catch(e){}   /* GERADOR_GRANDE_26OUT: fora do pop-up, por cima de tudo */
+ function genFecha(){var w=el('propGenWrap');w.classList.remove('on');w.style.display='none';el('propGen').src='about:blank';}
+ window.propGenFechar=function(){genFecha();};
+ function openGen(hint){pending=pending||null;var w=el('propGenWrap'),pn=(ctx&&ctx.nome)||'';
+  el('propGenNome').textContent=pn||'Proposta';el('propGenVolta').textContent='Voltar'+(pn?' para '+pn.split(' ')[0]:'');
+  w.style.display='flex';w.classList.add('on');el('propHint').textContent=hint||'';el('propGen').src='propostas.html';}
  window.propIaFileName=function(inp){var l=el('propIaFileLbl');if(!l)return;var f=inp&&inp.files&&inp.files[0];l.textContent=f?(f.name.length>26?f.name.slice(0,24)+'…':f.name):'Selecionar print do grupo';};
  window.abrirProposta=function(id,kind){
    kind=kind||'lead';
@@ -4115,12 +4140,12 @@ function masterReportPDF(){
    if(!ent.ownerId){flash('Sem responsável definido — distribua o lead antes de criar a proposta.');return;}
    ctx={cid:id,ownerId:ent.ownerId,nome:ent.nome,kind:kind}; pending=null; try{window.__agPropCtx=ctx;}catch(e){} /* HISTFERR_20261020: o link da calculadora no Gerador já sai ligado a este lead */
    el('propTitle').textContent='Propostas — '+ent.nome;
-   el('propGenWrap').style.display='none'; el('propGen').src='about:blank'; el('propHint').textContent='';
+   genFecha(); el('propHint').textContent='';
    try{el('propIaTxt').value='';el('propIaFile').value='';el('propIaStatus').textContent='';var _l=el('propIaFileLbl');if(_l)_l.textContent='Selecionar print do grupo';}catch(e){}
    el('propostaModal').classList.remove('hidden');
    carregarAnexos();
  };
- window.fecharProposta=function(){el('propostaModal').classList.add('hidden');el('propGen').src='about:blank';ctx=null;pending=null;};
+ window.fecharProposta=function(){el('propostaModal').classList.add('hidden');genFecha();ctx=null;pending=null;};
  async function carregarAnexos(){
    const box=el('propAnexos'), cnt=el('propAnexCount');
    box.innerHTML='<div style="color:#6E8078;font-size:.85rem;padding:8px 2px">Carregando…</div>'; if(cnt)cnt.textContent='';
@@ -4194,7 +4219,7 @@ function masterReportPDF(){
      await supa.storage.from('propostas').upload(dir+'/'+ts+'-'+d.tipo+'.png',b64toBlob(d.png.b64,'image/png'),{contentType:'image/png',upsert:false});
      try{if(typeof logEvt==='function')logEvt('proposta_criar','cliente','Gerou uma proposta para "'+ctx.nome+'"',{cliente:ctx.nome,tipo:d.tipo});}catch(e){}
      flash('Proposta salva no cliente ✓');
-     el('propHint').textContent='Salvo ✓'; el('propGenWrap').style.display='none'; el('propGen').src='about:blank';
+     el('propHint').textContent='Salvo ✓'; genFecha();
      carregarAnexos();
    }catch(e){flash('Falha ao salvar: '+(e.message||e));el('propHint').textContent='Falha ao salvar — '+(e.message||e);}
  }

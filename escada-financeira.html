@@ -656,7 +656,16 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
  .premchip .pcm{flex:none;padding:6px 12px;border-radius:999px;background:var(--bg,#F4EFE4);font:700 12px/1.2 var(--sans,"DM Sans",system-ui);color:var(--goldd,#A3833F)}
  .premchip:hover .pcm{background:var(--gold3,#F3E7C9)}
 }
-@media screen and (max-width:760px){.premchip .pct{flex-direction:column;gap:2px}}
+@media screen and (max-width:760px){.premchip .pct{flex-direction:column;align-items:stretch;gap:2px}.premchip .pcs{white-space:normal!important;display:-webkit-box!important;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.35}}
+/* MOB_LARGURA_26OUT · no celular nada pode passar da largura da tela (a faixa de premissas empurrava a página para o lado) */
+@media screen{
+ .premchip,.premchip .pct{max-width:100%;overflow:hidden}
+ .premchip .pcs{display:block;max-width:100%}
+ html:not(.pngx):not(.agcap),html:not(.pngx):not(.agcap) body{max-width:100%;overflow-x:clip}
+ /* o gráfico nunca passa da largura do quadro (no iPhone ele chegava a ficar 4x mais largo depois do Baixar) */
+ html:not(.pngx):not(.agcap) .cvb{max-width:100%;min-width:0;overflow:hidden}
+ html:not(.pngx):not(.agcap) .cvb>canvas{max-width:100%!important}
+}
 @media print{.premchip,#premBtn{display:none!important}}
 
 /* PDF_IOS_25OUT · a imagem do gráfico (troca feita só para o PDF) nunca passa da largura do quadro na tela */
@@ -1393,8 +1402,8 @@ W.agGerarPNG=function(){ /* devolve o canvas (usado pelo Baixar e pelo teste) */
     var F=['400 12px "DM Sans"','500 12px "DM Sans"','600 12px "DM Sans"','700 12px "DM Sans"','600 12px "Lora"','italic 600 12px "Lora"','500 12px "Lora"'];
     return Promise.all(F.map(function(f){ return doc.fonts.load(f).catch(function(){}); })).then(function(){ return doc.fonts.ready; });
    }});
- }).then(function(cv){ D.documentElement.classList.remove('agcap'); if(typeof W.__endPrint==='function')W.__endPrint(); W.scrollTo(sx,sy); return cv; },
-   function(e){ D.documentElement.classList.remove('agcap'); try{ if(typeof W.__endPrint==='function')W.__endPrint(); }catch(_){ } W.scrollTo(sx,sy); throw e; });
+ }).then(function(cv){ D.documentElement.classList.remove('agcap'); if(typeof W.__endPrint==='function')W.__endPrint(); W.scrollTo(sx,sy); W.agChartsFit&&W.agChartsFit(true); return cv; },
+   function(e){ D.documentElement.classList.remove('agcap'); try{ if(typeof W.__endPrint==='function')W.__endPrint(); }catch(_){ } W.scrollTo(sx,sy); W.agChartsFit&&W.agChartsFit(true); throw e; });
 };
 W.baixarPNG=function(){ if(_gerando)return; _gerando=true; toast('Gerando a imagem…');
  W.agGerarPNG().then(function(cv){
@@ -1509,6 +1518,26 @@ if(ios()){ W.baixarPDF=W.agPdfImagem; W.addEventListener('load',function(){ W.ba
   if(!h){var r=side.getBoundingClientRect();if(r.top<0||r.top>W.innerHeight*.6)W.scrollTo({top:Math.max(0,W.scrollY+r.top-90),behavior:'smooth'});}});
  ch.addEventListener('click',function(){set(false,true);var r=side.getBoundingClientRect();if(r.top<0||r.top>W.innerHeight*.6)W.scrollTo({top:Math.max(0,W.scrollY+r.top-90),behavior:'smooth'});});
  set(!!st[pg],false);
+})();
+
+/* MOB_LARGURA_26OUT · gráfico do tamanho do quadro, sempre. No iPhone, depois do Baixar (PNG/PDF) ou de girar a tela,
+   o Chart.js às vezes ficava com a largura da página de captura (1400 px) e a página sobrava para o lado.
+   Aqui todo gráfico mais largo que o quadro é redimensionado de novo. */
+(function(){
+ var W=window,D=document;
+ function lista(){ var C=W.Chart; if(!C||!C.instances)return []; var o=C.instances; return Object.keys(o).map(function(k){return o[k];}).filter(Boolean); }
+ W.agChartsFit=function(depois){
+  if(D.documentElement.classList.contains('agcap'))return;
+  lista().forEach(function(ch){ try{ var cv=ch.canvas,p=cv&&cv.parentElement; if(!p||cv.style.display==='none')return;
+   var pw=p.clientWidth,cw=cv.getBoundingClientRect().width,iw=parseFloat(cv.style.width)||cw;
+   if(pw>0&&(iw>pw+2||Math.abs(cw-pw)>2)){ ch.resize(); } }catch(e){} });
+  if(depois){ setTimeout(function(){W.agChartsFit();},350); setTimeout(function(){W.agChartsFit();},1200); }
+ };
+ var t=0; function logo(){ clearTimeout(t); t=setTimeout(function(){W.agChartsFit(true);},120); }
+ W.addEventListener('resize',logo); W.addEventListener('orientationchange',logo); W.addEventListener('pageshow',logo);
+ D.addEventListener('visibilitychange',function(){ if(!D.hidden)logo(); });
+ if(W.visualViewport)W.visualViewport.addEventListener('resize',logo);
+ setInterval(function(){ if(!D.hidden)W.agChartsFit(); },2500);
 })();
 </script>
 <script src="/tool-tour.js?v=10" defer></script>

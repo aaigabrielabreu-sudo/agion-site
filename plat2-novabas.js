@@ -255,15 +255,18 @@ function abreFerr(k){ fechaSheet();
 function fechaSheet(){ var b=$('.nvb-bg'); if(b) b.remove(); D.removeEventListener('keydown',escK); }
 function escK(e){ if(e.key==='Escape') fechaSheet(); }
 function abreSheet(p){
-  fechaSheet(); p=p||cur(); var L=daAba(p); if(!L.length) return;
+  fechaSheet(); p=p||cur(); var L=daAba(p), outras=false;
+  if(!L.length){ L=lista().slice().sort(function(a,b){ return b.v-a.v; }).slice(0,6); outras=true; }   /* NVB_SEMPRE_26OUT */
+  if(!L.length){ try{ W.toast('Ainda não há novidades para você','spark'); }catch(e){} return; }
   var nv={}; L.forEach(function(x){ nv[x.k]=novo(x); });
   var vs=[], porV={}; L.forEach(function(x){ if(!porV[x.v]){ porV[x.v]=[]; vs.push(x); } porV[x.v].push(x); });
   var idx=[], corpo=vs.map(function(h){ return '<div class="nvb-vh">Versão '+h.v+' · '+esc(h.data)+'</div>'+porV[h.v].map(function(x){ var k=idx.push(x)-1;
     return '<div class="nvb-it"><span class="nvb-i">'+IC.spark+'</span><div style="min-width:0;flex:1"><h4>'+esc(x.it.t)+(nv[x.k]?'<span class="nv">Novo</span>':'')+'</h4><p>'+esc(x.it.d)+'</p>'+((x.it.d||'').length>190?'<button class="mais" data-m="'+k+'">Ler tudo</button>':'')+
       '<div class="nvb-ac"><button class="g" data-t="'+k+'">'+IC.play+'Ver como funciona</button>'+(x.ferr&&FERR[x.ferr]?'<button data-f="'+k+'">'+IC.open+'Abrir '+esc(FERR[x.ferr])+'</button>':'')+'</div></div></div>'; }).join(''); }).join('');
-  var nN=L.filter(function(x){ return nv[x.k]; }).length, nome=p==='painel'?'na plataforma e no Painel':'em '+nomeAba(p);
+  var nN=L.filter(function(x){ return nv[x.k]; }).length, nome=outras?'na plataforma':(p==='painel'?'na plataforma e no Painel':'em '+nomeAba(p));
+  if(outras) corpo='<div class="nvb-vh" style="text-transform:none;letter-spacing:0">Esta aba ainda não tem novidade. Estas são as últimas das suas outras abas:</div>'+corpo;
   var bg=D.createElement('div'); bg.className='nvb-bg';
-  bg.innerHTML='<div class="nvb-md" role="dialog" aria-modal="true" aria-labelledby="nvbT"><div class="nvb-hd"><div><div class="k">Novidades desta aba</div><h2 id="nvbT">O que mudou <em>'+esc(nome)+'</em></h2><p>'+L.length+(L.length===1?' novidade':' novidades')+' da versão '+L[L.length-1].v+' à '+L[0].v+(nN?' · '+nN+' que você ainda não tinha visto':'')+'</p></div><button class="nvb-x" aria-label="Fechar">'+IC.x+'</button></div>'+
+  bg.innerHTML='<div class="nvb-md" role="dialog" aria-modal="true" aria-labelledby="nvbT"><div class="nvb-hd"><div><div class="k">'+(outras?'Últimas novidades':'Novidades desta aba')+'</div><h2 id="nvbT">O que mudou <em>'+esc(nome)+'</em></h2><p>'+L.length+(L.length===1?' novidade':' novidades')+' da versão '+L[L.length-1].v+' à '+L[0].v+(nN?' · '+nN+' que você ainda não tinha visto':'')+'</p></div><button class="nvb-x" aria-label="Fechar">'+IC.x+'</button></div>'+
     '<div class="nvb-bd">'+corpo+'</div><div class="nvb-ft"><small>“Ver como funciona” mostra a novidade direto na tela, sem alterar nada.</small><button type="button" class="ok">Entendi</button></div></div>';
   D.body.appendChild(bg);
   bg.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('button'); if(e.target===bg||(b&&(b.classList.contains('nvb-x')||b.classList.contains('ok')))){ fechaSheet(); return; } if(!b) return;
@@ -291,7 +294,9 @@ function faixa(){
 }
 function botaoTopo(){
   var tb=$('.tbar'); if(!tb) return; var b=$('#nvbBtn'), p=cur(), L=(p&&p!=='cliente')?daAba(p):[];
-  if(!L.length){ if(b) b.hidden=true; return; }
+  /* NVB_SEMPRE_26OUT: o ✦ aparece SEMPRE para a equipe (master, líder e especialistas), em todas as abas que a pessoa acessa;
+     sem novidade na aba, ele abre as últimas novidades das outras abas dela. Só o cliente não vê. */
+  if(role()==='cliente'){ if(b) b.hidden=true; return; }
   if(!b){ b=D.createElement('button'); b.type='button'; b.id='nvbBtn'; b.className='ib'; b.title='Novidades desta aba'; b.setAttribute('aria-label','Novidades desta aba');
     b.onclick=function(){ abreSheet(cur()); }; var ref=$('#how',tb)||$('.b-help',tb)||$('#bell',tb); if(ref) tb.insertBefore(b,ref); else tb.appendChild(b); }
   b.hidden=false; var n=L.some(novo), h=IC.spark+(n?'<i class="nvb-dot"></i>':''); if(b.__h!==h){ b.__h=h; b.innerHTML=h; }

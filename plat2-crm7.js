@@ -221,12 +221,13 @@ function prazoTxt(p){if(!p)return '';if(p.passouA)return 'a Alice está voltando
 /* ---------- chips no card ---------- */
 function chips(d){var x=xl(d),k,o=[];try{k=W.AG7.colDe(d);}catch(e){return '';}
  if(d.perdido){if(!x.motivo_nao_conversao)o.push(['f','falta: motivo']);}
- else if(k==='1'){if(x.contato_respondeu===true)o.push(['ok','✅ Respondeu']);else if(x.contato_respondeu===false)o.push(['pt','🤖 Não respondeu: Alice chamando']);else{var pz=prazoContato(x);o.push(['am','⏳ Aguardando resposta'+(pz&&!pz.passouA?' · Alice '+hmBR(pz.auto).replace(/^hoje /,''):'')]);}}
+ else if(k==='1'){if(x.contato_respondeu===true)o.push(['ok','✅ Respondeu']);else if(x.contato_respondeu===false)o.push(['pt','🤖 Não respondeu: Alice chamando']);else{var pz=prazoContato(x);o.push(['am','⏳ Aguardando resposta',(pz&&!pz.passouA?'Alice chama de novo '+hmBR(pz.auto):'')]);}}
  else if(k==='agd'){if(x.compareceu===false)o.push(['rd','Faltou']);if(!x.reuniao_em)o.push(['f','falta: data da reunião']);}
  else if(k==='dia'){if(x.compareceu==null)o.push(['f','falta: compareceu']);}
  else if(k==='4'&&d.st!==4)o.push(['f','falta: ganho ou perdido']);
- return o.length?'<div class="c7ch">'+o.map(function(c){return '<span class="c7c '+c[0]+'">'+e4(c[1])+'</span>';}).join('')+'</div>':'';}
+ return o.length?'<div class="c7ch">'+o.map(function(c){return '<span class="c7c '+c[0]+(c[2]?' c7d':'')+'">'+(c[2]?'<b>'+e4(c[1])+'</b><small>'+e4(c[2])+'</small>':e4(c[1]))+'</span>';}).join('')+'</div>':'';}   /* CHIP_2L_26OUT: chip com prazo em 2 linhas, nunca sai do card */
 
+try{W.AG7=W.AG7||{};W.AG7.chips=chips;}catch(e){}   /* CONV_CRM_26OUT: o painel da conversa mostra o mesmo status do card */
 /* ---------- painel no card aberto ---------- */
 function painel(d){var x=xl(d),k=W.AG7.colDe(d),bt=[],tx='',sub='';
  if(d.perdido){tx='Perdido'+(x.motivo_nao_conversao?' · '+x.motivo_nao_conversao:'');if(!x.motivo_nao_conversao)bt.push(['mot','Informar motivo']);}
@@ -382,6 +383,7 @@ function css(){if(document.getElementById('c7css'))return;var s=document.createE
  '.c7l{display:grid;gap:6px}.c7l button{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:500 13px "DM Sans";text-align:left;cursor:pointer}.c7l button span{flex:1}.c7l button small{color:var(--mut)}'+
  '.sheet.c7 select{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit}'+
  '.c7ch{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 2px}.c7c{font:700 10.5px "DM Sans";padding:3px 8px;border-radius:999px;background:color-mix(in srgb,var(--t,#fff) 16%,transparent);color:var(--t,inherit);border:1px solid color-mix(in srgb,var(--t,#fff) 22%,transparent);white-space:nowrap}'+
+ '.c7c{max-width:100%;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis}.c7c.c7d{display:flex;flex-direction:column;gap:1px;white-space:normal;border-radius:12px;padding:5px 10px 6px;line-height:1.25}.c7c.c7d b{font:700 10.5px/1.25 "DM Sans"}.c7c.c7d small{font:600 10px/1.25 "DM Sans";opacity:.82}'+
  '.c7c.f{border-style:dashed;background:transparent}.c7c.ok{background:rgba(63,143,106,.85);color:#fff;border-color:transparent}.c7c.am{background:rgba(229,201,123,.9);color:#3b2d06;border-color:transparent}.c7c.pt{background:rgba(14,124,123,.85);color:#fff;border-color:transparent}.c7c.rd{background:rgba(194,70,59,.88);color:#fff;border-color:transparent}'+
  '.dm .c7p{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 4px;padding:10px 12px;border-radius:16px;background:color-mix(in srgb,currentColor 9%,transparent);border:1px solid color-mix(in srgb,currentColor 16%,transparent)}'+
  '.dm .c7p .sp{flex:1}.dm .c7pt{display:flex;flex-direction:column}.dm .c7pt small{opacity:.7;font-size:11px}.dm .c7pt b{font-size:13.5px}.dm .c7pb{padding:7px 12px!important;font-size:12.5px!important}'+
