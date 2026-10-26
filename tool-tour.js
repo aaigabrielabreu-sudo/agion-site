@@ -142,7 +142,7 @@ var TOURS={
    {t:up('#preview'),title:'Prévia',text:'Aqui aparece a proposta exatamente como vai sair. Se algo estiver errado, ajuste os campos e gere de novo.'}
   ]},
  /* MCARTAS_20261021 */
- 'melhores-cartas':{id:'t-mcartas',v:4,/* v4 RESERVA_CLIENTE_26OUT *//* MAPA_PROPOSTA_25OUT *//* TOURS_LV_23OUT */title:'Melhores cartas disponíveis',
+ 'melhores-cartas':{id:'t-mcartas',v:5,/* v5 LANCE_LIVRE_CALC_26OUT *//* v4 RESERVA_CLIENTE_26OUT *//* MAPA_PROPOSTA_25OUT *//* TOURS_LV_23OUT */title:'Melhores cartas disponíveis',
   steps:[
    {t:null,title:'Onde posicionar o cliente',text:'A ferramenta usa o Resultado de Assembleia Final da HS, mês a mês desde jun/2019, para mostrar em cada grupo as cotas que já saíram e as livres mais bem posicionadas perto delas.'},
    {t:up('#cats','.fld'),title:'Categoria',text:'Imóvel ou Automóvel. Cada categoria tem os próprios grupos.'},
@@ -160,14 +160,35 @@ var TOURS={
    {t:up('#pop'),title:'Melhores oportunidades',text:'As livres com o maior bloco de contempladas colado, com quantos números do sorteio caem em cada uma; o + põe a cota na negociação. Na HS, se o número sorteado já saiu, a vez passa para a cota de cima e depois para a de baixo.'},
    {t:up('#det'),title:'Detalhe e ações',text:'Na cota escolhida: o bloco colado, os números do sorteio, posicionar cliente (a equipe toda vê), pôr na negociação, marcar como reservada ou indisponível quando o portal da HS mostrar que não dá, e desfazer depois.'},
    {t:up('#dprop'),title:'Levar para a proposta',text:'Com a cota escolhida, este botão leva os dados da cota, do grupo e um print do mapa em volta dela para o Gerador de propostas, que abre na página “A sua cota no grupo”.',optional:true},
-   {t:up('#tabs'),title:'Melhores grupos e grade global',text:'“Melhores grupos” ordena os grupos pelas contemplações do último mês: quanto mais o grupo anda, mais ele contempla. “Grade global” mostra a carteira de 1 a 3.000, em todos os grupos, e sugere números para espalhar os clientes.'},
+   {t:up('#tabs'),title:'Melhores grupos, grade global e lance livre',text:'“Melhores grupos” ordena os grupos pelas contemplações do último mês: quanto mais o grupo anda, mais ele contempla. “Grade global” mostra a carteira de 1 a 3.000, em todos os grupos, e sugere números para espalhar os clientes. “Lance livre” é a calculadora: quanto o cliente tem de lance e o crédito que ele quer, e ela acha o grupo onde o lance contempla (tem o tutorial próprio).'},
    {t:null,title:'Sempre confirme na HS',text:'A ferramenta sugere; a reserva de verdade é no portal da HS. Se a cota já estiver reservada por outro corretor, marque aqui como reservada para a equipe não perder tempo.'}
-  ]}
+  ]},
+ /* LANCE_LIVRE_CALC_26OUT · aba "Lance livre" da Melhores cartas (também abre por Ferramentas › Estratégias) */
+ 'melhores-cartas-lance':{id:'t-lance',v:1,title:'Calculadora de lance livre',
+  save:function(){ var a=$('#lcL'),b=$('#lcC'); return {L:a?a.value:'',C:b?b.value:''}; },
+  restore:function(s){ s=s||{}; [['#lcL','L'],['#lcC','C']].forEach(function(p){ var el=$(p[0]); if(el&&el.value!==s[p[1]]){ el.value=s[p[1]]||''; el.dispatchEvent(new Event('input',{bubbles:true})); } }); },
+  steps:[
+   {t:null,title:'Onde o lance do cliente contempla',text:'O cliente tem um valor para dar de lance livre e quer uma carta de certo valor. A calculadora olha todos os grupos da HS com cartas à venda e diz onde esse lance contempla, carta por carta. Nada é gravado.'},
+   {t:up('#lccat','.fld'),title:'Categoria',text:'Imóvel ou Automóvel. Cada categoria tem os próprios grupos.'},
+   {t:up('#lcL','.fld'),title:'Lance livre do cliente',text:'Quanto ele tem em dinheiro para o lance. Pode digitar 280.000, 280 mil ou 1,5 mi. Para a demonstração, colocamos R$ 280.000.',go:function(){ var el=$('#lcL'); if(el&&!el.value){ el.value='280.000'; el.dispatchEvent(new Event('input',{bubbles:true})); } }},
+   {t:up('#lcC','.fld'),title:'Crédito que ele quer',text:'O valor da carta que ele precisa receber. Aqui, R$ 500.000. Se deixar em branco, a calculadora mostra a maior carta que o lance dele alcança.',go:function(){ var el=$('#lcC'); if(el&&!el.value){ el.value='500.000'; el.dispatchEvent(new Event('input',{bubbles:true})); } }},
+   {t:up('#lcbase','.fld'),title:'Base do lance',text:'“Médio 6 meses”: a média, em parcelas, dos lances livres que contemplaram no grupo nos últimos 6 meses. “Último lance”: o menor lance que contemplou na última assembleia. A HS conta o lance em parcelas, por isso a conta é em parcelas.'},
+   {t:up('.lcf2'),title:'Embutido, folga e filtros',text:'Lance embutido até 30% da carta (dá para mudar ou desligar), a folga em parcelas acima da referência, só grupos com até 40% do prazo andado e a modalidade da carta.'},
+   {t:up('.lck'),title:'Resumo',text:'Quantos grupos entraram na conta, quantos contemplam só com o lance livre, quantos precisam de embutido e quantos ficaram fora (andaram mais de 40% ou não têm lance no período).',optional:true},
+   {t:up('.lcc.hero'),title:'Melhor encaixe',text:'O grupo e a carta mais perto do crédito pedido onde o lance fecha: o lance alvo em parcelas, quanto vale 1 parcela de lance (crédito + taxa de administração + fundo de reserva ÷ prazo), o lance necessário, quanto sai do bolso, o embutido e o crédito líquido.',optional:true},
+   {t:up('.lcc.hero .lccov'),title:'Cobertura',text:'Quantos dos lances livres que contemplaram nos últimos 6 meses ficaram iguais ou abaixo do lance alvo. Quanto mais perto de todos, mais folgado. Para ficar mais seguro, ponha folga em parcelas.',optional:true},
+   {t:up('.lcc.hero [data-abre]'),title:'Abrir o grupo',text:'Leva ao mapa do grupo já com essa carta escolhida para a reserva: gere as cotas por proximidade e reserve no portal para o cliente.',optional:true},
+   {t:up('.lcinfo'),title:'Como a conta é feita',text:'O passo a passo da conta, com um exemplo. Toque para abrir.',optional:true},
+   {t:null,title:'Sempre confirme na HS',text:'A calculadora sugere com os dados do portal e do resultado das assembleias. Antes de ofertar, confirme o lance e o embutido no portal da HS.'}
+  ]},
 };
 
 /* ---------------------------------------------------------------- QUAL PÁGINA */
 var path=(location.pathname||'').replace(/\.html$/,'').replace(/\/+$/,'').split('/').pop();
-var T=TOURS[path]; if(!T) return;
+var T0=TOURS[path]; if(!T0) return;
+/* LANCE_LIVRE_CALC_26OUT: na aba Lance livre da Melhores cartas o guia é o da calculadora */
+function qualT(){ var L=TOURS[path+'-lance']; if(!L) return T0; try{ if(W.AgionMC&&W.AgionMC.S) return W.AgionMC.S.aba==='lance'?L:T0; }catch(e){} return /[?&]aba=lance/.test(location.search)?L:T0; }
+var T=qualT();
 try{ if(W.top!==W.self) return; }catch(e){ return; } /* dentro da plataforma (iframe do CRM) não mostra o guia */
 
 /* ---------------------------------------------------------------- VISUAL */
@@ -272,7 +293,7 @@ async function go(i,dir){
 function store(k){ try{ return JSON.parse(localStorage.getItem(k)||'{}')||{}; }catch(e){ return {}; } }
 function put(k,o){ try{ localStorage.setItem(k,JSON.stringify(o)); }catch(e){} }
 function start(){
-  if(RUN) return; closeInv(); var s=store('agion:tooltour:seen'); s[T.id]=1; put('agion:tooltour:seen',s);
+  if(RUN) return; T=qualT(); closeInv(); var s=store('agion:tooltour:seen'); s[T.id]=1; put('agion:tooltour:seen',s);
   RUN={i:0,tok:0,el:null,saved:T.save?T.save():null}; build(); go(0,1);
   setTimeout(function(){ try{ UI&&UI.next.focus({preventScroll:true}); }catch(e){} },60);
 }
