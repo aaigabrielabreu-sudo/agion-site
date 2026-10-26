@@ -782,7 +782,7 @@ var CATS={IMOVEL:'Imóvel',AUTOMOVEL:'Automóvel'};
 var PER=[['all','Todo o histórico'],['12','Últimos 12 meses'],['6','Últimos 6 meses'],['3','Últimos 3 meses'],['1','Última assembleia']];
 var FIL=[['todos','Todas'],['op','Oportunidades'],['ct','Contempladas'],['disp','Disponíveis'],['ns','Clientes Agion'],['mk','Reservadas'],['av','À venda']];
 var S={aba:'grupo',cat:'IMOVEL',grupo:null,per:'all',janela:10,filtro:'todos',sel:null,esp:10,oculta:false,enc:false,
- GR:{},H:{},M:{},ult:{},ultMes:{},mensal:{},cartas:[],sb:null,me:null,master:false};
+ GR:{},H:{},M:{},ult:{},ultMes:{},mensal:{},cartas:[],sb:null,me:null,master:false,modoNeg:true};/* NEG_SEMPRE_26OUT: tocar no mapa sempre põe/tira da negociação */
 var TOT={};try{TOT=JSON.parse(localStorage.getItem('agmc-tot')||'{}');}catch(e){TOT={};}
 try{S.oculta=localStorage.getItem('agmc-oculta')==='1';}catch(e){}
 function $(s,r){return (r||document).querySelector(s);}function $$(s,r){return [].slice.call((r||document).querySelectorAll(s));}
@@ -1043,8 +1043,8 @@ function negHtml(g,O,mk){if(indisp(g))return '<div class="ph"><h3>'+IC.magnet+'C
   h+='<div class="nl">'+a.map(function(c){var o=opm[c];return '<div class="nr" data-ver="'+c+'"><span class="cel tile '+(o?'o'+o.niv[0]:'')+'">'+c+'</span><span class="t"><b>'+(O.cap[c]||1)+' nº do sorteio</b><small>'+blocoTxt(o)+'</small></span><button class="rm" data-rm="'+c+'" title="Tirar da negociação" aria-label="Tirar a cota '+c+' da negociação">'+IC.x+'</button></div>';}).join('')+'</div>'+
    '<div class="nsum"><b>'+tot+' números do sorteio</b> caem nessa'+(a.length>1?'s '+a.length+' cotas':' cota')+'.</div>'+
    '<div class="acts">'+(function(){var k=a.filter(function(c){return podeReservar(g,c);}).length;return k?'<button class="btn pu" id="negres">'+IC.check+(k>1?'Reservar as '+k+' no portal':'Reservar no portal')+'</button>':'';})()+'<button class="btn gd" id="negpos">'+IC.user+(a.length>1?'Posicionar nas '+a.length+' cotas':'Posicionar na cota')+'</button><div class="a2"><button class="btn ol" id="negcp">'+IC.copy+'Copiar lista</button><button class="btn ol" id="negx">Limpar</button></div></div>';}
- else h+='<p class="dp">Gera sozinho as cotas livres com mais contempladas coladas, onde mais números do sorteio caem por proximidade. Dá para tirar e pôr cotas à mão: toque em + numa oportunidade ou no detalhe da cota.</p>';
- return h+'<button class="tgl'+(S.modoNeg?' on':'')+'" id="negm" title="Com isto ligado, cada toque numa cota livre põe ou tira ela da negociação"><span class="tg"></span>Tocar no mapa põe na negociação</button>';}
+ else h+='<p class="dp">Gera sozinho as cotas livres com mais contempladas coladas, onde mais números do sorteio caem por proximidade. Para pôr ou tirar uma cota à mão, é só tocar nela no mapa.</p>';
+ return h;}
 function negPinta(g){var h=S.H[g.k];if(!h)return;var O=oport(g,h),mk=marcas(g),p=$('#neg');if(!p)return;p.innerHTML=negHtml(g,O,mk);bindNeg(g);
  var a=negDe(g),set={};a.forEach(function(c){set[c]=1;});
  $$('#mapa .cel.ng').forEach(function(x){if(!set[+x.dataset.c])x.classList.remove('ng');});a.forEach(function(c){var el=$('#mapa .cel[data-c="'+c+'"]');if(el)el.classList.add('ng');});
@@ -1141,7 +1141,7 @@ function abaGrupo(v){
  $$('#fil .chip[data-k]').forEach(function(b){b.onclick=function(){S.filtro=b.dataset.k;pintar();};});
  $('#ocl').onclick=function(){S.oculta=!S.oculta;try{localStorage.setItem('agmc-oculta',S.oculta?'1':'0');}catch(e){}pintar();};
  $('#mapa').onclick=function(e){var c=e.target.closest('.cel');if(!c)return;var n=+c.dataset.c;
-  if(S.modoNeg){if(livreNeg(g,n,ct,mk)){var pos=negToggle(g,n);toast(pos?'Cota '+n+' na negociação ('+negDe(g).length+')':'Cota '+n+' fora da negociação');if(window.innerWidth>980)selecionar(n);}else toast('A cota '+n+' não está livre');return;}
+  if(S.modoNeg&&livreNeg(g,n,ct,mk)){var pos=negToggle(g,n);toast(pos?'Cota '+n+' na negociação ('+negDe(g).length+')':'Cota '+n+' fora da negociação');if(window.innerWidth>980)selecionar(n);return;}
   selecionar(n);};
  $$('#pop [data-ver]').forEach(function(b){b.onclick=function(){selecionar(+b.dataset.ver,true);};b.onkeydown=function(e){if(e.key==='Enter')selecionar(+b.dataset.ver,true);};});
  $$('#pop [data-add]').forEach(function(b){b.onclick=function(e){e.stopPropagation();var pos=negToggle(g,+b.dataset.add);toast(pos?'Cota '+b.dataset.add+' na negociação ('+negDe(g).length+')':'Cota '+b.dataset.add+' fora da negociação');};});
@@ -1618,7 +1618,7 @@ window.AgionMC={S:S,pintar:pintar,captura:captura,ranking:ranking,recarregar:rec
 carregar().then(function(d){preparar(d);pintar();ligaImport();}).catch(function(e){$('#view').innerHTML='<div class="panel empty">Não consegui carregar os dados agora. Recarregue a página.<br><small>'+esc(e&&e.message||e)+'</small></div>';});
 })();
 </script>
-<script src="/tool-tour.js?v=12" defer></script>
+<script src="/tool-tour.js?v=13" defer></script>
 
 <style id="ag-sem-zoom">/* SEM_ZOOM_24OUT: no celular o campo precisa de 16px, senão o iPhone dá zoom ao digitar */
 @media (max-width:600px),(pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}#busca::placeholder{font-size:13px}}
