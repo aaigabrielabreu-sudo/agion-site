@@ -20,7 +20,7 @@ SAIDAS = [os.path.join(RAIZ, 'plataforma.html'), os.path.join(RAIZ, 'plataformav
 # versões dos arquivos da casca (subir a cada mudança)
 SHELL_CSS = '/plat2-shell.css?v=2'
 SHELL_JS = '/plat2-shell.js?v=5'
-V4_JS = '/plat2-v4.js?v=57'   # visual v4 (Chat A) por cima da v1; ?v1=1 na URL desliga
+V4_JS = '/plat2-v4.js?v=58'   # visual v4 (Chat A) por cima da v1; ?v1=1 na URL desliga
 
 src = open(V1, encoding='utf-8').read()
 
@@ -44,10 +44,19 @@ out = unico(out, '<title>Agion — Plataforma de Planejamento Financeiro</title>
 PRE = ('<style id="agv4pre">html:not(.v1on) #loginView,html:not(.v1on) #app{visibility:hidden!important}'
        'html:not(.v1on),html:not(.v1on) body{background:#0B2A26}'
        'html:not(.v1on):not(.v4ok) body::after{content:"";position:fixed;inset:0;z-index:1990;'
-       'background:radial-gradient(circle at 50% 38%,#1B5A4D,#0B2A26 64%)}</style>\n'
+       'background:radial-gradient(circle at 50% 38%,#1B5A4D,#0B2A26 64%)}'
+       # ABRE_LOGADO_26OUT: com sessão salva, a capa é a cor de fundo do app (creme/escuro), sem verde
+       'html.v4cl:not(.v1on),html.v4cl:not(.v1on) body{background:var(--v4clbg,#F4EFE4)}'
+       'html.v4cl:not(.v1on):not(.v4ok) body::after{background:var(--v4clbg,#F4EFE4)}</style>\n'
        '<script>(function(){var h=document.documentElement;'
        'if(/[?&]v1=1/.test(location.search)||!/^\\/plataforma(v2)?(\\.html)?$/.test(location.pathname))h.classList.add("v1on");'
-       'setTimeout(function(){if(!h.classList.contains("v4ok")){h.classList.add("v1on");h.classList.add("v4ok");}},12000);})();</script>')
+       'setTimeout(function(){if(!h.classList.contains("v4ok")){h.classList.add("v1on");h.classList.add("v4ok");}},12000);'
+       'try{var cl=0;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i)||"";if(/^sb-.*-auth-token$/.test(k)&&(localStorage.getItem(k)||"").indexOf("refresh_token")>=0){cl=1;break;}}'
+       'if(cl){var m=localStorage.getItem("agp-tema-modo"),t=localStorage.getItem("agp-tema"),hr=new Date().getHours(),'
+       'dk=m==="e"||(m==="sis"&&matchMedia("(prefers-color-scheme: dark)").matches)||(m==="hor"&&(hr>=19||hr<6))||(!m&&t==="1"),'
+       'bg=dk?"#071C19":"#F4EFE4";h.classList.add("v4cl");h.style.setProperty("--v4clbg",bg);'
+       'document.addEventListener("DOMContentLoaded",function(){var mt=document.querySelector("meta[name=theme-color]");if(mt)mt.setAttribute("content",bg);});}}catch(e){}'
+       '})();</script>')
 out = unico(out, '<meta charset="UTF-8">', '<meta charset="UTF-8">\n' + PRE)
 # 2) CSS da casca: antes do PRIMEIRO </head> (o do documento; há outro dentro de uma string JS mais abaixo)
 out = unico(out, '</head>', '<link rel="stylesheet" href="%s">\n</head>' % SHELL_CSS)
