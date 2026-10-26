@@ -22,7 +22,7 @@ var st=document.createElement('style');st.textContent=
 '.rcai button.ol{background:#fff;color:#7A2A1F;border:1px solid #F1C7BE}'+
 'body.dark .rcai{background:#3A1F1B;color:#F6D3CC;border-color:#5E2E26}body.dark .rcai .rt b{color:#F6D3CC}body.dark .rcai .rt span{color:#E3AFA5}body.dark .rcai button.ol{background:transparent;color:#F6D3CC;border-color:#5E2E26}';
 document.head.appendChild(st);
-var CACHE={};
+var CACHE={},VIS={};   /* VIS: avisos já marcados como vistos nesta tela (não volta a pintar) */
 async function avisosDe(nome){var k=norm(nome);if(!k)return [];var s=sb();if(!s)return [];
  try{var r=await s.from('reservas_avisos').select('id,grupo,cota,criado_em,cliente_nome,motivo').eq('nome_norm',k).is('visto_em',null).order('grupo').order('cota');CACHE[k]=(r&&r.data)||[];return CACHE[k];}catch(e){return [];}}
 function html(L){var por={},ord=[];L.forEach(function(a){if(!por[a.grupo]){por[a.grupo]=[];ord.push(a.grupo);}por[a.grupo].push(a);});
@@ -32,9 +32,10 @@ function html(L){var por={},ord=[];L.forEach(function(a){if(!por[a.grupo]){por[a
   '<div class="ra"><button type="button" data-rc="ok">Entendi</button><button type="button" class="ol" data-rc="mapa">Reservar de novo</button></div></div>';}
 async function visto(L,box){var s=sb();if(!s)return;var uid=null;try{var u=await s.auth.getUser();uid=u&&u.data&&u.data.user?u.data.user.id:null;}catch(e){}
  try{var r=await s.from('reservas_avisos').update({visto_em:new Date().toISOString(),visto_por:uid}).in('id',L.map(function(a){return a.id;}));if(r&&r.error)throw r.error;
+  L.forEach(function(a){VIS[a.id]=1;});
   if(box){box.style.transition='opacity .25s';box.style.opacity=0;setTimeout(function(){box.remove();},260);}toast('Aviso guardado como visto','ok');
  }catch(e){toast('Não consegui marcar como visto agora','x');}}
-function poe(alvo,antes,L){if(!alvo||!L||!L.length)return null;if($('.rcai',alvo))return $('.rcai',alvo);
+function poe(alvo,antes,L){L=(L||[]).filter(function(a){return !VIS[a.id];});if(!alvo||!L.length)return null;if($('.rcai',alvo))return $('.rcai',alvo);
  var b=document.createElement('div');b.className='rcai';b.innerHTML=html(L);
  if(antes&&antes.parentNode===alvo)alvo.insertBefore(b,antes.nextSibling);else alvo.insertBefore(b,alvo.firstChild);
  $('[data-rc="ok"]',b).onclick=function(e){e.stopPropagation();visto(L,b);};
