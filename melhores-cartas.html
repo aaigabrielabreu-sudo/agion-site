@@ -1174,6 +1174,7 @@ function detalhe(g,c,ct,opm,cap){
   else if(!g.nossas[c]&&!m.posicao)a2='<button class="btn ol neg-b'+(ng?' on':'')+'" id="dneg">'+(ng?IC.check+'Na negociação':IC.plus+'Negociação')+'</button><button class="btn ol" data-mk="reservada">Reservada</button><button class="btn ol" data-mk="indisponivel">Indisponível</button>';
   else if(!g.nossas[c])a2='<button class="btn ol" data-mk="reservada">Reservada</button><button class="btn ol" data-mk="indisponivel">Indisponível</button>';
   if(podeReservar(g,c)&&!g.nossas[c])a2=a2.replace('<button class="btn ol" data-mk="reservada">Reservada</button>','<button class="btn ol hsb" id="dres">'+IC.check+'Reservar no portal</button>');
+  if(roboRa(g,c)&&!g.nossas[c])a2='<button class="btn rd" id="dcanc">'+IC.x+'Cancelar reserva no portal</button><button class="btn ol" id="dcpl" title="Use quando a reserva já foi cancelada direto no portal da HS: só tira da plataforma">Já cancelei no portal</button>';/* CANCELAR_RESERVA_26OUT */
   if((roboOc(g,c)||indisp(g))&&!g.nossas[c]&&!m.posicao&&!bloqueada(m)){a1='';a2='';F=F.filter(function(f){return f.indexOf('Já vendida')>=0;});}
   if(a1||a2||m.avenda)A='<div class="acts">'+a1+(a2?'<div class="a2">'+a2+'</div>':'')+(m.avenda?'<button class="lk" data-tira="avenda">'+(S.H[g.k]&&S.H[g.k].cont[c]?'Desfazer “voltou à venda”':'Tirar da lista à venda')+'</button>':'')+'</div>';
   if(!((roboOc(g,c)||indisp(g))&&!g.nossas[c])){var bp='<button class="btn ol" id="dprop" title="Leva os dados da cota, do grupo e o mapa para o Gerador de propostas"><svg class="i" viewBox="0 0 24 24"><path d="M7 3.5h7.5L19 8v12.5H7z"/><path d="M14.5 3.5V8H19M10 13h6M10 16.5h4"/></svg>Levar para a proposta</button>';A=A?A.replace(/<\/div>$/,bp+'</div>'):'<div class="acts">'+bp+'</div>';}/* MAPA_PROPOSTA_25OUT */}
@@ -1231,6 +1232,7 @@ function bindDet(g){var p=$('#dpos');if(p)p.onclick=function(){abrirDlg(g,S.sel)
  var dpp=$('#dprop');if(dpp)dpp.onclick=function(){levarProposta(g,S.sel);};
  if(dpp){var a2p=dpp.parentNode&&dpp.parentNode.querySelector('.a2');if(a2p)a2p.appendChild(dpp);}/* ACOES_COTA_25OUT */
  var dr=$('#dres');if(dr)dr.onclick=function(){var c=S.sel,m=marcas(g)[c]||{};reservarHS(g,[c],m.posicao?m.posicao.cliente_nome:'');};
+ var dcc=$('#dcanc');if(dcc)dcc.onclick=function(){cancelarHS(g,S.sel);};var dcp=$('#dcpl');if(dcp)dcp.onclick=function(){soPlataformaHS(g,S.sel);};
  var dv=$('#dvolta');if(dv)dv.onclick=function(){var c=S.sel;caixa({t:'A cota '+c+' voltou à venda?',p:'Grupo '+g.grupo+'. Use quando a HS mostra a cota à venda mesmo constando como contemplada (a contemplação foi cancelada). Ela volta a contar como livre na proximidade e a equipe toda vê. Dá para desfazer.',lab:'Observação (opcional)',ph:'ex.: à venda no portal da HS em '+hoje(),ok:'Voltou à venda'},function(v){marcar(g,c,'avenda',null,v||'voltou à venda');});};
  $$('#det [data-mk]').forEach(function(b){b.onclick=function(){pedeMarca(g,S.sel,b.dataset.mk);};});
  $$('#det [data-tira]').forEach(function(b){b.onclick=function(){desmarcar(g,S.sel,b.dataset.tira);};});
@@ -1373,24 +1375,40 @@ async function hsApi(m,u,b){if(window.__MC_RES)return window.__MC_RES(m,u,b);
  var j=null;try{j=await r.json();}catch(e){}if(!r.ok)throw new Error((j&&j.error)||('o servidor respondeu '+r.status));return j||{};}
 function hsrBox(){var b=$('#hsr');if(!b){b=document.createElement('div');b.id='hsr';b.className='hsr';document.body.appendChild(b);}return b;}
 function hsrFecha(){var b=$('#hsr');if(b)b.classList.remove('on');}
-function hsrPinta(st,html,acts){var b=hsrBox();b.className='hsr on '+st;b.innerHTML='<div class="hsri">'+(st==='run'?'<span class="spin"></span>':st==='ok'?IC.check:IC.info)+'</div><div class="hsrt">'+html+(acts||'')+'</div><button class="x" aria-label="Fechar">'+IC.x+'</button>';
- $('.x',b).onclick=hsrFecha;return b;}
+var HSR={rodando:false,parar:false,pid:null,canc:false};/* CANCELAR_RESERVA_26OUT: X e Parar param o robô de verdade */
+var HSR_PARAR='<div class="hsra"><button class="btn rd sm" data-hsp="1">'+IC.x+'Parar o robô</button></div>';
+function hsrParando(){var b=$('#hsr'),t=b&&$('.hsrt',b);if(t)t.innerHTML='<b>Parando o robô…</b><small>Ele não reserva mais nenhuma cota desta fila. Se já estava apertando “Reservar” numa cota, ela fica reservada e dá para cancelar na própria cota.</small>';}
+function hsrParar(){if(!HSR.rodando)return hsrFecha();if(HSR.parar)return hsrFecha();HSR.parar=true;hsrParando();
+ if(HSR.pid)hsApi('POST','/api/hs_reservar/'+HSR.pid+'/parar').catch(function(){});toast('Parando o robô de reservas');}
+function hsrPinta(st,html,acts){var b=hsrBox();b.className='hsr on '+st;b.innerHTML='<div class="hsri">'+(st==='run'?'<span class="spin"></span>':st==='ok'?IC.check:IC.info)+'</div><div class="hsrt">'+html+(acts||'')+'</div><button class="x" aria-label="'+(HSR.rodando?'Parar o robô':'Fechar')+'" title="'+(HSR.rodando?'Parar o robô':'Fechar')+'">'+IC.x+'</button>';
+ $('.x',b).onclick=HSR.rodando?hsrParar:hsrFecha;var hp=$('[data-hsp]',b);if(hp)hp.onclick=hsrParar;return b;}
 function vdRefaz(g,fn){var v=S.VD&&S.VD[g.k];if(!v)return;fn(v);delete v._set;delete v._ra;}
 function sugestoes(g,fora,n){var h=S.H[g.k];if(!h)return [];var O=oport(g,h),mk=marcas(g);return opLista(g,O,mk).filter(function(o){return fora.indexOf(o.c)<0&&podeReservar(g,o.c);}).slice(0,n||3);}
-async function reservarHS(g,cotas,nome){var fila=cotas.filter(function(c){return podeReservar(g,c);}),feitas=[],falhas=[];
+async function reservarHS(g,cotas,nome){var fila=cotas.filter(function(c){return podeReservar(g,c);}),feitas=[],falhas=[],paradas=[];
  if(!fila.length){toast('Nenhuma dessas cotas está à venda no portal da HS agora');return;}
- for(var i=0;i<fila.length;i++){var c=fila[i],tx=fila.length>1?' ('+(i+1)+' de '+fila.length+')':'';
-  hsrPinta('run','<b>Reservando a cota '+c+' no portal da HS'+tx+'</b><small>O robô entra no portal, aperta “Reservar” e confere. Leva cerca de 1 minuto: pode seguir usando a ferramenta.</small>');
-  var r=null;try{var j=await hsApi('POST','/api/hs_reservar',{grupo:String(g.grupo),cota:c,pessoa:nome||'',tipo:g.tipo,adm:'HS'});var id=j.id,t0=Date.now();
+ if(HSR.rodando||HSR.canc){toast(HSR.canc?'Espere o robô terminar de cancelar a reserva':'O robô ainda está reservando outra fila. Espere terminar ou toque em “Parar o robô”.');return;}
+ HSR.rodando=true;HSR.parar=false;HSR.pid=null;
+ try{for(var i=0;i<fila.length;i++){var c=fila[i],tx=fila.length>1?' ('+(i+1)+' de '+fila.length+')':'';
+  if(HSR.parar){paradas=paradas.concat(fila.slice(i));break;}
+  hsrPinta('run','<b>Reservando a cota '+c+' no portal da HS'+tx+'</b><small>O robô entra no portal, aperta “Reservar” e confere. Leva cerca de 1 minuto: pode seguir usando a ferramenta.</small>',HSR_PARAR);
+  var r=null;try{var j=await hsApi('POST','/api/hs_reservar',{grupo:String(g.grupo),cota:c,pessoa:nome||'',tipo:g.tipo,adm:'HS'});var id=j.id,t0=Date.now();HSR.pid=id;
+   if(HSR.parar)hsApi('POST','/api/hs_reservar/'+id+'/parar').catch(function(){});
    while(Date.now()-t0<420000){await new Promise(function(ok){setTimeout(ok,window.__MC_RES?400:4000);});r=await hsApi('GET','/api/hs_reservar/'+id);if(r&&r.status&&r.status!=='fila'&&r.status!=='rodando')break;
-    if(r&&r.msg)hsrPinta('run','<b>Reservando a cota '+c+tx+'</b><small>'+esc(r.msg)+'…</small>');}
+    if(HSR.parar)hsrParando();else if(r&&r.msg)hsrPinta('run','<b>Reservando a cota '+c+tx+'</b><small>'+esc(r.msg)+'…</small>',HSR_PARAR);}
   }catch(e){r={status:'erro',msg:'Não consegui falar com o robô agora ('+(e&&e.message||e)+').'};}
+  HSR.pid=null;
   if(!r||r.status==='fila'||r.status==='rodando')r={status:'erro',msg:'O robô ainda não respondeu. Confira daqui a pouco: se reservar, a cota aparece como reservada pela Agion.'};
   if(Array.isArray(r.cotas_venda))vdRefaz(g,function(v){v.cotas=r.cotas_venda;});
   if(r.status==='ok'){vdRefaz(g,function(v){v.reservadas_agion=(v.reservadas_agion||[]).concat([c]);v.cotas=(v.cotas||[]).filter(function(x){return x!==c;});});feitas.push({c:c,v:r.validade});}
+  else if(r.status==='cancelado')paradas.push(c);
   else falhas.push({c:c,st:r.status,msg:r.msg||''});}
+ }finally{HSR.rodando=false;HSR.pid=null;}
  try{await recarregaMarcas();}catch(e){pintar();}
  var val=function(x){var d=x?new Date(x):null;return d&&!isNaN(d)?' até '+ddmm(d):'';};
+ if(HSR.parar||paradas.length){HSR.parar=false;
+  hsrPinta(feitas.length?'ok':'ind','<b>Robô parado</b><small>'+(feitas.length?'Reservada'+(feitas.length>1?'s':'')+' antes de parar: '+feitas.map(function(f){return f.c;}).join(', ')+'. Para soltar, toque na cota e em “Cancelar reserva no portal”. ':'Nenhuma cota foi reservada. ')+
+   (paradas.length?'Não reservada'+(paradas.length>1?'s':'')+': '+paradas.join(', ')+'.':'')+(falhas.length?' Com erro: '+falhas.map(function(f){return f.c;}).join(', ')+'.':'')+'</small>');
+  toast('Robô de reservas parado');return;}
  if(!falhas.length){hsrPinta('ok','<b>'+(feitas.length>1?'Cotas '+feitas.map(function(f){return f.c;}).join(', ')+' reservadas':'Cota '+feitas[0].c+' reservada')+' no portal da HS</b><small>Em nome da Agion'+val(feitas[0].v)+(nome?' · para '+esc(prim(nome)):'')+'. A equipe toda vê no mapa.</small>');toast(feitas.length>1?feitas.length+' cotas reservadas no portal da HS':'Cota '+feitas[0].c+' reservada no portal da HS');return;}
  var ind=falhas.filter(function(f){return f.st==='indisponivel';}),sug=sugestoes(g,cotas,3);
  var h='<b>'+(feitas.length?'Reservei '+feitas.map(function(f){return f.c;}).join(', ')+'. ':'')+(falhas.length>1?'As cotas '+falhas.map(function(f){return f.c;}).join(', ')+' não foram reservadas':'A cota '+falhas[0].c+' não foi reservada')+'</b>'+
@@ -1401,6 +1419,27 @@ async function reservarHS(g,cotas,nome){var fila=cotas.filter(function(c){return
  $$('[data-hsr]',b).forEach(function(x){x.onclick=function(){var c2=+x.dataset.hsr;if(nome)marcar(g,c2,'posicao',nome,'reserva no portal da HS · troca da cota '+falhas.map(function(f){return f.c;}).join(', '));reservarHS(g,[c2],nome);};});
  var gg=$('[data-hsg]',b);if(gg)gg.onclick=function(){hsrFecha();negGerar(g);var p=$('#neg');if(p)rolarPara(p);};
  var tx2=$('[data-hsx]',b);if(tx2)tx2.onclick=function(){reservarHS(g,falhas.map(function(f){return f.c;}),nome);};}
+/* ---------- CANCELAR_RESERVA_26OUT: cancelar a reserva da Agion no portal da HS ---------- */
+function hsSoltou(g,c){vdRefaz(g,function(v){v.reservadas_agion=(v.reservadas_agion||[]).filter(function(x){return +x!==+c;});if((v.cotas||[]).indexOf(c)<0)v.cotas=(v.cotas||[]).concat([c]);});}
+function cancelarHS(g,c){if(HSR.rodando||HSR.canc){toast('Espere o robô terminar a fila de reservas (ou toque em “Parar o robô”)');return;}
+ var b=hsrPinta('ind','<b>Cancelar a reserva da cota '+c+' no portal da HS?</b><small>Grupo '+esc(String(g.grupo))+'. A cota volta à venda e qualquer corretor pode reservar ou vender.</small>','<div class="hsra"><button class="btn rd sm" data-hcs="1">Sim, cancelar no portal</button><button class="btn ol sm" data-hcn="1">Não</button></div>');
+ $('[data-hcn]',b).onclick=hsrFecha;$('[data-hcs]',b).onclick=function(){cancelarHSvai(g,c);};}
+async function cancelarHSvai(g,c){HSR.canc=true;
+ hsrPinta('run','<b>Cancelando a reserva da cota '+c+' no portal da HS</b><small>O robô entra no portal, cancela e confere. Leva cerca de 1 minuto.</small>');
+ var r=null;try{var j=await hsApi('POST','/api/hs_reserva_cancelar',{grupo:String(g.grupo),cota:c,tipo:g.tipo,adm:'HS'});var id=j.id,t0=Date.now();
+  while(Date.now()-t0<420000){await new Promise(function(ok){setTimeout(ok,window.__MC_RES?400:4000);});r=await hsApi('GET','/api/hs_reservar/'+id);if(r&&r.status&&r.status!=='fila'&&r.status!=='rodando')break;
+   if(r&&r.msg)hsrPinta('run','<b>Cancelando a reserva da cota '+c+'</b><small>'+esc(r.msg)+'…</small>');}
+ }catch(e){r={status:'erro',msg:'Não consegui falar com o robô agora ('+(e&&e.message||e)+').'};}
+ finally{HSR.canc=false;}
+ if(!r||r.status==='fila'||r.status==='rodando')r={status:'erro',msg:'O robô ainda não respondeu. Confira daqui a pouco no portal da HS.'};
+ if(r.status==='ok'){hsSoltou(g,c);try{await recarregaMarcas();}catch(e){pintar();}
+  hsrPinta('ok','<b>Reserva da cota '+c+' cancelada</b><small>'+esc(r.msg||'Cancelada no portal da HS')+'. A equipe toda vê no mapa.</small>');toast('Reserva da cota '+c+' cancelada no portal da HS');return;}
+ var b=hsrPinta('err','<b>A reserva da cota '+c+' não foi cancelada</b><small>'+esc(r.msg||'')+'</small>','<div class="hsra"><button class="btn ol sm" data-hcx="1">Tentar de novo</button><button class="btn ol sm" data-hcp="1">Já cancelei no portal</button></div>');
+ $('[data-hcx]',b).onclick=function(){cancelarHSvai(g,c);};$('[data-hcp]',b).onclick=function(){soPlataformaHS(g,c);};}
+async function soPlataformaHS(g,c){try{await hsApi('POST','/api/hs_reserva_cancelar',{grupo:String(g.grupo),cota:c,adm:'HS',so_plataforma:true});
+  hsSoltou(g,c);try{await recarregaMarcas();}catch(e){pintar();}
+  hsrPinta('ok','<b>Cota '+c+' tirada das reservas da Agion</b><small>A plataforma agora mostra a cota à venda, igual ao portal da HS.</small>');toast('Cota '+c+' liberada na plataforma');
+ }catch(e){toast('Não consegui atualizar: '+(e&&e.message||e));}}
 /* ---------- pessoas do cadastro: clientes, leads do CRM, leads com a Alice e todo o cadastro único ---------- */
 var BOT_API='https://bot.agionconsorcios.com.br',ETAPAS=['Novo lead','Contato feito','Estudo/Simulação','Proposta enviada','Fechado (ganho)'];
 function pKey(p){var d=String(p||'').replace(/\D/g,'');if((d.length===12||d.length===13)&&d.slice(0,2)==='55')d=d.slice(2);if(d.length<10)return d.length>=8?d:'';return d.slice(0,2)+d.slice(-8);}
