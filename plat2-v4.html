@@ -4968,7 +4968,7 @@ window.addEventListener('message',function(e){if(e.origin!==location.origin&&e.o
  clearTimeout(_rv);_rv=setTimeout(function tenta(){if(ocupado()){_rv=setTimeout(tenta,1500);return;}carregar().then(function(){try{buildNavKeep();}catch(e){}try{bellUpd();}catch(e){}try{if(typeof buildTab==='function')buildTab();}catch(e){}
   if(['painel','kpis','tarefas','crm','clientes','comissoes'].indexOf(cur)>=0&&Date.now()-_rvAt>4000){_rvAt=Date.now();var m=$('#main'),y=m?m.scrollTop:0;go(cur,curArg,1);setTimeout(function(){if(m)m.scrollTop=y;},260);}});},600);});
 /* telas que ainda não existem no v4 abrem a da v1 (nada some) */
-var V4OK={painel:1,kpis:1,tarefas:1,crm:1,conversas:1,clientes:1,cliente:1,cadastro:1,comissoes:1,ferramentas:1,assembleias:1,contas:1,atividades:1,tutoriais:1,novidades:1,ajustes:1,feed:1,chat:1,captacao:1,marketing:1,disparos:1,consultoria:1,meuplano:1};
+var V4OK={painel:1,kpis:1,tarefas:1,crm:1,conversas:1,clientes:1,cliente:1,cadastro:1,comissoes:1,ferramentas:1,assembleias:1,contas:1,atividades:1,tutoriais:1,novidades:1,ajustes:1,feed:1,chat:1,captacao:1,marketing:1,disparos:1,operacao:1,consultoria:1,meuplano:1};
 var _goV4=go;go=function(k,arg,nohist){if(k&&!V4OK[k]&&k!=='vazio'){var id=V1ID[k]||k;try{px().irV1(id);}catch(e){}return;}return _goV4(k,arg,nohist);};
 window.AG.go=go;
 /* ATUALIZA_DADOS_23OUT: o que a equipe muda aparece para todos sem F5.
