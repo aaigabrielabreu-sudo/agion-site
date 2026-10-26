@@ -671,8 +671,9 @@ body.sheet-on .tt-help,body.sheet-on .tt-inv{opacity:0;pointer-events:none}
 .dlgr .tg{flex:none}
 .det .hsb{border-color:var(--gold);color:var(--ink)}
 .det .hsb .i{width:15px;height:15px}
-.hsr{position:fixed;right:22px;bottom:22px;z-index:96;width:min(400px,calc(100vw - 32px));display:flex;gap:12px;align-items:flex-start;background:var(--card,#FFFDF8);color:var(--ink);border:1px solid var(--line);border-radius:18px;padding:16px 42px 16px 16px;box-shadow:0 24px 48px -18px rgba(0,0,0,.4);transform:translateY(24px);opacity:0;pointer-events:none;transition:.45s var(--sp)}
+.hsr{position:fixed;right:22px;bottom:22px;z-index:2147482500;width:min(400px,calc(100vw - 32px));display:flex;gap:12px;align-items:flex-start;background:var(--card,#FFFDF8);color:var(--ink);border:1px solid var(--line);border-radius:18px;padding:16px 42px 16px 16px;box-shadow:0 24px 48px -18px rgba(0,0,0,.4);transform:translateY(24px);opacity:0;pointer-events:none;transition:.45s var(--sp)}
 .hsr.on{transform:none;opacity:1;pointer-events:auto}
+body:has(.hsr.on) .tt-help{opacity:0;pointer-events:none;transition:opacity .2s}/* HSR_POR_CIMA_26OUT: o aviso do robô fica por cima do “Como usar esta ferramenta” */
 .hsr .x{position:absolute;right:10px;top:10px;width:28px;height:28px;border:0;background:none;color:var(--mut);cursor:pointer;display:grid;place-items:center;border-radius:50%}
 .hsr .x .i{width:15px;height:15px}
 .hsri{flex:none;width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:var(--bg2);color:var(--ink)}
