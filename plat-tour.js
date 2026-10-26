@@ -465,7 +465,7 @@ function pinta(i){ var t=RUN.t, STEPS=stepsOf(t), st=STEPS[i], n=STEPS.length; R
 async function show(i,dir){
   if(!RUN) return; var t=RUN.t; clearTimeout(RUN.timer); clearDemo();
   if(i<0){ RUN.el=null; UI.root.classList.add('nodim'); return; }
-  var tok=++RUN.stepTok, STEPS=stepsOf(t), n=STEPS.length, st, el=null, shown=false;
+  var tok=++RUN.stepTok, STEPS=stepsOf(t), n=STEPS.length, st, el=null, shown=false; RUN.t0=Date.now();
   UI.next.onclick=function(){ next(); };
   for(;;){ st=STEPS[i];
     var pg=st.page||(t.ficha?null:t.page); if(pg&&view.page!==pg) navTo(pg);
@@ -483,8 +483,8 @@ async function show(i,dir){
   demo(st,el,tok);
   if(RUN.auto) schedAuto();
 }
-function next(){ if(!RUN||RUN.busy) return; if(RUN.i>=stepsOf(RUN.t).length-1) return complete(); show(RUN.i+1,1); }
-function prev(){ if(!RUN||RUN.busy||RUN.i<=0) return; show(RUN.i-1,-1); }
+function next(){ if(!RUN||RUN.busy||(RUN.t0&&Date.now()-RUN.t0<450)) return; if(RUN.i>=stepsOf(RUN.t).length-1) return complete(); show(RUN.i+1,1); }
+function prev(){ if(!RUN||RUN.busy||(RUN.t0&&Date.now()-RUN.t0<450)||RUN.i<=0) return; show(RUN.i-1,-1); }
 function paintPlay(){ if(!UI||!RUN) return; UI.play.innerHTML=(RUN.auto?IC.pause+' Pausar':IC.play+' Reproduzir'); UI.play.setAttribute('aria-pressed',String(!!RUN.auto)); }
 function setAuto(on){ if(!RUN) return; RUN.auto=!!on; paintPlay(); clearTimeout(RUN.timer); if(on) schedAuto(); }
 function schedAuto(){ clearTimeout(RUN.timer); var st=stepsOf(RUN.t)[RUN.i]||{text:''}; var ms=Math.max(3800,Math.min(9000,1800+(TX(st.text).length+(st.typeText||'').length*3)*45));

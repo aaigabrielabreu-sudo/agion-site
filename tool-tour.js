@@ -315,7 +315,7 @@ function pinta(i){ var n=T.steps.length, st=T.steps[i]; RUN.i=i;
   UI.t.textContent=st.title; UI.x.textContent=st.text; UI.miss.hidden=true;
   UI.prev.disabled=i===0; UI.next.disabled=false; UI.next.textContent=i===n-1?'Concluir':'Próximo'; paintPlay(); }
 async function go(i,dir){
-  if(!RUN) return; var tok=++RUN.tok, n=T.steps.length, st, el=null, shown=false; clearTimeout(RUN.timer); autoBar(false);
+  if(!RUN) return; var tok=++RUN.tok, n=T.steps.length, st, el=null, shown=false; RUN.t0=Date.now(); clearTimeout(RUN.timer); autoBar(false);
   for(;;){ st=T.steps[i];
     if(!st.optional){ RUN.busy=false; UI.card.classList.remove('busy'); pinta(i); shown=true; } else trava(true);
     if(st.go){ try{ st.go(); }catch(e){} await sleep(150); if(!alive(tok)) return; }
@@ -328,8 +328,10 @@ async function go(i,dir){
   UI.sr.textContent='Passo '+(i+1)+' de '+n+': '+st.title+'. '+st.text;
   if(RUN.auto) schedAuto();
 }
-function next(){ if(!RUN||RUN.busy) return; if(RUN.i>=T.steps.length-1){ setAuto(false); return done(); } go(RUN.i+1,1); }
-function prev(){ if(!RUN||RUN.busy||RUN.i<=0) return; go(RUN.i-1,-1); }
+/* clique duplo (ou toque que chega duas vezes) não anda dois passos: 450 ms entre um passo e outro */
+function cedo(){ return RUN.t0&&Date.now()-RUN.t0<450; }
+function next(){ if(!RUN||RUN.busy||cedo()) return; if(RUN.i>=T.steps.length-1){ setAuto(false); return done(); } go(RUN.i+1,1); }
+function prev(){ if(!RUN||RUN.busy||cedo()||RUN.i<=0) return; go(RUN.i-1,-1); }
 /* Reproduzir: passa sozinho, no tempo de leitura de cada passo; Pausar para parar. */
 var I_PLAY='<svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>', I_PAUSE='<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
 function paintPlay(){ if(!UI||!RUN) return; UI.play.innerHTML=RUN.auto?I_PAUSE+'Pausar':I_PLAY+'Reproduzir'; UI.play.setAttribute('aria-pressed',RUN.auto?'true':'false'); }
