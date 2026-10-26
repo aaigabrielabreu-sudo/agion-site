@@ -1402,19 +1402,36 @@ async function hsApi(m,u,b){if(window.__MC_RES)return window.__MC_RES(m,u,b);
  var j=null;try{j=await r.json();}catch(e){}if(!r.ok)throw new Error((j&&j.error)||('o servidor respondeu '+r.status));return j||{};}
 function hsrBox(){var b=$('#hsr');if(!b){b=document.createElement('div');b.id='hsr';b.className='hsr';document.body.appendChild(b);}return b;}
 function hsrFecha(){var b=$('#hsr');if(b)b.classList.remove('on');}
-var HSR={rodando:false,parar:false,pid:null,canc:false};/* CANCELAR_RESERVA_26OUT: X e Parar param o robô de verdade */
+var HSR={rodando:false,parar:false,pid:null,canc:false,lote:null};/* CANCELAR_RESERVA_26OUT: X e Parar param o robô de verdade */
 var HSR_PARAR='<div class="hsra"><button class="btn rd sm" data-hsp="1">'+IC.x+'Parar o robô</button></div>';
 function hsrParando(){var b=$('#hsr'),t=b&&$('.hsrt',b);if(t)t.innerHTML='<b>Parando o robô…</b><small>Ele não reserva mais nenhuma cota desta fila. Se já estava apertando “Reservar” numa cota, ela fica reservada e dá para cancelar na própria cota.</small>';}
 function hsrParar(){if(!HSR.rodando)return hsrFecha();if(HSR.parar)return hsrFecha();HSR.parar=true;hsrParando();
- if(HSR.pid)hsApi('POST','/api/hs_reservar/'+HSR.pid+'/parar').catch(function(){});toast('Parando o robô de reservas');}
+ if(HSR.lote)hsApi('POST','/api/hs_reservar_lote/'+HSR.lote+'/parar').catch(function(){});else if(HSR.pid)hsApi('POST','/api/hs_reservar/'+HSR.pid+'/parar').catch(function(){});toast('Parando o robô de reservas');}
 function hsrPinta(st,html,acts){var b=hsrBox();b.className='hsr on '+st;b.innerHTML='<div class="hsri">'+(st==='run'?'<span class="spin"></span>':st==='ok'?IC.check:IC.info)+'</div><div class="hsrt">'+html+(acts||'')+'</div><button class="x" aria-label="'+(HSR.rodando?'Parar o robô':'Fechar')+'" title="'+(HSR.rodando?'Parar o robô':'Fechar')+'">'+IC.x+'</button>';
  $('.x',b).onclick=HSR.rodando?hsrParar:hsrFecha;var hp=$('[data-hsp]',b);if(hp)hp.onclick=hsrParar;return b;}
 function vdRefaz(g,fn){var v=S.VD&&S.VD[g.k];if(!v)return;fn(v);delete v._set;delete v._ra;}
 function sugestoes(g,fora,n){var h=S.H[g.k];if(!h)return [];var O=oport(g,h),mk=marcas(g);return opLista(g,O,mk).filter(function(o){return fora.indexOf(o.c)<0&&podeReservar(g,o.c);}).slice(0,n||3);}
+function lstC(a){a=a.slice().sort(function(x,y){return x-y;});return a.length>12?a.slice(0,12).join(', ')+' e mais '+(a.length-12):a.join(', ');}
 async function reservarHS(g,cotas,nome){var fila=cotas.filter(function(c){return podeReservar(g,c);}),feitas=[],falhas=[],paradas=[],car=cartaEsc(g),ctx=car?' · carta '+brl2(car.valor):'';
  if(!fila.length){toast('Nenhuma dessas cotas está à venda no portal da HS agora');return;}
  if(HSR.rodando||HSR.canc){toast(HSR.canc?'Espere o robô terminar de cancelar a reserva':'O robô ainda está reservando outra fila. Espere terminar ou toque em “Parar o robô”.');return;}
- HSR.rodando=true;HSR.parar=false;HSR.pid=null;
+ HSR.rodando=true;HSR.parar=false;HSR.pid=null;HSR.lote=null;
+ if(fila.length>1){/* RESERVA_LOTE_RAPIDO_26OUT: o robô entra uma vez e reserva todas no mesmo carrinho, meio segundo entre elas */
+  try{var jl=await hsApi('POST','/api/hs_reservar_lote',{grupo:String(g.grupo),cotas:fila,pessoa:nome||'',tipo:g.tipo,adm:'HS',valor:car?+car.valor:undefined,bem:car?car.bem:undefined,modalidade:car?car.modalidade:undefined});
+   HSR.lote=jl.lote;var t0l=Date.now(),its=[],fim=false,pediuParar=false;
+   hsrPinta('run','<b>Reservando '+fila.length+' cotas no portal da HS</b><small>'+(car?'Carta de '+brl2(car.valor)+'. ':'')+'O robô entra no portal uma vez e reserva uma atrás da outra.</small>',HSR_PARAR);
+   while(Date.now()-t0l<(fila.length*25000+600000)){await new Promise(function(ok){setTimeout(ok,window.__MC_RES?300:2000);});
+    var rl=await hsApi('GET','/api/hs_reservar_lote/'+HSR.lote);its=(rl&&rl.itens)||[];
+    if(HSR.parar&&!pediuParar){pediuParar=true;hsApi('POST','/api/hs_reservar_lote/'+HSR.lote+'/parar').catch(function(){});}
+    var nOk=its.filter(function(x){return x.status==='ok';}).length,nFim=its.filter(function(x){return x.status!=='fila'&&x.status!=='rodando';}).length,at=its.filter(function(x){return x.status==='rodando';})[0];
+    if(its.length&&nFim===its.length){fim=true;break;}
+    if(HSR.parar)hsrParando();else hsrPinta('run','<b>Reservando '+(at?'a cota '+at.cota+' ':'')+'('+nFim+' de '+its.length+')</b><small>'+nOk+' reservada'+(nOk===1?'':'s')+(car?' · '+brl2(nOk*car.valor)+' em crédito':'')+'. '+esc((at&&at.msg)||(its[0]&&its[0].msg)||'O robô está entrando no portal da HS')+'…</small>',HSR_PARAR);}
+   its.forEach(function(x){var c=+x.cota;if(x.status==='ok'){vdRefaz(g,function(v){v.reservadas_agion=(v.reservadas_agion||[]).concat([c]);v.cotas=(v.cotas||[]).filter(function(y){return y!==c;});});feitas.push({c:c,v:x.validade});}
+    else if(x.status==='cancelado')paradas.push(c);else if(x.status==='fila'||x.status==='rodando')falhas.push({c:c,st:'erro',msg:'O robô ainda não respondeu. Confira daqui a pouco no mapa.'});else falhas.push({c:c,st:x.status,msg:x.msg||''});});
+   if(!its.length)fila.forEach(function(c){falhas.push({c:c,st:'erro',msg:'O robô não respondeu. Tente de novo.'});});
+  }catch(e){fila.forEach(function(c){falhas.push({c:c,st:'erro',msg:'Não consegui falar com o robô agora ('+(e&&e.message||e)+').'});});}
+  finally{HSR.rodando=false;HSR.lote=null;}
+  fila=[];}
  try{for(var i=0;i<fila.length;i++){var c=fila[i],tx=fila.length>1?' ('+(i+1)+' de '+fila.length+')':'';
   if(HSR.parar){paradas=paradas.concat(fila.slice(i));break;}
   hsrPinta('run','<b>Reservando a cota '+c+' no portal da HS'+tx+'</b><small>'+(car?'Carta de '+brl2(car.valor)+' · parcela '+brl2(car.parcela)+'. ':'')+'O robô entra no portal, aperta “Reservar” e confere. Leva cerca de 1 minuto: pode seguir usando a ferramenta.</small>',HSR_PARAR);
@@ -1433,12 +1450,12 @@ async function reservarHS(g,cotas,nome){var fila=cotas.filter(function(c){return
  try{await recarregaMarcas();}catch(e){pintar();}
  var val=function(x){var d=x?new Date(x):null;return d&&!isNaN(d)?' até '+ddmm(d):'';};
  if(HSR.parar||paradas.length){HSR.parar=false;
-  hsrPinta(feitas.length?'ok':'ind','<b>Robô parado</b><small>'+(feitas.length?'Reservada'+(feitas.length>1?'s':'')+' antes de parar: '+feitas.map(function(f){return f.c;}).join(', ')+'. Para soltar, toque na cota e em “Cancelar reserva no portal”. ':'Nenhuma cota foi reservada. ')+
-   (paradas.length?'Não reservada'+(paradas.length>1?'s':'')+': '+paradas.join(', ')+'.':'')+(falhas.length?' Com erro: '+falhas.map(function(f){return f.c;}).join(', ')+'.':'')+'</small>');
+  hsrPinta(feitas.length?'ok':'ind','<b>Robô parado</b><small>'+(feitas.length?'Reservada'+(feitas.length>1?'s':'')+' antes de parar: '+lstC(feitas.map(function(f){return f.c;}))+'. Para soltar, toque na cota e em “Cancelar reserva no portal”. ':'Nenhuma cota foi reservada. ')+
+   (paradas.length?'Não reservada'+(paradas.length>1?'s':'')+': '+lstC(paradas)+'.':'')+(falhas.length?' Com erro: '+lstC(falhas.map(function(f){return f.c;}))+'.':'')+'</small>');
   toast('Robô de reservas parado');return;}
- if(!falhas.length){hsrPinta('ok','<b>'+(feitas.length>1?'Cotas '+feitas.map(function(f){return f.c;}).join(', ')+' reservadas':'Cota '+feitas[0].c+' reservada')+' no portal da HS</b><small>Em nome da Agion'+val(feitas[0].v)+(nome?' · para '+esc(prim(nome)):'')+(car?' · carta '+brl2(car.valor)+(feitas.length>1?' · total '+brl2(feitas.length*car.valor):''):'')+'. A equipe toda vê no mapa.</small>');toast(feitas.length>1?feitas.length+' cotas reservadas no portal da HS':'Cota '+feitas[0].c+' reservada no portal da HS');return;}
+ if(!falhas.length){hsrPinta('ok','<b>'+(feitas.length>1?(feitas.length>12?feitas.length+' cotas reservadas':'Cotas '+lstC(feitas.map(function(f){return f.c;}))+' reservadas'):'Cota '+feitas[0].c+' reservada')+' no portal da HS</b><small>Em nome da Agion'+val(feitas[0].v)+(nome?' · para '+esc(prim(nome)):'')+(car?' · carta '+brl2(car.valor)+(feitas.length>1?' · total '+brl2(feitas.length*car.valor):''):'')+'. A equipe toda vê no mapa.</small>');toast(feitas.length>1?feitas.length+' cotas reservadas no portal da HS':'Cota '+feitas[0].c+' reservada no portal da HS');return;}
  var ind=falhas.filter(function(f){return f.st==='indisponivel';}),sug=sugestoes(g,cotas,3);
- var h='<b>'+(feitas.length?'Reservei '+feitas.map(function(f){return f.c;}).join(', ')+'. ':'')+(falhas.length>1?'As cotas '+falhas.map(function(f){return f.c;}).join(', ')+' não foram reservadas':'A cota '+falhas[0].c+' não foi reservada')+'</b>'+
+ var h='<b>'+(feitas.length?'Reservei '+lstC(feitas.map(function(f){return f.c;}))+'. ':'')+(falhas.length>1?'As cotas '+lstC(falhas.map(function(f){return f.c;}))+' não foram reservadas':'A cota '+falhas[0].c+' não foi reservada')+'</b>'+
   '<small>'+esc(ind.length?'Não está mais livre no portal da HS (alguém reservou ou comprou). Escolha outra cota perto das contempladas:':falhas[0].msg)+'</small>';
  var a='<div class="hsra">'+(sug.length?sug.map(function(o){return '<button class="btn pu sm" data-hsr="'+o.c+'">Reservar a '+o.c+'<span class="hsrn">'+o.cap+' nº</span></button>';}).join(''):'')+
   '<button class="btn ol sm" data-hsg="1">'+IC.star+'Gerar outras cotas</button>'+(!ind.length?'<button class="btn ol sm" data-hsx="1">Tentar de novo</button>':'')+'</div>';
