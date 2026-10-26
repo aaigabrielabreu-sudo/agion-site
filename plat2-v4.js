@@ -316,7 +316,7 @@ function espera(){
   else if(pronto && !logado()){ pronto=false; esconder(true); }
   if(!logado()){
     if(appCliente()){ v1Vis(true); lgSair(); }                      /* cliente: segue a v1 (até o Planejamento novo) */
-    else if(telaLogin()&&Date.now()-lgT0>(SALVA?12000:1250)) lgForm();   /* ABRE_LOGADO_26OUT: com sessão salva espera ela voltar */             /* deslogado: depois da entrada, mostra o login */
+    else if(telaLogin()&&Date.now()-lgT0>(SALVA?7000:1250)) lgForm();   /* ABRE_LOGADO_26OUT: com sessão salva espera ela voltar */             /* deslogado: depois da entrada, mostra o login */
   }
   setTimeout(espera, pronto?1500:250);
 }
@@ -324,8 +324,6 @@ function inicio(){ lgMontar();
  if(REC==='ok') lgNovaSenha(false); else if(REC==='conv') lgNovaSenha(true);
  else if(REC==='exp'){ limpaUrl(); lgT0=0; lgForm(); lgMsg('Esse link de redefinição expirou ou já foi usado. Toque em “Esqueci minha senha” para receber outro e abra o e-mail mais recente.'); }
  try{ var sb=supaV1(); if(sb&&sb.auth) sb.auth.onAuthStateChange(function(ev){ if(ev==='PASSWORD_RECOVERY'&&!RECON) lgNovaSenha(); }); }catch(e){}
- if(SALVA){ (function confere(n){ var sb2=supaV1(); if(!sb2||!sb2.auth){ if(n<40) setTimeout(function(){ confere(n+1); },150); return; }   /* sessão salva mas inválida -> mostra o login */
-   sb2.auth.getSession().then(function(r){ if(!(r&&r.data&&r.data.session)){ SALVA=false; lgT0=0; } },function(){ SALVA=false; lgT0=0; }); })(0); }
  espera(); }
 if(D.readyState==='loading') D.addEventListener('DOMContentLoaded',inicio); else inicio();
 })();
