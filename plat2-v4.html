@@ -2063,7 +2063,7 @@ NAV.lider=[['Visão geral',[['painel','Painel','grid'],['kpis','KPIs','kpi']]],
 var V1ID={painel:'dash',clientes:'users',ajustes:'config'};
 function navGrupos(){var r=effRoleR(),base=r==='master'?NAV.master:r==='lider'?NAV.lider:NAV.esp,ok=null;
  try{ok=pcall('navItems').map(function(it){return it[0];});}catch(e){}
- if(!ok)return base;return base.map(function(g){return [g[0],g[1].filter(function(t){return t[0]==='tutoriais'||ok.indexOf(V1ID[t[0]]||t[0])>=0;})];}).filter(function(g){return g[1].length;});}
+ if(!ok)return base;return base.map(function(g){return [g[0],g[1].filter(function(t){return t[0]==='tutoriais'||t[0]==='operacao'||ok.indexOf(V1ID[t[0]]||t[0])>=0;})];}).filter(function(g){return g[1].length;});}
 var R={},cur='crm',curArg=null;
 function navList(){var a=[];navGrupos().forEach(function(g){g[1].forEach(function(t){a.push(t.concat([g[0]]));});});return a;}
 function badge(k){
