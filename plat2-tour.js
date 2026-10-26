@@ -178,14 +178,24 @@ var CFG=[
    {t:q('#cvr2'),title:'Atualizar',text:'Busca as mensagens mais novas. A lista também se atualiza sozinha.',optional:true}
  ]},
  /* ---------------- DISPAROS ---------------- */
- {id:'disparos',page:'disparos',v:1,g:'Atendimento',title:'Disparos',desc:'Cérebro do bot, números e tudo o que a Alice enviou.',post:function(){ sub('dsn','cer')(); },steps:[
+ {id:'disparos',page:'disparos',v:1,g:'Atendimento',title:'Disparos',desc:'Números e tudo o que a Alice enviou no WhatsApp e por e-mail.',post:function(){ sub('dsn','num')(); },steps:[
    {t:null,title:'Disparos do robô',text:'Tudo o que a Alice enviou no WhatsApp e por e-mail: templates, lembretes e boletos.'},
-   {t:q('#dsn'),title:'Três seções',text:'Cérebro do bot, Números e Contatos e envios.',demo:'click',wait:6000},
-   {act:sub('dsn','cer'),t:q('#dcer'),title:'Cérebro do bot',text:'Qual inteligência responde aos clientes: Automático (escolhe sozinho), Claude ou Gemini.'},
+   {t:q('#dsn'),title:'Duas seções',text:'Números e Contatos e envios.',demo:'click',wait:5000},
    {act:sub('dsn','num'),t:q('#dnum'),title:'Números',text:'Contatos com envio, boletos, lembretes e o total de disparos no período.'},
    {act:sub('dsn','cont'),t:q('#dq'),title:'Contatos e envios',text:'Busque um contato para ver tudo o que ele recebeu.',demo:'type',typeText:'Maria',optional:true},
    {t:q('#dch'),title:'WhatsApp ou e-mail',text:'Troca entre os envios do WhatsApp e os e-mails do follow-up.',optional:true},
    {t:q('#dls'),title:'Lista de envios',text:'Cada contato com a data e o que foi enviado.',optional:true}
+ ]},
+ /* ---------------- OPERACAO ---------------- */
+ {id:'operacao',page:'operacao',v:1,roles:M,g:'Atendimento',title:'Operação',desc:'Custo e saúde do robô num lugar só: proxy, cérebro, saúde, atividade, boletos, reservas e pendências.',post:function(){ sub('opn','vis')(); },steps:[
+   {t:null,title:'Operação do robô',text:'Tudo sobre o custo e a saúde do bot, para decidir se vale deixá-lo sempre ligado.'},
+   {t:q('#opn'),title:'Quatro seções',text:'Visão geral, Saúde, HS & boletos e Pendências.',demo:'click',wait:5000},
+   {t:q('#opx'),title:'Proxy residencial',text:'Quanto já foi usado e quanto resta do proxy — e em quê (cotas, reservas, boletos).'},
+   {t:q('#oce'),title:'Cérebro do bot',text:'Aqui você troca quem responde: Automático, Claude ou Gemini — sem reiniciar o robô.'},
+   {act:sub('opn','saude'),t:q('#osa'),title:'Saúde em tempo real',text:'O bot no ar, o portal da HS pelo proxy e os robôs agendados, com o último registro de cada um.'},
+   {act:sub('opn','hs'),t:q('#ohs'),title:'Reservas na HS',text:'As cotas reservadas, por quem, quando e quando vencem.',optional:true},
+   {act:sub('opn','pend'),t:q('#ope'),title:'Pendências e alertas',text:'O que precisa de atenção: proxy baixo, HS bloqueada ou reserva vencendo.',optional:true},
+   {t:q('#oig'),title:'Integrações',text:'Supabase, WhatsApp, Claude, Gemini, proxy e agenda — verde é ok.',optional:true}
  ]},
  /* ---------------- FEED ---------------- */
  {id:'feed',page:'feed',v:1,g:'Atendimento',title:'Feed',desc:'Novidades, vitórias e avisos da equipe, ao vivo.',steps:[
@@ -570,7 +580,7 @@ function hook(){
   if(W.__b2tour) return; W.__b2tour=1; css();
   var _go=W.go; W.go=function(){ var r=_go.apply(this,arguments); setTimeout(afterGo,240); return r; };
   /* Central de Tutoriais do visual novo usa estes tutoriais */
-  W.TUG=[['Comece por aqui',['painel','kpis']],['Comercial',['tarefas','crm','ficha-lead','captacao','marketing']],['Atendimento',['conversas','disparos','feed','chat']],['Carteira',['clientes','ficha-cliente','cadastro','comissoes','consultoria']],['Ferramentas',['ferramentas','t-histferr']],['Gestão',['contas','atividades','ajustes']]];
+  W.TUG=[['Comece por aqui',['painel','kpis']],['Comercial',['tarefas','crm','ficha-lead','captacao','marketing']],['Atendimento',['conversas','disparos','operacao','feed','chat']],['Carteira',['clientes','ficha-cliente','cadastro','comissoes','consultoria']],['Ferramentas',['ferramentas','t-histferr']],['Gestão',['contas','atividades','ajustes']]];
   W.TUIC={painel:'grid',kpis:'kpi',tarefas:'check',crm:'funnel','ficha-lead':'idc',captacao:'spark',marketing:'trend',conversas:'chat',disparos:'send',feed:'act',chat:'chat',clientes:'users','ficha-cliente':'idc',cadastro:'idc',comissoes:'money',consultoria:'wallet',ferramentas:'calc','t-histferr':'act',contas:'team',atividades:'act',ajustes:'gear'};
   W.tourLista=function(){ return forRole().map(function(t){ return {id:t.id,title:TX(t.title),status:status(t)}; }); };
   W.tourStart=function(id){ start(id,'resume'); };
