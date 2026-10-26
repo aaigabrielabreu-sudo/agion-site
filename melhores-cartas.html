@@ -666,6 +666,16 @@ body.sheet-on .tt-help,body.sheet-on .tt-inv{opacity:0;pointer-events:none}
 .rsb{border:1px solid #BFE0CF;background:#E7F4EC;color:#1F6B47;border-radius:9px;padding:3px 9px;font:700 12px/1.3 var(--sans);cursor:pointer}
 .rsb:hover{background:#D3EBDD}
 .negbar .btn.ol.sm{margin-left:auto}
+/* RESERVA_CARTA_26OUT */
+.csel{margin:0 0 14px}
+.cslb{font:700 10.5px/1.2 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.csls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.csb{border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:9px 11px;text-align:left;cursor:pointer;transition:border-color .2s,background .2s}
+.csb b{display:block;font:700 14px/1.25 var(--sans);color:var(--ink)}
+.csb small{display:block;color:var(--mut);font-size:11.5px;line-height:1.35;margin-top:2px}
+.csb.on{border-color:var(--gold);background:#FBF4E4;box-shadow:0 0 0 3px rgba(197,160,89,.18)}
+.cstot{margin-top:10px;background:var(--bg);border-radius:14px;padding:10px 12px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px}
+.cstot span{font-size:12px;color:var(--mut)}.cstot b{font:700 17px/1.2 var(--sans);color:var(--ink)}.cstot em{font-style:normal;font-size:12px;color:var(--mut);flex-basis:100%}
 /* HS_RESERVA_20261022: o robô reserva no portal da HS */
 .dlgr{margin:0 0 16px;white-space:normal;text-align:left;line-height:1.35}
 .dlgr .tg{flex:none}
@@ -754,6 +764,7 @@ body.neg-on .hsr{bottom:86px}
  <div class="lbl">Melhores cartas</div>
  <h3 id="dlgt">Posicionar na cota</h3><p id="dlgp"></p>
  <div class="fld" style="margin-bottom:14px"><label id="dlgla" for="dlgn">Quem</label><input class="inp" id="dlgn" placeholder="Buscar por nome ou telefone" autocomplete="off"><div class="psug" id="dlgs" role="listbox" style="display:none"></div></div>
+ <div id="dlgcar" style="display:none"></div>
  <div class="note" id="dlgi"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.2M12 7.6v.4"/></svg><span>Antes de fechar, confirme no portal da HS se a cota não está reservada por outro corretor.</span></div>
  <button class="tgl on dlgr" id="dlgr" type="button" style="display:none"><span class="tg"></span><span id="dlgrt">Reservar no portal da HS</span></button>
  <div class="dlga"><button class="btn ol" id="dlgx">Cancelar</button><button class="btn gd" id="dlgo">Guardar posição</button></div>
@@ -1070,7 +1081,7 @@ function bindNeg(g){
  var cp=$('#negcp');if(cp)cp.onclick=function(){var t=negTexto(g);try{navigator.clipboard.writeText(t).then(function(){toast('Lista copiada');},function(){prompt('Copie a lista:',t);});}catch(e){prompt('Copie a lista:',t);}};
  var nr=$('#negres');if(nr)nr.onclick=function(){reservarPara(g,negDe(g).slice());};/* RESERVA_LOTE_26OUT */
  var ps=$('#negpos');if(ps)ps.onclick=function(){var a=negDe(g).slice();caixa({t:'Posicionar em '+a.length+' cota'+(a.length>1?'s':''),p:'Grupo '+g.grupo+' · cotas '+a.slice().sort(function(x,y){return x-y;}).join(', ')+'. Vale para qualquer pessoa do cadastro: cliente, lead do CRM ou lead ainda na conversa com a Alice. As posições ficam guardadas e a equipe toda vê.',lab:'Quem',ph:'Buscar por nome ou telefone',ok:'Guardar posições',info:1,obrig:'Escolha alguém do cadastro ou escreva o nome',pessoas:1,
-  reserva:(function(){var k=a.filter(function(c){return podeReservar(g,c);}).length;return k?'Reservar '+(k>1?'as '+k+' cotas':'a cota')+' no portal da HS · só fica no nome da pessoa se a HS reservar':'';})()},
+  reserva:(function(){var k=a.filter(function(c){return podeReservar(g,c);}).length;return k?'Reservar '+(k>1?'as '+k+' cotas':'a cota')+' no portal da HS · só fica no nome da pessoa se a HS reservar':'';})(),cartas:(function(){var k=a.filter(function(c){return podeReservar(g,c);}).length;return k?cartaPainel(g,k):null;})()},
   function(n,p,res){if(res)reservarHS(g,a,n);else posicionarVarias(g,a,n,pesObs(p,'cota por proximidade'));});};/* RESERVA_SO_SE_RESERVOU_26OUT */
  var m=$('#negm');if(m)m.onclick=function(){S.modoNeg=!S.modoNeg;m.classList.toggle('on',S.modoNeg);toast(S.modoNeg?'Toque nas cotas livres do mapa para pôr ou tirar da negociação':'Toque no mapa volta a só mostrar o detalhe');};}
 async function posicionarVarias(g,cotas,nome,obs){var rows=cotas.map(function(c){return {administradora:g.adm,tipo:g.tipo,grupo:String(g.grupo),cota:c,marca:'posicao',cliente_nome:nome,obs:obs||'cota por proximidade · negociação'};}),ok=0;
@@ -1254,10 +1265,10 @@ function bindDet(g){var p=$('#dpos');if(p)p.onclick=function(){abrirDlg(g,S.sel)
  $$('#det [data-tira]').forEach(function(b){b.onclick=function(){desmarcar(g,S.sel,b.dataset.tira);};});
  var dn=$('#dneg');if(dn)dn.onclick=function(){var pos=negToggle(g,S.sel);var t=$('#det .dh .cel');if(t)t.classList.toggle('ng',pos);toast(pos?'Cota '+S.sel+' na negociação ('+negDe(g).length+')':'Cota '+S.sel+' fora da negociação');};
  var x=$('#dx');if(x)x.onclick=function(){sheet(false);};}
-function caixa(o,cb){var d=$('#dlg');$('#dlgt').textContent=o.t;$('#dlgp').textContent=o.p||'';$('#dlgla').textContent=o.lab;var n=$('#dlgn');n.placeholder=o.ph||'';n.value='';
+function caixa(o,cb){var d=$('#dlg');var dc=$('#dlgcar');if(dc){dc.innerHTML='';dc.style.display='none';if(o.cartas)o.cartas(dc);}/* RESERVA_CARTA_26OUT */$('#dlgt').textContent=o.t;$('#dlgp').textContent=o.p||'';$('#dlgla').textContent=o.lab;var n=$('#dlgn');n.placeholder=o.ph||'';n.value='';
  var sg=$('#dlgs'),sel=null,rb=$('#dlgr');$('#dlgi').style.display=(o.info&&!o.reserva)?'':'none';$('#dlgo').textContent=o.ok;
  if(rb){rb.style.display=o.reserva?'':'none';rb.classList.add('on');$('#dlgrt').textContent=o.reserva||'';
-  var okTx=function(){$('#dlgo').textContent=(o.reserva&&rb.classList.contains('on'))?'Reservar no portal':o.ok;};okTx();rb.onclick=function(){rb.classList.toggle('on');okTx();};}
+  var okTx=function(){var on=o.reserva&&rb.classList.contains('on');$('#dlgo').textContent=on?'Reservar no portal':o.ok;if(dc&&o.cartas)dc.style.display=(on||!o.reserva)&&dc.innerHTML?'':'none';};okTx();rb.onclick=function(){rb.classList.toggle('on');okTx();};}
  function fecha(){d.classList.remove('on');}
  function lista(){if(!sg)return;if(!o.pessoas){sg.innerHTML='';sg.style.display='none';return;}sg.style.display='';sg.innerHTML=pesHtml(n.value,sel);
   $$('#dlgs .pso').forEach(function(b){b.onclick=function(){var p=b.dataset.i==='novo'?null:S.PESv[+b.dataset.i];sel=p;n.value=p?p.nome:n.value.trim();lista();n.focus();};});}
@@ -1382,7 +1393,7 @@ function bindGsel(gs){var t=$('#gtrig'),p=$('#gpop');if(!t||!p)return;
 
 function abrirDlg(g,c){caixa({t:'Posicionar na cota '+c,p:'Grupo '+g.grupo+' ('+(g.adm==='ANC'?'Âncora':g.adm)+' · '+CATS[g.tipo]+'). Vale para qualquer pessoa do cadastro: cliente, lead do CRM ou lead ainda na conversa com a Alice. A posição fica guardada e a equipe toda vê.',
  lab:'Quem',ph:'Buscar por nome ou telefone',ok:'Guardar posição',info:1,obrig:'Escolha alguém do cadastro ou escreva o nome',pessoas:1,
- reserva:podeReservar(g,c)?'Reservar no portal da HS · só fica no nome da pessoa se a HS reservar':''},function(n,p,res){if(res)reservarHS(g,[c],n);else marcar(g,c,'posicao',n,pesObs(p));});}/* RESERVA_SO_SE_RESERVOU_26OUT */
+ reserva:podeReservar(g,c)?'Reservar no portal da HS · só fica no nome da pessoa se a HS reservar':'',cartas:podeReservar(g,c)?cartaPainel(g,1):null},function(n,p,res){if(res)reservarHS(g,[c],n);else marcar(g,c,'posicao',n,pesObs(p));});}/* RESERVA_SO_SE_RESERVOU_26OUT */
 /* ---------- HS_RESERVA_20261022: o robô reserva a cota no portal da HS (responsivo) e confere; se não der, sugere outra ---------- */
 function podeReservar(g,c){return g.adm==='HS'&&!!vd(g)&&roboAv(g,c)&&!bloqueada(marcas(g)[c]||{});}
 async function hsApi(m,u,b){if(window.__MC_RES)return window.__MC_RES(m,u,b);
@@ -1400,14 +1411,14 @@ function hsrPinta(st,html,acts){var b=hsrBox();b.className='hsr on '+st;b.innerH
  $('.x',b).onclick=HSR.rodando?hsrParar:hsrFecha;var hp=$('[data-hsp]',b);if(hp)hp.onclick=hsrParar;return b;}
 function vdRefaz(g,fn){var v=S.VD&&S.VD[g.k];if(!v)return;fn(v);delete v._set;delete v._ra;}
 function sugestoes(g,fora,n){var h=S.H[g.k];if(!h)return [];var O=oport(g,h),mk=marcas(g);return opLista(g,O,mk).filter(function(o){return fora.indexOf(o.c)<0&&podeReservar(g,o.c);}).slice(0,n||3);}
-async function reservarHS(g,cotas,nome){var fila=cotas.filter(function(c){return podeReservar(g,c);}),feitas=[],falhas=[],paradas=[];
+async function reservarHS(g,cotas,nome){var fila=cotas.filter(function(c){return podeReservar(g,c);}),feitas=[],falhas=[],paradas=[],car=cartaEsc(g),ctx=car?' · carta '+brl2(car.valor):'';
  if(!fila.length){toast('Nenhuma dessas cotas está à venda no portal da HS agora');return;}
  if(HSR.rodando||HSR.canc){toast(HSR.canc?'Espere o robô terminar de cancelar a reserva':'O robô ainda está reservando outra fila. Espere terminar ou toque em “Parar o robô”.');return;}
  HSR.rodando=true;HSR.parar=false;HSR.pid=null;
  try{for(var i=0;i<fila.length;i++){var c=fila[i],tx=fila.length>1?' ('+(i+1)+' de '+fila.length+')':'';
   if(HSR.parar){paradas=paradas.concat(fila.slice(i));break;}
-  hsrPinta('run','<b>Reservando a cota '+c+' no portal da HS'+tx+'</b><small>O robô entra no portal, aperta “Reservar” e confere. Leva cerca de 1 minuto: pode seguir usando a ferramenta.</small>',HSR_PARAR);
-  var r=null;try{var j=await hsApi('POST','/api/hs_reservar',{grupo:String(g.grupo),cota:c,pessoa:nome||'',tipo:g.tipo,adm:'HS'});var id=j.id,t0=Date.now();HSR.pid=id;
+  hsrPinta('run','<b>Reservando a cota '+c+' no portal da HS'+tx+'</b><small>'+(car?'Carta de '+brl2(car.valor)+' · parcela '+brl2(car.parcela)+'. ':'')+'O robô entra no portal, aperta “Reservar” e confere. Leva cerca de 1 minuto: pode seguir usando a ferramenta.</small>',HSR_PARAR);
+  var r=null;try{var j=await hsApi('POST','/api/hs_reservar',{grupo:String(g.grupo),cota:c,pessoa:nome||'',tipo:g.tipo,adm:'HS',valor:car?+car.valor:undefined,bem:car?car.bem:undefined,modalidade:car?car.modalidade:undefined});var id=j.id,t0=Date.now();HSR.pid=id;
    if(HSR.parar)hsApi('POST','/api/hs_reservar/'+id+'/parar').catch(function(){});
    while(Date.now()-t0<420000){await new Promise(function(ok){setTimeout(ok,window.__MC_RES?400:4000);});r=await hsApi('GET','/api/hs_reservar/'+id);if(r&&r.status&&r.status!=='fila'&&r.status!=='rodando')break;
     if(HSR.parar)hsrParando();else if(r&&r.msg)hsrPinta('run','<b>Reservando a cota '+c+tx+'</b><small>'+esc(r.msg)+'…</small>',HSR_PARAR);}
@@ -1425,39 +1436,53 @@ async function reservarHS(g,cotas,nome){var fila=cotas.filter(function(c){return
   hsrPinta(feitas.length?'ok':'ind','<b>Robô parado</b><small>'+(feitas.length?'Reservada'+(feitas.length>1?'s':'')+' antes de parar: '+feitas.map(function(f){return f.c;}).join(', ')+'. Para soltar, toque na cota e em “Cancelar reserva no portal”. ':'Nenhuma cota foi reservada. ')+
    (paradas.length?'Não reservada'+(paradas.length>1?'s':'')+': '+paradas.join(', ')+'.':'')+(falhas.length?' Com erro: '+falhas.map(function(f){return f.c;}).join(', ')+'.':'')+'</small>');
   toast('Robô de reservas parado');return;}
- if(!falhas.length){hsrPinta('ok','<b>'+(feitas.length>1?'Cotas '+feitas.map(function(f){return f.c;}).join(', ')+' reservadas':'Cota '+feitas[0].c+' reservada')+' no portal da HS</b><small>Em nome da Agion'+val(feitas[0].v)+(nome?' · para '+esc(prim(nome)):'')+'. A equipe toda vê no mapa.</small>');toast(feitas.length>1?feitas.length+' cotas reservadas no portal da HS':'Cota '+feitas[0].c+' reservada no portal da HS');return;}
+ if(!falhas.length){hsrPinta('ok','<b>'+(feitas.length>1?'Cotas '+feitas.map(function(f){return f.c;}).join(', ')+' reservadas':'Cota '+feitas[0].c+' reservada')+' no portal da HS</b><small>Em nome da Agion'+val(feitas[0].v)+(nome?' · para '+esc(prim(nome)):'')+(car?' · carta '+brl2(car.valor)+(feitas.length>1?' · total '+brl2(feitas.length*car.valor):''):'')+'. A equipe toda vê no mapa.</small>');toast(feitas.length>1?feitas.length+' cotas reservadas no portal da HS':'Cota '+feitas[0].c+' reservada no portal da HS');return;}
  var ind=falhas.filter(function(f){return f.st==='indisponivel';}),sug=sugestoes(g,cotas,3);
  var h='<b>'+(feitas.length?'Reservei '+feitas.map(function(f){return f.c;}).join(', ')+'. ':'')+(falhas.length>1?'As cotas '+falhas.map(function(f){return f.c;}).join(', ')+' não foram reservadas':'A cota '+falhas[0].c+' não foi reservada')+'</b>'+
   '<small>'+esc(ind.length?'Não está mais livre no portal da HS (alguém reservou ou comprou). Escolha outra cota perto das contempladas:':falhas[0].msg)+'</small>';
  var a='<div class="hsra">'+(sug.length?sug.map(function(o){return '<button class="btn pu sm" data-hsr="'+o.c+'">Reservar a '+o.c+'<span class="hsrn">'+o.cap+' nº</span></button>';}).join(''):'')+
   '<button class="btn ol sm" data-hsg="1">'+IC.star+'Gerar outras cotas</button>'+(!ind.length?'<button class="btn ol sm" data-hsx="1">Tentar de novo</button>':'')+'</div>';
  var b=hsrPinta(ind.length?'ind':'err',h,a);
- $$('[data-hsr]',b).forEach(function(x){x.onclick=function(){var c2=+x.dataset.hsr;if(nome)marcar(g,c2,'posicao',nome,'reserva no portal da HS · troca da cota '+falhas.map(function(f){return f.c;}).join(', '));reservarHS(g,[c2],nome);};});
+ $$('[data-hsr]',b).forEach(function(x){x.onclick=function(){var c2=+x.dataset.hsr;reservarHS(g,[c2],nome);};});
  var gg=$('[data-hsg]',b);if(gg)gg.onclick=function(){hsrFecha();negGerar(g);var p=$('#neg');if(p)rolarPara(p);};
  var tx2=$('[data-hsx]',b);if(tx2)tx2.onclick=function(){reservarHS(g,falhas.map(function(f){return f.c;}),nome);};}
+/* ---------- RESERVA_CARTA_26OUT: escolher a carta (valor) da reserva e ver o total ---------- */
+S.cartaRes=S.cartaRes||{};
+function cartasG(g){var v=vd(g);return ((v&&v.cartas)||[]).filter(function(c){return +c.valor>0;}).slice().sort(function(a,b){return (a.modalidade||'').localeCompare(b.modalidade||'')||(+a.valor)-(+b.valor);});}
+function cartaEsc(g){var cs=cartasG(g);if(!cs.length)return null;var k=S.cartaRes[g.k];var x=k&&cs.filter(function(c){return c.bem===k.bem&&c.modalidade===k.modalidade;})[0];return x||cs[0];}
+function cartaPainel(g,qtd){return function(box){var cs=cartasG(g);if(!cs.length){box.innerHTML='';return;}var multi=cs.some(function(c){return c.modalidade!==cs[0].modalidade;});
+  var pinta=function(){var sel=cartaEsc(g),q=qtd||1;
+   box.innerHTML='<div class="csel"><div class="cslb">Qual carta reservar?</div><div class="csls">'+cs.map(function(c,i){var on=sel&&c.bem===sel.bem&&c.modalidade===sel.modalidade;
+     return '<button type="button" class="csb'+(on?' on':'')+'" data-ci="'+i+'"><b>'+brl2(c.valor)+'</b><small>parcela '+brl2(c.parcela)+(multi?'<br>'+esc(MODV[c.modalidade]||c.modalidade||''):'')+'</small></button>';}).join('')+'</div>'+
+    '<div class="cstot">'+(q>1?'<span>'+q+' cotas × '+brl2(sel.valor)+'</span><b>'+brl2(q*sel.valor)+'</b><em>em crédito · parcelas de '+brl2(q*sel.parcela)+'/mês</em>':'<span>Crédito da reserva</span><b>'+brl2(sel.valor)+'</b><em>parcela de '+brl2(sel.parcela)+'/mês</em>')+'</div></div>';
+   box.style.display='';
+   $$('.csb',box).forEach(function(b){b.onclick=function(){var c=cs[+b.dataset.ci];S.cartaRes[g.k]={bem:c.bem,modalidade:c.modalidade};try{localStorage.setItem('agmc-cartares',JSON.stringify(S.cartaRes));}catch(e){}pinta();};});};
+  pinta();};}
+try{S.cartaRes=JSON.parse(localStorage.getItem('agmc-cartares')||'{}')||{};}catch(e){S.cartaRes={};}
 /* ---------- RESERVA_CLIENTE_26OUT: toda reserva pergunta para quem é (fica posicionada para a pessoa); várias de uma vez ---------- */
 function reservarPara(g,cotas){cotas=(cotas||[]).filter(function(c){return podeReservar(g,c);});
  if(!cotas.length){toast('Nenhuma dessas cotas está à venda no portal da HS agora');return;}
  if(HSR.rodando||HSR.canc){toast('O robô ainda está trabalhando · espere terminar ou toque em “Parar o robô”');return;}
  var mk=marcas(g),nomes={};cotas.forEach(function(c){var p=mk[c]&&mk[c].posicao;nomes[p?p.cliente_nome||'':'']=1;});
- var ks=Object.keys(nomes);if(ks.length===1&&ks[0]){reservarHS(g,cotas,ks[0]);return;}
+ var ks=Object.keys(nomes),pre=ks.length===1&&ks[0]?ks[0]:'';
  var lst=cotas.slice().sort(function(a,b){return a-b;});
  caixa({t:cotas.length>1?'Reservar '+cotas.length+' cotas no portal da HS':'Reservar a cota '+cotas[0]+' no portal da HS',
   p:'Grupo '+g.grupo+' · cota'+(lst.length>1?'s ':' ')+lst.join(', ')+'. Para quem é a reserva? Só se a HS reservar de verdade a cota fica no nome da pessoa (no mapa, nas Reservas da Agion e no Gerador de propostas). Se o portal não reservar, nada fica marcado. Sem cliente ainda? Deixe em branco.',
-  lab:'Para quem',ph:'Buscar cliente ou lead (opcional)',ok:'Reservar no portal',pessoas:1},
-  function(n){reservarHS(g,cotas,n||'');});}/* RESERVA_SO_SE_RESERVOU_26OUT: a cota só fica no nome do cliente se a HS reservar de verdade */
+  lab:'Para quem',ph:'Buscar cliente ou lead (opcional)',ok:'Reservar no portal',pessoas:1,cartas:cartaPainel(g,cotas.length)},
+  function(n){reservarHS(g,cotas,n||'');});if(pre){var dn=$('#dlgn');if(dn)dn.value=pre;}}/* RESERVA_SO_SE_RESERVOU_26OUT: a cota só fica no nome do cliente se a HS reservar de verdade */
 function rsvLista(){/* reservas da Agion em todos os grupos, agrupadas por cliente */
  var por={},n=0;Object.keys(S.M||{}).forEach(function(k){var M=S.M[k];Object.keys(M).forEach(function(c){var r=M[c].reservada;if(!r||!/^Reservada no portal da HS/.test(r.obs||''))return;
   var nome=(r.cliente_nome||(M[c].posicao&&M[c].posicao.cliente_nome)||'').trim()||'Sem cliente',m=/válida até (\d{2}\/\d{2})/.exec(r.obs||'');
-  (por[nome]=por[nome]||{nome:nome,g:{}});(por[nome].g[k]=por[nome].g[k]||{k:k,grupo:r.grupo,tipo:r.tipo,c:[]}).c.push({c:+c,val:m?m[1]:''});n++;});});
+  var cv=/carta R\$ ([\d.]+,\d{2})/.exec(r.obs||''),vv=cv?+cv[1].replace(/\./g,'').replace(',','.'):0;
+  (por[nome]=por[nome]||{nome:nome,g:{},tot:0});por[nome].tot+=vv;(por[nome].g[k]=por[nome].g[k]||{k:k,grupo:r.grupo,tipo:r.tipo,c:[]}).c.push({c:+c,val:m?m[1]:'',v:vv});n++;});});
  var L=Object.keys(por).map(function(x){return por[x];});L.sort(function(a,b){return (a.nome==='Sem cliente')-(b.nome==='Sem cliente')||a.nome.localeCompare(b.nome);});return {L:L,n:n};}
 function rsvHtml(){var R=rsvLista(),oc=S.oculta;
  var h='<div class="ph"><h3>'+IC.check+'Reservas da Agion</h3><span class="sp"></span><span class="pill'+(R.n?' ok':'')+'">'+R.n+'</span></div>';
  if(!R.n)return h+'<p class="dp">Nenhuma cota reservada pela Agion no portal da HS agora. Reserve pela cota, pela negociação (várias de uma vez) ou direto no portal: a lista se acerta sozinha com a HS de hora em hora.</p>';
  return h+'<div class="rsl">'+R.L.map(function(p,i){var gs=Object.keys(p.g).map(function(k){return p.g[k];}),tot=0;gs.forEach(function(x){tot+=x.c.length;});
-  return '<div class="rsc"><div class="rsh"><span class="pav '+(p.nome==='Sem cliente'?'cd':'ok')+'">'+(oc?'•':esc(p.nome.split(/\s+/).slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase()))+'</span><span class="rsn"><b>'+(oc&&p.nome!=='Sem cliente'?'Cliente '+(i+1):esc(p.nome))+'</b><small>'+tot+' cota'+(tot>1?'s':'')+' · '+gs.length+' grupo'+(gs.length>1?'s':'')+'</small></span>'+
+  return '<div class="rsc"><div class="rsh"><span class="pav '+(p.nome==='Sem cliente'?'cd':'ok')+'">'+(oc?'•':esc(p.nome.split(/\s+/).slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase()))+'</span><span class="rsn"><b>'+(oc&&p.nome!=='Sem cliente'?'Cliente '+(i+1):esc(p.nome))+'</b><small>'+tot+' cota'+(tot>1?'s':'')+' · '+gs.length+' grupo'+(gs.length>1?'s':'')+(p.tot?' · '+brl2(p.tot)+' em crédito':'')+'</small></span>'+
    (p.nome!=='Sem cliente'?'<button class="btn ol sm" data-rsp="'+i+'" title="Abre o Gerador de propostas com estas cotas">Proposta</button>':'')+'</div>'+
-   gs.map(function(x){x.c.sort(function(a,b){return a.c-b.c;});return '<div class="rsg"><span class="rsgl">Grupo '+esc(String(x.grupo))+'</span><span class="rscs">'+x.c.map(function(o){return '<button class="rsb" data-rk="'+esc(x.k)+'" data-rc="'+o.c+'" title="Ver a cota '+o.c+(o.val?' · reservada até '+o.val:'')+'">'+o.c+'</button>';}).join('')+'</span></div>';}).join('')+'</div>';}).join('')+'</div>';}
+   gs.map(function(x){x.c.sort(function(a,b){return a.c-b.c;});return '<div class="rsg"><span class="rsgl">Grupo '+esc(String(x.grupo))+'</span><span class="rscs">'+x.c.map(function(o){return '<button class="rsb" data-rk="'+esc(x.k)+'" data-rc="'+o.c+'" title="Ver a cota '+o.c+(o.v?' · carta '+brl2(o.v):'')+(o.val?' · reservada até '+o.val:'')+'">'+o.c+'</button>';}).join('')+'</span></div>';}).join('')+'</div>';}).join('')+'</div>';}
 function irCota(k,c){var g=S.GR[k];if(!g){toast('Grupo fora da lista agora');return;}
  if(S.cat!==g.tipo)S.cat=g.tipo;if(S.grupo!==k){S.grupo=k;}S.sel=c;S.detOpen=true;S.aba='grupo';pintar();
  var n=0,iv=setInterval(function(){if(S.H[k]&&$('#mapa .cel[data-c="'+c+'"]')){clearInterval(iv);selecionar(c,true);}else if(++n>60)clearInterval(iv);},100);}

@@ -1117,7 +1117,7 @@ var RS=null;
 async function carregaRes(){var s=sb();if(!s)throw new Error('sem conexão');
  var mk=[],de=0;for(;;){var r=await s.from('cotas_marcas').select('administradora,tipo,grupo,cota,marca,cliente_nome,obs').eq('administradora','HS').in('marca',['reservada','posicao']).range(de,de+999);if(r.error)throw r.error;mk=mk.concat(r.data||[]);if(!r.data||r.data.length<1000)break;de+=1000;}
  var por={};mk.forEach(function(m){var k=String(+m.grupo)+'|'+(+m.cota),x=por[k]=por[k]||{grupo:String(+m.grupo),cota:+m.cota,tipo:m.tipo};
-  if(m.marca==='reservada'&&/^Reservada no portal da HS/.test(m.obs||'')){x.res=1;x.nomeR=m.cliente_nome||'';var v=/válida até (\d{2}\/\d{2})/.exec(m.obs||'');x.val=v?v[1]:'';}
+  if(m.marca==='reservada'&&/^Reservada no portal da HS/.test(m.obs||'')){x.res=1;x.nomeR=m.cliente_nome||'';var v=/válida até (\d{2}\/\d{2})/.exec(m.obs||'');x.val=v?v[1]:'';var cv=/carta R\$ ([\d.]+,\d{2})/.exec(m.obs||'');x.cartaV=cv?+cv[1].replace(/\./g,'').replace(',','.'):0;}/* RESERVA_CARTA_26OUT */
   if(m.marca==='posicao'){x.pos=1;x.nomeP=m.cliente_nome||'';}});
  var L=Object.keys(por).map(function(k){var x=por[k];x.nome=(x.nomeR||x.nomeP||'').trim()||'Sem cliente';return x;}).filter(function(x){return x.res||x.pos;});
  var gs={};L.forEach(function(x){gs[x.grupo]=1;});
@@ -1150,12 +1150,13 @@ function pinta(){var c=$('rsC');if(!c)return;var V=visiveis(),src=(V.semMatch?V.
  var porC={},ord=[];src.forEach(function(x){var n=x.nome;if(!porC[n]){porC[n]={};ord.push(n);}(porC[n][x.grupo]=porC[n][x.grupo]||[]).push(x);});
  ord.sort(function(a,b){return (a==='Digitadas agora')-(b==='Digitadas agora')||(a==='Sem cliente')-(b==='Sem cliente')||a.localeCompare(b);});
  var h=V.semMatch?'<div class="rsdn">Ninguém com esse nome nas reservas: mostrando todas.</div>':'';
- ord.forEach(function(n){h+='<div class="rcl">'+esc(n)+'</div>';Object.keys(porC[n]).sort(function(a,b){return a-b;}).forEach(function(g){var xs=porC[n][g].sort(function(a,b){return a.cota-b.cota;}),gi=RS&&RS.G[g],cs=cartasDe(gi),ci=CART[g]||0;
+ ord.forEach(function(n){h+='<div class="rcl">'+esc(n)+'</div>';Object.keys(porC[n]).sort(function(a,b){return a-b;}).forEach(function(g){var xs=porC[n][g].sort(function(a,b){return a.cota-b.cota;}),gi=RS&&RS.G[g],cs=cartasDe(gi),ci=CART[g];
+  if(ci==null){var rv=(xs.filter(function(x){return x.cartaV;})[0]||{}).cartaV,ix=rv?cs.findIndex(function(z){return Math.abs(+z.valor-rv)<1;}):-1;ci=ix>=0?ix:0;CART[g]=ci;}
   var on=xs.filter(function(x){return SEL[x.grupo+'|'+x.cota];}).length;
   h+='<div class="rgp"><div class="rgh"><b>Grupo '+esc(g)+'</b><small>'+(gi?((gi.segmento==='AUTOMOVEL'?'Automóvel':'Imóvel')+(gi.prazo_restante?' · prazo '+gi.prazo_restante+(gi.prazo_original?' de '+gi.prazo_original:'')+' meses':'')):'grupo fora da oferta da HS agora')+'</small>'+
    (cs.length>1?'<select data-cg="'+esc(g)+'">'+cs.map(function(z,i){return '<option value="'+i+'"'+(i===ci?' selected':'')+'>Carta '+brl(z.valor)+' · parcela '+brl(z.parcela)+'</option>';}).join('')+'</select>':(cs.length?'<small style="margin-left:auto">Carta '+brl(cs[0].valor)+' · parcela '+brl(cs[0].parcela)+'</small>':''))+
    '<button class="rga" data-ga="'+esc(n)+'|'+esc(g)+'">'+(on===xs.length?'tirar todas':'todas')+'</button></div><div class="rcs">'+
-   xs.map(function(x){var k=x.grupo+'|'+x.cota;return '<button class="rcb'+(SEL[k]?' on':'')+(x.res?'':' ps')+'" data-k="'+k+'" title="'+(x.res?'Reservada pela Agion'+(x.val?' até '+x.val:''):(x.pos?'Posição guardada (não reservada no portal)':'Digitada'))+'">'+x.cota+'</button>';}).join('')+'</div></div>';});});
+   xs.map(function(x){var k=x.grupo+'|'+x.cota;return '<button class="rcb'+(SEL[k]?' on':'')+(x.res?'':' ps')+'" data-k="'+k+'" title="'+(x.res?'Reservada pela Agion'+(x.cartaV?' · carta '+brl(x.cartaV):'')+(x.val?' até '+x.val:''):(x.pos?'Posição guardada (não reservada no portal)':'Digitada'))+'">'+x.cota+'</button>';}).join('')+'</div></div>';});});
  c.innerHTML=h;
  [].slice.call(c.querySelectorAll('.rcb')).forEach(function(b){b.onclick=function(){var k=b.dataset.k;if(SEL[k])delete SEL[k];else SEL[k]=1;b.classList.toggle('on',!!SEL[k]);conta();};});
  [].slice.call(c.querySelectorAll('select[data-cg]')).forEach(function(s){s.onchange=function(){CART[s.dataset.cg]=+s.value;};});
