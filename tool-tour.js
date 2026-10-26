@@ -119,7 +119,7 @@ var TOURS={
    {t:up('#b2','.panel'),title:'E se a contemplação vier em outro mês?',text:'Quanto sai do bolso sobre o patrimônio para cada mês de contemplação, com as faixas excelente, bom e avaliar.'},
    {t:up('#pdfbtn'),title:'Baixar e link para o cliente',text:'“Baixar” gera o estudo da sub-aba aberta em PDF (A4) ou numa imagem PNG para o WhatsApp. “Link para o cliente” cria um link temporário: ele simula sozinho e tudo aparece no Histórico de ferramentas.'}
   ]},
- 'propostas':{id:'t-prop',v:2,/* PROPOSTAS_V2_25OUT */title:'Gerador de Propostas',
+ 'propostas':{id:'t-prop',v:3,/* PROPOSTAS_V2_25OUT · v3 PROP_RESERVAS_26OUT */title:'Gerador de Propostas',
   save:function(){ var on=$('.tabs .tab.on'); return on?on.getAttribute('data-t'):'resumido'; },
   restore:function(s){ try{ if(typeof W.setTipo==='function') W.setTipo(s||'resumido'); }catch(e){} },
   steps:[
@@ -132,7 +132,9 @@ var TOURS={
    {t:up('#r_disc','.field'),title:'Aviso do rodapé',text:'O aviso obrigatório, por exemplo: “Esta proposta não garante contemplação em um prazo específico.”'},
    {t:up('#r_cons','.grid3'),title:'Consultor, data e validade',text:'Saem no rodapé da proposta.'},
    {t:up('#form-completo'),title:'Proposta completa',text:'No deck: dados do cliente e do grupo, reajuste, custos do plano e as estratégias premium (ágio, lance embutido, renda). Cada campo alimenta uma página.',go:function(){ try{ W.setTipo&&W.setTipo('completo'); }catch(e){} }},
+   {t:up('#c_cliente','.field'),title:'Cliente do cadastro',text:'Digite o nome ou o telefone e escolha o lead ou o cliente: a proposta fica ligada à pessoa e o “Salvar no cliente” guarda no card dela, como pelo CRM. Também filtra as cartas reservadas para ela.',optional:true},
    {t:up('#c_cartas'),title:'Cartas',text:'Adicione quantas cartas quiser, padrão ou contemplada. Cada carta vira uma página do deck.'},
+   {t:up('#rsBt','.btnrow'),title:'Cartas reservadas',text:'Abre a lista das cotas reservadas pela Agion (e das posições guardadas), filtrada pelo cliente. Marque as cotas de um ou de vários grupos: cada grupo vira uma carta com a quantidade de cotas. Em “+ grupo e cotas” dá para digitar o grupo e os números.',optional:true},
    {t:up('#mp_info'),title:'Mapeamento de cartas',text:'A página “A sua cota no grupo”: na Melhores cartas, toque na cota que vai reservar e use “Levar para a proposta”; os dados da cota, do grupo e o print do mapa chegam aqui sozinhos. Também dá para preencher à mão e enviar uma imagem.',optional:true},
    {t:up('#c_strats'),title:'Estratégias',text:'Cada coluna é uma estratégia: digite quantas cotas de cada carta entram nela. Uma carta = alternativa; várias cartas = estratégia unificada. Estratégias diferentes nunca se somam: o cliente escolhe uma.'},
    {t:up('#c_pages'),title:'Páginas do deck',text:'Marque as páginas que entram na proposta e escolha o formato: vertical (documento) ou horizontal (slides 16:9).'},
@@ -140,7 +142,7 @@ var TOURS={
    {t:up('#preview'),title:'Prévia',text:'Aqui aparece a proposta exatamente como vai sair. Se algo estiver errado, ajuste os campos e gere de novo.'}
   ]},
  /* MCARTAS_20261021 */
- 'melhores-cartas':{id:'t-mcartas',v:3,/* MAPA_PROPOSTA_25OUT *//* TOURS_LV_23OUT */title:'Melhores cartas disponíveis',
+ 'melhores-cartas':{id:'t-mcartas',v:4,/* v4 RESERVA_CLIENTE_26OUT *//* MAPA_PROPOSTA_25OUT *//* TOURS_LV_23OUT */title:'Melhores cartas disponíveis',
   steps:[
    {t:null,title:'Onde posicionar o cliente',text:'A ferramenta usa o Resultado de Assembleia Final da HS, mês a mês desde jun/2019, para mostrar em cada grupo as cotas que já saíram e as livres mais bem posicionadas perto delas.'},
    {t:up('#cats','.fld'),title:'Categoria',text:'Imóvel ou Automóvel. Cada categoria tem os próprios grupos.'},
@@ -151,6 +153,7 @@ var TOURS={
    {t:up('.kpis'),title:'Resumo do grupo',text:'Total de cotas (toque em “ajustar” se o grupo tiver outro tamanho), contempladas, clientes da carteira e quantas livres são alta oportunidade (5 ou mais números do sorteio caem nelas).'},
    {t:up('#mapa .grid'),title:'Mapa de cotas',text:'Cada quadrado é uma cota. Vermelho listrado é contemplada, verde com borda é cliente Agion, roxo é oportunidade (o mais forte, com a estrela, é a alta), com o visto preto está na negociação e listrada é reservada ou indisponível. Toque numa cota para ver o detalhe.'},
    {t:up('#neg'),title:'Cotas por proximidade',text:'Escolha quantas cotas quer e toque em “Gerar cotas”: a ferramenta separa as livres com mais contempladas coladas, onde mais números do sorteio caem por proximidade. Tire ou ponha cotas à mão (no + das oportunidades, no detalhe ou ligando “Tocar no mapa põe na negociação”), posicione o cliente em todas de uma vez ou copie a lista para a negociação.'},
+   {t:up('#rsv'),title:'Reservas da Agion',text:'Todas as cotas reservadas pela Agion no portal da HS, por cliente e por grupo. Toque numa cota para ir a ela no mapa, ou em “Proposta” para abrir o Gerador com essas cotas. Para reservar várias de uma vez, ponha as cotas na negociação e toque em “Reservar as N no portal”: a plataforma pergunta para quem é. Cancelou direto na HS? Sai daqui sozinha (o robô confere de hora em hora).',optional:true},
    {t:up('#cartas'),title:'Cartas do grupo',text:'As cartas que a HS oferece no grupo, com o crédito e a parcela de cada modalidade.',optional:true},
    {t:up('#lvh'),title:'Lance livre mês a mês',text:'O mínimo, o médio da HS e o máximo dos últimos 6 meses e, mês a mês, cada lance livre que contemplou, em % e em parcelas. No celular o painel fica recolhido: toque no título para abrir.',optional:true},
    {t:up('#fil'),title:'Filtros',text:'Veja só oportunidades, contempladas, disponíveis, clientes ou reservadas. “Ocultar clientes” esconde nomes e cotas da carteira para você mostrar a tela ao cliente.'},
