@@ -181,6 +181,28 @@ var TOURS={
    {t:up('.lcinfo'),title:'Como a conta é feita',text:'O passo a passo da conta, com um exemplo. Toque para abrir.',optional:true},
    {t:null,title:'Sempre confirme na HS',text:'A calculadora sugere com os dados do portal e do resultado das assembleias. Antes de ofertar, confirme o lance e o embutido no portal da HS.'}
   ]},
+ /* LANCE_FERRAMENTA_26OUT · /calc-lance (ferramenta independente, com link e Baixar) */
+ 'calc-lance':{id:'t-calclance',v:1,title:'Calculadora de lance livre',
+  save:function(){ var a=$('#lc_L'),b=$('#lc_C'); return {L:a?a.value:'',C:b?b.value:''}; },
+  restore:function(s){ s=s||{}; [['#lc_L','L'],['#lc_C','C']].forEach(function(p){ var el=$(p[0]); if(el&&el.value!==s[p[1]]){ el.value=s[p[1]]||''; el.dispatchEvent(new Event('input',{bubbles:true})); } }); },
+  steps:[
+   {t:null,title:'O grupo certo para o lance livre',text:'O cliente tem um valor para dar de lance livre e quer uma carta de certo valor. A calculadora olha os grupos da HS com cartas à venda e mostra o grupo e a carta onde esse lance contempla. Aqui é só grupo e carta; a escolha da cota fica na Melhores cartas. Nada é gravado.'},
+   {t:up('#segTipo'),title:'Imóvel ou automóvel',text:'Cada categoria tem os próprios grupos.'},
+   {t:up('#lc_L','.fld'),title:'Lance livre',text:'Quanto ele tem em dinheiro para o lance. Pode digitar 280.000, 280 mil ou 1,5 mi. Para a demonstração, R$ 280.000.',go:function(){ var el=$('#lc_L'); if(el&&!el.value){ el.value='280.000'; el.dispatchEvent(new Event('input',{bubbles:true})); } }},
+   {t:up('#lc_C','.fld'),title:'Crédito que ele quer',text:'O valor da carta que ele precisa receber. Aqui, R$ 500.000. Em branco, a calculadora mostra a maior carta que o lance alcança.',go:function(){ var el=$('#lc_C'); if(el&&!el.value){ el.value='500.000'; el.dispatchEvent(new Event('input',{bubbles:true})); } }},
+   {t:up('#segQt','.fld'),title:'1 ou 2 cotas',text:'Com 2 cotas no mesmo grupo, o crédito e o lance livre se dividem entre as duas (ex.: 2 cartas de R$ 500 mil no lugar de 1 de R$ 1 milhão). Cada cota precisa chegar ao lance alvo, e dá para contemplar as duas.'},
+   {t:up('#segBase','.fld'),title:'Base do lance',text:'“Médio 6 meses”: a média, em parcelas, dos lances livres que contemplaram no grupo nos últimos 6 meses. “Último lance”: o menor lance que contemplou na última assembleia. A HS conta o lance em parcelas.'},
+   {t:up('#lc_folga','.fld'),title:'Folga',text:'Parcelas a mais em cima da referência, para o lance ficar mais seguro.'},
+   {t:up('#segEmb','.panel'),title:'Lance embutido',text:'Se o dinheiro do cliente não chega, a calculadora sobe para uma carta maior e completa com embutido (até 30% da carta na HS), sem deixar o crédito líquido abaixo do pedido. Dá para desligar.'},
+   {t:up('#lc_and','.panel'),title:'Quais grupos entram',text:'Só grupos que andaram até 40% do prazo (dá para mudar) e a modalidade da carta: seguro na contemplação ou taxa antecipada.'},
+   {t:up('#verd'),title:'Melhor grupo',text:'O grupo e a carta mais perto do crédito pedido onde o lance fecha. A barra mostra o lance: quanto sai do bolso, quanto é embutido e, se for o caso, quanto falta.'},
+   {t:up('.kpis'),title:'Os números',text:'A carta e a meia parcela, o lance alvo em parcelas, o lance em reais (1 parcela de lance é a parcela cheia: crédito + taxa de administração + fundo de reserva, dividido pelo prazo) e o crédito líquido.'},
+   {t:up('#p_outros'),title:'Outros grupos',text:'Os outros grupos que contemplam com esses valores. Toque num deles para ver em destaque. Cobertura: quantos lances que contemplaram nos 6 meses ficaram iguais ou abaixo do lance alvo.'},
+   {t:up('#p_hist'),title:'Lances do grupo, mês a mês',text:'Cada lance livre que contemplou no grupo em destaque nos últimos 6 meses, em parcelas.'},
+   {t:up('#agLinkBtn'),title:'Link para o cliente',text:'Gera um link temporário com os valores da tela: o cliente abre sem login e já vê o grupo e a carta certos para ele. Fica no Histórico de ferramentas, ligado ao cliente.',optional:true},
+   {t:up('#pdfbtn'),title:'Baixar',text:'PDF ou imagem PNG do estudo, pronta para mandar no WhatsApp.',optional:true},
+   {t:null,title:'Sempre confirme na HS',text:'A calculadora usa o resultado das assembleias e as cartas do portal. Antes de ofertar, confirme o lance e o embutido no portal da HS.'}
+  ]},
 };
 
 /* ---------------------------------------------------------------- QUAL PÁGINA */

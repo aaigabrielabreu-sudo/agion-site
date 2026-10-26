@@ -9,7 +9,7 @@
 (function(W){
  if(W.AgCalcLink)return;
  var API='https://bot.agionconsorcios.com.br';
- var FERR={'calc-alavancagem':'Calculadora de alavancagem','calc-financiamento':'Calculadora de financiamento','calc-avista':'Calculadora consórcio × à vista'};/* AVISTA_24OUT */
+ var FERR={'calc-alavancagem':'Calculadora de alavancagem','calc-financiamento':'Calculadora de financiamento','calc-avista':'Calculadora consórcio × à vista','calc-lance':'Calculadora de lance livre'};/* AVISTA_24OUT · LANCE_FERRAMENTA_26OUT */
  var SEL_KEY='ag_link_prop', CACHE='ag_links_cache';
  function tok(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('sb-')===0&&k.indexOf('auth-token')>-1){var v=JSON.parse(localStorage.getItem(k));return v&&(v.access_token||(v.currentSession&&v.currentSession.access_token));}}}catch(e){}return null;}
  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -48,7 +48,8 @@
     vira uma linha no histórico (campos, modos e os resultados principais). Só roda no link do cliente. */
  var RES={'calc-alavancagem':[['o_lucro','Lucro na venda da carta'],['o_pini','Parcela inicial'],['o_credlib','Crédito liberado'],['p_patrim','Patrimônio construído']],
   'calc-financiamento':[['o_c_ent','Entrada (consórcio)'],['o_c_parc','Parcela do consórcio'],['o_f_parc','Parcela do financiamento'],['v_eco','Patrimônio a mais no fim']],
-  'calc-avista':[['o_c_ent','Entrada ou lance (consórcio)'],['o_c_parc','Parcela do consórcio'],['o_a_preco','Preço à vista'],['v_eco','Patrimônio a mais no fim'],['v_emp','Rendimento de empate']]};
+  'calc-avista':[['o_c_ent','Entrada ou lance (consórcio)'],['o_c_parc','Parcela do consórcio'],['o_a_preco','Preço à vista'],['v_eco','Patrimônio a mais no fim'],['v_emp','Rendimento de empate']],
+  'calc-lance':[['v_head','Melhor grupo'],['k_alvo','Lance alvo'],['k_need','Lance necessário'],['k_liq','Crédito líquido']]};
  var SEGN={segDC:'Desconto vale na carta',segTipo:'Tipo de carta',segSys:'Financiamento',segCEnt:'Entrada (consórcio) em',segFEnt:'Entrada (financiamento) em',segFRate:'Taxa do financiamento em'};
  function pagAtual(){return location.pathname.replace(/^\/+|\.html$/g,'');}
  function rotulo(el){var f=el.closest('.f,.fld');var l=f&&f.querySelector('label');if(!l)return el.getAttribute('placeholder')||el.id;var c=l.cloneNode(true);c.querySelectorAll('small,.q').forEach(function(x){x.remove();});return c.textContent.replace(/\s+/g,' ').trim()||el.id;}
@@ -172,7 +173,7 @@
   function gera(){if(ult&&ult.expira>Date.now()/1000)return Promise.resolve(ult);if(!tok())return Promise.reject(new Error('Entre na plataforma para gerar links.'));
    if(!cli&&!nomeCli())return Promise.reject(new Error('Escolha o cliente do CRM (ou digite o nome).'));
    return criar(pag,horas,nomeCli(),cli?cli.id:'').then(function(j){if(!j||!j.ok)throw new Error('Não gerou: '+((j&&j.error)||'erro'));
-    ult={token:j.token||String(j.url).split('acesso=').pop(),url:j.url,expira:j.expira,pagina:pag,cliente:nomeCli(),lead:cli?cli.id:''};
+    ult={token:j.token||String(j.url).split('acesso=').pop(),url:j.url+(opt.extra?(opt.extra()||''):''),expira:j.expira,pagina:pag,cliente:nomeCli(),lead:cli?cli.id:''};
     if(opt.selecionavel){try{localStorage.setItem(SEL_KEY,JSON.stringify({token:ult.token,url:ult.url,expira:ult.expira,pagina:pag,cliente:ult.cliente||''}));}catch(e){}opt.onSel&&opt.onSel(selecionado());}
     resultado();try{opt.onCriado&&opt.onCriado(ult);}catch(e){}return ult;});}
   function resultado(){var r=$('.agl-rs');if(!ult){r.innerHTML='';return;}
