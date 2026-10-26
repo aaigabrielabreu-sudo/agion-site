@@ -472,23 +472,29 @@ async function start(id,mode){
   show(RUN.i,1);
   setTimeout(function(){ try{ UI&&UI.next.focus({preventScroll:true}); }catch(e){} },60);
 }
-async function show(i,dir){
-  if(!RUN) return; var t=RUN.t; clearTimeout(RUN.timer); clearDemo();
-  if(i<0){ RUN.el=null; UI.root.classList.add('nodim'); return; }
-  var tok=++RUN.stepTok; RUN.i=i; var STEPS=stepsOf(t), st=STEPS[i], n=STEPS.length;
-  UI.next.onclick=function(){ next(); };
+/* TOUR_PASSO_26OUT: um passo por clique. Passo opcional fora da tela é pulado ANTES de aparecer (sem mostrar o texto
+   dele e com Próximo/Voltar travados); passo normal nunca é pulado sozinho. */
+function pinta(i){ var t=RUN.t, STEPS=stepsOf(t), st=STEPS[i], n=STEPS.length; RUN.i=i; RUN.busy=false; UI.root.classList.remove('tr-busy');
   var r=rec(t.id); if(!r.done||status(t)!=='done'){ r.step=i; save(); }
   UI.area.textContent=(t.abas&&st.a!=null)?('Aba '+(st.a+1)+' de '+t.abas.length+' · '+t.abas[st.a]):TX(t.title); UI.count.textContent='Passo '+(i+1)+' de '+n;
   if(UI.tabs){ if(t.abas){ UI.tabs.hidden=false; UI.tabs.innerHTML=t.abas.map(function(x,k){ return '<i class="'+(st.a===k?'on':((st.a!=null&&k<st.a)||i===n-1?'ok':''))+'" title="'+esc(x)+'"></i>'; }).join(''); } else { UI.tabs.hidden=true; UI.tabs.innerHTML=''; } }
   UI.bar.style.transform='scaleX('+((i+1)/n)+')';
   UI.title.textContent=TX(st.title); UI.text.textContent=TX(st.text); UI.miss.hidden=true;
-  UI.prev.disabled=i===0; UI.next.textContent=i===n-1?'Concluir':'Próximo';
-  paintPlay();
-  if(st.act){ RUN.nav=true; try{ st.act(); }catch(e){} await sleep(260); if(!alive(tok)) return; setTimeout(function(){ if(RUN) RUN.nav=false; },300); }
-  var el=null;
-  if(st.t){ el=await waitFor(st.t,st.wait||3200,function(){ return alive(tok); }); if(!alive(tok)) return;
-    if(!el&&st.optional){ var j=i+(dir<0?-1:1); if(j>=0&&j<n) return show(j,dir); }
-    if(!el){ UI.miss.hidden=false; UI.miss.textContent='Esta parte não aparece agora (pode depender de dados ou do seu perfil). Siga para o próximo passo.'; } }
+  UI.prev.disabled=i===0; UI.next.disabled=false; UI.next.textContent=i===n-1?'Concluir':'Próximo';
+  paintPlay(); }
+async function show(i,dir){
+  if(!RUN) return; var t=RUN.t; clearTimeout(RUN.timer); clearDemo();
+  if(i<0){ RUN.el=null; UI.root.classList.add('nodim'); return; }
+  var tok=++RUN.stepTok, STEPS=stepsOf(t), n=STEPS.length, st, el=null, shown=false;
+  UI.next.onclick=function(){ next(); };
+  for(;;){ st=STEPS[i];
+    if(!st.optional){ pinta(i); shown=true; } else { RUN.busy=true; UI.root.classList.add('tr-busy'); UI.prev.disabled=true; UI.next.disabled=true; }
+    if(st.act){ RUN.nav=true; try{ st.act(); }catch(e){} await sleep(260); if(!alive(tok)) return; setTimeout(function(){ if(RUN) RUN.nav=false; },300); }
+    el=st.t?await waitFor(st.t,st.optional?Math.min(st.wait||1400,1400):(st.wait||3200),function(){ return alive(tok); }):null; if(!alive(tok)) return;
+    if(st.t&&!el&&st.optional){ var j=i+(dir<0?-1:1); if(j>=0&&j<n){ i=j; continue; } }
+    break; }
+  if(!shown) pinta(i);
+  if(st.t&&!el){ UI.miss.hidden=false; UI.miss.textContent='Esta parte não aparece agora (pode depender de dados ou do seu perfil). Siga para o próximo passo.'; }
   RUN.el=el;
   if(el){ await scrollTo(el); if(!alive(tok)) return; setTimeout(function(){ if(alive(tok)) place(); },420); }
   if(UI.ro&&el){ try{ UI.ro.disconnect(); UI.ro.observe(D.body); UI.ro.observe(el); }catch(e){} }
@@ -497,12 +503,12 @@ async function show(i,dir){
   demo(st,el,tok);
   if(RUN.auto) schedAuto();
 }
-function next(){ if(!RUN) return; if(RUN.i>=stepsOf(RUN.t).length-1) return complete(); show(RUN.i+1,1); }
-function prev(){ if(!RUN||RUN.i<=0) return; show(RUN.i-1,-1); }
+function next(){ if(!RUN||RUN.busy) return; if(RUN.i>=stepsOf(RUN.t).length-1) return complete(); show(RUN.i+1,1); }
+function prev(){ if(!RUN||RUN.busy||RUN.i<=0) return; show(RUN.i-1,-1); }
 function paintPlay(){ if(!UI||!RUN) return; UI.play.innerHTML=(RUN.auto?IC.pause+' Pausar':IC.play+' Reproduzir'); UI.play.setAttribute('aria-pressed',String(!!RUN.auto)); }
 function setAuto(on){ if(!RUN) return; RUN.auto=!!on; paintPlay(); clearTimeout(RUN.timer); if(on) schedAuto(); }
 function schedAuto(){ clearTimeout(RUN.timer); var st=stepsOf(RUN.t)[RUN.i]||{text:''}; var ms=Math.max(3800,Math.min(9000,1800+(TX(st.text).length+(st.typeText||'').length*3)*45));
-  RUN.timer=setTimeout(function(){ if(!RUN||!RUN.auto) return; if(RUN.i>=stepsOf(RUN.t).length-1){ setAuto(false); return; } next(); },ms); }
+  RUN.timer=setTimeout(function(){ if(!RUN||!RUN.auto||RUN.busy) return; if(RUN.i>=stepsOf(RUN.t).length-1){ setAuto(false); return; } next(); },ms); }
 function stop(why){
   if(!RUN) return; clearTimeout(RUN.timer); var t=RUN.t; RUN.nav=true; if(t&&t.post&&why!=='nav'){ try{ t.post(); }catch(e){} } RUN=null; TOK++; clearDemo(); destroyUI();
   if(why==='nav'){ try{ W.toast('Tutorial pausado — continue quando quiser em Tutoriais','play'); }catch(e){} }

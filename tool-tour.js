@@ -234,6 +234,10 @@ var CSS='\
 #ttRoot .tt-b{border:1px solid rgba(255,255,255,.18);background:transparent;color:#f4efe3;border-radius:999px;padding:8px 14px;font-weight:600;font-size:12.5px;font-family:inherit;cursor:pointer}\
 #ttRoot .tt-b:disabled{opacity:.35;cursor:default}\
 #ttRoot .tt-b.g{background:linear-gradient(135deg,#c8a860,#e8cc8b);color:#0b2a26;border-color:transparent}\
+#ttRoot .tt-b.pl{display:inline-flex;align-items:center;gap:6px}#ttRoot .tt-b.pl[aria-pressed=true]{background:rgba(232,204,139,.16);border-color:rgba(232,204,139,.45);color:#e8cc8b}\
+#ttRoot .tt-b.pl svg{width:11px;height:11px;fill:currentColor}\
+#ttRoot .tt-card.busy .tt-next,#ttRoot .tt-card.busy .tt-prev{opacity:.45}\
+#ttRoot .tt-auto{height:2px;background:rgba(232,204,139,.18);border-radius:2px;margin-top:10px;overflow:hidden;opacity:0;transition:opacity .2s}#ttRoot .tt-auto.on{opacity:1}#ttRoot .tt-auto i{display:block;height:100%;width:100%;background:#e8cc8b;transform-origin:left;transform:scaleX(0)}\
 #ttRoot.sheet .tt-card{width:auto;left:10px;right:10px;max-width:none;max-height:calc(100% - 20px);overflow:auto}\
 .tt-help{position:fixed;right:18px;bottom:18px;z-index:2147482000;display:flex;align-items:center;gap:8px;background:#0b2a26;color:#f4efe3;border:1px solid rgba(232,204,139,.4);border-radius:999px;padding:9px 15px 9px 9px;font:600 13px "Inter","Poppins",system-ui,sans-serif;cursor:pointer;box-shadow:0 12px 30px -12px rgba(0,0,0,.45)}\
 .tt-help b{width:22px;height:22px;border-radius:50%;background:#e8cc8b;color:#0b2a26;display:inline-flex;align-items:center;justify-content:center;font-size:13px}\
@@ -255,12 +259,13 @@ function build(){
   r.innerHTML='<div class="tt-veil"></div><div class="tt-ring off"></div><div class="tt-card" role="dialog" aria-modal="false" aria-labelledby="ttT" aria-describedby="ttX">'+
    '<div class="tt-top"><span class="a"></span><span class="n"></span><button type="button" class="tt-x" aria-label="Fechar tutorial">✕</button></div>'+
    '<div class="tt-bar" aria-hidden="true"><i></i></div><h4 id="ttT"></h4><p id="ttX"></p><div class="tt-miss" hidden></div>'+
-   '<div class="tt-acts"><span class="sp"></span><button type="button" class="tt-b tt-prev">Voltar</button><button type="button" class="tt-b g tt-next">Próximo</button></div></div>'+
+   '<div class="tt-acts"><button type="button" class="tt-b pl tt-play" aria-pressed="false"></button><span class="sp"></span><button type="button" class="tt-b tt-prev">Voltar</button><button type="button" class="tt-b g tt-next">Próximo</button></div><div class="tt-auto" aria-hidden="true"><i></i></div></div>'+
    '<div aria-live="polite" style="position:absolute;left:-9999px" class="tt-sr"></div>';
   D.body.appendChild(r);
-  UI={root:r,ring:$('.tt-ring',r),card:$('.tt-card',r),area:$('.tt-top .a',r),cnt:$('.tt-top .n',r),bar:$('.tt-bar i',r),t:$('#ttT',r),x:$('#ttX',r),miss:$('.tt-miss',r),prev:$('.tt-prev',r),next:$('.tt-next',r),sr:$('.tt-sr',r)};
-  UI.prev.onclick=function(){ go(RUN.i-1,-1); };
-  UI.next.onclick=function(){ if(RUN.i>=T.steps.length-1) done(); else go(RUN.i+1,1); };
+  UI={root:r,ring:$('.tt-ring',r),card:$('.tt-card',r),area:$('.tt-top .a',r),cnt:$('.tt-top .n',r),bar:$('.tt-bar i',r),t:$('#ttT',r),x:$('#ttX',r),miss:$('.tt-miss',r),prev:$('.tt-prev',r),next:$('.tt-next',r),play:$('.tt-play',r),auto:$('.tt-auto',r),autoI:$('.tt-auto i',r),sr:$('.tt-sr',r)};
+  UI.prev.onclick=function(){ prev(); };
+  UI.next.onclick=function(){ next(); };
+  UI.play.onclick=function(){ setAuto(!RUN.auto); };
   $('.tt-x',r).onclick=function(){ stop(); };
   $('.tt-veil',r).onclick=function(){ place(); };
   W.addEventListener('resize',place); W.addEventListener('scroll',place,true); D.addEventListener('keydown',key,true);
@@ -269,8 +274,8 @@ function build(){
 }
 function destroy(){ if(!UI) return; W.removeEventListener('resize',place); W.removeEventListener('scroll',place,true); D.removeEventListener('keydown',key,true); UI.root.remove(); UI=null; }
 function key(e){ if(!RUN) return; var tg=(e.target&&e.target.tagName)||''; if(e.key==='Escape'){ e.preventDefault(); stop(); }
-  else if(!/INPUT|TEXTAREA|SELECT/.test(tg)&&e.key==='ArrowRight'){ e.preventDefault(); UI.next.click(); }
-  else if(!/INPUT|TEXTAREA|SELECT/.test(tg)&&e.key==='ArrowLeft'&&RUN.i>0){ e.preventDefault(); go(RUN.i-1,-1); } }
+  else if(!/INPUT|TEXTAREA|SELECT/.test(tg)&&e.key==='ArrowRight'){ e.preventDefault(); next(); }
+  else if(!/INPUT|TEXTAREA|SELECT/.test(tg)&&e.key==='ArrowLeft'){ e.preventDefault(); prev(); } }
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 function place(){
   if(!UI||!RUN) return; var el=RUN.el, vw=W.innerWidth, vh=W.innerHeight, sheet=vw<=640, c=UI.card;
@@ -301,25 +306,51 @@ function scrollTo(el){ return new Promise(function(res){ if(!el) return res(); v
   var last=null, same=0, t0=Date.now(); (function poll(){ var q=el.getBoundingClientRect().top; if(last!==null&&Math.abs(q-last)<0.5) same++; else same=0; last=q;
     if(same>=2||Date.now()-t0>1400){ var rr=el.getBoundingClientRect(); if(rr.bottom<20||rr.top>W.innerHeight-20){ try{ el.scrollIntoView({block:blk}); }catch(e){} } return res(); } setTimeout(poll,80); })(); }); }
 async function find(fn,ms){ var end=Date.now()+(ms||1500); while(Date.now()<end){ var e=null; try{ e=fn(); }catch(_){ } if(e&&vis(e)) return e; await sleep(100); } return null; }
-async function go(i,dir){
-  if(!RUN) return; var tok=++RUN.tok, n=T.steps.length, st=T.steps[i]; RUN.i=i;
+/* TOUR_PASSO_26OUT: um passo por clique. Passo normal nunca é pulado sozinho (se o lugar não aparece, o texto fica na tela
+   com um aviso). Passo opcional fora da tela é pulado ANTES de aparecer, sem mostrar o texto dele e com os botões travados. */
+function alive(tok){ return RUN&&RUN.tok===tok; }
+function trava(on){ if(!UI) return; RUN.busy=!!on; UI.card.classList.toggle('busy',!!on); UI.prev.disabled=!!on||RUN.i<=0; UI.next.disabled=!!on; }
+function pinta(i){ var n=T.steps.length, st=T.steps[i]; RUN.i=i;
   UI.area.textContent=T.title; UI.cnt.textContent='Passo '+(i+1)+' de '+n; UI.bar.style.transform='scaleX('+((i+1)/n)+')';
   UI.t.textContent=st.title; UI.x.textContent=st.text; UI.miss.hidden=true;
-  UI.prev.disabled=i===0; UI.next.textContent=i===n-1?'Concluir':'Próximo';
-  if(st.go){ try{ st.go(); }catch(e){} await sleep(120); if(!RUN||tok!==RUN.tok) return; }
-  var el=st.t?await find(st.t,1500):null; if(!RUN||tok!==RUN.tok) return;
-  if(st.t&&!el){ var j=i+(dir<0?-1:1); if(j>=0&&j<n) return go(j,dir); UI.miss.hidden=false; UI.miss.textContent='Esta parte não aparece agora. Siga para o próximo passo.'; }
-  RUN.el=el; if(el) await scrollTo(el); if(!RUN||tok!==RUN.tok) return; place();
+  UI.prev.disabled=i===0; UI.next.disabled=false; UI.next.textContent=i===n-1?'Concluir':'Próximo'; paintPlay(); }
+async function go(i,dir){
+  if(!RUN) return; var tok=++RUN.tok, n=T.steps.length, st, el=null, shown=false; clearTimeout(RUN.timer); autoBar(false);
+  for(;;){ st=T.steps[i];
+    if(!st.optional){ RUN.busy=false; UI.card.classList.remove('busy'); pinta(i); shown=true; } else trava(true);
+    if(st.go){ try{ st.go(); }catch(e){} await sleep(150); if(!alive(tok)) return; }
+    el=st.t?await find(st.t,st.optional?900:1500):null; if(!alive(tok)) return;
+    if(st.t&&!el&&st.optional){ var j=i+(dir<0?-1:1); if(j>=0&&j<n){ i=j; continue; } if(dir>0&&!shown){ trava(false); return done(); } }
+    break; }
+  trava(false); if(!shown) pinta(i);
+  if(st.t&&!el){ UI.miss.hidden=false; UI.miss.textContent='Esta parte não aparece agora na tela (pode depender das escolhas acima). Siga para o próximo passo.'; }
+  RUN.el=el; if(el) await scrollTo(el); if(!alive(tok)) return; place();
   UI.sr.textContent='Passo '+(i+1)+' de '+n+': '+st.title+'. '+st.text;
+  if(RUN.auto) schedAuto();
 }
+function next(){ if(!RUN||RUN.busy) return; if(RUN.i>=T.steps.length-1){ setAuto(false); return done(); } go(RUN.i+1,1); }
+function prev(){ if(!RUN||RUN.busy||RUN.i<=0) return; go(RUN.i-1,-1); }
+/* Reproduzir: passa sozinho, no tempo de leitura de cada passo; Pausar para parar. */
+var I_PLAY='<svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>', I_PAUSE='<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+function paintPlay(){ if(!UI||!RUN) return; UI.play.innerHTML=RUN.auto?I_PAUSE+'Pausar':I_PLAY+'Reproduzir'; UI.play.setAttribute('aria-pressed',RUN.auto?'true':'false'); }
+function autoBar(ms){ if(!UI) return; var i=UI.autoI; UI.auto.classList.toggle('on',!!ms); i.style.transition='none'; i.style.transform='scaleX(0)'; if(ms){ void i.offsetWidth; i.style.transition='transform '+ms+'ms linear'; i.style.transform='scaleX(1)'; } }
+function setAuto(on){ if(!RUN) return; RUN.auto=!!on; paintPlay(); clearTimeout(RUN.timer); autoBar(false); if(on&&!RUN.busy) schedAuto(); }
+function schedAuto(){ clearTimeout(RUN.timer); var st=T.steps[RUN.i]||{text:''}; var ms=Math.max(4500,Math.min(11000,2200+String(st.text||'').length*48));
+  if(RUN.i>=T.steps.length-1){ autoBar(false); RUN.auto=false; paintPlay(); return; }
+  autoBar(ms); RUN.timer=setTimeout(function(){ if(!RUN||!RUN.auto||RUN.busy) return; next(); },ms); }
+/* enquanto o guia roda: premissas ocultas aparecem e os painéis recolhidos abrem (no fim volta como estava) */
+function abrePagina(){ var H=D.documentElement, volta=[];
+  if(H.classList.contains('semprem')){ var pb=$('#premBtn'); if(pb){ pb.click(); volta.push(function(){ if(!H.classList.contains('semprem')){ var b2=$('#premBtn'); if(b2) b2.click(); } }); } }
+  $$('.side>.panel.min').forEach(function(p){ p.classList.remove('min'); volta.push(function(){ p.classList.add('min'); }); });
+  return function(){ volta.forEach(function(f){ try{ f(); }catch(e){} }); }; }
 function store(k){ try{ return JSON.parse(localStorage.getItem(k)||'{}')||{}; }catch(e){ return {}; } }
 function put(k,o){ try{ localStorage.setItem(k,JSON.stringify(o)); }catch(e){} }
 function start(){
   if(RUN) return; T=qualT(); closeInv(); var s=store('agion:tooltour:seen'); s[T.id]=1; put('agion:tooltour:seen',s);
-  RUN={i:0,tok:0,el:null,saved:T.save?T.save():null}; build(); go(0,1);
+  RUN={i:0,tok:0,el:null,auto:false,busy:false,timer:null,saved:T.save?T.save():null,volta:abrePagina()}; build(); paintPlay(); go(0,1);
   setTimeout(function(){ try{ UI&&UI.next.focus({preventScroll:true}); }catch(e){} },60);
 }
-function stop(){ if(!RUN) return; var sv=RUN.saved; RUN=null; destroy(); if(T.restore){ try{ T.restore(sv); }catch(e){} } }
+function stop(){ if(!RUN) return; clearTimeout(RUN.timer); var sv=RUN.saved, vt=RUN.volta; RUN=null; destroy(); if(T.restore){ try{ T.restore(sv); }catch(e){} } if(vt) vt(); }
 function done(){ var d=store('agion:tooltour:done'); d[T.id]={v:T.v,ts:Date.now()}; put('agion:tooltour:done',d); stop(); flash('Tutorial concluído ✓ Ele aparece como concluído na Central de Tutoriais.'); }
 function flash(t){ injectCSS(); var f=D.createElement('div'); f.className='tt-inv'; f.style.bottom='70px'; f.innerHTML='<p style="color:#0b2a26;font-weight:600">'+t+'</p>'; D.body.appendChild(f); setTimeout(function(){ f.remove(); },3800); }
 
