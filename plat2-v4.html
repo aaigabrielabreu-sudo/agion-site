@@ -2575,7 +2575,7 @@ function lscore(d){return '<span class="lsc" title="'+LSTIP+' · '+d.score+'/100
 function dealHTML(d,mini){var s=ST[d.st],lid=isM()||ROLE==='lider';
  return '<div class="deal v4 v41'+(mini?' mini':'')+'" data-id="'+d.id+'" data-st="'+d.st+'" style="--c:var('+s.c+');--t:var('+s.t+')">'+
  
- '<div class="d1">'+catChip(d,mini)+'<span class="sp"></span>'+(mini?'':'<button class="wab" data-a="wa" title="Abrir conversa no WhatsApp">'+I('wa',30)+'</button>')+'</div>'+
+ '<div class="d1">'+catChip(d,mini)+'<span class="sp"></span>'+(mini?'':'<button class="wab" data-a="wa" title="Abrir no aplicativo do WhatsApp">'+I('wa',30)+'</button>')+'</div>'+
  '<div class="dbody"><div class="dl">'+
  '<div class="nm">'+d.nome+'</div>'+
  '<div class="vl">'+brl(d.valor)+'</div></div>'+(mini?'':'<div class="dr">'+lscore(d)+'</div>')+'</div>'+
@@ -3571,7 +3571,7 @@ R.tarefas=function(v){if(TF.who===null)TF.who=tkGest()?'todas':'eu';var ps=pushS
     setTimeout(function(){tkStatus(t.id,'feito');var g=e.closest('.tgrp'),left=$$('.tk:not(.gone)',g).length,pl=$('h5 .pill',g);if(pl)pl.textContent=left;
      if(!left){g.style.transition='opacity .4s var(--ez),max-height .5s var(--ez)';g.style.maxHeight=g.offsetHeight+'px';g.style.overflow='hidden';requestAnimationFrame(function(){g.style.opacity=0;g.style.maxHeight='0px';});setTimeout(function(){g.remove();},520);}
      nums();chips();buildNavKeep();var fe=$('.tn.ink');if(fe)fe.animate([{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1)'}],{duration:450,easing:'cubic-bezier(.34,1.56,.64,1)'});toast('Tarefa concluída ✓ Anotação registrada no histórico','check');},900);};
-   $$('.ab [data-a]',e).forEach(function(b){b.onclick=function(ev){ev.stopPropagation();if(b.dataset.a==='wa'){ev.preventDefault();var l=t.lead?leadById(t.lead):null;if(l)waLead(l);else{var tel=pcall('tkTel',t.raw);if(tel)window.open('https://wa.me/'+tel,'_blank');}}};});
+   $$('.ab [data-a]',e).forEach(function(b){b.onclick=function(ev){ev.stopPropagation();if(b.dataset.a==='wa'){ev.preventDefault();var l=t.lead?leadById(t.lead):null;if(l)waLead(l);else{var tel=pcall('tkTel',t.raw);if(tel)abreWhats(tel);}}};});
    $('.tr',e).addEventListener('click',function(ev){if(ev.target.closest('.ck,.ab'))return;TF.open=TF.open===t.id?null:t.id;$$('.tk',tl).forEach(function(x){x.classList.toggle('op',+x.dataset.id===TF.open);});});
    $$('.opt[data-r]',e).forEach(function(o){o.onclick=function(){t.res=t.res===o.dataset.r?'':o.dataset.r;$$('.opt[data-r]',e).forEach(function(x){x.classList.toggle('on',x.dataset.r===t.res);});};});
    $$('[data-b]',e).forEach(function(b){b.onclick=async function(){var k=b.dataset.b;if(k!=='lead'&&!roOk())return;tkColhe(e,t.raw,t);
@@ -3674,7 +3674,7 @@ function respOpts(){var me=realId(),m=isM();return Object.keys(U).filter(functio
 
 function dealHTML(d,mini){var s=ST[d.st],lid=tkGest();
  return '<div class="deal v4 v41'+(mini?' mini':'')+'" data-id="'+d.id+'" data-st="'+d.st+'" style="--c:var('+s.c+');--t:var('+s.t+')">'+
- '<div class="d1">'+catChip(d,mini)+(d.alice?'<span class="pill" title="A Alice está fazendo o follow-up deste lead" style="font-size:10px;padding:2px 7px;margin-left:6px">🤖 Alice</span>':'')+'<span class="sp"></span>'+(mini?'':'<button class="wab" data-a="wa" title="Abrir conversa no WhatsApp">'+I('wa',30)+'</button>')+'</div>'+
+ '<div class="d1">'+catChip(d,mini)+(d.alice?'<span class="pill" title="A Alice está fazendo o follow-up deste lead" style="font-size:10px;padding:2px 7px;margin-left:6px">🤖 Alice</span>':'')+'<span class="sp"></span>'+(mini?'':'<button class="wab" data-a="wa" title="Abrir no aplicativo do WhatsApp">'+I('wa',30)+'</button>')+'</div>'+
  '<div class="dbody"><div class="dl">'+
  '<div class="nm">'+esc4(d.nome)+'</div>'+
  '<div class="vl">'+brl(d.valor)+'</div></div>'+(mini?'':'<div class="dr">'+lscore(d)+'</div>')+'</div>'+
@@ -3731,8 +3731,16 @@ var _zr3od=openDeal;openDeal=function(d,from){_zr3od(d,from);setTimeout(function
  var tl=$('.tl',m);if(tl){var at=(d.notas||[]).slice(-4).reverse();tl.innerHTML=at.map(function(a){return '<div><i></i>'+(a.quando?fmtDM(a.quando)+' · ':'')+esc4(a.texto)+'</div>';}).join('')||'<div><i></i>'+d.dt+' · Lead entrou por '+fonteDe(d)+'</div>';}
  var op=$('.op',m);if(op)op.innerHTML='Entrou em '+d.dt+'/'+new Date(d.criado).getFullYear()+' · '+(d.dias===0?'hoje':'há '+d.dias+' dias')+' · <b>'+fonteIc(fonteDe(d))+' '+fonteDe(d)+'</b>';},40);};
 /* fluxos reais */
-function waLead(d){var n=String(d.tel||'').split('·')[0].replace(/\D/g,'');if(n.length>=10&&n.length<=11)n='55'+n;
- if(V4OK.conversas&&n){go('conversas',{phone:n,nome:d.nome});return;}if(n.length>=12)window.open('https://wa.me/'+n,'_blank');else toast('Este lead não tem WhatsApp cadastrado','wa');}
+/* WA_APP_26OUT (Gabriel): o botão de WhatsApp dos cards abre o APLICATIVO do WhatsApp com o número do lead (não a aba Conversas).
+   Tenta o app (whatsapp://); se nada abrir em 1,6 s, cai no wa.me (que abre o app no celular ou o WhatsApp Web no computador). */
+function abreWhats(tel){var n=String(tel||'').replace(/\D/g,'');if(n.length>=10&&n.length<=11)n='55'+n;if(n.length<12){toast('Este lead não tem WhatsApp cadastrado','wa');return false;}
+ var saiu=false,f=function(){saiu=true;},T=window;try{T=window.top||window;}catch(e){}
+ try{T.addEventListener('blur',f);T.document.addEventListener('visibilitychange',f);}catch(e){}window.addEventListener('blur',f);
+ try{T.location.href='whatsapp://send?phone='+n;}catch(e){try{location.href='whatsapp://send?phone='+n;}catch(_){}}
+ setTimeout(function(){try{T.removeEventListener('blur',f);T.document.removeEventListener('visibilitychange',f);}catch(e){}window.removeEventListener('blur',f);
+  var hid=false;try{hid=T.document.hidden;}catch(e){}if(!saiu&&!hid){var w=window.open('https://wa.me/'+n,'_blank');if(!w)try{T.location.href='https://wa.me/'+n;}catch(e){}}},1600);
+ toast('Abrindo o WhatsApp…','wa');return true;}
+function waLead(d){abreWhats(telLead(d&&d.tel)||(d&&d.tel));}
 function propostaFlow(d){if(!roOk())return;if(!d.resp){toast('Sem responsável — designe o lead antes de criar a proposta.','users');return;}try{pcall('abrirProposta',d.uid,'lead');}catch(e){toast('Não consegui abrir o gerador de propostas','x');}}
 function ganhoFlow(d){if(!roOk())return;var p=pcall('crmToClient',d.uid);Promise.resolve(p).then(function(){setTimeout(function(){carregar().then(function(){var n=leadById(d.id);if(cur==='crm'){renderBoard(true);updKpis();renderFiltros();}if(n&&n.st===4){var el=$('#kb .deal[data-id="'+n.id+'"]');confetti(el,44);toast('🎉 '+n.nome+' virou cliente','trophy');}});},400);});}
 function fichaLead(d){var c=CLIENTES.filter(function(x){return x.nome===d.nome;})[0];if(c&&V4OK.clientes){go('cliente',{id:c.id});return;}if(c){px().irV1('users');return;}ganhoFlow(d);}
