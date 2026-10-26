@@ -1738,10 +1738,15 @@ function lcNum(s){s=String(s==null?'':s).toLowerCase().replace(/r\$/g,'').trim()
 function lcR(v){return 'R$ '+Math.round(+v||0).toLocaleString('pt-BR');}
 function lcD1(v){return (Math.round((+v||0)*10)/10).toLocaleString('pt-BR',{maximumFractionDigits:1});}
 function lcPct(v){return (Math.round((+v||0)*1000)/10).toLocaleString('pt-BR',{maximumFractionDigits:1})+'%';}
-/* taxa da carta: TA + FR do portal; sem o dado, estima pela meia parcela (½ fundo comum e ½ fundo de reserva + taxa cheia) */
-function lcTaxa(c,P,tipo){var ta=c.ta,fr=c.fr;if(ta!=null&&fr!=null&&isFinite(+ta)&&isFinite(+fr))return {t:(+ta+(+fr))/100,ta:+ta,fr:+fr,est:false};
- var K=+c.valor,p=+c.parcela;if(K>0&&p>0&&P>0&&c.modalidade!=='meia_taxa_antecipada'){var x=p*P/K-0.505;if(x>0.02&&x<0.4)return {t:x+0.01,ta:Math.round(x*1000)/10,fr:1,est:true};}
- return tipo==='AUTOMOVEL'?{t:0.085,ta:7.5,fr:1,est:true}:{t:0.12,ta:11,fr:1,est:true};}
+/* taxa da carta, lida no portal da HS: taxa de administração total = pe_td + pe_tp (= 2 × pe_ta, a metade que vai na meia
+   parcela) e fundo de reserva = pe_fr. Confere: imóvel 20+2 = 22% + 1% → 150 mil em 200 meses = meia parcela R$ 461,25;
+   automóvel 13,5+1,5 = 15% + 1% = 16% (tabela da HS). 1 parcela de lance = a parcela cheia = crédito × (1 + taxas) ÷ prazo.
+   Sem o dado, a parcela cheia é o dobro da meia parcela. */
+function lcTaxa(c,P,tipo){var f=function(x){return x!=null&&x!==''&&isFinite(+x);};
+ if(f(c.td)&&f(c.tp)&&f(c.fr))return {t:(+c.td+(+c.tp)+(+c.fr))/100,adm:+c.td+(+c.tp),fr:+c.fr,est:false};
+ if(f(c.ta)&&f(c.fr))return {t:(2*c.ta+(+c.fr))/100,adm:2*c.ta,fr:+c.fr,est:false};
+ var K=+c.valor,p=+c.parcela;if(K>0&&p>0&&P>0&&c.modalidade!=='meia_taxa_antecipada'){var x=2*p*P/K-1;if(x>0.04&&x<0.5)return {t:x,adm:Math.round((x-0.01)*1000)/10,fr:1,est:true};}
+ return tipo==='AUTOMOVEL'?{t:0.16,adm:15,fr:1,est:true}:{t:0.23,adm:22,fr:1,est:true};}
 /* referência do grupo em parcelas: lance médio dos 6 meses, ou o menor lance da última assembleia; sem lance no período, o médio do portal */
 function lcRef(g){var lv=lvG(g),it=((lv&&lv.it)||[]).filter(function(x){return !x.q;});
  if(LC.base==='ultimo'&&it.length){var um=null;it.forEach(function(x){if(!um||mIdx(x.mes)>mIdx(um))um=x.mes;});var xs=it.filter(function(x){return x.mes===um;}),mn=Infinity,mx=0;xs.forEach(function(x){if(x.n<mn)mn=x.n;if(x.n>mx)mx=x.n;});
@@ -1756,7 +1761,7 @@ function lcCalc(){var L=lcNum(LC.L),C=lcNum(LC.C),e=LC.usaEmb?Math.max(0,Math.mi
   var cs=(v.cartas||[]).filter(function(c){return +c.valor>0&&(!LC.mod||c.modalidade===LC.mod);}).sort(function(a,b){return (+a.valor)-(+b.valor);});
   if(!cs.length){R.fora.mod++;return;}
   var ref=lcRef(g);if(!ref){R.fora.sem++;return;}
-  var Na=Math.ceil(ref.N-1e-9)+folga;if(Rr&&Na>=Rr-2){R.fora.quit++;return;}
+  var Na=Math.ceil(ref.N-1e-9)+folga;/* o lance é % do plano (parcelas ÷ prazo do grupo): quem entra agora deve o plano inteiro, então não vira quitação */
   var cov=ref.it.length?ref.it.filter(function(x){return x.n<=Na;}).length:null;
   var cand=cs.map(function(c){var tx=lcTaxa(c,P,g.tipo),K=+c.valor,pl=K*(1+tx.t)/P;return {c:c,K:K,tx:tx,pl:pl,need:Na*pl};});
   var ge=cand.filter(function(x){return x.K>=C-0.5;});
@@ -1796,13 +1801,13 @@ function lcCard(r,hero){var x=r.x,g=r.g,c=x.c,tag={livre:'Só lance livre',emb:'
   '<div class="lch">'+(hero?'<span class="lcbest">Melhor encaixe</span>':'')+'<b>Grupo '+g.grupo+'</b><span class="pill xs">'+pz+'</span>'+(as?'<span class="pill xs hm">'+as+'</span>':'')+'<span class="sp"></span><span class="lctag">'+tag+'</span></div>'+
   (frase?'<p class="lcfr">'+frase+'</p>':'')+
   '<div class="lcg">'+cells+'</div>'+
-  '<div class="lcft"><div class="lccov" title="'+esc(lcFonte(r))+'"><span class="lcb"><i style="width:'+covp+'%"></i></span><span>'+lcCovTxt(r)+' · '+lcFonte(r)+(x.tx.est?' · taxa estimada':' · taxa '+lcD1(x.tx.ta)+'% + fundo '+lcD1(x.tx.fr)+'%')+'</span></div>'+
+  '<div class="lcft"><div class="lccov" title="'+esc(lcFonte(r))+'"><span class="lcb"><i style="width:'+covp+'%"></i></span><span>'+lcCovTxt(r)+' · '+lcFonte(r)+(x.tx.est?' · taxa estimada pela parcela':' · taxa de adm. '+lcD1(x.tx.adm)+'% + fundo de reserva '+lcD1(x.tx.fr)+'%')+'</span></div>'+
   '<button class="btn sm '+(hero?'gd':'ol')+'" data-abre="1">Abrir o grupo'+IC.arrow+'</button></div></div>';}
 function lcRes(){var box=$('#lcres');if(!box)return;var R=lcCalc();
  if(!R.L&&!R.C){box.innerHTML='<div class="panel empty lcempty">'+LCI.alvo+'<p>Digite quanto o cliente tem para dar de lance livre e o crédito que ele quer. A calculadora procura, nos grupos da HS com cartas à venda, onde esse lance contempla.</p></div>';return;}
  if(!R.L&&!(R.e>0)){box.innerHTML='<div class="panel empty lcempty">'+LCI.alvo+'<p>Falta o valor do lance livre do cliente.</p></div>';return;}
  R.lista.forEach(function(r){r.e0=R.e;});
- var nl=R.lista.filter(function(r){return r.tipo==='livre';}).length,ne=R.lista.filter(function(r){return r.tipo==='emb';}).length,nf2=R.fora.andou+R.fora.sem+R.fora.quit+R.fora.mod;
+ var nl=R.lista.filter(function(r){return r.tipo==='livre';}).length,ne=R.lista.filter(function(r){return r.tipo==='emb';}).length,nf2=R.fora.andou+R.fora.sem+R.fora.mod;
  var bons=R.lista.filter(function(r){return r.tipo==='livre'||r.tipo==='emb';}),resto=R.lista.filter(function(r){return r.tipo==='falta';}).slice(0,6);
  var hero=bons[0]||resto[0]||null,outros=(bons.length?bons.slice(1):resto.slice(1)),mostra=LC.mais?outros:outros.slice(0,8);
  var h='<div class="kpis lck">'+kpiH(LCI.calc,'Grupos de '+CATS[S.cat].toLowerCase(),R.total,'com cartas à venda na HS')+kpiH(IC.check,'Só lance livre',nl,'contemplam com o valor do cliente')+kpiH(IC.plus,'Com embutido',ne,LC.usaEmb?'até '+lcD1(R.e*100)+'% da carta':'embutido desligado')+kpiH(IC.x,'Fora da conta',nf2,(LC.ate40&&R.fora.andou?R.fora.andou+' andaram mais de 40%':'')+(R.fora.sem?(LC.ate40&&R.fora.andou?' · ':'')+R.fora.sem+' sem lance':'')||'—')+'</div>';
@@ -1810,7 +1815,7 @@ function lcRes(){var box=$('#lcres');if(!box)return;var R=lcCalc();
  if(mostra.length)h+='<div class="lcsub">'+(bons.length?'Outros grupos que contemplam':'Também perto')+'<span class="pill xs">'+outros.length+'</span></div><div class="lcl">'+mostra.map(function(r){return lcCard(r,false);}).join('')+'</div>'+(outros.length>8?'<div class="lcmore"><button class="btn ol sm" id="lcmais">'+(LC.mais?'Mostrar menos':'Ver os '+outros.length+' grupos')+'</button></div>':'');
  h+='<details class="info lcinfo" data-dk="lcinfo"><summary>'+IC.info+'<b>Como a conta é feita</b>'+IC.chev+'</summary><div class="ib">'+
   '<p><b>Em parcelas, como a HS.</b> O lance livre contempla pelo número de parcelas. O lance alvo de cada grupo é o lance livre médio que contemplou nos últimos 6 meses (ou, se escolher “Último lance”, o menor lance que contemplou na última assembleia), arredondado para cima, mais a folga que você puser. Lance que quitou a cota fica fora da média.</p>'+
-  '<p><b>Quanto vale 1 parcela de lance.</b> Crédito × (1 + taxa de administração + fundo de reserva) ÷ prazo do grupo, com as taxas de cada carta lidas no portal da HS. Ex.: carta de R$ 720.659, taxa 11% + fundo 1%, prazo 220 → 1 parcela = R$ 3.669; 141 parcelas = R$ 517.302.</p>'+
+  '<p><b>Quanto vale 1 parcela de lance.</b> É a parcela cheia do plano: crédito × (1 + taxa de administração + fundo de reserva) ÷ prazo do grupo, com as taxas de cada carta lidas no portal da HS (o dobro da meia parcela). Ex.: carta de R$ 720.659, taxa de administração 22% + fundo de reserva 1%, prazo 220 → 1 parcela = R$ 4.029; 141 parcelas = R$ 568.109.</p>'+
   '<p><b>Lance embutido.</b> Se o dinheiro do cliente não chega, a calculadora sobe para uma carta maior e completa com embutido (até o limite escolhido, 30% na HS), sem deixar o crédito líquido ficar abaixo do crédito que ele quer.</p>'+
   '<p><b>Cobertura.</b> Quantos dos lances livres que contemplaram nos últimos 6 meses ficaram iguais ou abaixo do lance alvo: quanto mais perto de todos, mais folgado.</p>'+
   '<p>Grupos que já andaram mais de 40% do prazo ficam fora (ligue a chave para incluir). A calculadora sugere; confirme o lance e o embutido no portal da HS antes de ofertar.</p></div></details>';
