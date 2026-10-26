@@ -1070,8 +1070,8 @@ function bindNeg(g){
  var cp=$('#negcp');if(cp)cp.onclick=function(){var t=negTexto(g);try{navigator.clipboard.writeText(t).then(function(){toast('Lista copiada');},function(){prompt('Copie a lista:',t);});}catch(e){prompt('Copie a lista:',t);}};
  var nr=$('#negres');if(nr)nr.onclick=function(){reservarPara(g,negDe(g).slice());};/* RESERVA_LOTE_26OUT */
  var ps=$('#negpos');if(ps)ps.onclick=function(){var a=negDe(g).slice();caixa({t:'Posicionar em '+a.length+' cota'+(a.length>1?'s':''),p:'Grupo '+g.grupo+' · cotas '+a.slice().sort(function(x,y){return x-y;}).join(', ')+'. Vale para qualquer pessoa do cadastro: cliente, lead do CRM ou lead ainda na conversa com a Alice. As posições ficam guardadas e a equipe toda vê.',lab:'Quem',ph:'Buscar por nome ou telefone',ok:'Guardar posições',info:1,obrig:'Escolha alguém do cadastro ou escreva o nome',pessoas:1,
-  reserva:(function(){var k=a.filter(function(c){return podeReservar(g,c);}).length;return k?'Reservar '+(k>1?'as '+k+' cotas':'a cota')+' no portal da HS (o robô aperta “Reservar” e confere)':'';})()},
-  function(n,p,res){posicionarVarias(g,a,n,pesObs(p,'cota por proximidade'));if(res)reservarHS(g,a,n);});};
+  reserva:(function(){var k=a.filter(function(c){return podeReservar(g,c);}).length;return k?'Reservar '+(k>1?'as '+k+' cotas':'a cota')+' no portal da HS · só fica no nome da pessoa se a HS reservar':'';})()},
+  function(n,p,res){if(res)reservarHS(g,a,n);else posicionarVarias(g,a,n,pesObs(p,'cota por proximidade'));});};/* RESERVA_SO_SE_RESERVOU_26OUT */
  var m=$('#negm');if(m)m.onclick=function(){S.modoNeg=!S.modoNeg;m.classList.toggle('on',S.modoNeg);toast(S.modoNeg?'Toque nas cotas livres do mapa para pôr ou tirar da negociação':'Toque no mapa volta a só mostrar o detalhe');};}
 async function posicionarVarias(g,cotas,nome,obs){var rows=cotas.map(function(c){return {administradora:g.adm,tipo:g.tipo,grupo:String(g.grupo),cota:c,marca:'posicao',cliente_nome:nome,obs:obs||'cota por proximidade · negociação'};}),ok=0;
  function guarda(x){((S.M[g.k]=S.M[g.k]||{})[+x.cota]=S.M[g.k][+x.cota]||{}).posicao=x;}
@@ -1257,7 +1257,7 @@ function bindDet(g){var p=$('#dpos');if(p)p.onclick=function(){abrirDlg(g,S.sel)
 function caixa(o,cb){var d=$('#dlg');$('#dlgt').textContent=o.t;$('#dlgp').textContent=o.p||'';$('#dlgla').textContent=o.lab;var n=$('#dlgn');n.placeholder=o.ph||'';n.value='';
  var sg=$('#dlgs'),sel=null,rb=$('#dlgr');$('#dlgi').style.display=(o.info&&!o.reserva)?'':'none';$('#dlgo').textContent=o.ok;
  if(rb){rb.style.display=o.reserva?'':'none';rb.classList.add('on');$('#dlgrt').textContent=o.reserva||'';
-  var okTx=function(){$('#dlgo').textContent=(o.reserva&&rb.classList.contains('on'))?'Guardar e reservar':o.ok;};okTx();rb.onclick=function(){rb.classList.toggle('on');okTx();};}
+  var okTx=function(){$('#dlgo').textContent=(o.reserva&&rb.classList.contains('on'))?'Reservar no portal':o.ok;};okTx();rb.onclick=function(){rb.classList.toggle('on');okTx();};}
  function fecha(){d.classList.remove('on');}
  function lista(){if(!sg)return;if(!o.pessoas){sg.innerHTML='';sg.style.display='none';return;}sg.style.display='';sg.innerHTML=pesHtml(n.value,sel);
   $$('#dlgs .pso').forEach(function(b){b.onclick=function(){var p=b.dataset.i==='novo'?null:S.PESv[+b.dataset.i];sel=p;n.value=p?p.nome:n.value.trim();lista();n.focus();};});}
@@ -1382,7 +1382,7 @@ function bindGsel(gs){var t=$('#gtrig'),p=$('#gpop');if(!t||!p)return;
 
 function abrirDlg(g,c){caixa({t:'Posicionar na cota '+c,p:'Grupo '+g.grupo+' ('+(g.adm==='ANC'?'Âncora':g.adm)+' · '+CATS[g.tipo]+'). Vale para qualquer pessoa do cadastro: cliente, lead do CRM ou lead ainda na conversa com a Alice. A posição fica guardada e a equipe toda vê.',
  lab:'Quem',ph:'Buscar por nome ou telefone',ok:'Guardar posição',info:1,obrig:'Escolha alguém do cadastro ou escreva o nome',pessoas:1,
- reserva:podeReservar(g,c)?'Reservar no portal da HS (o robô aperta “Reservar” e confere)':''},function(n,p,res){marcar(g,c,'posicao',n,pesObs(p));if(res)reservarHS(g,[c],n);});}
+ reserva:podeReservar(g,c)?'Reservar no portal da HS · só fica no nome da pessoa se a HS reservar':''},function(n,p,res){if(res)reservarHS(g,[c],n);else marcar(g,c,'posicao',n,pesObs(p));});}/* RESERVA_SO_SE_RESERVOU_26OUT */
 /* ---------- HS_RESERVA_20261022: o robô reserva a cota no portal da HS (responsivo) e confere; se não der, sugere outra ---------- */
 function podeReservar(g,c){return g.adm==='HS'&&!!vd(g)&&roboAv(g,c)&&!bloqueada(marcas(g)[c]||{});}
 async function hsApi(m,u,b){if(window.__MC_RES)return window.__MC_RES(m,u,b);
@@ -1443,10 +1443,9 @@ function reservarPara(g,cotas){cotas=(cotas||[]).filter(function(c){return podeR
  var ks=Object.keys(nomes);if(ks.length===1&&ks[0]){reservarHS(g,cotas,ks[0]);return;}
  var lst=cotas.slice().sort(function(a,b){return a-b;});
  caixa({t:cotas.length>1?'Reservar '+cotas.length+' cotas no portal da HS':'Reservar a cota '+cotas[0]+' no portal da HS',
-  p:'Grupo '+g.grupo+' · cota'+(lst.length>1?'s ':' ')+lst.join(', ')+'. Para quem é a reserva? A cota fica posicionada para a pessoa, com o nome dela no mapa, nas Reservas da Agion e no Gerador de propostas. Sem cliente ainda? Deixe em branco.',
+  p:'Grupo '+g.grupo+' · cota'+(lst.length>1?'s ':' ')+lst.join(', ')+'. Para quem é a reserva? Só se a HS reservar de verdade a cota fica no nome da pessoa (no mapa, nas Reservas da Agion e no Gerador de propostas). Se o portal não reservar, nada fica marcado. Sem cliente ainda? Deixe em branco.',
   lab:'Para quem',ph:'Buscar cliente ou lead (opcional)',ok:'Reservar no portal',pessoas:1},
-  async function(n,p){if(n){var sem=cotas.filter(function(c){var m=mk[c];return !(m&&m.posicao);});if(sem.length){try{await posicionarVarias(g,sem,n,pesObs(p,'reserva no portal da HS'));}catch(e){}}}
-   reservarHS(g,cotas,n||'');});}
+  function(n){reservarHS(g,cotas,n||'');});}/* RESERVA_SO_SE_RESERVOU_26OUT: a cota só fica no nome do cliente se a HS reservar de verdade */
 function rsvLista(){/* reservas da Agion em todos os grupos, agrupadas por cliente */
  var por={},n=0;Object.keys(S.M||{}).forEach(function(k){var M=S.M[k];Object.keys(M).forEach(function(c){var r=M[c].reservada;if(!r||!/^Reservada no portal da HS/.test(r.obs||''))return;
   var nome=(r.cliente_nome||(M[c].posicao&&M[c].posicao.cliente_nome)||'').trim()||'Sem cliente',m=/válida até (\d{2}\/\d{2})/.exec(r.obs||'');
