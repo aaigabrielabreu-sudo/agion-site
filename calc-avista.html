@@ -551,7 +551,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
 
    <div class="panel rv" style="animation-delay:.1s">
     <div class="ph"><h3><svg class="i" viewBox="0 0 24 24"><path d="M4 7.5h14.5a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5H5.5A1.5 1.5 0 0 1 4 18V7.5z"/><path d="M4 7.5l11-3V7.5"/><circle cx="16" cy="13.5" r="1.3"/></svg>O dinheiro do cliente</h3></div>
-    <div class="fld"><label for="din">Dinheiro disponível hoje<small id="din_h">vazio = o preço à vista</small></label><div class="ctl"><div class="ib w"><span class="u pre">R$</span><input id="din" value="" placeholder="auto" inputmode="decimal" data-f="brl"></div></div></div>
+    <div class="fld"><label for="din">Dinheiro disponível hoje<small id="din_h">vazio = o preço à vista · no à vista vai todo para o bem</small></label><div class="ctl"><div class="ib w"><span class="u pre">R$</span><input id="din" value="" placeholder="auto" inputmode="decimal" data-f="brl"></div></div></div>
     <div class="fld"><label for="rinv">Rendimento<small>ao mês, antes do imposto</small></label><div class="ctl"><div class="ib"><input id="rinv" value="1" inputmode="decimal"><span class="u">% a.m.</span></div></div>
      <div class="rgw"><input class="rg" type="range" data-for="rinv" min="0.3" max="2" step="0.01"><small data-cap="rinv"></small></div></div>
     <div class="fld"><label for="ir">Imposto de renda<small>sobre o rendimento</small></label><div class="ctl"><div class="ib"><input id="ir" value="15" inputmode="decimal"><span class="u">%</span></div></div></div>
@@ -619,9 +619,8 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
      <div class="cet" id="a_cet">—</div>
      <div class="line"><span class="k">Preço à vista</span><span class="v" id="o_a_preco">—</span></div>
      <div class="line"><span class="k">Desconto ganho<small id="o_a_desc_s">—</small></span><span class="v" id="o_a_desc">—</span></div>
-     <div class="line"><span class="k">Sobra investida hoje</span><span class="v" id="o_a_sobra">—</span></div>
      <div class="line"><span class="k">Parcelas e aluguel</span><span class="v">R$ 0</span></div>
-     <div class="line"><span class="k">Dinheiro investido no fim</span><span class="v" id="o_a_inv">—</span></div>
+     <div class="line"><span class="k">Dinheiro no fim<small>todo o dinheiro foi para o imóvel</small></span><span class="v" id="o_a_inv">—</span></div>
      <div class="line hi"><span class="k">Patrimônio no fim</span><span class="v" id="o_a_pat">—</span></div>
      <div class="comp"><div class="tr"><span class="bem" id="ca_b"></span><span class="din" id="ca_d"></span></div><div class="lg"><span id="ca_bl">bem</span><span id="ca_dl">dinheiro</span></div></div>
     </div>
@@ -658,7 +657,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
    </div>
 
    <div class="panel rv" style="animation-delay:.35s">
-    <div class="chd"><div><h3><svg class="i" viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M5 15l4-4 3 3 7-7"/></svg>O dinheiro investido, mês a mês</h3><p>Nas duas opções o cliente começa com o mesmo dinheiro. No consórcio ele continua investido e paga as parcelas; no à vista fica só o que sobrou depois de pagar o bem.</p></div></div>
+    <div class="chd"><div><h3><svg class="i" viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M5 15l4-4 3 3 7-7"/></svg>O dinheiro investido, mês a mês</h3><p>Nas duas opções o cliente começa com o mesmo dinheiro. No consórcio ele continua investido e paga as parcelas; no à vista o dinheiro todo vai para o bem e ele fica só com o imóvel.</p></div></div>
     <div class="lgd"><span><i style="background:#C5A059"></i>Consórcio</span><span><i style="background:#2E6A8A"></i>À vista</span><span id="lg_mk"></span></div>
     <div class="cvb"><canvas id="ch1"></canvas></div>
    </div>
@@ -747,7 +746,7 @@ function modelo(rInv,mpx){
    for(let m=0;m<n;m++)base.push(m<k?meia:parcPos);
    Pk=Pref*Math.pow(1+vA,k/12); compK=Math.max(0,Pk-(Ck-E));
  }
- let inv=D-ent-comp0, av=D-Pv;
+ let inv=D-ent-comp0, av=0;   /* AVISTA_SO_BEM_26OUT: no à vista o cliente deu todo o dinheiro pelo bem: fica só com o imóvel */
  const inv0=inv, aC=[inv], aA=[av], yM=[], oM=[], pM=[];
  let usedY=0,totOut=0,runout=null,totParc=0,totAlug=0,pLast=0,pFirst=0,cobreDesde=null,totAp=0,mesAp=0,apIni=null,apMax=0;
  const apM=[];
@@ -759,14 +758,14 @@ function modelo(rInv,mpx){
    let ap=0;
    if(mp==='REND'){
      /* só o rendimento paga parcela e aluguel; sobra volta para o investimento; o que faltar sai do bolso.
-        Lance e complemento (ex) saem do capital, como a entrada. No à vista, o mesmo dinheiro do bolso fica investido. */
+        Lance e complemento (ex) saem do capital, como a entrada. No à vista não sobra dinheiro: só o bem. */
      const reg=p+a; usedY+=Math.min(y,reg); totOut+=o;
      if(y>=reg)inv=inv+(y-reg); else ap=reg-y;
-     inv-=ex; av=av*(1+rl)+ap;
+     inv-=ex;
      if(ap>0.005){totAp+=ap;mesAp++;if(apIni===null)apIni=m+1;if(ap>apMax)apMax=ap;}
    } else {
      usedY+=Math.min(y,o); totOut+=o;
-     inv=inv*(1+rl)-o; av=av*(1+rl);
+     inv=inv*(1+rl)-o;
    }
    if(inv<0&&runout===null)runout=m+1;
    aC.push(inv); aA.push(av); yM.push(y); oM.push(p+a); pM.push(p); apM.push(ap);
@@ -825,7 +824,7 @@ function draw(R,EMP,rinv){
  if(R.runout)mk.push({x:R.runout,t:'o dinheiro acaba',c:COL.bad,row:mk.length?1:0});
  /* 1) dinheiro investido */
  const d1=[{label:'Consórcio · dinheiro investido',data:pts(R.aC),borderColor:COL.gold,borderWidth:2.6,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:COL.gold,tension:.08,fill:{target:'origin',above:'rgba(197,160,89,.16)',below:'rgba(194,70,59,.12)'},order:1},
-  {label:'À vista · dinheiro investido',data:pts(R.aA),borderColor:COL.av,borderWidth:2.4,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:COL.av,tension:.08,fill:false,borderDash:[],order:0}];
+  {label:'À vista · sem dinheiro (só o bem)',data:pts(R.aA),borderColor:COL.av,borderWidth:2.4,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:COL.av,tension:.08,fill:false,borderDash:[],order:0}];
  if(!CH1){CH1=new Chart($('ch1'),{type:'line',data:{datasets:d1},options:baseOpts(R.n,fmtAx,false),plugins:[marks,cross]});}
  else{CH1.data.datasets.forEach((ds,i)=>{ds.data=d1[i].data;});}
  CH1.options.scales.x.max=R.n;CH1.options.scales.x.ticks.stepSize=R.n>36?12:Math.max(1,Math.round(R.n/8));CH1.options.scales.x.ticks.callback=mesTick(R.n);CH1.options.plugins.agMarks.lines=mk;CH1.update();
@@ -860,8 +859,8 @@ function jornada(R){
   ev.push({m:0,c:'g',t:'Compra o bem hoje',p:'Entrada de <strong>'+money(R.ent)+'</strong> a quem vende a carta'+(R.comp0>0?' e '+money(R.comp0)+' de complemento':'')+'. O resto (<strong>'+moneyK(R.inv0)+'</strong>) fica investido.'});
  }
  if(R.cobreDesde&&R.cobreDesde<n)ev.push({m:R.cobreDesde,c:'o',t:R.cobreDesde<=1?'O rendimento paga a parcela':'O rendimento passa a pagar a parcela',p:'Daqui em diante o rendimento do dinheiro investido cobre a parcela'+(R.NOVA&&R.cobreDesde<R.k&&R.totAlug>0?' e o aluguel':'')+' sozinho, até o fim.'});
- if(R.runout)ev.push({m:R.runout,c:'r',t:'O dinheiro investido acaba',p:'A partir daqui as parcelas saem do bolso. Na conta, esse valor fica como saldo negativo, comparado ao que estaria investido no à vista.'});
- ev.push({m:n,c:'',t:'Última parcela',p:'O bem vale <strong>'+moneyK(R.bemT)+'</strong>. Sobram <strong>'+moneyK(R.invT)+'</strong> investidos (à vista: '+moneyK(R.avT)+').'});
+ if(R.runout)ev.push({m:R.runout,c:'r',t:'O dinheiro investido acaba',p:'A partir daqui as parcelas saem do bolso. Na conta, esse valor fica como saldo negativo.'});
+ ev.push({m:n,c:'',t:'Última parcela',p:'O bem vale <strong>'+moneyK(R.bemT)+'</strong>. Sobram <strong>'+moneyK(R.invT)+'</strong> investidos (no à vista, só o bem).'});
  ev.sort((a,b)=>a.m-b.m);
  const bar=$('tlbar');bar.innerHTML=R.NOVA?'<i class="meia" style="left:0;width:'+(R.k/n*100)+'%"></i><i class="cheia" style="left:'+(R.k/n*100)+'%;right:0"></i>':'<i class="cheia" style="left:0;right:0"></i>';
  const t=$('tlt');t.querySelectorAll('.dot').forEach(e=>e.remove());
@@ -918,7 +917,7 @@ function calc(){
  anim('o_c_pat',patC,money);
  /* à vista */
  $('a_cet').innerHTML='Desconto de <b>'+pct(R.d*100)+'</b> · o bem é do cliente hoje';
- $('o_a_preco').textContent=money(R.Pv); $('o_a_desc').textContent=money(R.P-R.Pv); $('o_a_desc_s').textContent='economia de '+pct(R.P>0?(R.P-R.Pv)/R.P*100:0,0)+' do preço'; $('o_a_sobra').textContent=money(R.D-R.Pv);
+ $('o_a_preco').textContent=money(R.Pv); $('o_a_desc').textContent=money(R.P-R.Pv); $('o_a_desc_s').textContent='economia de '+pct(R.P>0?(R.P-R.Pv)/R.P*100:0,0)+' do preço';
  $('o_a_inv').textContent=money(R.avT);
  anim('o_a_pat',patA,money);
  $('pc').classList.toggle('win',consWin); $('pa').classList.toggle('win',!consWin);
@@ -995,7 +994,7 @@ function explica(R,consWin,net,cetA,totPago,rp){
  const st=(n,ti,v,p,hl)=>'<div class="st'+(hl?' hl':'')+'"><div class="n">'+n+'</div><div class="t">'+ti+'</div><div class="v">'+v+'</div><p>'+p+'</p></div>';
  const cond=R.NOVA?'<div class="exc"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.2M12 7.6v.4"/></svg><div>Na carta nova, a simulação considera a contemplação no <b>mês '+R.k+'</b>. A data não é garantida: pode vir antes ou depois, por sorteio ou lance. Mude a “Contemplação prevista” e os números se ajustam.</div></div>':'<div class="exc"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.2M12 7.6v.4"/></svg><div>Na carta contemplada o crédito já está liberado: o cliente compra o bem hoje, como no à vista. A diferença é que o dinheiro dele continua investido.</div></div>';
  $('ex1t').innerHTML=cond+'<div class="exs">'+
-  st(1,'À vista',moneyK(R.bemT+R.avT),'paga '+money(R.Pv)+' hoje e termina com '+money(R.avT)+' investido, mais o bem.')+
+  st(1,'À vista',moneyK(R.bemT+R.avT),'paga '+money(R.Pv)+' hoje com todo o dinheiro e termina só com o bem, sem dinheiro investido.')+
   st(2,'Consórcio',moneyK(R.bemT+R.invT),'paga '+money(totPago)+' na carta (custo efetivo de '+pct(cetA)+' ao ano) e termina com '+money(R.invT)+' investido, mais o bem.')+
   st(3,'O rendimento',pct(rp,0),'do que o consórcio cobra sai só do rendimento do dinheiro investido.')+
   st(4,'Resultado',moneyK(Math.abs(net)),consWin?'a mais pelo consórcio.':'a mais pagando à vista.',true)+'</div>';
