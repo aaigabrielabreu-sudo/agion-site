@@ -191,6 +191,7 @@ var CFG=[
    {t:null,title:'Operação do robô',text:'Tudo sobre o custo e a saúde do bot, para decidir se vale deixá-lo sempre ligado.'},
    {t:q('#opn'),title:'Quatro seções',text:'Visão geral, Saúde, HS & boletos e Pendências.',demo:'click',wait:5000},
    {t:q('#opx'),title:'Proxy residencial',text:'Quanto já foi usado e quanto resta do proxy — e em quê (cotas, reservas, boletos).'},
+   {t:q('#omt'),title:'Custo da Meta',text:'Quanto o WhatsApp está custando na Meta (gasto real), o que vai ser cobrado no cartão e se o cartão foi recusado.'},
    {t:q('#oce'),title:'Cérebro do bot',text:'Aqui você troca quem responde: Automático, Claude ou Gemini — sem reiniciar o robô.'},
    {act:sub('opn','saude'),t:q('#osa'),title:'Saúde em tempo real',text:'O bot no ar, o portal da HS pelo proxy e os robôs agendados, com o último registro de cada um.'},
    {act:sub('opn','hs'),t:q('#ohs'),title:'Reservas na HS',text:'As cotas reservadas, por quem, quando e quando vencem.',optional:true},

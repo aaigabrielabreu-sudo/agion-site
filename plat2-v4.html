@@ -4716,6 +4716,13 @@ R.operacao=function(v){
   '<div class="pb" style="margin-top:10px;height:9px;background:var(--bg2);border-radius:999px;overflow:hidden"><i style="display:block;height:100%;width:'+Math.min(100,ppct)+'%;background:'+(P.alerta?'#C98A3A':'#C5A059')+'"></i></div>'+
   '<div class="g3" style="margin-top:14px;gap:10px">'+[['Cotas (varredura)',pfun.cotas],['Reservas',pfun.reservas],['Boletos',pfun.boletos]].map(function(x){return '<div class="catc"><small>'+x[0]+'</small><b>'+((x[1]||0)+'').replace('.',',')+' GB</b></div>';}).join('')+'</div>'+
   '<div class="banner bl" style="margin-top:12px">'+I('bolt',16)+'<span>'+esc4(P.nota||'')+' · <a href="'+(P.painel||'#')+'" target="_blank" style="color:inherit;text-decoration:underline">abrir o painel da DataImpulse</a></span></div></div>';
+ var M=d.meta||{},f2=function(n){return n==null?'—':(+n).toFixed(2).replace('.',',');},CATN={marketing:'marketing',utilidade:'utilidade',atendimento:'atendimento (grátis)','autenticação':'autenticação'};
+ var meta=M.erro?'<div class="panel gl rv mb" id="omt"><div class="ph"><h3>'+I('wa',18)+'Custo da Meta (WhatsApp)</h3></div><div class="empty" style="padding:12px">Não consegui ler os custos da Meta agora: '+esc4(M.erro)+'</div></div>':
+  '<div class="panel gl rv mb" id="omt"><div class="ph"><h3>'+I('wa',18)+'Custo da Meta (WhatsApp)</h3><span class="sp"></span>'+(M.falhas_pagamento_48h?'<span class="pill bad">cartão recusado</span>':'<span class="pill ok">pagamento ok</span>')+'</div>'+
+  '<div class="row" style="gap:18px;flex-wrap:wrap;align-items:flex-end"><div><div class="bn" style="font:700 30px DM Sans">US$ '+f2(M.saldo_devedor_usd)+'</div><small style="color:var(--mut)">a cobrar no cartão · ≈ R$ '+f2(M.saldo_devedor_brl)+'</small></div><span class="sp"></span><div style="text-align:right"><small style="color:var(--mut)">'+esc4(M.cartao||'')+(M.cartao_validade?' · validade '+esc4(M.cartao_validade):'')+'<br>câmbio US$ 1 = R$ '+f2(M.usd_brl)+'</small></div></div>'+
+  '<div class="g3" style="margin-top:14px;gap:10px"><div class="catc"><small>Gasto no mês</small><b>US$ '+f2(M.gasto_mes_usd)+'</b><small>≈ R$ '+f2(M.gasto_mes_brl)+' · '+(M.msgs_pagas_mes||0)+' msgs pagas</small></div><div class="catc"><small>Previsão do mês</small><b>US$ '+f2(M.previsao_mes_usd)+'</b><small>≈ R$ '+f2(M.previsao_mes_brl)+'</small></div><div class="catc"><small>Mês passado</small><b>US$ '+f2(M.gasto_mes_anterior_usd)+'</b><small>≈ R$ '+f2(M.gasto_mes_anterior_brl)+'</small></div></div>'+
+  '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">'+Object.keys(M.por_categoria||{}).map(function(k){var c=M.por_categoria[k];return '<span class="pill '+(c.usd?'au':'ok')+'">'+esc4(CATN[k]||k)+': '+c.msgs+' msgs · US$ '+f2(c.usd)+'</span>';}).join('')+'</div>'+
+  '<div class="banner bl" style="margin-top:12px">'+I('money',16)+'<span>A conta da Meta é pós-paga: não tem saldo para repor. A Meta soma o gasto e cobra no cartão no começo do mês seguinte. O que trava os envios é o cartão ser recusado (como em setembro) — aí este cartão fica vermelho e você recebe alerta no WhatsApp. · <a href="'+(M.painel||'#')+'" target="_blank" style="color:inherit;text-decoration:underline">abrir Cobrança e pagamentos da Meta</a></span></div></div>';
  var cerebro='<div class="panel gl rv mb" id="oce"><div class="ph"><h3>'+I('robot',18)+'Cérebro do bot</h3><span class="sp"></span>'+seg('ocer',[['auto','⚡ Automático'],['claude','✳️ Claude'],['gemini','✦ Gemini']],CEREBRO,'gd')+'</div><div style="font-size:13px;color:var(--mut)" id="ocerd"></div>'+
   '<div class="g3" style="margin-top:12px;gap:10px"><div class="catc"><small>Claude</small><b>'+(CE.claude_ok?'disponível':'indisponível')+'</b><small>'+esc4(CE.claude_model||'')+'</small></div><div class="catc"><small>Gemini (reserva)</small><b>'+(CE.gemini_ok?'disponível':'indisponível')+'</b><small>'+esc4(CE.gemini_model||'')+'</small></div><div class="catc"><small>Quedas p/ Gemini · 7d</small><b>'+(CE.fallbacks_7d==null?'—':CE.fallbacks_7d)+'</b><small>fallback automático</small></div></div>'+
   '<p style="font-size:12px;color:var(--mut);margin-top:10px">'+esc4(CE.nota||'')+'</p></div>';
@@ -4742,7 +4749,7 @@ R.operacao=function(v){
  var integ='<div class="panel gl rv mb" id="oig"><div class="ph"><h3>'+I('grid',18)+'Mapa de integrações</h3></div><div class="row" style="gap:8px;flex-wrap:wrap">'+IG.map(function(x){return '<span class="pill '+(x.ok?'ok':'bad')+'">'+(x.ok?'● ':'○ ')+esc4(x.nome)+'</span>';}).join('')+'</div></div>';
  v.innerHTML='<div class="hx rv"><div><h1 class="h1"><em>Operação</em> do robô</h1><div class="sub">Custo e saúde do bot · tudo num lugar para decidir se vale deixá-lo sempre ligado</div></div><span class="sp"></span><button class="btn" id="opr2">'+I('refresh',16)+'Atualizar</button></div>'+
   sn('opn',[['vis','Visão geral'],['saude','Saúde'],['hs','HS & boletos'],['pend','Pendências']],'vis')+
-  hero+proxy+cerebro+ativ+alice+saude+zap+bol+hist+pend+integ;
+  hero+proxy+meta+cerebro+ativ+alice+saude+zap+bol+hist+pend+integ;
  function cd(){var ok=CE.claude_ok!==false;if($('#ocerd'))$('#ocerd').innerHTML=(OCERD[CEREBRO]||'')+(ok?'':' <span class="pill bad">Claude indisponível agora</span>');}
  cd();bindSeg('ocer',function(k){var ant=CEREBRO;CEREBRO=k;cd();papi('/api/ia',{method:'POST',body:JSON.stringify({provider:k})}).then(function(r){if(!r||!r.ok){CEREBRO=ant;toast('Falha ao trocar o cérebro. Tente de novo.','x');go('operacao',null,1);return;}CE.provider=k;try{plog('ia_provider','bot','Trocou o cérebro do robô para '+k,{});}catch(e){}toast('Cérebro trocado sem reiniciar o robô','robot');});});
  anchors('opn',{vis:'#opx',saude:'#osa',hs:'#ohs',pend:'#ope'});
@@ -5683,7 +5690,7 @@ vcMontar=function(){var vc=$('#vc');if(!vc)return;if(!vcPode()){vc.style.display
 vcMontar();
 })();
 </script>
-<script src="/plat2-tour.js?v=9"></script>
+<script src="/plat2-tour.js?v=10"></script>
 <script src="/plat-final-import.js?v=1"></script>
 <script src="/plat2-maav.js?v=3"></script>
 <script src="/calc-link.js?v=5"></script>
