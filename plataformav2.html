@@ -1384,7 +1384,7 @@ html.capNative body.isApp #viewbar,html.capNative body.isApp .topbar,html.capNat
 <link rel="stylesheet" href="/plat-theme.css?v=15">
 <link rel="stylesheet" href="/plat-crm.css?v=5">
 <link rel="stylesheet" href="/plat2-shell.css?v=2">
-<meta name="agion-build" content="5be6c5155000">
+<meta name="agion-build" content="d322144dc96a">
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
 <div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" type="email" inputmode="email" placeholder="seu@email.com" value="" autocomplete="username" aria-label="E-mail"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="" autocomplete="current-password" aria-label="Senha" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> </div>
@@ -4002,7 +4002,7 @@ function masterReportPDF(){
 }
 /* === AUTO-LIVE Agion: mantem CRM/clientes/tarefas atualizados sem F5 (aditivo) === */
 (function(){
-  var _lt=null,_sub=false,_lastSig=null;
+  var _lt=null,_sub=false,_lastSig=null,_ultLoad=0;
   function _sig(){try{
     var L=(db.crm||[]).map(function(l){return l.id+':'+l.stage+':'+(l.perdido?1:0)+':'+(l.ownerId||'')+':'+((l.atividades||[]).length)+':'+(l.valor||0)+':'+(l.nome||'');}).join('|');
     var C=(db.clients||[]).map(function(c){return c.id+':'+(c.ownerId||'')+':'+(c.nome||'')+':'+((c.plans||[]).length);}).join('|');
@@ -4017,6 +4017,8 @@ function masterReportPDF(){
   function liveRefresh(){clearTimeout(_lt);_lt=setTimeout(async function(){
     try{if(typeof session==='undefined'||!session)return;}catch(e){return;}
     if(document.hidden)return; if(_busy()){_lt=setTimeout(liveRefresh,3000);return;}
+    var _esp=20000-(Date.now()-_ultLoad);if(_esp>0){_lt=setTimeout(liveRefresh,_esp);return;}   /* EGRESS_FRONT_27OUT: no máx. 1 recarga a cada 20 s */
+    _ultLoad=Date.now();
     try{if(typeof loadCloud==='function')await loadCloud();}catch(e){}
     try{if(typeof updateBell==='function')updateBell();}catch(e){}
     var sig=_sig();
@@ -4040,7 +4042,7 @@ function masterReportPDF(){
       .subscribe();_sub=true;return true;}catch(e){return false;}}
   var _iv=setInterval(function(){if(trySub())clearInterval(_iv);},1500);
   document.addEventListener('visibilitychange',function(){if(!document.hidden)liveRefresh();});
-  setInterval(function(){liveRefresh();},60000);
+  setInterval(function(){liveRefresh();},300000);   /* EGRESS_FRONT_27OUT: rede de segurança a cada 5 min (o tempo real já avisa cada mudança) */
 })();
 </script>
 <script src="/plat-charts.js?v=1"></script>
