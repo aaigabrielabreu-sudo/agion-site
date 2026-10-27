@@ -87,10 +87,10 @@ async function jaEnviadas(d){var out=[],c=sb();if(!c)return out;
  try{if(c.storage){var l=await c.storage.from('propostas').list(dirDe(d),{limit:100,sortBy:{column:'name',order:'desc'}});(l.data||[]).filter(function(f){return /\.pdf$/i.test(f.name);}).forEach(function(f){var p=dirDe(d)+'/'+f.name;if(out.some(function(o){return o.x&&o.x.arquivo_path===p;}))return;var ts=+(f.name.split('-')[0]);out.push({fonte:'arq',path:p,t:/completo/.test(f.name)?'Proposta completa (gerador)':/resumido/.test(f.name)?'Proposta resumida (gerador)':'Proposta (gerador)',q:ts?new Date(ts).toISOString():null});});}}catch(e){}
  return out;}
 function popDoc(ctx,tipo,tit,semKey,extra){var d=ctx.d,inicio=Date.now();
- var s=folha(ctx,tit,tipo==='completa'?'Ela não vai para o cliente: serve para a Alice saber o que foi montado.':'É o documento que mais ajuda a Alice a puxar para a reunião.',
+ var s=folha(ctx,tit,ctx.subDoc||(tipo==='completa'?'Ela não vai para o cliente: serve para a Alice saber o que foi montado.':'É o documento que mais ajuda a Alice a puxar para a reunião.'),
   (extra||'')+'<div class="c7o">'+opc('arq','📎','Importar do computador','PDF ou imagem')+opc('txt','📝','Colar o texto','Cole a proposta como texto')+opc('ger','✨','Gerar no Gerador de propostas',d.resp?'Abre o gerador já com este lead':'Designe o lead antes de gerar',!d.resp)+opc('lst','🗂️','Escolher uma já enviada','Propostas que este lead já tem')+'</div>'+
   '<div class="c7x" id="c7x"></div><input type="file" id="c7f" accept="application/pdf,image/*" hidden><button class="c7sem" data-c7="sem">Prosseguir sem a '+(tipo==='completa'?'completa':'resumida')+'</button>',true);   /* SEM_DUPLO_20261022: o "Prosseguir sem…" já faz o papel do "Pular por agora" */
- var x=$('#c7x',s),fin=function(atv,semDoc){ctx.fecha();aplica(ctx,ctx.campos||{},(ctx.atvs||[]).concat([atv]));if(tipo==='resumida'&&!semDoc)ofertaEnvio(d);};   /* EMAIL_ESPEC_23OUT */
+ var x=$('#c7x',s),fin=function(atv,semDoc){ctx.fecha();if(typeof ctx.posDoc==='function'){var f=ctx.posDoc;ctx.posDoc=null;ctx.atvs=(ctx.atvs||[]).concat([atv]);setTimeout(f,320);return;}aplica(ctx,ctx.campos||{},(ctx.atvs||[]).concat([atv]));if(tipo==='resumida'&&!semDoc)ofertaEnvio(d);};   /* DIAG_PROP_27OUT: posDoc = próximo passo depois de anexar */   /* EMAIL_ESPEC_23OUT */
  $('[data-o="arq"]',s).onclick=function(){$('#c7f',s).click();};
  $('#c7f',s).onchange=async function(){var f=this.files&&this.files[0];if(!f)return;x.innerHTML='<div class="c7w">Enviando '+e4(f.name)+'…</div>';
   try{await sobeArquivo(d,f,tipo);fin('Anexou a proposta '+(tipo==='completa'?'completa':'resumida')+': '+f.name);}catch(e){x.innerHTML='<div class="c7w er">Não consegui enviar: '+e4(e.message||e)+'</div>';}};
@@ -98,7 +98,7 @@ function popDoc(ctx,tipo,tit,semKey,extra){var d=ctx.d,inicio=Date.now();
   var t=$('#c7t',s);t.focus();$('#c7ts',s).onclick=async function(){var v=t.value.trim();if(!v){toast('Cole o texto da proposta','x');return;}this.disabled=true;
    try{await salvaDoc(d,{tipo:tipo,titulo:'Proposta '+(tipo==='completa'?'completa':'resumida')+' (texto colado)',texto:v});fin('Colou a proposta '+(tipo==='completa'?'completa':'resumida'));}catch(e){this.disabled=false;toast('Não salvou: '+(e.message||e),'x');}};};
  $('[data-o="ger"]',s).onclick=function(){if(!d.resp)return;ctx.fecha();aplica(ctx,ctx.campos||{},(ctx.atvs||[]).concat(['Abriu o Gerador de propostas para a '+(tipo==='completa'?'completa':'resumida')]),{quieto:true});
-  setTimeout(function(){try{W.pcall('abrirProposta',d.uid,'lead');}catch(e){}vigiaGerador(d,tipo,inicio);},350);};
+  var pos=ctx.posDoc;ctx.posDoc=null;setTimeout(function(){try{W.pcall('abrirProposta',d.uid,'lead');}catch(e){}vigiaGerador(d,tipo,inicio,pos);},350);};
  $('[data-o="lst"]',s).onclick=async function(){x.innerHTML='<div class="c7w">Procurando…</div>';var L=await jaEnviadas(d);
   if(!L.length){x.innerHTML='<div class="c7w">Este lead ainda não tem proposta salva. Use “Importar”, “Colar” ou “Gerar”.</div>';return;}
   x.innerHTML='<div class="c7l">'+L.map(function(o,i){return '<button data-i="'+i+'">'+ic('doc',14)+'<span>'+e4(o.t)+'</span><small>'+(o.q?new Date(o.q).toLocaleDateString('pt-BR'):'')+'</small></button>';}).join('')+'</div>';
@@ -112,12 +112,12 @@ function semDoc(ctx,key,anexar,seguir){var tt={a:'Seguir sem a resumida?',b:'Seg
  s.classList.add('c7');var ok=false;$('[data-c7="an"]',s).onclick=function(){ok=true;W.closeSheet();setTimeout(anexar,300);};$('[data-c7="sg"]',s).onclick=function(){ok=true;seguir();};
  var xb=$('.x',s);if(xb)xb.onclick=function(){if(ok)return;ok=true;W.closeSheet();if(!ctx.fill)volta();};var ov=$('#ov');if(ov)ov._close=xb?xb.onclick:null;}
 /* depois que o Gerador fecha, a proposta nova entra no card */
-function vigiaGerador(d,tipo,inicio){var tent=0,t=setInterval(async function(){tent++;var m=null;try{m=W.parent.document.getElementById('propostaModal');}catch(e){}
+function vigiaGerador(d,tipo,inicio,depois){var tent=0,t=setInterval(async function(){tent++;var m=null;try{m=W.parent.document.getElementById('propostaModal');}catch(e){}
  if(tent>900){clearInterval(t);return;}if(!m||!m.classList.contains('hidden'))return;clearInterval(t);
  try{var c=sb();if(!c||!c.storage)return;var l=await c.storage.from('propostas').list(dirDe(d),{limit:50,sortBy:{column:'name',order:'desc'}});
   var novos=(l.data||[]).filter(function(f){return /\.pdf$/i.test(f.name)&&+(f.name.split('-')[0])>=inicio;});
   if(!novos.length)return;var f=novos[0],p=dirDe(d)+'/'+f.name;await salvaDoc(d,{tipo:tipo,titulo:/completo/.test(f.name)?'Proposta completa (gerador)':'Proposta resumida (gerador)',arquivo_path:p});
-  W.leadAtv(d,'Proposta '+(tipo==='completa'?'completa':'resumida')+' gerada no Gerador e ligada ao card');W.leadExtra(d,{atividades:d.raw.atividades});toast('A proposta do gerador entrou no card de '+nm(d),'doc');if(tipo==='resumida')ofertaEnvio(d);}catch(e){}},1000);}
+  W.leadAtv(d,'Proposta '+(tipo==='completa'?'completa':'resumida')+' gerada no Gerador e ligada ao card');W.leadExtra(d,{atividades:d.raw.atividades});toast('A proposta do gerador entrou no card de '+nm(d),'doc');if(typeof depois==='function'){setTimeout(depois,400);return;}if(tipo==='resumida')ofertaEnvio(d);}catch(e){}},1000);}
 function ofertaEnvio(d){setTimeout(function(){try{compoe(d,'resumida',{titulo:'Mandar a resumida para '+nm(d)+' agora?',agoraNao:1});}catch(e){}},480);}
 
 /* ---------- 3 · Estudo/Simulação ---------- */
@@ -143,25 +143,33 @@ function popReuniao(ctx){var d=ctx.d,x=xl(d),pad=function(n){return String(n).pa
 /* ---------- 5 · Diagnóstico ---------- */
 function popDiag(ctx){var d=ctx.d;
  var s=folha(ctx,e4(nm(d))+' compareceu à reunião?','',
-  '<div class="c7o">'+opc('sim','✅','Compareceu','Depois, anexe a proposta completa.')+opc('nao','📅','Faltou','O card volta para Reunião agendada e a Alice entra no fluxo de remarcação.')+'</div>');
+  '<div class="c7o">'+opc('sim','✅','Compareceu','Depois, faça o diagnóstico no Gerador de propostas.')+opc('nao','📅','Faltou','O card volta para Reunião agendada e a Alice entra no fluxo de remarcação.')+'</div>');
  $('[data-o="sim"]',s).onclick=function(){var x=xl(d),c={compareceu:true};if(!x.reuniao_em)c.reuniao_em=new Date().toISOString();ctx.campos=c;ctx.atvs=['Compareceu à reunião (diagnóstico)'];
-  ctx.fecha();setTimeout(function(){popDoc(ctx,'completa','Anexe a proposta completa de '+e4(nm(d)),'b');},320);};
+  ctx.fecha();aplica(ctx,c,ctx.atvs);setTimeout(function(){popFazDiag(d);},360);};   /* DIAG_PROP_27OUT: no Diagnóstico só registra o comparecimento; a proposta vai em "Proposta enviada" */
  $('[data-o="nao"]',s).onclick=function(){ctx.fecha();aplica(ctx,{compareceu:false},['Faltou à reunião'],{k:'agd'});
   setTimeout(function(){var s2=W.sheet('<div class="lbl c7lb">Reunião agendada</div><h2 class="c7h">Marcado: '+e4(nm(d))+' faltou</h2><p class="c7s">A Alice entra no fluxo de remarcação. Se já combinaram outra data, marque agora.</p><div class="c7f"><button class="btn ol" data-c7="ok">Ok</button><span class="sp"></span><button class="btn gd" data-c7="nv">'+ic('cal')+'Marcar nova data</button></div>',440);
    s2.classList.add('c7');$('[data-c7="ok"]',s2).onclick=function(){W.closeSheet();};$('[data-c7="nv"]',s2).onclick=function(){W.closeSheet();setTimeout(function(){popReuniao({d:d,k:'agd',from:'agd',fill:true});},300);};},450);};}
 
+/* DIAG_PROP_27OUT · depois do "Compareceu": o diagnóstico é feito no Gerador de propostas */
+function popFazDiag(d){var s=W.sheet('<div class="lbl c7lb">CRM · Diagnóstico</div><h2 class="c7h">Agora, o diagnóstico de '+e4(nm(d))+'</h2><p class="c7s" style="font-size:14px;line-height:1.55">Faça o diagnóstico no <b>Gerador de propostas</b>: o objetivo, o crédito, a parcela que cabe, o lance e o prazo do cliente. A simulação fica ligada ao card e, quando a proposta estiver pronta, mova o card para <b>Proposta enviada</b> para anexar e enviar.</p><div class="c7f"><button class="btn ol" data-c7="dp">Fazer depois</button><span class="sp"></span><button class="btn gd" data-c7="ger"'+(d.resp?'':' disabled title="Designe o lead antes de abrir o gerador"')+'>'+ic('doc')+'Fazer o diagnóstico no Gerador</button></div>',480);
+ s.classList.add('c7');$('[data-c7="dp"]',s).onclick=function(){W.closeSheet();};
+ $('[data-c7="ger"]',s).onclick=function(){if(!d.resp)return;W.closeSheet();var ini=Date.now();try{W.leadAtv(d,'Abriu o Gerador de propostas para o diagnóstico');}catch(e){}setTimeout(function(){try{W.pcall('abrirProposta',d.uid,'lead');}catch(e){}vigiaGerador(d,'completa',ini);},320);};}
+
 /* ---------- 6 · Proposta enviada ---------- */
-function popProposta(ctx){var d=ctx.d,x=xl(d);
+/* DIAG_PROP_27OUT: é aqui que a proposta entra — primeiro anexa (ou gera), depois registra como ela chegou ao cliente */
+function popProposta(ctx){ctx.subDoc='É a proposta que vai para o cliente. Fica no card e a Alice acompanha a decisão citando o que ele recebeu.';ctx.posDoc=function(){popPropostaEnvio(ctx);};
+ popDoc(ctx,'completa','Anexe a proposta de '+e4(nm(ctx.d)),'b');}
+function popPropostaEnvio(ctx){var d=ctx.d,x=xl(d);
  var s=folha(ctx,'Como a proposta chegou a '+e4(nm(d))+'?','Assim a Alice sabe o que a pessoa tem em mãos para acompanhar a decisão.',
   '<div class="c7o">'+opc('plat','📤','Enviar pela plataforma','E-mail no seu nome, com a sua assinatura e a proposta anexada')+opc('fora','💬','Já enviei por fora','WhatsApp ou e-mail próprio')+'</div>'+
   '<div class="fi" style="margin-top:12px"><label>Quando deve decidir? (opcional)</label><input type="date" id="c7dd" value="'+e4((x.data_decisao||'').slice(0,10))+'"></div>'+
   '<button class="c7sem" data-c7="sem">Prosseguir sem registrar</button>',true);   /* SEM_DUPLO_20261022 */
  var dd=function(){var v=$('#c7dd',s).value;return v?{data_decisao:v}:{};};
  $('[data-o="plat"]',s).onclick=function(){var c=dd();ctx.fecha();   /* EMAIL_ESPEC_23OUT */
-  compoe(d,'completa',{titulo:'Enviar a proposta para '+nm(d),depois:function(i){aplica(ctx,c,['Proposta enviada pela plataforma para '+i.para+(c.data_decisao?' · decide até '+c.data_decisao.split('-').reverse().join('/'):'')]);},cancela:function(){if(!ctx.fill)volta();}});};
+  compoe(d,'completa',{titulo:'Enviar a proposta para '+nm(d),depois:function(i){aplica(ctx,c,(ctx.atvs||[]).concat(['Proposta enviada pela plataforma para '+i.para+(c.data_decisao?' · decide até '+c.data_decisao.split('-').reverse().join('/'):'')]));},cancela:function(){if(!ctx.fill)volta();}});};
  $('[data-o="fora"]',s).onclick=async function(){var b=this;b.disabled=true;try{await salvaDoc(d,{tipo:'material',titulo:'Proposta enviada por fora',enviado_em:new Date().toISOString(),enviado_por:W.realId()});}catch(e){}
-  ctx.fecha();var c=dd();aplica(ctx,c,['Proposta enviada por fora (WhatsApp ou e-mail próprio)'+(c.data_decisao?' · decide até '+c.data_decisao.split('-').reverse().join('/'):'')]);};
- $('[data-c7="sem"]',s).onclick=function(){var c=dd();semDoc(ctx,'c',function(){popProposta(ctx);},function(){ctx.fecha();aplica(ctx,c,['Seguiu sem registrar o envio da proposta']);});};}
+  ctx.fecha();var c=dd();aplica(ctx,c,(ctx.atvs||[]).concat(['Proposta enviada por fora (WhatsApp ou e-mail próprio)'+(c.data_decisao?' · decide até '+c.data_decisao.split('-').reverse().join('/'):'')]));};
+ $('[data-c7="sem"]',s).onclick=function(){var c=dd();semDoc(ctx,'c',function(){popPropostaEnvio(ctx);},function(){ctx.fecha();aplica(ctx,c,(ctx.atvs||[]).concat(['Seguiu sem registrar o envio da proposta']));});};}
 
 /* ---------- 7 · Fechado ---------- */
 function motivoSel(id){return '<div class="fi"><label>Motivo</label><select id="'+id+'"><option value="">Escolha o motivo…</option>'+MOTIVOS.map(function(g){return '<optgroup label="'+e4(g[0])+'">'+g[1].map(function(m){return '<option>'+e4(m)+'</option>';}).join('')+'</optgroup>';}).join('')+'</select></div>';}
@@ -235,8 +243,8 @@ function painel(d){var x=xl(d),k=W.AG7.colDe(d),bt=[],tx='',sub='';
   if(x.contato_respondeu==null)sub=prazoTxt(prazoContato(x));if(x.contato_respondeu===true)bt.push(['parou','Cliente parou de responder']);else{bt.push(['sim','Respondeu']);bt.push(['nao','Não respondeu']);}}
  else if(k==='2'){tx='Estudo/Simulação';bt.push(['res','Anexar proposta resumida']);bt.push(['envr','Enviar ao cliente']);}
  else if(k==='agd'){tx=x.reuniao_em?'📅 '+dtBR(x.reuniao_em)+(x.reuniao_tipo==='R2'?' · 2ª reunião':''):'falta: data da reunião';if(x.compareceu===false)tx='Faltou · '+tx;bt.push(['reu',x.reuniao_em?'Mudar data':'Informar data da reunião']);if(x.reuniao_em)bt.push(['conv','Enviar convite']);}
- else if(k==='dia'){tx=x.compareceu==null?'falta: compareceu':'✅ Compareceu';if(x.compareceu==null)bt.push(['comp','Compareceu?']);bt.push(['cpl','Anexar proposta completa']);}
- else if(k==='3'){tx='Proposta enviada'+(x.data_decisao?' · decide até '+String(x.data_decisao).slice(0,10).split('-').reverse().join('/'):'');bt.push(['envp','Enviar por e-mail']);bt.push(['env','Registrar envio / data de decisão']);}
+ else if(k==='dia'){tx=x.compareceu==null?'falta: compareceu':'✅ Compareceu';if(x.compareceu==null)bt.push(['comp','Compareceu?']);else bt.push(['dg','Fazer o diagnóstico no Gerador']);}   /* DIAG_PROP_27OUT */
+ else if(k==='3'){tx='Proposta enviada'+(x.data_decisao?' · decide até '+String(x.data_decisao).slice(0,10).split('-').reverse().join('/'):'');bt.push(['anx','Anexar proposta']);bt.push(['envp','Enviar por e-mail']);bt.push(['env','Registrar envio / data de decisão']);}
  else if(k==='4'&&d.st!==4){tx='falta: ganho ou perdido';bt.push(['fch','Marcar ganho ou perdido']);}
  else return '';
  return '<div class="c7p"><span class="c7pt"><small>'+e4(NOME[k]||'Etapa')+'</small><b>'+e4(tx)+'</b>'+(sub?'<small style="margin-top:2px">'+e4(sub)+'</small>':'')+'</span><span class="sp"></span>'+bt.map(function(b){return '<button class="ob c7pb" data-c7p="'+b[0]+'">'+e4(b[1])+'</button>';}).join('')+'</div>';}
@@ -248,14 +256,16 @@ function acaoPainel(d,a,m){var fechaM=function(cb){var xb=m&&$('.x',m);if(xb)xb.
   else if(a==='cpl'){f.k='dia';popDoc(f,'completa','Anexe a proposta completa de '+e4(nm(d)),'b');}
   else if(a==='reu'){f.k='agd';f.from='agd';popReuniao(f);}
   else if(a==='comp'){f.k='dia';popDiagFill(f);}
-  else if(a==='env'){f.k='3';popProposta(f);}
+  else if(a==='env'){f.k='3';popPropostaEnvio(f);}
+  else if(a==='anx'){f.k='3';f.subDoc='É a proposta que vai para o cliente. Fica no card e a Alice acompanha a decisão citando o que ele recebeu.';popDoc(f,'completa','Anexe a proposta de '+e4(nm(d)),'b');}
+  else if(a==='dg'){popFazDiag(d);}
   else if(a==='fch'){f.k='4';popFechado(f);}
   else if(a==='mot'){motivoFill(d);}
   else if(a==='envr'){compoe(d,'resumida',{});}
   else if(a==='envp'){compoe(d,'completa',{});}
   else if(a==='conv'){conviteSheet(d);}});}
 function popDiagFill(f){var d=f.d,s=folha(f,e4(nm(d))+' compareceu à reunião?','','<div class="c7o">'+opc('sim','✅','Compareceu','')+opc('nao','📅','Faltou','O card volta para Reunião agendada.')+'</div>');
- $('[data-o="sim"]',s).onclick=function(){f.fecha();aplica(f,{compareceu:true},['Compareceu à reunião (diagnóstico)']);};
+ $('[data-o="sim"]',s).onclick=function(){f.fecha();aplica(f,{compareceu:true},['Compareceu à reunião (diagnóstico)']);setTimeout(function(){popFazDiag(d);},360);};
  $('[data-o="nao"]',s).onclick=function(){f.fecha();var g={d:d,k:'agd',from:'dia'};aplica(g,{compareceu:false},['Faltou à reunião']);};}
 function motivoFill(d){var s=W.sheet('<div class="lbl c7lb">Perdidos</div><h2 class="c7h">Motivo da perda de '+e4(nm(d))+'</h2>'+motivoSel('c7mo')+'<div class="c7f"><button class="btn ol" data-c7="x">Cancelar</button><span class="sp"></span><button class="btn gd" data-c7="ok">'+ic('ok')+'Salvar</button></div>',480);
  s.classList.add('c7');$('[data-c7="x"]',s).onclick=function(){W.closeSheet();};
