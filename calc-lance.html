@@ -622,8 +622,8 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
     <div class="ph"><h3><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".6"/></svg>A conta do lance</h3></div>
     <div class="fld"><label>Base do lance<small id="base_h">média dos lances que contemplaram</small></label><div class="ctl"><span class="seg xs" id="segBase"><button type="button" data-m="media" class="on">Médio 6 meses</button><button type="button" data-m="ultimo">Último lance</button></span></div></div>
     <div class="fld"><label for="lc_folga">Folga<small>parcelas acima da referência</small></label><div class="ctl"><div class="ib"><input id="lc_folga" value="0" inputmode="numeric"><span class="u">parcelas</span></div></div></div>
-    <div class="fld"><label>Lance embutido<small>sai da própria carta</small></label><div class="ctl"><span class="seg xs" id="segEmb"><button type="button" data-m="SIM" class="on">Usar</button><button type="button" data-m="NAO">Não usar</button></span></div></div>
-    <div class="fld" id="fld_emb"><label for="lc_emb">Embutido até<small>da carta · na HS, até 30%</small></label><div class="ctl"><div class="ib"><input id="lc_emb" value="30" inputmode="decimal"><span class="u">%</span></div></div></div>
+    <div class="fld"><label>Lance embutido<small>sempre 30% da carta, como a HS</small></label><div class="ctl"><span class="seg xs" id="segEmb"><button type="button" data-m="SIM" class="on">Usar</button><button type="button" data-m="NAO">Não usar</button></span></div></div>
+    <div class="fld" id="fld_emb" style="display:none"><label for="lc_emb">Embutido até<small>da carta · na HS, até 30%</small></label><div class="ctl"><div class="ib"><input id="lc_emb" value="30" inputmode="decimal"><span class="u">%</span></div></div></div>
    </div>
 
    <div class="panel rv" style="animation-delay:.15s">
@@ -714,7 +714,7 @@ var D=null,ERRO=null;
 /* valores que vieram no link (&s=) */
 (function(){try{var m=/[?&]s=([^&#]+)/.exec(location.search);if(!m)return;var b=decodeURIComponent(m[1]).replace(/-/g,'+').replace(/_/g,'/');var s=JSON.parse(decodeURIComponent(escape(atob(b))));
  window.__lcIni=s;}catch(e){}})();
-function estado(){return {t:TIPO,q:QT,L:Math.round(num('lc_L'))||0,C:Math.round(num('lc_C'))||0,b:BASE,f:Math.round(num('lc_folga'))||0,e:EMB==='SIM'?num('lc_emb'):0,a:num('lc_and')||40,m:MOD,g:SEL||''};}
+function estado(){return {t:TIPO,q:QT,L:Math.round(num('lc_L'))||0,C:Math.round(num('lc_C'))||0,b:BASE,f:Math.round(num('lc_folga'))||0,e:EMB==='SIM'?30:0,a:num('lc_and')||40,m:MOD,g:SEL||''};}
 function estadoQS(){try{var j=JSON.stringify(estado());var b=btoa(unescape(encodeURIComponent(j))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');return '&s='+b;}catch(e){return '';}}
 window.lcEstadoQS=estadoQS;
 
@@ -767,7 +767,7 @@ function posCont(r){if(!r||(r.tipo!=='livre'&&r.tipo!=='emb'))return null;var x=
 /* ---------- a conta ----------
    COTAS_26OUT (Gabriel): até 2 cotas no MESMO grupo. Ex.: em vez de 1 carta de R$ 1 mi, 2 de R$ 500 mil; o lance livre se divide
    entre as duas (cada uma precisa chegar ao lance alvo do grupo) e dá para contemplar as duas. A conta é feita por cota e somada. */
-function calcular(){var q=QT===2?2:1,Lt=num('lc_L'),Ct=num('lc_C'),L=Lt/q,C=Ct/q,e=EMB==='SIM'?Math.max(0,Math.min(30,num('lc_emb')))/100:0,folga=Math.max(0,Math.min(60,Math.round(num('lc_folga')))),andMax=Math.max(1,Math.min(100,num('lc_and')||40))/100;
+function calcular(){var q=QT===2?2:1,Lt=num('lc_L'),Ct=num('lc_C'),L=Lt/q,C=Ct/q,e=EMB==='SIM'?0.30:0   /* EMB30_27OUT: o embutido da HS é fixo em 30% da carta — ou dá 30% ou não dá */,folga=Math.max(0,Math.min(60,Math.round(num('lc_folga')))),andMax=Math.max(1,Math.min(100,num('lc_and')||40))/100;
  var out={L:Lt,C:Ct,q:q,e:e,lista:[],fora:{andou:0,sem:0,mod:0},total:0};if(!D)return out;
  Object.keys(D.VG).forEach(function(k){var G=D.VG[k];if(G.tipo!==TIPO)return;var v=G.v;if(v.disponivel===false)return;var P=+v.prazo_original,R=+v.prazo_restante||0;if(!P)return;out.total++;
   var and=R?(P-R)/P:0;if(and>andMax+1e-9){out.fora.andou++;return;}
@@ -780,8 +780,8 @@ function calcular(){var q=QT===2?2:1,Lt=num('lc_L'),Ct=num('lc_C'),L=Lt/q,C=Ct/q
   if(!ge.length){out.lista.push(Object.assign(b,{tipo:'peq',x:cand[cand.length-1],usa:0,E:0,liq:0}));return;}
   var A=null;if(C>0){for(var i=0;i<ge.length;i++)if(ge[i].need<=L+0.5){A=ge[i];break;}}else A=Amax;
   if(A){out.lista.push(Object.assign(b,{tipo:'livre',x:A,usa:A.need,sobra:Math.max(0,L-A.need),E:0,liq:A.K}));return;}
-  if(e>0)for(var j=0;j<ge.length;j++){var x=ge[j],E=x.need-L;if(E<=e*x.K+0.5&&x.K-E>=C-0.5){out.lista.push(Object.assign(b,{tipo:'emb',x:x,usa:L,sobra:0,E:E,liq:x.K-E}));return;}}
-  var best=null;ge.forEach(function(x){var tem=L+Math.min(e*x.K,Math.max(0,x.K-C)),f=x.need-tem;if(!best||f<best.f)best={x:x,f:f,Emax:Math.min(e*x.K,Math.max(0,x.K-C))};});
+  if(e>0)for(var j=0;j<ge.length;j++){var x=ge[j],E=e*x.K;if(L+E>=x.need-0.5&&x.K-E>=C-0.5){var us=Math.max(0,x.need-E);out.lista.push(Object.assign(b,{tipo:'emb',x:x,usa:us,sobra:Math.max(0,L-us),E:E,liq:x.K-E}));return;}}
+  var best=null;ge.forEach(function(x){var Ex=(e>0&&x.K*(1-e)>=C-0.5)?e*x.K:0,f=x.need-L-Ex;if(!best||f<best.f)best={x:x,f:f,Emax:Ex};});
   out.lista.push(Object.assign(b,{tipo:'falta',x:best.x,usa:L,E:best.Emax,falta:best.f,faltaN:best.f/best.x.pl,liq:best.x.K-best.Emax}));});
  /* totais das cotas (com 2 cotas, tudo × 2; a carta e as parcelas continuam por cota) */
  out.lista.forEach(function(r){r.q=q;r.Kt=r.x.K*q;r.needT=r.x.need*q;r.usaT=(r.usa||0)*q;r.ET=(r.E||0)*q;r.liqT=(r.liq||0)*q;r.faltaT=(r.falta||0)*q;r.sobraT=(r.sobra||0)*q;});
@@ -830,7 +830,7 @@ function pintaHero(r,o){var x=r.x,c=x.c,t=TAG[r.tipo],q=r.q||1,dois=q>1;
  $('v_head').innerHTML='Grupo '+esc(r.G.grupo)+' · '+(dois?q+' cartas de ':'carta de ')+'<em>'+R$(x.K)+'</em>';
  var s='',cada=dois?' em cada cota':'';
  if(r.tipo==='livre')s=(dois?'Em 2 cotas do mesmo grupo, com '+R$(r.usa)+' de lance livre em cada uma, as duas chegam às ':'Com '+R$(r.usa)+' de lance livre o cliente chega às ')+r.Na+' parcelas do lance alvo, a referência dos lances que contemplaram no grupo. Se contemplar, recebe'+(dois?' até '+R$(r.Kt)+' de crédito nas duas.':' o crédito cheio de '+R$(x.K)+'.')+' A contemplação depende do resultado da assembleia.'+(r.sobraT>0.5?' Sobram '+R$(r.sobraT)+'.':'')+(!dois&&r.Amax&&r.Amax.K>x.K?' Só com o lance livre dá até a carta de '+R$(r.Amax.K)+' neste grupo.':'');
- else if(r.tipo==='emb')s='O dinheiro do cliente ('+R$(r.usa)+cada+') não chega sozinho às '+r.Na+' parcelas. Com '+R$(r.E)+' de lance embutido'+cada+' ('+pct(r.E/x.K)+' da carta) o lance chega ao alvo'+(dois?' nas duas cotas':'')+'. Se contemplar, ele recebe '+R$(r.liqT)+' de crédito líquido'+(dois?' no total':'')+'. A contemplação depende do resultado da assembleia.';
+ else if(r.tipo==='emb')s='Só o lance livre não chega às '+r.Na+' parcelas. Com o lance embutido de 30% da carta ('+R$(r.E)+cada+'), o cliente completa com '+R$(r.usa)+' de lance livre'+cada+' e chega ao alvo'+(dois?' nas duas cotas':'')+'. Se contemplar, ele recebe '+R$(r.liqT)+' de crédito líquido'+(dois?' no total':'')+'. A contemplação depende do resultado da assembleia.'+(r.sobraT>0.5?' Sobram '+R$(r.sobraT)+'.':'');
  else if(r.tipo==='falta')s='Com esse valor, nenhum grupo chega agora à referência dos lances que contemplaram. O mais perto é este: faltam '+R$(r.faltaT)+(dois?' ('+R$(r.falta)+' por cota)':'')+' para chegar às '+r.Na+' parcelas'+(r.E>0?', já usando '+R$(r.E)+' de embutido'+cada:'')+'.';
  else s='As cartas deste grupo vão até '+R$(x.K)+', abaixo do crédito pedido'+(dois?' por cota':'')+'.';
  $('v_sub').textContent=s;
@@ -867,7 +867,7 @@ document.querySelectorAll('#segTipo button').forEach(function(b){b.onclick=funct
 function modeSeg(id,fn){document.querySelectorAll('#'+id+' button').forEach(function(b){b.onclick=function(){document.querySelectorAll('#'+id+' button').forEach(function(x){x.classList.toggle('on',x===b);});fn(b.dataset.m);calc();};});}
 function setSeg(id,m){document.querySelectorAll('#'+id+' button').forEach(function(x){x.classList.toggle('on',x.dataset.m===m);});}
 modeSeg('segBase',function(m){BASE=m;$('base_h').textContent=m==='ultimo'?'o menor lance da última assembleia':'média dos lances que contemplaram';});
-modeSeg('segEmb',function(m){EMB=m;$('fld_emb').style.display=m==='SIM'?'':'none';});
+modeSeg('segEmb',function(m){EMB=m;});
 modeSeg('segMod',function(m){MOD=m;SEL=null;});
 function qtH(){$('qt_h').textContent=QT===2?'no mesmo grupo · o crédito e o lance se dividem em 2':'uma carta só';}
 modeSeg('segQt',function(m){QT=+m===2?2:1;SEL=null;qtH();});
@@ -881,7 +881,7 @@ $('pr_data').textContent=new Date().toLocaleDateString('pt-BR',{day:'2-digit',mo
 /* valores iniciais: do link, ou o que ficou guardado neste aparelho */
 (function(){var s=window.__lcIni;if(!s){try{s=JSON.parse(localStorage.getItem('agcalc-lance')||'null');}catch(e){}}if(!s)return;
  if(s.t)setTipo(s.t);if(s.q){QT=+s.q===2?2:1;setSeg('segQt',String(QT));qtH();}if(s.L)$('lc_L').value=Math.round(s.L).toLocaleString('pt-BR');if(s.C)$('lc_C').value=Math.round(s.C).toLocaleString('pt-BR');
- if(s.b){BASE=s.b;setSeg('segBase',s.b);}if(s.f!=null)$('lc_folga').value=s.f;if(s.e!=null){if(+s.e>0){EMB='SIM';$('lc_emb').value=String(s.e).replace('.',',');}else{EMB='NAO';$('fld_emb').style.display='none';}setSeg('segEmb',EMB);}
+ if(s.b){BASE=s.b;setSeg('segBase',s.b);}if(s.f!=null)$('lc_folga').value=s.f;if(s.e!=null){if(+s.e>0){EMB='SIM';$('lc_emb').value=String(s.e).replace('.',',');}else{EMB='NAO';}setSeg('segEmb',EMB);}
  if(s.a)$('lc_and').value=s.a;if(s.m){MOD=s.m;setSeg('segMod',s.m);}if(s.g&&window.__lcIni)SEL=s.g;})();
 setInterval(function(){if(window.__agLinkTemp)return;try{localStorage.setItem('agcalc-lance',JSON.stringify(estado()));}catch(e){}},1500);
 window.__agPdfTitle='Agion - Calculadora de lance livre';

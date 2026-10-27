@@ -1777,7 +1777,7 @@ function lcRef(g){var lv=lvG(g),it=((lv&&lv.it)||[]).filter(function(x){return !
  if(it.length){var s=0,mn2=Infinity,mx2=0;it.forEach(function(x){s+=x.n;if(x.n<mn2)mn2=x.n;if(x.n>mx2)mx2=x.n;});return {N:s/it.length,fonte:'media',qt:it.length,mn:mn2,mx:mx2,it:it,lv:lv};}
  if(lv&&lv.med>0)return {N:lv.medN,fonte:'portal',qt:0,it:[],lv:lv};return null;}
 function lcGrupos(){var out=[],vis={};Object.keys(S.VG||{}).forEach(function(k){var v=S.VG[k];if(!v||adm(v.administradora)!=='HS'||tipoN(v.segmento)!==S.cat)return;var g=S.GR[k];if(!g)return;if(!vis[k]){vis[k]=1;out.push(g);}});return out;}
-function lcCalc(){var L=lcNum(LC.L),C=lcNum(LC.C),e=LC.usaEmb?Math.max(0,Math.min(30,+LC.emb||0))/100:0,folga=Math.max(0,Math.min(60,Math.round(+LC.folga||0)));
+function lcCalc(){var L=lcNum(LC.L),C=lcNum(LC.C),e=LC.usaEmb?0.30:0   /* EMB30_27OUT: embutido fixo em 30% da carta */,folga=Math.max(0,Math.min(60,Math.round(+LC.folga||0)));
  var R={L:L,C:C,e:e,lista:[],fora:{andou:0,sem:0,quit:0,peq:0,mod:0},total:0};
  lcGrupos().forEach(function(g){var v=S.VG[g.k];if(!v||v.disponivel===false)return;var P=+v.prazo_original,Rr=+v.prazo_restante||0;if(!P)return;R.total++;
   var and=Rr?(P-Rr)/P:0;if(LC.ate40&&and>0.4+1e-9){R.fora.andou++;return;}
@@ -1793,8 +1793,8 @@ function lcCalc(){var L=lcNum(LC.L),C=lcNum(LC.C),e=LC.usaEmb?Math.max(0,Math.mi
   if(!ge.length){R.fora.peq++;var mx=cand[cand.length-1];R.lista.push(Object.assign({},base,{tipo:'peq',x:mx}));return;}
   var A=null;if(C>0){for(var i=0;i<ge.length;i++){if(ge[i].need<=L+0.5){A=ge[i];break;}}}else A=Amax;
   if(A){R.lista.push(Object.assign({},base,{tipo:'livre',x:A,usa:A.need,sobra:Math.max(0,L-A.need),E:0,liq:A.K}));return;}
-  if(e>0){for(var j=0;j<ge.length;j++){var x=ge[j],E=x.need-L;if(E<=e*x.K+0.5&&x.K-E>=C-0.5){R.lista.push(Object.assign({},base,{tipo:'emb',x:x,usa:L,sobra:0,E:E,liq:x.K-E}));return;}}}
-  var best=null;ge.forEach(function(x){var tem=L+Math.min(e*x.K,Math.max(0,x.K-C)),f=x.need-tem;if(!best||f<best.f)best={x:x,f:f};});
+  if(e>0){for(var j=0;j<ge.length;j++){var x=ge[j],E=e*x.K;if(L+E>=x.need-0.5&&x.K-E>=C-0.5){var us=Math.max(0,x.need-E);R.lista.push(Object.assign({},base,{tipo:'emb',x:x,usa:us,sobra:Math.max(0,L-us),E:E,liq:x.K-E}));return;}}}
+  var best=null;ge.forEach(function(x){var Ex=(e>0&&x.K*(1-e)>=C-0.5)?e*x.K:0,f=x.need-L-Ex;if(!best||f<best.f)best={x:x,f:f};});
   R.lista.push(Object.assign({},base,{tipo:'falta',x:best.x,falta:best.f,faltaN:best.f/best.x.pl}));});
  var ord={livre:0,emb:1,falta:2,peq:3};
  R.lista.sort(function(a,b){if(ord[a.tipo]!==ord[b.tipo])return ord[a.tipo]-ord[b.tipo];
@@ -1815,13 +1815,13 @@ function lcCard(r,hero){var x=r.x,g=r.g,c=x.c,tag={livre:'Só lance livre',emb:'
  var cel=function(l,v,s,cls){return '<div'+(cls?' class="'+cls+'"':'')+'><small>'+l+'</small><b>'+v+'</b>'+(s?'<em>'+s+'</em>':'')+'</div>';};
  var cells=cel('Carta',lcR(x.K),'parcela '+brl2(c.parcela))+cel('Lance alvo',r.Na+' parcelas',lcPct(r.Na/r.P)+' do plano'+(r.folga?' · +'+r.folga+' de folga':''))+cel('Lance necessário',lcR(x.need),r.Na+' parc. × '+brl2(x.pl));
  if(r.tipo==='livre')cells+=cel('Lance livre usado',lcR(r.usa),r.sobra>0.5?'sobra '+lcR(r.sobra):'usa tudo','ok')+cel('Embutido','—','não precisa')+cel('Crédito líquido',lcR(r.liq),'crédito cheio','hl');
- else if(r.tipo==='emb')cells+=cel('Lance livre usado',lcR(r.usa),'todo o valor do cliente')+cel('Embutido',lcR(r.E),lcPct(r.E/x.K)+' da carta','au')+cel('Crédito líquido',lcR(r.liq),'o que ele recebe','hl');
- else if(r.tipo==='falta')cells+=cel('Faltam',lcR(r.falta),'≈ '+Math.ceil(r.faltaN)+' parcela'+(Math.ceil(r.faltaN)>1?'s':'')+(LC.usaEmb?' (já com o embutido)':''),'bad')+cel('Lance livre',lcR(lcNum(LC.L)),'o que o cliente tem')+cel('Embutido máx.',LC.usaEmb?lcR(Math.min(r.e0*x.K,Math.max(0,x.K-lcNum(LC.C)))):'—',LC.usaEmb?'sem baixar do crédito pedido':'desligado');
+ else if(r.tipo==='emb')cells+=cel('Lance livre usado',lcR(r.usa),r.sobra>0.5?'sobra '+lcR(r.sobra):'todo o valor do cliente')+cel('Embutido',lcR(r.E),'30% da carta','au')+cel('Crédito líquido',lcR(r.liq),'o que ele recebe','hl');
+ else if(r.tipo==='falta')cells+=cel('Faltam',lcR(r.falta),'≈ '+Math.ceil(r.faltaN)+' parcela'+(Math.ceil(r.faltaN)>1?'s':'')+(LC.usaEmb?' (já com o embutido)':''),'bad')+cel('Lance livre',lcR(lcNum(LC.L)),'o que o cliente tem')+cel('Embutido',LC.usaEmb?(x.K*0.7>=lcNum(LC.C)-0.5?lcR(0.3*x.K):'—'):'—',LC.usaEmb?(x.K*0.7>=lcNum(LC.C)-0.5?'30% da carta':'os 30% baixariam o crédito'):'desligado');
  else cells+=cel('Maior carta do grupo',lcR(x.K),'menor que o crédito pedido','bad');
  var po=lcPos(r);if(po)cells+=cel('Parcela depois',brl2(po.v),'nos '+po.n+' meses que faltam, sem o seguro');
  var covp=r.cov==null?0:Math.round(r.cov/r.nIt*100);
  var frase='';if(hero){if(r.tipo==='livre')frase='Com '+lcR(r.usa)+' de lance livre o cliente chega a '+r.Na+' parcelas na carta de '+lcR(x.K)+', a referência dos lances que contemplaram no grupo. Se contemplar, recebe o crédito cheio; a contemplação depende do resultado da assembleia.'+(r.Amax&&r.Amax.K>x.K?' Só com o lance livre dá até a carta de '+lcR(r.Amax.K)+' neste grupo.':'');
-  else if(r.tipo==='emb')frase='O dinheiro do cliente ('+lcR(r.usa)+') não chega sozinho às '+r.Na+' parcelas. Com '+lcR(r.E)+' de lance embutido ('+lcPct(r.E/x.K)+' da carta de '+lcR(x.K)+') o lance chega ao alvo. Se contemplar, ele recebe '+lcR(r.liq)+' de crédito líquido; a contemplação depende do resultado da assembleia.';
+  else if(r.tipo==='emb')frase='Só o lance livre não chega às '+r.Na+' parcelas. Com o lance embutido de 30% da carta de '+lcR(x.K)+' ('+lcR(r.E)+'), o cliente completa com '+lcR(r.usa)+' de lance livre e chega ao alvo. Se contemplar, ele recebe '+lcR(r.liq)+' de crédito líquido; a contemplação depende do resultado da assembleia.';
   else if(r.tipo==='falta')frase='Com esse valor, nenhum grupo chega agora à referência dos lances que contemplaram. O mais perto é este: faltam '+lcR(r.falta)+' para chegar às '+r.Na+' parcelas.';}
  return '<div class="lcc t-'+r.tipo+(hero?' hero':'')+'" data-k="'+esc(g.k)+'" data-bem="'+esc(c.bem||'')+'" data-mod="'+esc(c.modalidade||'')+'">'+
   '<div class="lch">'+(hero?'<span class="lcbest">Melhor encaixe</span>':'')+'<b>Grupo '+g.grupo+'</b><span class="pill xs">'+pz+'</span>'+(as?'<span class="pill xs hm">'+as+'</span>':'')+'<span class="sp"></span><span class="lctag">'+tag+'</span></div>'+
@@ -1836,13 +1836,13 @@ function lcRes(){var box=$('#lcres');if(!box)return;var R=lcCalc();
  var nl=R.lista.filter(function(r){return r.tipo==='livre';}).length,ne=R.lista.filter(function(r){return r.tipo==='emb';}).length,nf2=R.fora.andou+R.fora.sem+R.fora.mod;
  var bons=R.lista.filter(function(r){return r.tipo==='livre'||r.tipo==='emb';}),resto=R.lista.filter(function(r){return r.tipo==='falta';}).slice(0,6);
  var hero=bons[0]||resto[0]||null,outros=(bons.length?bons.slice(1):resto.slice(1)),mostra=LC.mais?outros:outros.slice(0,8);
- var h='<div class="kpis lck">'+kpiH(LCI.calc,'Grupos de '+CATS[S.cat].toLowerCase(),R.total,'com cartas à venda na HS')+kpiH(IC.check,'Só lance livre',nl,'contemplam com o valor do cliente')+kpiH(IC.plus,'Com embutido',ne,LC.usaEmb?'até '+lcD1(R.e*100)+'% da carta':'embutido desligado')+kpiH(IC.x,'Fora da conta',nf2,(LC.ate40&&R.fora.andou?R.fora.andou+' andaram mais de 40%':'')+(R.fora.sem?(LC.ate40&&R.fora.andou?' · ':'')+R.fora.sem+' sem lance':'')||'—')+'</div>';
+ var h='<div class="kpis lck">'+kpiH(LCI.calc,'Grupos de '+CATS[S.cat].toLowerCase(),R.total,'com cartas à venda na HS')+kpiH(IC.check,'Só lance livre',nl,'contemplam com o valor do cliente')+kpiH(IC.plus,'Com embutido',ne,LC.usaEmb?'30% da carta':'embutido desligado')+kpiH(IC.x,'Fora da conta',nf2,(LC.ate40&&R.fora.andou?R.fora.andou+' andaram mais de 40%':'')+(R.fora.sem?(LC.ate40&&R.fora.andou?' · ':'')+R.fora.sem+' sem lance':'')||'—')+'</div>';
  if(hero)h+=lcCard(hero,true);else h+='<div class="panel empty lcempty">'+LCI.alvo+'<p>Nenhum grupo com cartas para esse crédito nesta categoria e modalidade. Tente outra modalidade ou inclua os grupos que já andaram mais de 40%.</p></div>';
  if(mostra.length)h+='<div class="lcsub">'+(bons.length?'Outros grupos onde o lance chega à referência':'Também perto')+'<span class="pill xs">'+outros.length+'</span></div><div class="lcl">'+mostra.map(function(r){return lcCard(r,false);}).join('')+'</div>'+(outros.length>8?'<div class="lcmore"><button class="btn ol sm" id="lcmais">'+(LC.mais?'Mostrar menos':'Ver os '+outros.length+' grupos')+'</button></div>':'');
  h+='<details class="info lcinfo" data-dk="lcinfo"><summary>'+IC.info+'<b>Como a conta é feita</b>'+IC.chev+'</summary><div class="ib">'+
   '<p><b>Em parcelas, como a HS.</b> O lance livre contempla pelo número de parcelas. O lance alvo de cada grupo é o lance livre médio que contemplou nos últimos 6 meses (ou, se escolher “Último lance”, o menor lance que contemplou na última assembleia), arredondado para cima, mais a folga que você puser. Lance que quitou a cota fica fora da média.</p>'+
   '<p><b>Quanto vale 1 parcela de lance.</b> É a parcela integral do plano, que já tem dentro a taxa de administração e o fundo de reserva (o dobro da meia parcela). O lance em reais é a parcela integral vezes o número de parcelas: se o grupo contempla com 141 parcelas e a parcela integral é R$ 4.029,14, o lance é 141 × R$ 4.029,14 = R$ 568.109.</p>'+
-  '<p><b>Lance embutido.</b> Se o dinheiro do cliente não chega, a calculadora sobe para uma carta maior e completa com embutido (até o limite escolhido, 30% na HS), sem deixar o crédito líquido ficar abaixo do crédito que ele quer.</p>'+
+  '<p><b>Lance embutido.</b> Se o dinheiro do cliente não chega, a calculadora sobe para uma carta maior e completa com o lance embutido, que na HS é sempre 30% da carta (ou 30% ou nada), sem deixar o crédito líquido ficar abaixo do crédito que ele quer.</p>'+
   '<p><b>Cobertura.</b> Quantos dos lances livres que contemplaram nos últimos 6 meses ficaram iguais ou abaixo do lance alvo: quanto mais perto de todos, mais folgado.</p>'+
   '<p>Grupos que já andaram mais de 40% do prazo ficam fora (ligue a chave para incluir). A calculadora sugere; confirme o lance e o embutido no portal da HS antes de ofertar.</p></div></details>';
  box.innerHTML=h;
@@ -1860,7 +1860,7 @@ function abaLance(v){
    '<div class="fld"><label>Base do lance</label><div class="seg" id="lcbase"><button class="chip'+(LC.base!=='ultimo'?' on':'')+'" data-k="media">Médio 6 meses</button><button class="chip'+(LC.base==='ultimo'?' on':'')+'" data-k="ultimo">Último lance</button></div></div>'+
   '</div>'+
   '<div class="lcf2">'+
-   '<span class="lcemb"><button class="tgl'+(LC.usaEmb?' on':'')+'" id="lcemb" type="button"><span class="tg"></span>Lance embutido até</button><input class="inp lcsm" id="lcembp" inputmode="numeric" value="'+esc(String(LC.emb))+'"'+(LC.usaEmb?'':' disabled')+'><span class="lcu">% da carta</span></span>'+
+   '<span class="lcemb"><button class="tgl'+(LC.usaEmb?' on':'')+'" id="lcemb" type="button"><span class="tg"></span>Lance embutido de 30%</button></span>'+
    '<span class="lcemb"><span class="lcu">Folga</span><input class="inp lcsm" id="lcfol" inputmode="numeric" value="'+esc(String(LC.folga||0))+'"><span class="lcu">parcelas</span></span>'+
    '<button class="tgl'+(LC.ate40?' on':'')+'" id="lc40" type="button"><span class="tg"></span>Só grupos com até 40% do prazo andado</button>'+
    '<div class="seg lcmod" id="lcmod">'+mods.map(function(m){return '<button class="chip'+(LC.mod===m[0]?' on':'')+'" data-k="'+m[0]+'">'+m[1]+'</button>';}).join('')+'</div>'+
@@ -1870,8 +1870,8 @@ function abaLance(v){
  [['#lcL','L'],['#lcC','C']].forEach(function(p){var el=$(p[0]);el.oninput=function(){LC[p[1]]=el.value;agenda();};el.onblur=function(){var n=lcNum(el.value);if(n){el.value=lcR(n);LC[p[1]]=String(Math.round(n));lcSalva();}};el.onkeydown=function(e){if(e.key==='Enter')el.blur();};});
  $$('#lcbase .chip').forEach(function(b){b.onclick=function(){LC.base=b.dataset.k;$$('#lcbase .chip').forEach(function(x){x.classList.toggle('on',x===b);});lcSalva();lcRes();};});
  $$('#lcmod .chip').forEach(function(b){b.onclick=function(){LC.mod=b.dataset.k;$$('#lcmod .chip').forEach(function(x){x.classList.toggle('on',x===b);});lcSalva();lcRes();};});
- $('#lcemb').onclick=function(){LC.usaEmb=!LC.usaEmb;this.classList.toggle('on',LC.usaEmb);$('#lcembp').disabled=!LC.usaEmb;lcSalva();lcRes();};
- $('#lcembp').oninput=function(){var n=parseFloat(String(this.value).replace(',','.'));LC.emb=isFinite(n)?Math.max(0,Math.min(30,n)):0;agenda();};
+ $('#lcemb').onclick=function(){LC.usaEmb=!LC.usaEmb;this.classList.toggle('on',LC.usaEmb);if($('#lcembp'))$('#lcembp').disabled=!LC.usaEmb;lcSalva();lcRes();};
+ if($('#lcembp'))$('#lcembp').oninput=function(){var n=parseFloat(String(this.value).replace(',','.'));LC.emb=isFinite(n)?Math.max(0,Math.min(30,n)):0;agenda();};
  $('#lcfol').oninput=function(){var n=parseInt(this.value,10);LC.folga=isFinite(n)?Math.max(0,Math.min(60,n)):0;agenda();};
  $('#lc40').onclick=function(){LC.ate40=!LC.ate40;this.classList.toggle('on',LC.ate40);lcSalva();lcRes();};
  lcRes();}
