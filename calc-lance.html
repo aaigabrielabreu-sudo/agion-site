@@ -348,7 +348,7 @@ body.mbon .tt-help{bottom:calc(84px + env(safe-area-inset-bottom,0px))!important
  .vbig{font-size:19px;margin:6px 0 4px}.vsub{font-size:10.5px}
  .vbars{margin-top:10px;gap:6px}.vb .tr{height:10px}.vb .k,.vb .v{font-size:10px}
  .vleg{margin-top:6px;font-size:9.5px}
- .kpis{grid-template-columns:repeat(4,1fr);gap:7px}
+ .kpis{grid-template-columns:repeat(5,1fr);gap:7px}
  .kpi{padding:9px 10px;border-radius:12px;box-shadow:none;border:1px solid var(--line);gap:8px}
  .kpi .ic{width:30px;height:30px}.kpi .ic svg.i{width:14px;height:14px}.kpi .ring,.kpi .ring svg{width:32px;height:32px}
  .kpi small{font-size:7.5px}.kpi b{font-size:14px}.kpi .kt>span{font-size:9px}
@@ -587,6 +587,17 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
 }
 </style>
 
+<style id="kpi-27out">/* KPI_27OUT · 5 indicadores lado a lado: ícone em cima, número inteiro, legenda curta */
+@media screen and (min-width:1321px){
+ .kpis .kpi{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:12px;padding:18px 20px 16px}
+ .kpis .kpi .ic{width:38px;height:38px}.kpis .kpi .ic svg.i{width:17px;height:17px}
+ .kpis .kpi .kt{width:100%}
+ .kpis .kpi small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.13em}
+ .kpis .kpi b{font-size:22px;margin-top:6px}
+ .kpis .kpi .kt>span{font-size:12px;margin-top:4px}
+}
+.kpis .kpi.kpos b{color:var(--goldd)}
+</style>
 </head>
 <body>
 <div class="top" id="top"><div class="topi">
@@ -648,7 +659,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
     <div class="kpi rv" style="animation-delay:.2s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".6"/></svg></div><div class="kt"><small>Lance alvo</small><b id="k_alvo">—</b><span id="k_alvo_s">—</span></div></div>
     <div class="kpi rv" style="animation-delay:.25s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M12 3.5v17M16.5 7.5c-.8-1.4-2.5-2.2-4.5-2.2-2.6 0-4.3 1.3-4.3 3.1 0 4.4 9 2.4 9 6.9 0 1.9-1.9 3.3-4.6 3.3-2.2 0-4-.9-4.8-2.4"/></svg></div><div class="kt"><small>Lance necessário</small><b id="k_need">—</b><span id="k_need_s">—</span></div></div>
     <div class="kpi rv" style="animation-delay:.3s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div class="kt"><small>Crédito líquido</small><b id="k_liq">—</b><span id="k_liq_s">—</span></div></div>
-    <div class="kpi rv kpos" style="animation-delay:.35s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3M8 14h3"/></svg></div><div class="kt"><small>Parcela depois de contemplar</small><b id="k_pos">—</b><span id="k_pos_s">—</span></div></div>
+    <div class="kpi rv kpos" style="animation-delay:.35s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3M8 14h3"/></svg></div><div class="kt"><small>Parcela após contemplar</small><b id="k_pos">—</b><span id="k_pos_s">—</span></div></div>
    </div>
 
    <div class="panel rv" id="p_outros" style="animation-delay:.2s">
@@ -837,11 +848,11 @@ function pintaHero(r,o){var x=r.x,c=x.c,t=TAG[r.tipo],q=r.q||1,dois=q>1;
  var tot=Math.max(r.needT,1),lv=Math.min(r.usaT,r.needT),em=Math.min(r.ET,Math.max(0,r.needT-lv)),ft=Math.max(0,r.needT-lv-em);
  $('v_bar').innerHTML='<span class="lv" style="width:'+(lv/tot*100).toFixed(2)+'%"></span><span class="em" style="width:'+(em/tot*100).toFixed(2)+'%"></span><span class="ft" style="width:'+(ft/tot*100).toFixed(2)+'%"></span>';
  $('v_leg').innerHTML='<span><i style="background:var(--gg)"></i>lance livre <b>'+R$(lv)+'</b></span>'+(em>0.5?'<span><i style="background:#E8D9B5"></i>embutido <b>'+R$(em)+'</b></span>':'')+(ft>0.5?'<span><i style="background:#E4705F"></i>falta <b>'+R$(ft)+'</b></span>':'')+'<span>'+(dois?'2 lances de '+r.Na+' parcelas':'lance de '+r.Na+' parcelas')+' = <b>'+R$(r.needT)+'</b></span>';
- setK('k_carta',cartaTxt(r),dois?R$(r.Kt)+' em crédito · meia parcela '+R2(c.parcela)+' cada':'meia parcela '+R2(c.parcela)+'/mês');
+ setK('k_carta',cartaTxt(r),dois?R$(r.Kt)+' em crédito':'meia parcela '+R2(c.parcela));
  setK('k_alvo',r.Na+' parcelas',pct(r.Na/r.P)+' do plano'+(dois?' · em cada cota':'')+(r.folga?' · +'+r.folga+' de folga':''));
- setK('k_need',R$(r.needT),(dois?R$(x.need)+' por cota · ':'')+r.Na+' parcelas × '+R2(x.pl)+(dois?'':' de parcela integral'));
- setK('k_liq',r.tipo==='peq'?'—':R$(r.liqT),r.tipo==='livre'?'crédito cheio, se contemplar':(r.tipo==='emb'?'cartas − embutido, se contemplar':(r.tipo==='falta'?'se fechasse o lance':'—')));
- var po=posCont(r);setK('k_pos',po?R2(po.v):'—',po?((dois?'por cota · '+R2(po.v*q)+' nas duas · ':'')+'nos '+po.n+' meses que faltam, se contemplar na próxima assembleia (sem o seguro)'):'aparece quando o lance chega ao alvo');}
+ setK('k_need',R$(r.needT),r.Na+' × '+R2(x.pl)+(dois?' por cota':''));
+ setK('k_liq',r.tipo==='peq'?'—':R$(r.liqT),r.tipo==='livre'?'crédito cheio':(r.tipo==='emb'?'carta − 30% de embutido':(r.tipo==='falta'?'se fechasse o lance':'—')));
+ var po=posCont(r);setK('k_pos',po?R2(po.v):'—',po?('por '+po.n+' meses'+(dois?' · por cota':'')+' · sem seguro'):'quando o lance chega ao alvo');var kp=$('k_pos');if(kp)kp.parentNode.title=po?'Plano inteiro − meia parcela paga − lance, dividido pelos '+po.n+' meses que faltam, contemplando na próxima assembleia. O seguro entra à parte.':'';}
 function linha(r){var x=r.x,t=TAG[r.tipo];
  return '<tr data-k="'+esc(r.G.k)+'"'+(SEL===r.G.k?' class="on"':'')+'><td><b>Grupo '+esc(r.G.grupo)+'</b><span class="tg '+t[1]+'">'+(r.tipo==='livre'?'só lance livre':(r.tipo==='emb'?'+ embutido':(r.tipo==='falta'?'falta '+R$(r.faltaT):'carta menor')))+'</span><small>prazo '+r.R+'/'+r.P+' · andou '+pct(r.and)+'</small></td>'+
   '<td class="r" data-l="Carta"><b>'+cartaTxt(r)+'</b><small>parcela '+R2(x.c.parcela)+(r.q>1?' cada':'')+'</small></td>'+
