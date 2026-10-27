@@ -1167,7 +1167,7 @@ function abaGrupo(v){
   historico(g).then(function(){if(S.aba==='grupo'&&S.grupo===g.k)pintar();}).catch(function(e){v.innerHTML=cabecalho(gs)+'<div class="panel empty"><p>Não consegui carregar o grupo agora. '+esc(e&&e.message||e)+'</p></div>';bindCab();});return;}
  var h=S.H[g.k],O=oport(g,h),op=O.lista,ct=O.ct,cap=O.cap,N=total(g,h),mk=marcas(g),opm={};op.forEach(function(o){opm[o.c]=o;});
  var nCt=Object.keys(ct).length,ind=indisp(g),rob=!!vd(g);
- var nMk=Object.keys(mk).filter(function(c){return bloqueada(mk[c]);}).length,nPos=Object.keys(mk).filter(function(c){return mk[c].posicao;}).length;
+ var nMk=Object.keys(mk).filter(function(c){return bloqueada(mk[c]);}).length,nPos=Object.keys(mk).filter(function(c){return mk[c].posicao;}).length,nRsv=Object.keys(mk).filter(function(c){return mk[c].posicao&&roboRa(g,c);}).length;/* CLIENTE_RESERVA_26OUT */
  var mesesG=Object.keys(h.meses).sort(),prel=mesesG.filter(function(m){return h.meses[m]===2;});
  var admLb=g.adm==='ANC'?'Âncora':g.adm,negA=negLimpa(g,ct,mk),negS={};negA.forEach(function(c){negS[c]=1;});
  var soV=soVenda(g),aiV=soV?avInfo(g):null,opL=opLista(g,O,mk);if(soV||ind){opm={};opL.forEach(function(o){opm[o.c]=o;});}
@@ -1196,7 +1196,7 @@ function abaGrupo(v){
  '<div class="kpis">'+
   kpiH(IC.grid,'Total de cotas',nf(N),'<a href="#" id="tedit">ajustar</a>')+
   kpiH('<i class="cel mini ct"></i>','Contempladas',nf(nCt),(S.per==='all'?(mesesG.length?'desde '+mesLb(mesesG[0])+' · '+mesesG.length+' assembleias':'sem resultado'):perLb().toLowerCase()))+
-  kpiH('<i class="cel mini ns"></i>','Clientes Agion',(S.oculta?'—':nf(Object.keys(g.nossas).length+nPos)),(S.oculta?'ocultos na tela':'cotas da carteira'+(nPos?' + '+nPos+' posição'+(nPos>1?'ões':''):'')))+
+  kpiH('<i class="cel mini ns"></i>','Clientes Agion',(S.oculta?'—':nf(Object.keys(g.nossas).length+nPos)),(S.oculta?'ocultos na tela':'cotas da carteira'+(nRsv?' + '+nRsv+' reservada'+(nRsv>1?'s':'')+' no portal para clientes':'')+(nPos-nRsv?' + '+(nPos-nRsv)+((nPos-nRsv)>1?' posições':' posição'):'')))+
   kpiH('<i class="cel mini oa"></i>','Alta oportunidade',(ind?'—':nf(alta)),(ind?'grupo indisponível na HS':(soV&&rob?'à venda':'livres')+' onde 5 ou mais nº do sorteio sobem primeiro (gangorra)'+(nMk?' · '+nMk+' reservada'+(nMk>1?'s':''):'')))+
  '</div>'+(ind?'<div class="indisp">'+IC.info+'<span><b>Grupo '+g.grupo+' indisponível</b>100% alocado: não aparece na oferta de venda da HS. Fica fora das classificações e das sugestões de cotas.</span></div>':'')+'<div class="g2"><div class="panel" id="pmapa"><div class="ph"><h3>'+IC.grid+'Mapa de cotas</h3><span class="pill">Grupo '+g.grupo+' · '+admLb+'</span><span class="sp"></span><label class="search" title="Ir direto para uma cota">'+IC.search+'<input id="busca" placeholder="Nº da cota" inputmode="numeric" autocomplete="off"></label></div>'+
  '<details class="lgdet" data-dk="lg"'+(window.innerWidth>560?' open':'')+'><summary>Legenda'+IC.chev+'</summary><div class="legend lg2">'+
