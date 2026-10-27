@@ -157,8 +157,25 @@ function popFazDiag(d){var s=W.sheet('<div class="lbl c7lb">CRM · Diagnóstico<
 
 /* ---------- 6 · Proposta enviada ---------- */
 /* DIAG_PROP_27OUT: é aqui que a proposta entra — primeiro anexa (ou gera), depois registra como ela chegou ao cliente */
-function popProposta(ctx){ctx.subDoc='É a proposta que vai para o cliente. Fica no card e a Alice acompanha a decisão citando o que ele recebeu.';ctx.posDoc=function(){popPropostaEnvio(ctx);};
+function popPropAnexa(ctx){ctx.subDoc='É a proposta que vai para o cliente. Fica no card e a Alice acompanha a decisão citando o que ele recebeu.';ctx.posDoc=function(){popPropostaEnvio(ctx);};
  popDoc(ctx,'completa','Anexe a proposta de '+e4(nm(ctx.d)),'b');}
+async function urlProp(o){try{var p=o.fonte==='arq'?o.path:(o.x&&o.x.arquivo_path);if(p){var r=await sb().storage.from('propostas').createSignedUrl(p,3600);return r&&r.data&&r.data.signedUrl||null;}return (o.x&&o.x.url)||null;}catch(e){return null;}}
+/* DIAG_PROP_27OUT · PROP_SUGERE: a proposta feita no Gerador para este cliente já aparece pronta — "É esta?" — e o envio segue com ela */
+function popProposta(ctx){var d=ctx.d;
+ jaEnviadas(d).then(function(L){
+  L=(L||[]).filter(function(o){return o.fonte==='arq'||(o.x&&(o.x.tipo==='completa'||o.x.tipo==='resumida')&&(o.x.arquivo_path||o.x.url||o.x.texto));}).sort(function(a,b){return String(b.q||'').localeCompare(String(a.q||''));});
+  var o=L[0];if(!o){popPropAnexa(ctx);return;}
+  var dt=o.q?new Date(o.q).toLocaleDateString('pt-BR'):'';
+  var s=folha(ctx,'Enviar a proposta para '+e4(nm(d)),'Achamos a proposta mais recente de '+e4(nm(d))+'. É esta que vai para o cliente?',
+   '<div class="c7l" style="margin-bottom:12px"><button data-c7="ver">'+ic('doc',14)+'<span><b>'+e4(o.t)+'</b></span><small>'+(dt?dt+' · ':'')+'ver</small></button></div>'+
+   '<div class="c7o">'+opc('usa','✅','Sim, é esta','Segue para o envio ao cliente')+opc('out','📎','Não, anexar outra','Importar, colar, gerar ou escolher outra proposta')+opc('fora','💬','Já enviei por conta','Mandei pelo WhatsApp ou e-mail próprio')+'</div>',true);
+  $('[data-c7="ver"]',s).onclick=async function(){var w=null;try{w=window.open('','_blank');}catch(e){}var u=await urlProp(o);if(u){if(w)w.location=u;else location.href=u;}else{if(w)w.close();if(o.x&&o.x.texto)toast('Esta proposta é um texto colado: '+String(o.x.texto).slice(0,80)+'…','doc');else toast('Não consegui abrir a proposta agora.','x');}};
+  $('[data-o="usa"]',s).onclick=async function(){this.disabled=true;try{if(o.fonte==='arq')await salvaDoc(d,{tipo:'completa',titulo:o.t,arquivo_path:o.path});}catch(e){}
+   ctx.atvs=(ctx.atvs||[]).concat(['Proposta escolhida para o envio: '+o.t]);ctx.fecha();setTimeout(function(){popPropostaEnvio(ctx);},320);};
+  $('[data-o="out"]',s).onclick=function(){ctx.fecha();setTimeout(function(){popPropAnexa(ctx);},320);};
+  $('[data-o="fora"]',s).onclick=async function(){this.disabled=true;try{await salvaDoc(d,{tipo:'material',titulo:'Proposta enviada por fora',enviado_em:new Date().toISOString(),enviado_por:W.realId()});}catch(e){}
+   ctx.fecha();aplica(ctx,{},(ctx.atvs||[]).concat(['Proposta enviada por conta (WhatsApp ou e-mail próprio): '+o.t]));};
+ });}
 function popPropostaEnvio(ctx){var d=ctx.d,x=xl(d);
  var s=folha(ctx,'Como a proposta chegou a '+e4(nm(d))+'?','Assim a Alice sabe o que a pessoa tem em mãos para acompanhar a decisão.',
   '<div class="c7o">'+opc('plat','📤','Enviar pela plataforma','E-mail no seu nome, com a sua assinatura e a proposta anexada')+opc('fora','💬','Já enviei por fora','WhatsApp ou e-mail próprio')+'</div>'+
@@ -257,7 +274,7 @@ function acaoPainel(d,a,m){var fechaM=function(cb){var xb=m&&$('.x',m);if(xb)xb.
   else if(a==='reu'){f.k='agd';f.from='agd';popReuniao(f);}
   else if(a==='comp'){f.k='dia';popDiagFill(f);}
   else if(a==='env'){f.k='3';popPropostaEnvio(f);}
-  else if(a==='anx'){f.k='3';f.subDoc='É a proposta que vai para o cliente. Fica no card e a Alice acompanha a decisão citando o que ele recebeu.';popDoc(f,'completa','Anexe a proposta de '+e4(nm(d)),'b');}
+  else if(a==='anx'){f.k='3';popPropAnexa(f);}
   else if(a==='dg'){popFazDiag(d);}
   else if(a==='fch'){f.k='4';popFechado(f);}
   else if(a==='mot'){motivoFill(d);}
