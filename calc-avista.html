@@ -1348,6 +1348,17 @@ if(ios()){ W.baixarPDF=W.agPdfImagem; W.addEventListener('load',function(){ W.ba
 <script src="/tool-tour.js?v=11" defer></script>
 <style id="ag-sem-zoom">/* SEM_ZOOM_24OUT: no celular o campo precisa de 16px, senão o iPhone dá zoom ao digitar */
 @media (max-width:600px),(pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}}
+
+/* PDF_AGRUPA_27OUT (Gabriel): páginas mais agrupadas — sem quebra forçada e sem página meio vazia.
+   Os painéis grandes podem continuar na página seguinte; só as peças pequenas (cards, linhas, gráficos) ficam inteiras. */
+@media print{
+ .pgb:not(#_x),.brk:not(#_x){break-before:auto!important;page-break-before:auto!important}
+ .wrap .res>.panel:not(#_x),.wrap .res>.pane:not(#_x),.wrap .panel.big:not(#_x),.wrap .res>.panel.brk:not(#_x),.wrap #porq:not(#_x){break-inside:auto!important;page-break-inside:auto!important}
+ .wrap .dg:not(#_x),.wrap .kpi:not(#_x),.wrap .kpis:not(#_x),.wrap .verdict:not(#_x),.wrap .exs .st:not(#_x),.wrap .ctr>div:not(#_x),.wrap .cta:not(#_x),.wrap tr:not(#_x),.wrap .pqi:not(#_x),.wrap .cvb:not(#_x),.wrap .g2c>*:not(#_x),.wrap .resumo:not(#_x),.wrap .tle:not(#_x),.wrap .lcc:not(#_x),.wrap .esc:not(#_x),.wrap .chimg:not(#_x),.wrap .stg:not(#_x),.wrap .sgc:not(#_x),.wrap .sgb:not(#_x),.wrap .cmp:not(#_x),.wrap .vir:not(#_x),.wrap .side:not(#_x){break-inside:avoid!important;page-break-inside:avoid!important}
+ .wrap .ph:not(#_x),.wrap .chd:not(#_x),.wrap .brkh:not(#_x),.wrap h2:not(#_x),.wrap h3:not(#_x),.wrap .lgd:not(#_x){break-after:avoid!important;page-break-after:avoid!important}
+ .wrap p,.wrap li{orphans:3;widows:3}
+ .wrap .cvb.sm{height:140px}
+}
 </style>
 </body>
 </html>
