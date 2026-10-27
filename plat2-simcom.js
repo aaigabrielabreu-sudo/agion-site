@@ -80,7 +80,13 @@ function resultado(k){var M=master(),o=ST.orig,emo=ORIG[o][0],tit=ORIG[o][1];
  h+=f;
  /* parcelas em lista (cabe no celular sem rolar para o lado) */
  h+='<div class="scph"><span>Parcelas</span><span>'+(emp?'Colaborador':quem())+'</span></div><div class="scps">'+ps.map(function(p){
-   return '<div class="scp"><span class="scpn">'+p.n+'ª</span><span class="scpd">'+dBR(p.data)+'</span><span class="scpv"><b>'+rs(p.func)+'</b>'+(M?'<small>Adm. '+rs0(p.hs)+' · Agion '+rs0(p.agion)+'</small>':'')+'</span></div>';}).join('')+'</div>';
+   return '<div class="scp"><span class="scpn">'+p.n+'ª</span><span class="scpd">'+dBR(p.data)+'</span><span class="scpv"><b>'+rs(p.func)+'</b></span></div>';}).join('')+'</div>';
+ /* SIMCOM_AGION_27OUT: só o proprietário vê o fluxo de pagamento da Agion — quando a administradora paga a Agion
+    (dataEmp: antecipação dia 20), quanto vai para o colaborador e quanto fica com a Agion, parcela a parcela, + o pós */
+ if(M){var nm=emp?'':nomeDe(ST.vend).split(' ')[0];
+  h+='<div class="scph scagh"><span>'+ic('lock',12)+' Fluxo da Agion · só o proprietário vê</span><span>Agion recebe</span></div><div class="scps scag">'+ps.map(function(p){
+   return '<div class="scp"><span class="scpn">'+p.n+'ª</span><span class="scpd">'+dBR(p.dataEmp||p.data)+'</span><span class="scpv"><b>'+rs(p.hs)+'</b><small>'+(emp?'fica tudo com a Agion':'paga '+e4(nm)+' '+rs0(p.func)+' em '+dCurta(p.data)+' · fica '+rs0(p.agion))+'</small></span></div>';}).join('')+
+   (k.posHs>0?'<div class="scp"><span class="scpn">Pós</span><span class="scpd">na contemplação</span><span class="scpv"><b>'+rs(k.posHs)+'</b><small>'+(pos>0&&!emp?'paga '+e4(nm)+' '+rs0(pos)+' · ':'')+'fica '+rs0(k.posAgion)+'</small></span></div>':'')+'</div>';}
  if(M)h+='<div class="scemp"><div><small>Administradora paga</small><b>'+rs(k.hsPre)+'</b><span>na venda'+(k.posHs>0?' · + '+rs(k.posHs)+' na contemplação':'')+'</span></div>'+
   '<div><small>Fica com a Agion</small><b>'+rs(k.agionPre)+'</b><span>na venda'+(k.posHs>0?' · + '+rs(k.posAgion)+' na contemplação':'')+'</span></div></div>';
  return h+'</div>';}
@@ -135,6 +141,7 @@ function css(){if($('#simcomcss'))return;var c=document.createElement('style');c
  '.sheet.simcom .scp{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent)}.sheet.simcom .scp:first-child{border-top:0}'+
  '.sheet.simcom .scpn{font:700 12px "DM Sans",system-ui,sans-serif;color:var(--goldd,#A3833F)}.sheet.simcom .scpd{font-size:13.5px;color:var(--mut);font-variant-numeric:tabular-nums}'+
  '.sheet.simcom .scpv{display:flex;flex-direction:column;align-items:flex-end;text-align:right}.sheet.simcom .scpv b{font:700 15px "DM Sans",system-ui,sans-serif;color:var(--ink);font-variant-numeric:tabular-nums}.sheet.simcom .scpv small{font-size:11px;color:var(--mut);margin-top:1px;white-space:nowrap}'+
+ '.sheet.simcom .scps.scag{background:color-mix(in srgb,#0B2A26 4%,var(--card))}.sheet.simcom .scagh{margin-top:18px}.sheet.simcom .scagh>span:first-child{display:inline-flex;align-items:center;gap:5px}'+
  '.sheet.simcom .scemp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.sheet.simcom .scemp>div{padding:11px 13px;border-radius:14px;background:color-mix(in srgb,var(--ink) 5%,transparent);display:flex;flex-direction:column;gap:2px;min-width:0}'+
  '.sheet.simcom .scemp small{font:600 10.5px "DM Sans",system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}.sheet.simcom .scemp b{font:700 17px "DM Sans",system-ui,sans-serif;color:var(--ink)}.sheet.simcom .scemp span{font-size:11.5px;color:var(--mut);line-height:1.4}'+
  '.sheet.simcom .mu{color:var(--mut)}.sheet.simcom .scrod{font-size:11.8px;color:var(--mut);margin:12px 2px 0;line-height:1.5}'+
