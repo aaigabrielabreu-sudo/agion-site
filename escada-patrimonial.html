@@ -702,8 +702,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
     <div class="fld"><label for="f_nome">Cliente<small>aparece na proposta (opcional)</small></label><div class="ctl"><div class="ib w tx"><input id="f_nome" placeholder="Nome do cliente" autocomplete="off"></div></div></div>
     <div class="fld"><label for="f_ciclo">Ritmo da escada<small>meses de cada degrau, até contemplar</small></label><div class="ctl"><div class="ib"><input id="f_ciclo" value="18" inputmode="numeric"><span class="u">meses</span></div></div>
      <div class="rgw"><input class="rg" type="range" data-for="f_ciclo" min="6" max="36" step="1"><small data-cap="f_ciclo"></small></div></div>
-    <div class="fld"><label for="a_emb">Lance embutido<small id="a_emb_h">% da carta usado no lance · reduz o crédito</small></label><div class="ctl"><div class="ib"><input id="a_emb" value="0" inputmode="decimal"><span class="u">%</span></div></div>
-     <div class="rgw"><input class="rg" type="range" data-for="a_emb" min="0" max="40" step="1"><small data-cap="a_emb"></small></div></div>
+    <div class="fld"><label for="a_emb">Lance embutido<small id="a_emb_h">fixo em 30% da carta, regra da HS · reduz o crédito liberado</small></label><div class="ctl"><div class="ib"><input id="a_emb" value="30" inputmode="decimal" readonly tabindex="-1"><span class="u">%</span></div></div></div>
    </div>
 
    <div class="panel rv" id="pmont" style="animation-delay:.08s">
@@ -711,7 +710,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
     <div class="fld mrow"><label>Montagem<small class="am">a escada sai da carta inicial</small><small class="mm">você monta cada degrau</small></label><div class="ctl"><span class="seg xs" id="segMont"><button type="button" data-m="auto" class="on">Automática</button><button type="button" data-m="man">Manual</button></span></div></div>
     <div class="fld am fct"><label for="a_ct">Carta inicial<small id="a_ct_h">da tabela HS · prazo e parcela automáticos</small></label><div class="ctl"><select id="a_ct" class="selc" aria-label="Carta inicial (tabela HS)"></select><span class="prt" id="a_ct_pr">—</span></div></div>
     <div class="fld am fct nopr"><label for="a_cmp">Dividir em cotas menores<small id="a_cmp_h">opcional · mais cotas, mais chances por proximidade</small></label><div class="ctl"><select id="a_cmp" class="selc" aria-label="Dividir a carta inicial em cotas menores"></select></div></div>
-    <div class="fld am"><label for="a_lim">Aporte máximo do cliente<small>o que ele pode pagar por mês na base</small></label><div class="ctl"><div class="ib w"><span class="u pre">R$</span><input id="a_lim" value="2.900" inputmode="decimal" data-f="brl"></div></div></div>
+    <div class="fld am" style="display:none" aria-hidden="true"><label for="a_lim">Aporte máximo do cliente<small>o que ele pode pagar por mês na base</small></label><div class="ctl"><div class="ib w"><span class="u pre">R$</span><input id="a_lim" value="2.900" inputmode="decimal" data-f="brl"></div></div></div>
     <div class="fld am"><label for="a_n">Degraus<small>quantas cartas a escada terá</small></label><div class="ctl"><div class="ib"><input id="a_n" value="8" inputmode="numeric"><span class="u">degraus</span></div></div>
      <div class="rgw"><input class="rg" type="range" data-for="a_n" min="3" max="12" step="1"><small data-cap="a_n"></small></div></div>
     <div class="am pfw noprint"><div class="pfl">Perfil da escada</div><p class="pfh">Muda <b>o quanto cada degrau cresce</b> e a <b>margem de segurança</b>. À direita: até onde a escada chega e quanto sai do bolso do cliente.</p><div class="pfs" id="pfs">
@@ -776,6 +775,12 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
      <div class="cvb sm"><canvas id="e2"></canvas></div>
      <p class="cnote" id="e2_n">—</p>
     </div>
+   </div>
+
+   <div class="panel rv" id="pbolso" style="animation-delay:.38s">
+    <div class="chd"><div><h3><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="6.5" width="17" height="12" rx="2.5"/><path d="M3.5 10.5h17M7.5 14.5h3"/></svg>O que sai do bolso para montar a escada</h3><p id="bo_p">—</p></div></div>
+    <div class="tw"><table class="tbl" id="tbo"></table></div>
+    <p class="bonote" id="bo_n"></p>
    </div>
 
    <div class="panel rv" id="tlp" style="animation-delay:.4s">
@@ -965,7 +970,7 @@ Object.assign(CALC,{pdfTitle:'Agion - Escada Financeira',charts:[['e1',340,160],
  cap:(id,v)=>{if(id==='f_ciclo')return anos(v)+' por degrau';if(id==='f_agio')return pct(v,0)+' de ágio';if(id==='f_rende')return '≈ '+pct((Math.pow(1+v/100,12)-1)*100,1)+' a.a.';if(id==='p_renda')return money(num('p_imovel')*v/100)+'/mês por imóvel';
   if(id==='a_emb')return v>0?'libera '+pct(100-v,0)+' da carta':'sem lance embutido';if(id==='a_n')return Math.round(v)+' degraus';return '';},
  isBRL:el=>el.id==='p_imovel'||el.id==='a_lim'});
-const emb=()=>Math.min(.9,Math.max(0,num('a_emb')/100));
+const emb=()=>.30;   /* ESC_BOLSO_27OUT: lance embutido sempre, fixo em 30% da carta */
 
 /* ---------- carta inicial: prazo, parcela e aporte sugeridos ---------- */
 /* a carta inicial vem da tabela HS: o prazo e a meia parcela são os da tabela.
@@ -997,7 +1002,7 @@ function sugerir(){const ci=cartaIni(),b0=COMP[0]||ci;
   $('a_cmp_h').innerHTML='<b>'+nc+' cotas</b> ('+[...new Set(ci.pk.map(x=>x.p))].join(' e ')+' meses) · meia parcela somada <b>'+R2(ci.m)+'</b>'+(Math.abs(d)>.5?' ('+(d>0?'+':'−')+R2(Math.abs(d)).replace('R$ ','R$ ')+' que 1 carta)':'');}
  else $('a_cmp_h').innerHTML='opcional · mais cotas, mais chances por proximidade';
  $('a_ct_pr').textContent=ci.pk?brl0(ci.c)+' em '+pkCurto(ci.pk):brl0(ci.c)+' · '+ci.p+'m';
- if(!TOQ.lim)$('a_lim').value=brl(Math.ceil(ci.m*1.1/100)*100);}
+ $('a_lim').value=brl(ci.m);}   /* ESC_BOLSO_27OUT: o limite do bolso é a própria parcela da carta inicial */
 $('a_ct').addEventListener('change',()=>{montaComp();sugerir();calc();});
 $('a_cmp').addEventListener('change',()=>{sugerir();calc();});
 montaComp();
@@ -1009,7 +1014,7 @@ $('a_lim').addEventListener('input',()=>{TOQ.lim=true;});
    1) se F, com a folga do perfil, paga o alvo → o capital paga;  2) senão, o maior que F paga com folga, se ainda cresce;
    3) senão é base: o cliente completa do bolso, até o aporte máximo. */
 function ganhoF(){const a=num('f_agio')/100,r=num('f_rende')/100,e=emb();return (ct,q)=>r*a*q*ct.c*(1-e);}
-function ganhoP(){const im=Math.max(1,num('p_imovel')),rr=num('p_renda')/100,pp=num('p_pos')/100,e=emb();return (ct,q)=>{const n=Math.floor(q*ct.c*(1-e)/im+1e-9);return n*im*rr-q*ct.c*pp;};}
+function ganhoP(){const im=Math.max(1,num('p_imovel')),rr=num('p_renda')/100,pp=num('p_pos')/100,e=emb();return (ct,q)=>{const n=Math.floor(q*ct.c*(1-e)/im+1e-9);return n*im*rr-q*ct.c*(1-e)*pp;};}   /* ESC_BOLSO_27OUT: o lance embutido abate o saldo, a parcela depois é sobre o crédito liberado */
 function montar(ct,N,pf,lim,gan){const P=PERF[pf];let F=0,prev=0;const out=[];
  for(let i=0;i<N;i++){let q;
   if(i===0)q=1;
@@ -1021,7 +1026,7 @@ function montar(ct,N,pf,lim,gan){const P=PERF[pf];let F=0,prev=0;const out=[];
   out.push({c:ct.c,p:ct.p,m:ct.m,k:ct.k,pk:ct.pk,q});F+=gan(ct,q);prev=q;}
  return out;}
 function autoLadder(pf){const ct=cartaIni(),N=Math.min(12,Math.max(3,Math.round(num('a_n'))||8));
- return montar(ct,N,pf||PF[SCN],Math.max(0,num('a_lim')),SCN==='S2'?ganhoP():ganhoF());}
+ return montar(ct,N,pf||PF[SCN],ct.m,SCN==='S2'?ganhoP():ganhoF());}
 
 /* ---------- montagem: automática ou manual ---------- */
 function setMont(m){MONT[SCN]=m;document.querySelectorAll('#segMont button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));document.body.classList.toggle('mman',m==='man');}
@@ -1061,7 +1066,7 @@ function pat(L){
  const im=Math.max(1,num('p_imovel')),rr=num('p_renda')/100,pp=num('p_pos')/100,cic=Math.max(1,Math.round(num('f_ciclo'))),e=emb();
  let patr=0,renda=0,parc=0,bolso=0,prev=0,nTot=0;
  const D=lerDeg(L).map((g,i)=>{const pm=i===0?g.meia:Math.max(0,g.meia-prev),bo=pm*cic;bolso+=bo;
-  const n=Math.floor(g.lib/im+1e-9),rl=n*im*rr,pos=g.credit*pp,resto=Math.max(0,g.lib-n*im);nTot+=n;patr+=n*im;renda+=rl;parc+=pos;const sobra=renda-parc;prev=sobra;
+  const n=Math.floor(g.lib/im+1e-9),rl=n*im*rr,pos=g.lib*pp,resto=Math.max(0,g.lib-n*im);nTot+=n;patr+=n*im;renda+=rl;parc+=pos;const sobra=renda-parc;prev=sobra;
   return Object.assign(g,{i:i+1,n,rl,pos,resto,nTot,patr,renda,parc,sobra,pm,bo,boAc:bolso,mes:(i+1)*cic});});
  D.forEach((g,i)=>{g.prox=i+1<D.length?D[i+1].meia:null;g.cobre=g.prox!=null&&g.sobra>=g.prox-.005;});
  const Lt=D[D.length-1],ps=(()=>{let k=-1;for(let i=D.length-1;i>0;i--){if(D[i].pm<.5)k=i;else break;}return k;})();   /* DOT3_27OUT: só 'sobe sozinha' se TODOS os degraus seguintes se pagam */
@@ -1108,18 +1113,16 @@ function calc(){
   anim('k3',R.sobra,money);$('k3_k').textContent='Sobra livre';$('k3_s').textContent='por mês, depois de todas as parcelas';
   anim('k4',R.bolso,moneyK);$('k4_k').textContent='Do seu bolso';$('k4_s').textContent=R.sozinha?ateD(R.sozinha)+' · depois os imóveis pagam':N+' degraus · '+anos(R.meses);
  }
- const tg=$('v_tag');tg.textContent=R.sozinha?'✓ Sobe sozinha a partir do degrau '+R.sozinha:'Precisa de aporte em todos os degraus';tg.className='badge'+(R.sozinha?'':' md');
+ const tg=$('v_tag');tg.textContent=R.sozinha?'✓ Sobe sozinha a partir do degrau '+R.sozinha:'O bolso paga todos os degraus';tg.className='badge'+(R.sozinha?'':' md');
  $('v_prazo').textContent=N+' degraus · '+anos(R.meses);
  /* escada visual: a base (com bolso) e os degraus pagos pelo capital */
  const mx=Math.max(...D.map(g=>g.credit),1);
  $('esc').innerHTML=D.map((g,i)=>{const h=12+88*g.credit/mx,pg=i===0?false:g.pm<.5;return '<div class="est'+(pg?' pg':'')+(i===N-1?' tp':'')+'" title="Degrau '+g.i+'"><span class="vl">'+(v2?g.nTot+' im.':MIc(g.credit))+'</span><div class="br" style="height:'+h.toFixed(1)+'%"></div><span class="lb">'+(v2?MIc(g.credit):'D'+g.i)+'</span></div>';}).join('');
- $('escl').innerHTML='<span><i style="background:rgba(244,239,228,.3)"></i>base · com aporte do bolso</span><span><i style="background:var(--gg)"></i>'+(v2?'pago pela sobra dos imóveis':'pago pelo rendimento da base')+'</span>'+(v2?'<span>no alto: imóveis acumulados · embaixo: a carta</span>':'');
+ $('escl').innerHTML='<span><i style="background:rgba(244,239,228,.3)"></i>base · com parcela do bolso</span><span><i style="background:var(--gg)"></i>'+(v2?'pago pela sobra dos imóveis':'pago pelo rendimento da base')+'</span>'+(v2?'<span>no alto: imóveis acumulados · embaixo: a carta</span>':'');
  /* aviso da montagem */
  const av=$('a_av'),ci=cartaIni(),lim=num('a_lim');let avt='';
- if(au&&lim+.5<ci.m)avt='O aporte máximo ('+money(lim)+'/mês) é menor que a parcela da carta inicial ('+R2(ci.m)+'): o primeiro degrau já passa do que o cliente pode pagar.';
- else if(au&&v2&&Math.floor(ci.c*(1-e)/Math.max(1,num('p_imovel'))+1e-9)<1)avt='A carta inicial'+(e>0?' (já com o lance embutido)':'')+' não compra um imóvel de '+money(num('p_imovel'))+': aumente a carta ou escolha imóveis menores.';
- if(!avt&&au&&v2){const gp=ganhoP()(ci,1);if(gp<=0){const n1=Math.floor(ci.c*(1-e)/Math.max(1,num('p_imovel'))+1e-9);avt='Com essas premissas a carta não se paga: '+plural(n1,'imóvel rende ','imóveis rendem ')+money(n1*num('p_imovel')*num('p_renda')/100)+'/mês e a parcela depois de contemplar é '+money(ci.c*num('p_pos')/100)+'/mês. Aumente a renda, mude o valor do imóvel'+(e>0?' ou tire o lance embutido':'')+'.';}}
- if(au&&R&&R.D){const mx=Math.max(...R.D.map(g=>g.pm));if(mx>lim+.5&&!(lim+.5<ci.m))avt+=(avt?'<br>':'')+'Um dos degraus pede <b>'+money(mx)+'/mês</b> do bolso, acima do aporte máximo de '+money(lim)+'/mês (passa '+money(mx-lim)+'). Aumente o aporte, diminua os degraus ou mude a carta inicial.';}   /* DOT3_27OUT */
+ if(au&&v2&&Math.floor(ci.c*(1-e)/Math.max(1,num('p_imovel'))+1e-9)<1)avt='A carta inicial'+(e>0?' (já com o lance embutido)':'')+' não compra um imóvel de '+money(num('p_imovel'))+': aumente a carta ou escolha imóveis menores.';
+ if(!avt&&au&&v2){const gp=ganhoP()(ci,1);if(gp<=0){const n1=Math.floor(ci.c*(1-e)/Math.max(1,num('p_imovel'))+1e-9);avt='Com essas premissas a carta não se paga: '+plural(n1,'imóvel rende ','imóveis rendem ')+money(n1*num('p_imovel')*num('p_renda')/100)+'/mês e a parcela depois de contemplar é '+money(ci.c*(1-e)*num('p_pos')/100)+'/mês. Aumente a renda ou mude o valor do imóvel.';}}
  av.innerHTML=avt;av.style.display=avt?'block':'none';
  /* gráficos */
  lgd(v2);
@@ -1134,6 +1137,7 @@ function calc(){
  $('dg_p').textContent=v2?'Cada degrau: a carta, os imóveis que ela compra, a renda e a parcela depois de contemplar — e a sobra acumulada que paga o próximo degrau.':'Cada degrau: a carta, a parcela reduzida até contemplar, o ágio na venda, o capital guardado e o que ele rende por mês.';
  $('dgs').innerHTML=D.map(g=>card(g,R,v2,N)).join('');
  tabela(R,v2);
+ try{bolsoTab(R,v2);}catch(err){console.warn(err);}
  textos(R,v2);
  $('mb_k').textContent=nm;$('mb_v').textContent=v2?(L.nTot+' imóveis · sobra '+moneyK(R.sobra)+'/mês'):('Capital '+moneyK(R.cap)+' · bolso '+moneyK(R.bolso));
 }
@@ -1148,9 +1152,9 @@ function porque(R,v2,au){
  h+=it(k++,(au?'A carta inicial: ':'A primeira carta: ')+MI(ci.c),(ci.pk?'Dividida em <b>'+pkLongo(ci.pk)+'</b> ('+uPz(ci)+') para contemplar mais rápido por proximidade. Meia parcela somada de <b>'+R2(ci.m)+'/mês</b> até contemplar; cada degrau repete esse pacote de cotas.':'Prazo de '+ci.p+' meses e parcela reduzida de <b>'+R2(ci.m)+'/mês</b> até contemplar.')+
   (e>0?' Contemplando com <b>lance embutido de '+pct(e*100,0)+'</b>, o crédito liberado é '+moneyK(lib)+' por carta'+(v2?' — é com ele que se compram os imóveis ('+plural(Math.floor(lib/im+1e-9),'imóvel','imóveis')+' por carta).':', e o comprador paga o ágio sobre ele: '+moneyK(lib*R.agio)+' por carta.')
       :(v2?' Cada carta compra '+plural(Math.floor(ci.c/im+1e-9),'imóvel','imóveis')+' de '+moneyK(im)+'.':' Vendida com '+pct(R.agio*100,0)+' de ágio, cada carta deixa '+moneyK(ci.c*R.agio)+' de capital guardado.')));
- h+=it(k++,'A base: '+(bN===1?'degrau 1':'degraus 1 a '+bN),'É a parte paga do bolso — no máximo <b>'+money(maxPm)+'/mês</b>'+(au?(maxPm<=lim+.5?', dentro do aporte de '+money(lim)+'/mês':', <b>acima do aporte máximo</b> de '+money(lim)+'/mês (passa '+money(maxPm-lim)+'/mês)'):'')+', <b>'+money(R.bolso)+'</b> no total. '+(bN>1?'A base cresce até '+quem+' conseguir pagar sozinho o degrau seguinte.':'Logo depois do primeiro degrau, '+quem+' já paga o seguinte.'));
+ h+=it(k++,'A base: '+(bN===1?'degrau 1':'degraus 1 a '+bN),'É a parte paga do bolso: no degrau 1, a parcela da carta inicial (<b>'+R2(D[0].meia)+'/mês</b>); depois, só o que '+quem+' ainda não cobre. São <b>'+money(R.bolso)+'</b> no total. '+(bN>1?'A base cresce até '+quem+' conseguir pagar sozinho o degrau seguinte.':'Logo depois do primeiro degrau, '+quem+' já paga o seguinte.'));
  if(R.sozinha)h+=it(k++,'Do degrau '+R.sozinha+' em diante, '+(v2?'os imóveis pagam':'o capital paga'),au?'Cada novo degrau é o maior que '+quem+' paga sozinho, usando no máximo <b>'+pct(100-P.f*100,0)+'</b> dele (folga de '+pct(P.f*100,0)+') e com até <b>'+(P.g===1.5?'50% mais':P.g.toLocaleString('pt-BR')+'×')+'</b> cotas que o degrau anterior (perfil '+P.n.toLowerCase()+'). O cliente não coloca mais nada.':'Esses degraus nascem pagos por '+quem+'. O cliente não coloca mais nada.');
- else h+=it(k++,'A escada ainda não se paga sozinha','Com essas premissas, '+quem+' não chega a cobrir nenhum degrau inteiro. Aumente '+(v2?'a renda dos imóveis':'o ágio ou o rendimento')+', reduza o lance embutido ou aumente o aporte da base.',true);
+ else h+=it(k++,'A escada ainda não se paga sozinha','Com essas premissas, '+quem+' não chega a cobrir nenhum degrau inteiro. Aumente '+(v2?'a renda dos imóveis':'o ágio ou o rendimento')+', ou comece com uma carta inicial maior.',true);
  const L=R.L;
  h+=it(k++,'No topo',v2?('<b>'+plural(L.nTot,'imóvel','imóveis')+'</b> rendendo '+money(R.renda)+'/mês pagam todas as parcelas ('+money(R.parc)+') e sobram <b>'+money(R.sobra)+'/mês</b> livres.'):('O capital de <b>'+MI(R.cap)+'</b> rende '+money(R.rende)+'/mês — <b>'+xs(L.meia>0?R.rende/L.meia:0)+'</b> a parcela da maior carta. É a margem para uma contemplação que atrase ou um rendimento menor.'));
  const qMax=Math.max(...D.map(g=>g.q));
@@ -1183,6 +1187,20 @@ function card(g,R,v2,N){
   '<div class="dg4">'+cr+'<div><small>Parcela depois</small><b>'+money(g.pos)+'</b></div><div><small>Patrimônio</small><b class="g">'+moneyK(g.patr)+'</b></div><div><small>Sobra/mês</small><b class="o">'+money(g.sobra)+'</b></div></div>'+
   '<div class="dgn'+(ok?' ok':'')+'">'+nota+'</div></div>';
 }
+
+/* ESC_BOLSO_27OUT (Gabriel): o desembolso do cliente — a parcela da carta inicial no degrau 1; depois, a parcela do degrau menos o que o capital
+   (ou a sobra dos imóveis) já paga; quando o capital cobre tudo, o bolso zera. O total é o que ele gasta para montar a estrutura inteira. */
+function bolsoTab(R,v2){const D=R.D,quem=v2?'a sobra dos imóveis':'o rendimento';
+ const pagos=D.filter(g=>g.pm>.5),ult=pagos.length?pagos[pagos.length-1].i:0,ate=Math.min(D.length,ult+1);
+ const H=['Degrau','Parcela do degrau','Já pago por '+(v2?'imóveis':'rendimento'),'Do bolso/mês','Meses','Do bolso no degrau',v2?'Imóveis comprados':'Ágio na venda'];
+ const rows=D.slice(0,ate).map(g=>{const pc=g.i===1?0:Math.max(0,Math.min(g.meia,g.meia-g.pm));
+  return ['D'+g.i,R2(g.meia),g.i===1||pc<.5?'—':money(pc),g.pm>.5?'<b>'+money(g.pm)+'</b>':'<span class="okz">R$ 0</span>',g.pm>.5?String(R.cic):'—',g.pm>.5?'<b>'+moneyK(g.bo)+'</b>':'—',v2?plural(g.n,'imóvel','imóveis'):moneyK(g.agio)];});
+ if(ate<D.length)rows.push(['D'+(ate+1)+' a D'+D.length,'','','<span class="okz">R$ 0</span>','—','—',v2?plural(D.slice(ate).reduce((a,g)=>a+g.n,0),'imóvel','imóveis'):moneyK(D.slice(ate).reduce((a,g)=>a+g.agio,0))]);
+ rows.push(['<b>Total</b>','','','','<b>'+(ult*R.cic)+'</b>','<b>'+moneyK(R.bolso)+'</b>',v2?'<b>'+plural(R.L.nTot,'imóvel','imóveis')+'</b>':'<b>'+moneyK(D.reduce((a,g)=>a+g.agio,0))+'</b>']);
+ $('tbo').innerHTML='<thead><tr>'+H.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.map((r,i)=>'<tr'+(i===rows.length-1?' class="tot"':'')+'>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</tbody>';
+ const d1=D[0],seq=pagos.map(g=>money(g.pm)+'/mês no degrau '+g.i).join(', ');
+ $('bo_p').innerHTML='No degrau 1 o cliente paga a parcela da carta inicial, <b>'+R2(d1.meia)+'/mês</b>. Na contemplação ele '+(v2?'compra os imóveis, que passam a pagar parte da próxima parcela':'vende a carta com ágio, e o rendimento do ágio passa a pagar parte da próxima parcela')+': o bolso só completa a diferença. Com lance embutido de 30% em todos os degraus.';
+ $('bo_n').innerHTML=(ult?'Do bolso: '+seq+'. ':'')+(ult<D.length?'Do degrau '+(ult+1)+' em diante, <b>'+quem+' paga tudo</b> e o cliente não coloca mais nada. ':'')+'Para montar uma escada de <b>'+MI(R.soma)+'</b> em cartas'+(v2?' e chegar a <b>'+plural(R.L.nTot,'imóvel','imóveis')+'</b>':', com <b>'+MI(R.cap)+'</b> de capital guardado no topo')+', o cliente coloca <b>'+money(R.bolso)+'</b> do bolso, em '+anos(ult*R.cic)+'.';}
 function D_prev(R,g){return R.D[g.i-2]||{rende:0,sobra:0};}
 function tabela(R,v2){const D=R.D,e=R.e;
  $('tb_p').textContent=(v2?'Renda, parcela e sobra em R$ por mês, acumuladas até cada degrau. “Do bolso” é o que você completa na parcela reduzida enquanto o degrau não contempla.':'Rendimento em R$ por mês. “Do bolso” é o que você completa na parcela reduzida enquanto o degrau não contempla; nos degraus pagos pelo rendimento, é zero.')+(e>0?' Com lance embutido de '+pct(e*100,0)+', a carta libera '+pct(100-e*100,0)+' do crédito.':'');
@@ -1199,7 +1217,7 @@ function textos(R,v2){
    st(2,'Vende com ágio',pct(R.agio*100,0),'a carta contemplada tem comprador: ele paga o ágio e assume as parcelas que faltam.')+
    st(3,'Guarda o capital','Intacto','o ágio não é gasto: fica aplicado e vai se somando degrau após degrau.')+
    st(4,'O rendimento paga',pct(R.r*100,2)+' a.m.','só o rendimento do capital paga a parcela do degrau seguinte.')+
-   st(5,'Só sobe quando se paga',R.sozinha?'Desde o D'+R.sozinha:'Com aporte','você só entra na carta maior quando o rendimento cobre a parcela dela.',true);
+   st(5,'Só sobe quando se paga',R.sozinha?'Desde o D'+R.sozinha:'Com o bolso','você só entra na carta maior quando o rendimento cobre a parcela dela.',true);
   $('ctr').innerHTML=[['A contemplação não tem data','Proximidade e lance aceleram, mas não garantem o mês. A escada pode levar mais tempo que o ilustrado — por isso a parcela de cada degrau precisa caber no orçamento enquanto o anterior não vende.'],
    ['O ágio depende de comprador',pct(R.agio*100,0)+' é a referência de mercado para cartas contempladas, mas a liquidez varia por valor e região. Cartas muito grandes podem exigir ágio menor ou mais tempo para vender.'],
    ['O rendimento é meta, não contrato','Aplicações oscilam. Um rendimento menor atrasa a escada em um ou dois degraus; a regra não muda: só sobe quando o próximo degrau se paga.'],
@@ -1213,7 +1231,7 @@ function textos(R,v2){
    st(2,'Compra imóveis',moneyK(R.im),'em vez de vender a carta, usa o crédito: cada '+moneyK(R.im)+' vira um imóvel para alugar.')+
    st(3,'O imóvel rende',pct(R.rr*100,2)+' a.m.',money(R.im*R.rr)+' líquidos por imóvel, por mês — o imóvel inteiro trabalhando, não só o ágio.')+
    st(4,'A renda paga a parcela','≈ '+pct(R.pp*100,2)+' a.m.','o aluguel cobre a parcela da carta contemplada e ainda sobra.')+
-   st(5,'A sobra sobe a escada',R.sozinha?'Desde o D'+R.sozinha:'Com aporte','você só entra na carta maior quando a sobra dos imóveis cobre a parcela dela.',true);
+   st(5,'A sobra sobe a escada',R.sozinha?'Desde o D'+R.sozinha:'Com o bolso','você só entra na carta maior quando a sobra dos imóveis cobre a parcela dela.',true);
   $('ctr').innerHTML=[['A contemplação não tem data','Proximidade e lance aceleram, mas não garantem o mês. Enquanto a carta não contempla, a parcela reduzida dela é paga pela sobra dos degraus anteriores — por isso só subimos quando a sobra cobre.'],
    ['Locação tem vacância',money(R.im*R.rr)+' por imóvel é a média de um imóvel bem posicionado. Meses fracos reduzem a sobra; com renda menor a escada continua, só sobe mais devagar.'],
    ['Gestão de muitos imóveis','A partir de alguns degraus são dezenas de unidades: exige administradora de locação (custo já fora do líquido) e padronização de compra.'],
@@ -1577,6 +1595,22 @@ if(ios()){ W.baixarPDF=W.agPdfImagem; W.addEventListener('load',function(){ W.ba
 <script src="/tool-tour.js?v=10" defer></script>
 <style id="ag-sem-zoom">/* SEM_ZOOM_24OUT: no celular o campo precisa de 16px, senão o iPhone dá zoom ao digitar */
 @media (max-width:600px),(pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}}
+
+/* PDF_AGRUPA_27OUT (Gabriel): páginas mais agrupadas — sem quebra forçada e sem página meio vazia.
+   Os painéis grandes podem continuar na página seguinte; só as peças pequenas (cards, linhas, gráficos) ficam inteiras. */
+@media print{
+ .pgb:not(#_x),.brk:not(#_x){break-before:auto!important;page-break-before:auto!important}
+ .wrap .res>.panel:not(#_x),.wrap .res>.pane:not(#_x),.wrap .panel.big:not(#_x),.wrap .res>.panel.brk:not(#_x),.wrap #porq:not(#_x){break-inside:auto!important;page-break-inside:auto!important}
+ .wrap .dg:not(#_x),.wrap .kpi:not(#_x),.wrap .kpis:not(#_x),.wrap .verdict:not(#_x),.wrap .exs .st:not(#_x),.wrap .ctr>div:not(#_x),.wrap .cta:not(#_x),.wrap tr:not(#_x),.wrap .pqi:not(#_x),.wrap .cvb:not(#_x),.wrap .g2c>*:not(#_x),.wrap .resumo:not(#_x),.wrap .tle:not(#_x),.wrap .lcc:not(#_x),.wrap .esc:not(#_x),.wrap .chimg:not(#_x),.wrap .stg:not(#_x),.wrap .sgc:not(#_x),.wrap .sgb:not(#_x),.wrap .cmp:not(#_x),.wrap .vir:not(#_x),.wrap .side:not(#_x){break-inside:avoid!important;page-break-inside:avoid!important}
+ .wrap .ph:not(#_x),.wrap .chd:not(#_x),.wrap .brkh:not(#_x),.wrap h2:not(#_x),.wrap h3:not(#_x),.wrap .lgd:not(#_x){break-after:avoid!important;page-break-after:avoid!important}
+ .wrap p,.wrap li{orphans:3;widows:3}
+ .wrap .cvb.sm{height:140px}
+}
+
+/* ESC_BOLSO_27OUT */
+#tbo td:first-child{white-space:nowrap}#tbo .okz{color:#2F7D5B;font-weight:700}#tbo tr.tot td{border-top:1.5px solid var(--line);font-weight:700}
+.bonote{margin:10px 0 0;font:500 12.5px/1.55 var(--sans);color:var(--ink2)}
+@media print{.bonote{font-size:9.4px;margin-top:6px}#pbolso{break-inside:avoid!important;page-break-inside:avoid!important}}
 </style>
 </body>
 </html>
