@@ -677,6 +677,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
  <button class="logo" type="button" onclick="voltar()" title="Voltar à plataforma"><img class="lgi" src="/agion-logo.png" alt="Agion"><span><b>AGION</b><small>Wealth · Plataforma</small></span></button>
  <div class="crumb"><a onclick="voltar()">Ferramentas</a><i>›</i>Escadas<i>›</i><span id="cr_t">Financeira</span></div>
  <span class="sp"></span>
+ <button class="btn dk noprint" id="agLinkBtn" type="button" title="Gerar um link temporário para o cliente"><svg class="i" viewBox="0 0 24 24"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg><span class="bt">Link para o cliente</span></button>
  <button class="btn gd" id="pdfbtn" type="button" onclick="baixarMenu(event)" title="Baixar a proposta em PDF ou imagem" aria-haspopup="menu"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5"/><path d="M5 19.5h14"/></svg><span class="bt">Baixar</span></button>
 </div></div>
 
@@ -1538,6 +1539,35 @@ if(ios()){ W.baixarPDF=W.agPdfImagem; W.addEventListener('load',function(){ W.ba
  D.addEventListener('visibilitychange',function(){ if(!D.hidden)logo(); });
  if(W.visualViewport)W.visualViewport.addEventListener('resize',logo);
  setInterval(function(){ if(!D.hidden)W.agChartsFit(); },2500);
+})();
+</script>
+<script src="/calc-link.js?v=7"></script>
+<script id="ag-esc-link">/* ESCADA_LINK_27OUT · link temporário para o cliente, com a escada montada (financeira ou patrimonial) dentro do link */
+(function(){
+ var D=document;
+ function campos(){return [].slice.call(D.querySelectorAll('#params input[id]:not(.rg),#params select[id]'));}
+ function estado(){var v={};campos().forEach(function(el){v[el.id]=el.value;});
+  var s={m:SCN,mo:MONT[SCN],pf:PF[SCN],lim:TOQ.lim?1:0,v:v};
+  if(MONT[SCN]==='man')s.d=DEG[SCN].map(function(d){return {c:d.c,p:d.p,m:d.m,k:d.k,pk:d.pk||null,q:d.q};});
+  return s;}
+ window.escEstadoQS=function(){try{var j=JSON.stringify(estado());return '&s='+btoa(unescape(encodeURIComponent(j))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}catch(e){return '';}};
+ function aplica(s){
+  if(s.m&&s.m!==SCN){var b=D.querySelector('#segEsc button[data-t='+s.m+']');if(b)b.click();}
+  var v=s.v||{};
+  if(v.a_ct!=null){$('a_ct').value=v.a_ct;montaComp();}
+  if(v.a_cmp!=null)$('a_cmp').value=v.a_cmp;
+  if(s.lim)TOQ.lim=true;
+  sugerir();
+  campos().forEach(function(el){if(el.id==='a_ct'||el.id==='a_cmp')return;if(v[el.id]!=null)el.value=v[el.id];});
+  if(s.pf)PF[SCN]=s.pf;
+  if(s.mo==='man'&&s.d&&s.d.length){MAN[SCN]=s.d;DEG[SCN]=MAN[SCN];setMont('man');}else setMont('auto');
+  renderDeg();syncRanges();calc();}
+ try{var m=/[?&]s=([^&#]+)/.exec(location.search);if(m){var b=decodeURIComponent(m[1]).replace(/-/g,'+').replace(/_/g,'/');aplica(JSON.parse(decodeURIComponent(escape(atob(b)))));}}catch(e){console.warn('[escada-link]',e);}
+ if(window.__agLinkTemp){var pill=function(){var t=D.createElement('span');t.id='agLinkPill';t.className='pill';t.style.cssText='background:#0B2A26;color:#E8CC8B;font:600 12px "DM Sans",system-ui;padding:8px 14px;margin-left:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;border-radius:999px;white-space:nowrap';
+   var bb=$('agLinkBtn');if(bb)bb.style.display='none';var c=D.querySelector('.crumb');if(c)c.style.display='none';var sp=D.querySelector('.topi .sp');if(sp)sp.replaceWith(t);else D.body.appendChild(t);var lg=D.querySelector('.logo');if(lg){lg.removeAttribute('onclick');lg.style.cursor='default';lg.title='';}
+   function upd(){var e=window.__agLinkExp;if(!e){t.textContent='Link da Agion';return;}if(e<=Date.now()/1000){location.reload();return;}t.textContent='Link da Agion · disponível por mais '+(window.AgCalcLink?AgCalcLink.falta(e):'');}upd();setInterval(upd,1000);};
+  if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',pill);else pill();return;}
+ $('agLinkBtn').onclick=function(){if(window.AgCalcLink)AgCalcLink.modal({pagina:'escada-financeira',extra:function(){return window.escEstadoQS?escEstadoQS():'';}});};
 })();
 </script>
 <script src="/tool-tour.js?v=10" defer></script>

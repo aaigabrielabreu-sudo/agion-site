@@ -9,7 +9,7 @@
 (function(W){
  if(W.AgCalcLink)return;
  var API='https://bot.agionconsorcios.com.br';
- var FERR={'calc-alavancagem':'Calculadora de alavancagem','calc-financiamento':'Calculadora de financiamento','calc-avista':'Calculadora consórcio × à vista','calc-lance':'Calculadora de lance livre'};/* AVISTA_24OUT · LANCE_FERRAMENTA_26OUT */
+ var FERR={'calc-alavancagem':'Calculadora de alavancagem','calc-financiamento':'Calculadora de financiamento','calc-avista':'Calculadora consórcio × à vista','calc-lance':'Calculadora de lance livre','escada-financeira':'Escadas'};/* ESCADA_LINK_27OUT *//* AVISTA_24OUT · LANCE_FERRAMENTA_26OUT */
  var SEL_KEY='ag_link_prop', CACHE='ag_links_cache';
  function tok(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('sb-')===0&&k.indexOf('auth-token')>-1){var v=JSON.parse(localStorage.getItem(k));return v&&(v.access_token||(v.currentSession&&v.currentSession.access_token));}}}catch(e){}return null;}
  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}

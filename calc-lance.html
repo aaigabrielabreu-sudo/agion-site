@@ -652,7 +652,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
    <div class="panel rv" id="p_outros" style="animation-delay:.2s">
     <div class="ph"><h3><svg class="i" viewBox="0 0 24 24"><path d="M5 20v-7M12 20V5M19 20v-10M3 20h18"/></svg><span id="o_tit">Outros grupos onde o lance chega à referência</span></h3><span class="sp"></span><span class="pill" id="o_n">—</span></div>
     <p class="phs" id="o_sub">Toque num grupo para ver em destaque.</p>
-    <div class="lctw"><table class="lct"><thead><tr><th>Grupo</th><th class="r">Carta</th><th class="r">Lance alvo</th><th class="r">Necessário</th><th class="r">Do bolso</th><th class="r">Embutido</th><th class="r">Crédito líquido</th><th class="r">Parcela depois</th><th class="r hm">Cobertura</th></tr></thead><tbody id="o_body"></tbody></table></div>
+    <div class="lctw"><table class="lct"><thead><tr><th>Grupo</th><th class="r">Carta</th><th class="r">Lance alvo</th><th class="r">Necessário</th><th class="r">Do bolso</th><th class="r">Embutido</th><th class="r">Crédito líquido</th><th class="r hm">Cobertura</th></tr></thead><tbody id="o_body"></tbody></table></div>
     <div class="lcmore noprint" id="o_mais"></div>
    </div>
 
@@ -812,7 +812,7 @@ function calc(){
  $('o_n').textContent=vazio?'—':(bons.length?bons.length+' grupo'+(bons.length>1?'s':''):'nenhum chega à referência');
  $('o_sub').textContent=vazio?'A lista aparece quando você digitar os valores.':(bons.length?'Toque num grupo para ver em destaque. Ordem: a carta mais perto do crédito pedido, depois a cobertura.':'Com esse valor nenhum grupo contempla. Estes são os que ficam mais perto.');
  var mostra=MAIS?outros:outros.slice(0,10);
- $('o_body').innerHTML=mostra.length?mostra.map(linha).join(''):'<tr><td colspan="9" class="lcvz">'+(vazio?'—':'Só este grupo encaixa com esses valores.')+'</td></tr>';
+ $('o_body').innerHTML=mostra.length?mostra.map(linha).join(''):'<tr><td colspan="8" class="lcvz">'+(vazio?'—':'Só este grupo encaixa com esses valores.')+'</td></tr>';
  $('o_mais').innerHTML=outros.length>10?'<button type="button" id="o_mb">'+(MAIS?'Mostrar menos':'Ver os '+outros.length+' grupos')+'</button>':'';
  var mb=$('o_mb');if(mb)mb.onclick=function(){MAIS=!MAIS;calc();};
  [].forEach.call($('o_body').querySelectorAll('tr[data-k]'),function(tr){tr.onclick=function(){SEL=tr.dataset.k;calc();var v=$('verd');if(v&&v.getBoundingClientRect().top<0)window.scrollTo({top:Math.max(0,window.scrollY+v.getBoundingClientRect().top-90),behavior:'smooth'});};});
@@ -847,8 +847,7 @@ function linha(r){var x=r.x,t=TAG[r.tipo];
   '<td class="r" data-l="Necessário">'+R$(r.needT)+'</td>'+
   '<td class="r" data-l="Do bolso">'+R$(Math.min(r.usaT,r.needT))+'</td>'+
   '<td class="r" data-l="Embutido">'+(r.ET>0.5?R$(r.ET)+'<small>'+pct(r.E/x.K)+' da carta</small>':'—')+'</td>'+
-  '<td class="r" data-l="Crédito líquido"><b>'+(r.tipo==='peq'?'—':R$(r.liqT))+'</b></td>'+
-  '<td class="r" data-l="Parcela depois">'+(function(){var po=posCont(r);return po?R2(po.v)+'<small>'+po.n+' meses'+(r.q>1?' · cada':'')+'</small>':'—';})()+'</td>'+
+  '<td class="r" data-l="Crédito líquido"><b>'+(r.tipo==='peq'?'—':R$(r.liqT))+'</b>'+(function(){var po=posCont(r);return po?'<small>depois '+R2(po.v)+'/mês'+(r.q>1?' cada':'')+'</small>':'';})()+'</td>'+
   '<td class="r hm" data-l="Cobertura">'+covTxt(r)+'</td></tr>';}
 function hist(r){var b=$('h_body');if(!r){$('h_tit').textContent='Lances livres do grupo';b.innerHTML='<div class="lcvz">—</div>';return;}
  $('h_tit').textContent='Lances livres do grupo '+r.G.grupo;
