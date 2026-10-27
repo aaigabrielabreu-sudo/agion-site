@@ -422,14 +422,24 @@ function sincronizar(){ if(RO()){ toast('Saia do “Ver como” para pegar o seu
   /* CAL_APPLE_27OUT: no Apple o webcal:// vira http:// e o iPhone/Mac recusa ("A validação falhou"); webcals:// assina pelo https */
   var wca=String(u).replace(/^https?:\/\//,'webcals://');
   var op=[['agion','Google Agenda da Agion · principal',em+' · tarefas, reuniões e prazos entram junto','https://calendar.google.com/calendar/r?cid='+encodeURIComponent(wcg),'cal'],['google','Google pessoal','Gmail pessoal · cópia para ver','https://calendar.google.com/calendar/r?cid='+encodeURIComponent(wc),'globe'],
-   ['apple','Apple (iPhone, iPad e Mac)','Abre o app Calendário para assinar',wca,'phone'],
+   ['apple','Apple (iPhone, iPad e Mac)','Copia o link e mostra onde colar no Calendário',wca,'phone'],
    ['outlook','Outlook.com / Hotmail','Conta pessoal da Microsoft','https://outlook.live.com/calendar/0/addfromweb?url='+encodeURIComponent(u)+'&name='+nm,'mail'],
    ['o365','Outlook da empresa (Microsoft 365)','Conta de trabalho ou escola','https://outlook.office.com/calendar/0/addfromweb?url='+encodeURIComponent(u)+'&name='+nm,'mail']];
   l.innerHTML=op.map(function(o,i){ return (i===1?'<h6>Espelhos · só para ver</h6>':'')+'<a href="'+e4(o[3])+'" data-op="'+o[0]+'" target="_blank" rel="noopener"'+(i===0?' class="pri"':'')+'><span class="ic">'+I(o[4],18)+'</span><span>'+o[1]+'<small>'+e4(o[2])+'</small></span></a>'; }).join('')+
    '<button class="op" id="cscp"><span class="ic">'+I('copy',18)+'</span><span>Copiar o link<small>Para qualquer outro app de calendário</small></span></button>'+
    '<h6>Trazer para cá</h6><button class="op" id="csext"><span class="ic">'+I('dl',18)+'</span><span>Ver aqui as agendas do Google pessoal, Outlook ou iPhone<small>Só para ver, atualiza a cada 15 minutos</small></span></button>'+
    '<p style="font-size:11.8px;color:var(--mut);line-height:1.5;margin-top:10px">O Google e o Outlook atualizam calendários assinados de tempos em tempos (pode levar algumas horas). O link é só seu: não compartilhe. <a href="#" id="cstr" style="color:var(--goldd);display:inline;padding:0;background:none;font:inherit">Trocar o link</a> se precisar invalidar o antigo.</p>';
-  var ap=$('[data-op="apple"]',l); if(ap) ap.onclick=function(ev){ ev.preventDefault(); try{ (W.top||W).location.href=wca; }catch(e){ W.location.href=wca; } };
+  var ap=$('[data-op="apple"]',l); if(ap) ap.onclick=function(ev){ ev.preventDefault(); /* CAL_APPLE2_27OUT: o Safari não abre webcals:// e o webcal:// vira http:// (o Calendário recusa). Caminho que funciona: colar o link https na assinatura */
+   try{ navigator.clipboard.writeText(u); }catch(e){}
+   var ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+   var pI='<div style="margin:10px 0"><b style="font-size:13.5px">No iPhone ou iPad</b><ol style="margin:6px 0 0 18px;padding:0;font-size:13px;line-height:1.6;color:var(--ink2)"><li>Abra o app <b>Calendário</b> e toque em <b>Calendários</b>, embaixo.</li><li>Toque em <b>Adicionar Calendário</b> › <b>Adicionar Calendário Assinado</b>.</li><li>Cole o link, toque em <b>Buscar</b> e depois em <b>Adicionar</b>.</li></ol></div>';
+   var pM='<div style="margin:10px 0"><b style="font-size:13.5px">No Mac</b><ol style="margin:6px 0 0 18px;padding:0;font-size:13px;line-height:1.6;color:var(--ink2)"><li>Abra o app <b>Calendário</b> › menu <b>Arquivo</b> › <b>Nova Assinatura de Calendário</b>.</li><li>Cole o link e clique em <b>Assinar</b>.</li><li>Em <b>Local</b>, escolha <b>iCloud</b> para aparecer também no iPhone.</li></ol></div>';
+   closeSheet(true);
+   var s2=sheet('<h2>Assinar no Apple</h2><p style="color:var(--mut);font-size:13px;line-height:1.55;margin:6px 0 4px">O seu link já foi <b>copiado</b>. É só colar no app Calendário:</p>'+(ios?pI+pM:pM+pI)+
+    '<div class="fi"><textarea id="caplk" rows="2" readonly style="font-size:12px">'+e4(u)+'</textarea></div><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px"><button class="btn ol" id="capx">Fechar</button><button class="btn gd" id="capc">Copiar o link</button></div>',480);
+   var ta=$('#caplk',s2); if(ta) ta.onfocus=function(){ try{ ta.select(); }catch(e){} };
+   $('#capc',s2).onclick=function(){ try{ navigator.clipboard.writeText(u); toast('Link copiado','copy'); }catch(e){ if(ta){ ta.focus(); ta.select(); } } };
+   $('#capx',s2).onclick=function(){ closeSheet(); }; };
   $('#csext',l).onclick=function(){ closeSheet(); setTimeout(addExterno,60); };
   $('#cscp',l).onclick=function(){ try{ navigator.clipboard.writeText(u); toast('Link copiado','copy'); }catch(e){ perguntar('Seu link do calendário','Copie o link abaixo.','',  'Ok',u); } };
   $('#cstr',l).onclick=function(ev){ ev.preventDefault(); confirma('Trocar o link?','O link antigo para de funcionar. Depois é preciso assinar de novo com o novo link.','Trocar').then(function(ok){ if(!ok) return;
