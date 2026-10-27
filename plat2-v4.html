@@ -2397,7 +2397,7 @@ function cmsMaster(V){var b=$('#cmsb'),vp=V.filter(inPer),all=V.map(function(x){
   else if(k==='func'||k==='marg'){var us=EQUIPE.filter(function(u){return U[u]&&U[u].role!=='master'&&ap.some(function(r){return r[0].vend===u;});});
    h='<div class="g12"><div class="panel"><div class="ph"><h3>'+I('team',18)+(k==='func'?'Pagamentos aos funcionários':'Margem Agion por funcionário')+'</h3><small>toque num nome para ver os clientes</small></div><div class="org">'+us.map(function(u){var rs=ap.filter(function(r){return r[0].vend===u;}),tot=S(function(r){return k==='func'?r[1].fTot-r[1].fPago:r[1].agTot;},rs);
     return '<div class="orgn"><button class="orgh">'+av(un(u))+'<div class="t"><b>'+un(u)+'</b><small>'+rs.length+' clientes</small></div><b>'+brl2(tot)+'</b>'+I('chev',15)+'</button><div class="orgc"><div>'+rs.map(function(r){return '<div class="li" style="padding:7px 10px"><i class="dotp ok"></i><div class="t"><b style="font-size:12.8px">'+r[0].cli+'</b><small>'+oriChip(r[0]).replace(/<[^>]+>/g,'')+'</small></div><b style="font-size:12.8px">'+brl2(k==='func'?r[1].fTot-r[1].fPago:r[1].agTot)+'</b></div>';}).join('')+'</div></div></div>';}).join('')+'</div></div>'+
-   (k==='func'?'<div class="panel"><div class="ph"><h3>'+I('book',18)+'Histórico por funcionário</h3><span class="sp"></span><button class="btn sm ol" id="vfx">'+I('cal',13)+'Ver datas no Fluxo</button></div><table class="tbl"><thead><tr><th>Funcionário</th><th class="r">Comissão gerada</th><th class="r">Já pago</th><th class="r">A pagar</th><th class="r">Pós já pago</th></tr></thead><tbody>'+us.map(function(u){var rs=ap.filter(function(r){return r[0].vend===u;}),g=S(function(r){return r[1].fTot;},rs),p=S(function(r){return r[1].fPago;},rs);return '<tr><td><b>'+un(u)+'</b></td><td class="r">'+brl2(g)+'</td><td class="r">'+brl2(p)+'</td><td class="r"><b>'+brl2(g-p)+'</b></td><td class="r">R$ 0,00</td></tr>';}).join('')+'</tbody></table></div>'
+   (k==='func'?'<div class="panel"><div class="ph"><h3>'+I('book',18)+'Histórico por funcionário</h3><span class="sp"></span><button class="btn sm ol" id="vfx">'+I('cal',13)+'Ver datas no Fluxo</button></div><table class="tbl"><thead><tr><th>Funcionário</th><th class="r">Comissão gerada</th><th class="r">Já pago</th><th class="r">A pagar</th><th class="r">Pós já pago</th></tr></thead><tbody>'+us.map(function(u){var rs=ap.filter(function(r){return r[0].vend===u;}),g=S(function(r){return r[1].fTot;},rs),p=S(function(r){return r[1].fPago;},rs),pp=S(function(r){return (r[0].raw&&r[0].raw.pos_func_pago)?(r[1].posF||0):0;},rs);/* GPT_27OUT: pós já pago de verdade */return '<tr><td><b>'+un(u)+'</b></td><td class="r">'+brl2(g)+'</td><td class="r">'+brl2(p)+'</td><td class="r"><b>'+brl2(g-p)+'</b></td><td class="r">'+brl2(pp)+'</td></tr>';}).join('')+'</tbody></table></div>'
     :'<div class="panel"><div class="ph"><h3>'+I('trophy',18)+'Margem Agion — por cliente</h3></div>'+ap.filter(function(r){return r[1].agTot>0;}).sort(function(a,b){return b[1].agTot-a[1].agTot;}).map(function(r){return '<div class="hbar"><div class="hl"><span>'+r[0].cli+' <small style="color:var(--mut)">· '+fn(r[0].vend)+'</small></span><b>'+brl2(r[1].agTot)+'</b></div><div class="pb"><i data-p="'+(r[1].agTot/30000)+'"></i></div></div>';}).join('')+'</div>')+'</div>';}
   else if(k==='pos'){h='<div class="panel"><div class="ph"><h3>'+I('star',18)+'Pós-contemplação</h3><small>2% HS quando o cliente é contemplado · 1% do funcionário só em cliente próprio</small></div><table class="tbl"><thead><tr><th>Cliente</th><th>Funcionário</th><th class="r">Pós · funcionário</th><th class="r">Pós · Agion</th><th>Status</th></tr></thead><tbody>'+
    ap.filter(function(r){return !r[1].serv;}).map(function(r){return '<tr><td><b>'+r[0].cli+'</b> '+oriChip(r[0])+'</td><td>'+fn(r[0].vend)+'</td><td class="r">'+(r[1].posF?brl2(r[1].posF):'—')+'</td><td class="r">'+brl2(r[1].posA)+'</td><td>'+(r[0].sit==='CONTEMPLADO'?'<span class="pill ok">liberado</span>':'<span class="pill">na contemplação</span>')+'</td></tr>';}).join('')+'</tbody></table></div>';}
@@ -5771,12 +5771,12 @@ vcMontar();
 </script>
 <script src="/plat2-tour.js?v=11"></script>
 <script src="/plat-final-import.js?v=1"></script>
-<script src="/plat2-maav.js?v=3"></script>
+<script src="/plat2-maav.js?v=4"></script>
 <script src="/calc-link.js?v=6"></script>
 <script src="/plat2-histferr.js?v=7"></script>
-<script src="/plat2-crm7.js?v=7"></script>
-<script src="/plat2-plano.js?v=7"></script>
-<script src="/plat2-cal.js?v=12"></script>
+<script src="/plat2-crm7.js?v=8"></script>
+<script src="/plat2-plano.js?v=8"></script>
+<script src="/plat2-cal.js?v=13"></script>
 <script src="/plat2-simcom.js?v=7"></script>
 <script src="/plat2-novabas.js?v=2"></script>
 <script src="/plat2-avisos.js?v=2"></script>
