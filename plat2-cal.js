@@ -419,15 +419,17 @@ function sincronizar(){ if(RO()){ toast('Saia do “Ver como” para pegar o seu
   if(!r||!r.ok||!d||!d.url){ l.innerHTML='<div class="empty" style="padding:14px">Não consegui gerar o link agora. Tente de novo em instantes.</div>'; return; }
   var u=d.url, wc=d.webcal, nm=encodeURIComponent('Agion');
   var wcg=wc+(wc.indexOf('?')<0?'?':'&')+'g=1', em=CS.ag.email||'seu e-mail da Agion';
+  /* CAL_APPLE_27OUT: no Apple o webcal:// vira http:// e o iPhone/Mac recusa ("A validação falhou"); webcals:// assina pelo https */
+  var wca=String(u).replace(/^https?:\/\//,'webcals://');
   var op=[['agion','Google Agenda da Agion · principal',em+' · tarefas, reuniões e prazos entram junto','https://calendar.google.com/calendar/r?cid='+encodeURIComponent(wcg),'cal'],['google','Google pessoal','Gmail pessoal · cópia para ver','https://calendar.google.com/calendar/r?cid='+encodeURIComponent(wc),'globe'],
-   ['apple','Apple (iPhone, iPad e Mac)','Abre o app Calendário para assinar',wc,'phone'],
+   ['apple','Apple (iPhone, iPad e Mac)','Abre o app Calendário para assinar',wca,'phone'],
    ['outlook','Outlook.com / Hotmail','Conta pessoal da Microsoft','https://outlook.live.com/calendar/0/addfromweb?url='+encodeURIComponent(u)+'&name='+nm,'mail'],
    ['o365','Outlook da empresa (Microsoft 365)','Conta de trabalho ou escola','https://outlook.office.com/calendar/0/addfromweb?url='+encodeURIComponent(u)+'&name='+nm,'mail']];
   l.innerHTML=op.map(function(o,i){ return (i===1?'<h6>Espelhos · só para ver</h6>':'')+'<a href="'+e4(o[3])+'" data-op="'+o[0]+'" target="_blank" rel="noopener"'+(i===0?' class="pri"':'')+'><span class="ic">'+I(o[4],18)+'</span><span>'+o[1]+'<small>'+e4(o[2])+'</small></span></a>'; }).join('')+
    '<button class="op" id="cscp"><span class="ic">'+I('copy',18)+'</span><span>Copiar o link<small>Para qualquer outro app de calendário</small></span></button>'+
    '<h6>Trazer para cá</h6><button class="op" id="csext"><span class="ic">'+I('dl',18)+'</span><span>Ver aqui as agendas do Google pessoal, Outlook ou iPhone<small>Só para ver, atualiza a cada 15 minutos</small></span></button>'+
    '<p style="font-size:11.8px;color:var(--mut);line-height:1.5;margin-top:10px">O Google e o Outlook atualizam calendários assinados de tempos em tempos (pode levar algumas horas). O link é só seu: não compartilhe. <a href="#" id="cstr" style="color:var(--goldd);display:inline;padding:0;background:none;font:inherit">Trocar o link</a> se precisar invalidar o antigo.</p>';
-  var ap=$('[data-op="apple"]',l); if(ap) ap.onclick=function(ev){ ev.preventDefault(); try{ (W.top||W).location.href=wc; }catch(e){ W.location.href=wc; } };
+  var ap=$('[data-op="apple"]',l); if(ap) ap.onclick=function(ev){ ev.preventDefault(); try{ (W.top||W).location.href=wca; }catch(e){ W.location.href=wca; } };
   $('#csext',l).onclick=function(){ closeSheet(); setTimeout(addExterno,60); };
   $('#cscp',l).onclick=function(){ try{ navigator.clipboard.writeText(u); toast('Link copiado','copy'); }catch(e){ perguntar('Seu link do calendário','Copie o link abaixo.','',  'Ok',u); } };
   $('#cstr',l).onclick=function(ev){ ev.preventDefault(); confirma('Trocar o link?','O link antigo para de funcionar. Depois é preciso assinar de novo com o novo link.','Trocar').then(function(ok){ if(!ok) return;
