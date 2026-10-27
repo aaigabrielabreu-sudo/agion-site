@@ -96,10 +96,12 @@ async function carregar(){
 function proximosLocal(n){
   var c=S.cfg; if(!c||!c.ativo||c.modo==='manual') return [];
   var cand=(c.participantes||[]).filter(function(p){return p.ativo;}); if(!cand.length) return [];
+  /* GPT_27OUT: quem já bateu o limite do dia sai da prévia (conta os de hoje + os que a própria prévia já deu) */
+  var hj=Object.assign({},((S.dados||{}).hoje)||{}), cabe=function(p){ var l=+p.limite_dia||0; return !l||(hj[p.id]||0)<l; };
   var out=[];
-  if(c.modo==='fila'){ for(var i=0;i<n;i++) out.push(cand[i%cand.length].id); return out; }
-  var cr={}, tot=cand.reduce(function(a,p){return a+(+p.peso||1);},0);
-  for(var j=0;j<n;j++){ var best=null; cand.forEach(function(p){ cr[p.id]=(cr[p.id]||0)+(+p.peso||1); if(best===null||cr[p.id]>cr[best]) best=p.id; }); cr[best]-=tot; out.push(best); }
+  if(c.modo==='fila'){ var i=0,g=0; while(out.length<n&&g<n*cand.length+cand.length){ var p=cand[i%cand.length]; i++; g++; if(cabe(p)){ out.push(p.id); hj[p.id]=(hj[p.id]||0)+1; } } return out; }
+  var cr={};
+  for(var j=0;j<n;j++){ var ok=cand.filter(cabe); if(!ok.length) break; var tot=ok.reduce(function(a,p){return a+(+p.peso||1);},0), best=null; ok.forEach(function(p){ cr[p.id]=(cr[p.id]||0)+(+p.peso||1); if(best===null||cr[p.id]>cr[best]) best=p.id; }); cr[best]-=tot; out.push(best); hj[best]=(hj[best]||0)+1; }
   return out;
 }
 
@@ -163,7 +165,7 @@ function html(){
   h+='<div class="panel"><h2>Regras extras</h2>'
    +'<div class="rz-regra"><label class="rz-sw" style="margin:0" '+(ed?'onclick="AgionRodizio.av(\'ativo\',!AgionRodizio.cfg().alto_valor.ativo)"':'')+'><span class="rz-tg '+(av.ativo?'on':'')+(ed?'':' off-dis')+'"></span></label>'
    +'<div class="rz-tx"><b>Lead de alto valor vai para pessoas escolhidas</b><div class="note">Quando o lead fala um crédito a partir do valor abaixo, ele vai só para quem estiver marcado (entre eles vale o nível). Se ninguém marcado puder receber, segue a regra normal.</div>'
-   +'<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px"><span class="rz-lab" style="margin:0">A partir de</span><input class="rz-in" inputmode="numeric" value="'+esc(brl(av.minimo||1000000))+'"'+dis+' onchange="AgionRodizio.av(\'minimo\',+(this.value.replace(/\\D/g,\'\'))||0)">'
+   +'<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px"><span class="rz-lab" style="margin:0">A partir de</span><input class="rz-in" inputmode="numeric" value="'+esc(brl(av.minimo||1000000))+'"'+dis+' onchange="AgionRodizio.av(\'minimo\',AgionRodizio.num(this.value))">'
    +'<span class="rz-lab" style="margin:0 0 0 6px">Recebem</span>'+(d.equipe||[]).map(function(p){ var on=(av.ids||[]).indexOf(p.id)>=0; return '<button class="rz-chip'+(on?' on':'')+'"'+dis+(ed?' onclick="AgionRodizio.avId(\''+p.id+'\')"':'')+'>'+esc(primeiro(p.nome))+'</button>'; }).join('')+'</div></div></div>'
    +'<div class="rz-regra"><label class="rz-sw" style="margin:0" '+(ed?'onclick="AgionRodizio.set(\'manter_dono\',!AgionRodizio.cfg().manter_dono)"':'')+'><span class="rz-tg '+(c.manter_dono!==false?'on':'')+(ed?'':' off-dis')+'"></span></label>'
    +'<div class="rz-tx"><b>Manter o dono de quem já é da casa</b><div class="note">Se o telefone já é de um cliente, carta ou lead de alguém, continua com essa pessoa e não gasta a vez do rodízio. Recomendado ligado.</div></div></div>'
@@ -186,7 +188,7 @@ function html(){
 
 function pendentes(){
   var hist=((S.dados||{}).historico||[]), visto={}, out=[];
-  hist.forEach(function(x){ var k=String(x.phone||'').replace(/\D/g,'').slice(-8); if(!k||visto[k]) return; visto[k]=1; if(!x.owner_id&&/aguardando/i.test(x.regra||'')) out.push(x); });
+  hist.forEach(function(x){ var k=String(x.phone||'').replace(/\D/g,''); if(k.length>=12&&k.slice(0,2)==='55') k=k.slice(2); k=k.length>=10?k.slice(0,2)+k.slice(-8):k;   /* GPT_27OUT: DDD + 8 últimos — DDDs diferentes não se confundem */ if(!k||visto[k]) return; visto[k]=1; if(!x.owner_id&&/aguardando/i.test(x.regra||'')) out.push(x); });
   return out;
 }
 
@@ -208,7 +210,8 @@ var API={
   set:function(k,v){ if(!podeEditar()) return; S.cfg[k]=v; mudou(); },
   pp:function(i,k,v){ if(!podeEditar()) return; var p=S.cfg.participantes[i]; if(!p) return; p[k]=v; mudou(); },
   cat:function(i,k){ if(!podeEditar()) return; var p=S.cfg.participantes[i]; p.categorias=p.categorias||[]; var j=p.categorias.indexOf(k); if(j>=0) p.categorias.splice(j,1); else p.categorias.push(k); mudou(); },
-  av:function(k,v){ if(!podeEditar()) return; S.cfg.alto_valor=S.cfg.alto_valor||{}; S.cfg.alto_valor[k]=v; mudou(); },
+  num:function(t){ t=String(t==null?'':t).trim().replace(/R\$|\s/g,''); if(t.indexOf(',')>=0) t=t.replace(/\./g,'').replace(',','.'); else if(/^\d{1,3}(\.\d{3})+$/.test(t)) t=t.replace(/\./g,''); var v=parseFloat(t); return isFinite(v)?Math.round(v):0; },   /* GPT_27OUT: 2.000.000,00 = 2 milhões */
+ av:function(k,v){ if(!podeEditar()) return; S.cfg.alto_valor=S.cfg.alto_valor||{}; S.cfg.alto_valor[k]=v; mudou(); },
   avId:function(id){ if(!podeEditar()) return; var a=S.cfg.alto_valor=S.cfg.alto_valor||{}; a.ids=a.ids||[]; var j=a.ids.indexOf(id); if(j>=0) a.ids.splice(j,1); else a.ids.push(id); mudou(); },
   descartar:function(){ S.cfg=clone(S.dados.config); S.sujo=false; mktSub('dist'); },
   salvar:async function(){

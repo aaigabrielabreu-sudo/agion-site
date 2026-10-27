@@ -159,6 +159,7 @@ function popFazDiag(d){var s=W.sheet('<div class="lbl c7lb">CRM · Diagnóstico<
 /* DIAG_PROP_27OUT: é aqui que a proposta entra — primeiro anexa (ou gera), depois registra como ela chegou ao cliente */
 function popPropAnexa(ctx){ctx.subDoc='É a proposta que vai para o cliente. Fica no card e a Alice acompanha a decisão citando o que ele recebeu.';ctx.posDoc=function(){popPropostaEnvio(ctx);};
  popDoc(ctx,'completa','Anexe a proposta de '+e4(nm(ctx.d)),'b');}
+function chProp(o){try{return o.fonte==='arq'?('p:'+o.path):(o.x&&o.x.arquivo_path?('p:'+o.x.arquivo_path):(o.x&&o.x.url?('u:'+o.x.url):('i:'+(o.x&&o.x.id))));}catch(e){return '';}}   /* GPT_27OUT: identifica a proposta confirmada */
 async function urlProp(o){try{var p=o.fonte==='arq'?o.path:(o.x&&o.x.arquivo_path);if(p){var r=await sb().storage.from('propostas').createSignedUrl(p,3600);return r&&r.data&&r.data.signedUrl||null;}return (o.x&&o.x.url)||null;}catch(e){return null;}}
 /* DIAG_PROP_27OUT · PROP_SUGERE: a proposta feita no Gerador para este cliente já aparece pronta — "É esta?" — e o envio segue com ela */
 function popProposta(ctx){var d=ctx.d;
@@ -170,8 +171,10 @@ function popProposta(ctx){var d=ctx.d;
    '<div class="c7l" style="margin-bottom:12px"><button data-c7="ver">'+ic('doc',14)+'<span><b>'+e4(o.t)+'</b></span><small>'+(dt?dt+' · ':'')+'ver</small></button></div>'+
    '<div class="c7o">'+opc('usa','✅','Sim, é esta','Segue para o envio ao cliente')+opc('out','📎','Não, anexar outra','Importar, colar, gerar ou escolher outra proposta')+opc('fora','💬','Já enviei por conta','Mandei pelo WhatsApp ou e-mail próprio')+'</div>',true);
   $('[data-c7="ver"]',s).onclick=async function(){var w=null;try{w=window.open('','_blank');}catch(e){}var u=await urlProp(o);if(u){if(w)w.location=u;else location.href=u;}else{if(w)w.close();if(o.x&&o.x.texto)toast('Esta proposta é um texto colado: '+String(o.x.texto).slice(0,80)+'…','doc');else toast('Não consegui abrir a proposta agora.','x');}};
-  $('[data-o="usa"]',s).onclick=async function(){this.disabled=true;try{if(o.fonte==='arq')await salvaDoc(d,{tipo:'completa',titulo:o.t,arquivo_path:o.path});}catch(e){}
-   ctx.atvs=(ctx.atvs||[]).concat(['Proposta escolhida para o envio: '+o.t]);ctx.fecha();setTimeout(function(){popPropostaEnvio(ctx);},320);};
+  $('[data-o="usa"]',s).onclick=async function(){this.disabled=true;var falhou=false;try{if(o.fonte==='arq')await salvaDoc(d,{tipo:'completa',titulo:o.t,arquivo_path:o.path});}catch(e){falhou=true;}
+   ctx.escolhida=chProp(o);   /* GPT_27OUT: o e-mail abre com esta proposta selecionada */
+   if(falhou)toast('Não consegui ligar a proposta ao card agora. Ela segue para o envio, mas confira o card depois.','x');
+   ctx.atvs=(ctx.atvs||[]).concat(['Proposta escolhida para o envio: '+o.t+(falhou?' (não ficou anexada ao card)':'')]);ctx.fecha();setTimeout(function(){popPropostaEnvio(ctx);},320);};
   $('[data-o="out"]',s).onclick=function(){ctx.fecha();setTimeout(function(){popPropAnexa(ctx);},320);};
   $('[data-o="fora"]',s).onclick=async function(){this.disabled=true;try{await salvaDoc(d,{tipo:'material',titulo:'Proposta enviada por fora',enviado_em:new Date().toISOString(),enviado_por:W.realId()});}catch(e){}
    ctx.fecha();aplica(ctx,{},(ctx.atvs||[]).concat(['Proposta enviada por conta (WhatsApp ou e-mail próprio): '+o.t]));};
@@ -183,7 +186,7 @@ function popPropostaEnvio(ctx){var d=ctx.d,x=xl(d);
   '<button class="c7sem" data-c7="sem">Prosseguir sem registrar</button>',true);   /* SEM_DUPLO_20261022 */
  var dd=function(){var v=$('#c7dd',s).value;return v?{data_decisao:v}:{};};
  $('[data-o="plat"]',s).onclick=function(){var c=dd();ctx.fecha();   /* EMAIL_ESPEC_23OUT */
-  compoe(d,'completa',{titulo:'Enviar a proposta para '+nm(d),depois:function(i){aplica(ctx,c,(ctx.atvs||[]).concat(['Proposta enviada pela plataforma para '+i.para+(c.data_decisao?' · decide até '+c.data_decisao.split('-').reverse().join('/'):'')]));},cancela:function(){if(!ctx.fill)volta();}});};
+  compoe(d,'completa',{titulo:'Enviar a proposta para '+nm(d),pref:ctx.escolhida||'',depois:function(i){aplica(ctx,c,(ctx.atvs||[]).concat(['Proposta enviada pela plataforma para '+i.para+(c.data_decisao?' · decide até '+c.data_decisao.split('-').reverse().join('/'):'')]));},cancela:function(){if(!ctx.fill)volta();}});};
  $('[data-o="fora"]',s).onclick=async function(){var b=this;b.disabled=true;try{await salvaDoc(d,{tipo:'material',titulo:'Proposta enviada por fora',enviado_em:new Date().toISOString(),enviado_por:W.realId()});}catch(e){}
   ctx.fecha();var c=dd();aplica(ctx,c,(ctx.atvs||[]).concat(['Proposta enviada por fora (WhatsApp ou e-mail próprio)'+(c.data_decisao?' · decide até '+c.data_decisao.split('-').reverse().join('/'):'')]));};
  $('[data-c7="sem"]',s).onclick=function(){var c=dd();semDoc(ctx,'c',function(){popPropostaEnvio(ctx);},function(){ctx.fecha();aplica(ctx,c,(ctx.atvs||[]).concat(['Seguiu sem registrar o envio da proposta']));});};}
@@ -330,7 +333,8 @@ function compoe(d,tipo,op){op=op||{};var fechou=false,L=[];
  jaEnviadas(d).then(function(l){L=l.filter(function(o){return o.fonte==='arq'||(o.x&&(o.x.arquivo_path||o.x.url||o.x.texto)&&!/^Enviada/.test(o.x.titulo||''));});
   var sel=$('#c7dc',s);if(!sel)return;
   if(!L.length){sel.innerHTML='<option value="">Este card ainda não tem proposta anexada</option>';$('#c7er',s).innerHTML='<div class="c7w">Anexe a '+(tipo==='completa'?'completa':'resumida')+' no card antes de enviar.</div>';return;}
-  var pref=-1;L.forEach(function(o,i){var t=o.x?o.x.tipo:(/completo/.test(o.path)?'completa':'resumida');if(pref<0&&t===tipo)pref=i;});if(pref<0)pref=0;
+  var pref=-1;if(op.pref)L.forEach(function(o,i){if(pref<0&&chProp(o)===op.pref)pref=i;});   /* GPT_27OUT: a confirmada vem selecionada */
+  if(pref<0)L.forEach(function(o,i){var t=o.x?o.x.tipo:(/completo/.test(o.path)?'completa':'resumida');if(pref<0&&t===tipo)pref=i;});if(pref<0)pref=0;
   sel.innerHTML=L.map(function(o,i){return '<option value="'+i+'"'+(i===pref?' selected':'')+'>'+e4(o.t)+(o.q?' · '+new Date(o.q).toLocaleDateString('pt-BR'):'')+'</option>';}).join('');});
  var doc=function(){var o=L[+($('#c7dc',s).value||-1)];return o||null;};
  $('[data-c7="ok"]',s).onclick=function(){var b=this,para=$('#c7pa',s).value.trim(),o=doc(),er=$('#c7er',s);
@@ -348,10 +352,17 @@ function compoe(d,tipo,op){op=op||{};var fechou=false,L=[];
   if(!t){er.innerHTML='<div class="c7w er">O card não tem o WhatsApp do cliente.</div>';return;}
   var link='';try{if(o){var p=o.fonte==='arq'?o.path:o.x.arquivo_path;if(p){var c=sb(),r=await c.storage.from('propostas').createSignedUrl(p,60*60*24*30);link=(r&&r.data&&r.data.signedUrl)||'';}else if(o.x&&o.x.url)link=o.x.url;}}catch(e){}
   var txt=$('#c7ms',s).value.trim()+(link?'\n\n'+link:'');
-  try{W.open('https://wa.me/'+t+'?text='+encodeURIComponent(txt),'_blank');}catch(e){}
-  if(o)try{await salvaDoc(d,{tipo:tipo,titulo:'Enviada pelo WhatsApp: '+o.t,arquivo_path:o.fonte==='arq'?o.path:(o.x.arquivo_path||null),url:o.x?o.x.url||null:null,enviado_em:new Date().toISOString(),enviado_por:W.realId()});}catch(e){}
-  regEnvio(d,'Proposta '+(tipo==='completa'?'completa':'resumida')+' enviada pelo WhatsApp de '+eu()+' · '+agora());
-  fechou=true;W.closeSheet();toast('Abri o seu WhatsApp com a mensagem pronta','chat');if(op.depois)op.depois({para:'WhatsApp',via:'whatsapp',doc:o&&o.t});};
+  var jw=null;try{jw=W.open('https://wa.me/'+t+'?text='+encodeURIComponent(txt),'_blank');}catch(e){}
+  if(!jw){er.innerHTML='<div class="c7w er">O navegador não abriu o WhatsApp. Libere as janelas deste site e tente de novo.</div>';return;}
+  /* GPT_27OUT: abrir o WhatsApp não é enviar — só registra depois que a pessoa confirma */
+  fechou=true;W.closeSheet();
+  setTimeout(function(){var s2=W.sheet('<div class="lbl c7lb">WhatsApp</div><h2 class="c7h">Você enviou a mensagem?</h2><p class="c7s">Abri o seu WhatsApp com a mensagem pronta para '+e4(nm(d))+'. Só registro no card depois que você confirmar o envio.</p><div class="c7f"><button class="btn ol" data-c7="nao">Ainda não</button><span class="sp"></span><button class="btn gd" data-c7="sim">'+ic('send')+'Sim, enviei</button></div>',440);
+   s2.classList.add('c7');
+   $('[data-c7="nao"]',s2).onclick=function(){W.closeSheet();toast('Nada registrado. Quando enviar, marque no card.','chat');if(op.cancela)op.cancela();};
+   $('[data-c7="sim"]',s2).onclick=async function(){this.disabled=true;
+    if(o)try{await salvaDoc(d,{tipo:tipo,titulo:'Enviada pelo WhatsApp: '+o.t,arquivo_path:o.fonte==='arq'?o.path:(o.x.arquivo_path||null),url:o.x?o.x.url||null:null,enviado_em:new Date().toISOString(),enviado_por:W.realId()});}catch(e){toast('Registrei o envio, mas não consegui anexar a proposta ao card.','x');}
+    regEnvio(d,'Proposta '+(tipo==='completa'?'completa':'resumida')+' enviada pelo WhatsApp de '+eu()+' · '+agora());
+    W.closeSheet();toast('Envio registrado','chat');if(op.depois)op.depois({para:'WhatsApp',via:'whatsapp',doc:o&&o.t});};},350);};
  return s;}
 
 /* convite da reunião (o card já gravou a data) */

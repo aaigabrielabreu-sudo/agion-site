@@ -146,7 +146,9 @@ function resumoFunc(uid, compKey, all){
     var k=calc(v,all); gerada+=k.funcPre; paga+=k.funcPago; pend+=k.funcPend; hsPre+=k.hsPre; agion+=k.agionPre; posHs+=k.posHs; posAgion+=k.posAgion; reemb+=k.reemb;
     if(v.origem==='CLIENTE_PROPRIO'){ if(v.pos_status==='NAO_CONTEMPLADA') futura+=k.posFunc; else if(v.pos_func_pago) posFuncRec+=k.posFunc; else futura+=k.posFunc; }
     if(v.pos_status==='COMISSAO_POS_RECEBIDA') posRec+=k.posHs; });
-  var prox=null; mine.forEach(function(v){ if(!ativa(v))return; var k=calc(v,all); k.parcelas.forEach(function(p){ if(p.funcStatus!=='PAGA' && (!prox||p.data<prox.data)) prox={data:p.data,valor:p.func,cliente:v.cliente_nome}; }); });
+  var prox=null; mine.forEach(function(v){ if(!ativa(v))return; var k=calc(v,all); k.parcelas.forEach(function(p){ if(p.funcStatus!=='PAGA' && (!prox||p.data<prox.data)) prox={data:p.data,valor:p.func,cliente:v.cliente_nome}; });
+    /* GPT_27OUT: o ajuste de cluster pendente também é um recebimento — e pode vir antes das parcelas */
+    if(k.ajuste>0 && !k.ajustePago && k.ajusteData && (!prox||k.ajusteData<prox.data)) prox={data:k.ajusteData,valor:k.ajuste,cliente:v.cliente_nome,ajuste:true}; });
   return {prodTot:prodTot, prodCl:prodCl, cluster:cl, prox:nx, falta: nx?(nx===CLUSTERS[CLUSTERS.length-1]?CLUSTERS[CLUSTERS.length-2].ate+1-prodCl:(cl.ate+1-prodCl)):0,
     gerada:gerada, paga:paga, pend:pend, futura:futura, reemb:reemb, proximo:prox, n:comp.length, hsPre:hsPre, agion:agion, posHs:posHs, posAgion:posAgion, posRec:posRec, posFuncRec:posFuncRec};
 }
@@ -771,6 +773,9 @@ function paintLider(C){
   var w=C.querySelector('.cms-wrap'); if(w) w.insertAdjacentHTML('beforeend',porFunc);
 }
 
+/* GPT_27OUT: valor em reais do jeito brasileiro (1.234,56 · 1234.56 · 1.000) — centavos não viram parte do número */
+function pBRc(t){ t=String(t==null?'':t).trim().replace(/R\$|\s/g,''); if(t.indexOf(',')>=0) t=t.replace(/\./g,'').replace(',','.'); else if(/^-?\d{1,3}(\.\d{3})+$/.test(t)) t=t.replace(/\./g,''); var v=parseFloat(t); return isFinite(v)?Math.round(v*100)/100:0; }
+function fBRc(v){ return (+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 /* ===================== AÇÕES (Master) ===================== */
 async function upd(id, patch, desc){
   if(typeof roGuard==='function'&&roGuard())return false;
@@ -783,7 +788,7 @@ window.cmsToggle=async function(id,n,tipo){
   if(!eMaster()){flash('Só o Master pode alterar o status das parcelas.');return;}
   var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
   var k=calc(v,_vendas), cur=k.parcelas[n-1];
-  var ps=(v.parcelas||[]).slice(); var p=ps.find(function(x){return +x.n===n;}); if(!p){p={n:n};ps.push(p);}
+  var ps=(v.parcelas||[]).map(function(x){return Object.assign({},x);}); var p=ps.find(function(x){return +x.n===n;});   /* GPT_27OUT: cópia — se a gravação falhar, o estado na tela não muda */ if(!p){p={n:n};ps.push(p);}
   if(tipo==='hs'){ p.hs=(cur.hsStatus==='RECEBIDA')?'NAO_RECEBIDA':'RECEBIDA'; } else { p.func=(cur.funcStatus==='PAGA')?'NAO_PAGA':'PAGA'; }
   p.data_efetiva=new Date().toISOString().slice(0,10);
   await upd(id,{parcelas:ps},'Parcela '+n+' '+(tipo==='hs'?'HS '+p.hs:'funcionário '+p.func)+' — '+(v.cliente_nome||''));
@@ -799,7 +804,8 @@ window.cmsPos=async function(id){
   var o=await chooseModal('Contemplação — '+(v.cliente_nome||''),'Status atual: '+(POS_LBL[v.pos_status]||v.pos_status)+'.\n\nO que aconteceu?','A cota foi contemplada','A HS pagou a comissão pós');
   if(!o)return;
   var patch={}; if(o==='a'){ patch.pos_status='CONTEMPLADA'; patch.pos_data=new Date().toISOString().slice(0,10); }
-  else { patch.pos_status='COMISSAO_POS_RECEBIDA'; if(!v.pos_data)patch.pos_data=new Date().toISOString().slice(0,10); if(v.origem==='CLIENTE_PROPRIO'){ var pg=await chooseModal('Pagar o 1% pós a '+(user(v.vendedor_id).nome||'')+'?','Cliente próprio: o funcionário recebe 1% do crédito na contemplação. Esse valor já foi pago?','Sim, já paguei','Ainda não'); if(pg==='a') patch.pos_func_pago=true; } }
+  else { patch.pos_status='COMISSAO_POS_RECEBIDA'; if(!v.pos_data)patch.pos_data=new Date().toISOString().slice(0,10); if(v.origem==='CLIENTE_PROPRIO'){ var pg=await chooseModal('Pagar o 1% pós a '+(user(v.vendedor_id).nome||'')+'?','Cliente próprio: o funcionário recebe 1% do crédito na contemplação. Esse valor já foi pago?','Sim, já paguei','Ainda não'); if(!pg)return; if(pg==='a') patch.pos_func_pago=true;
+      else if(v.pos_func_pago){ var cf=await chooseModal('O 1% já estava marcado como pago','No sistema, o pós deste funcionário consta como pago. O que vale?','Manter como pago','Desmarcar: ainda não foi pago'); if(!cf)return; if(cf==='b') patch.pos_func_pago=false; } } }   /* GPT_27OUT */
   await upd(id,patch,'Contemplação '+(patch.pos_status)+' — '+(v.cliente_nome||''));
 };
 window.cmsSituacao=async function(id){
@@ -811,8 +817,8 @@ window.cmsSituacao=async function(id){
   var patch={}, desc='';
   if(t==='a'){ patch.situacao='INADIMPLENTE'; desc='INADIMPLENTE'; }
   else { var r=await chooseModal('Reembolso','O reembolso foi parcial ou total?','Parcial','Total (ou cota cancelada)'); if(!r)return; patch.situacao=r==='a'?'REEMBOLSO_PARCIAL':'REEMBOLSO_TOTAL'; desc=patch.situacao;
-    var val=await ask({title:'Valor do reembolso',msg:'Quanto foi devolvido ao cliente (R$)?',input:true,value:String(v.reembolso_valor||''),ok:'Salvar'}); if(val===null)return; patch.reembolso_valor=Number(String(val).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0; }
-  var obs=await ask({title:'Observação',msg:'Opcional. Ex.: motivo ou data combinada com o cliente.',input:true,value:v.obs||'',ok:'Salvar'}); if(obs!==null) patch.obs=obs;
+    var val=await ask({title:'Valor do reembolso',msg:'Quanto foi devolvido ao cliente (R$)?',input:true,value:v.reembolso_valor?fBRc(v.reembolso_valor):'',ok:'Salvar'}); if(val===null)return; patch.reembolso_valor=pBRc(val); }
+  var obs=await ask({title:'Observação',msg:'Opcional. Ex.: motivo ou data combinada com o cliente.',input:true,value:v.obs||'',ok:'Salvar'}); if(obs===null){ flash('Nada foi alterado.'); return; } patch.obs=obs;   /* GPT_27OUT: cancelar aqui cancela a alteração */
   await upd(id,patch,'Situação '+desc+' — '+(v.cliente_nome||''));
 };
 window.cmsEditar=async function(id){
@@ -924,9 +930,9 @@ window.cmsNovaVenda=async function(pre){
     $('cmsBusca').oninput=function(){ var q=this.value.trim().toLowerCase(); var first=null; [].forEach.call($('cmsCli').options,function(o){ var hit=!q||o.textContent.toLowerCase().indexOf(q)>=0; o.hidden=!hit; if(hit&&!first)first=o; }); if(first){ $('cmsCli').value=first.value; fill(); } };
     if($('cmsSug')) [].forEach.call($('cmsSug').querySelectorAll('button'),function(b){ b.onclick=function(){ $('cmsCli').value=b.getAttribute('data-cid'); fill(); var v=b.getAttribute('data-valor'); if(v&&!$('cmsCred').value) $('cmsCred').value=String(Math.round(+v)); [].forEach.call($('cmsSug').querySelectorAll('button'),function(x){x.classList.remove('on');}); b.classList.add('on'); }; });
     $('cmsCarta').onchange=function(){ var o2=this.selectedOptions[0]; var v=o2&&o2.getAttribute('data-valor'); if(v){ $('cmsCred').value=String(Math.round(+v)); $('cmsHint').textContent='sugerido: '+BRL(+v)+' (carta)'; } var ct=o2&&o2.getAttribute('data-cat'); if(ct){ $('cmsCat').value=ct; catTxt(); } };
-    $('cmsUsar').onclick=function(){ var o=$('cmsCli').selectedOptions[0]; var v=o.getAttribute('data-valor'); if(v) $('cmsCred').value=String(Math.round(+v)); else flash('Este cliente não tem valor sugerido. Digite o crédito.'); };
+    $('cmsUsar').onclick=function(){ var oc=$('cmsCarta').selectedOptions[0], vc=oc&&oc.value&&oc.getAttribute('data-valor'), o=$('cmsCli').selectedOptions[0]; var v=vc||o.getAttribute('data-valor'); if(v){ $('cmsCred').value=String(Math.round(+v)); $('cmsHint').textContent='sugerido: '+BRL(+v)+' ('+(vc?'carta escolhida':'cliente')+')'; } else flash('Este cliente não tem valor sugerido. Digite o crédito.'); };   /* GPT_27OUT */
     $('cmsCancel').onclick=function(){bg.remove();res(null);};
-    $('cmsOk').onclick=function(){ var r={cid:$('cmsCli').value,carta_id:$('cmsCarta').value||null,credito:Number(String($('cmsCred').value).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0,data:$('cmsData').value,origem:$('cmsOrig').value,categoria:$('cmsCat').value,vend:$('cmsVend')?$('cmsVend').value:null}; if(!r.categoria){flash('Escolha a categoria da carta.');return;} if(!r.origem){flash('Confirme a origem do cliente: lead da Agion ou cliente próprio.');return;} if(!(r.credito>0)){flash('Informe o valor do crédito vendido.');return;} if(!r.data){flash('Informe a data da venda.');return;} bg.remove(); res(r); };
+    $('cmsOk').onclick=function(){ var r={cid:$('cmsCli').value,carta_id:$('cmsCarta').value||null,credito:pBRc($('cmsCred').value),data:$('cmsData').value,origem:$('cmsOrig').value,categoria:$('cmsCat').value,vend:$('cmsVend')?$('cmsVend').value:null}; if(!r.categoria){flash('Escolha a categoria da carta.');return;} if(!r.origem){flash('Confirme a origem do cliente: lead da Agion ou cliente próprio.');return;} if(!(r.credito>0)){flash('Informe o valor do crédito vendido.');return;} if(!r.data){flash('Informe a data da venda.');return;} bg.remove(); res(r); };
   });
   if(!out)return;
   var cli=clis.find(function(c){return c.id===out.cid;})||{};

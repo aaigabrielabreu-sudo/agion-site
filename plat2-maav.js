@@ -17,7 +17,7 @@ var FAS={'0':'Novo lead','1':'Contato feito','2':'Estudo/Simulação','agendado'
 var ORD=['0','1','2','agendado','r1','3','4','perdido'];
 var COR={'0':'#2E6A8A','1':'#4F8A9A','2':'#6C9682','agendado':'#9BAF7A','r1':'#C5A059','3':'#B88A3E','4':'#0B2A26','perdido':'#C2463B'};
 function e(x){return (typeof esc4==='function'?esc4:function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});})(x);}
-function mesAt(o){var d=new Date();d.setMonth(d.getMonth()-(o||0));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function mesAt(o){var n=new Date(),d=new Date(n.getFullYear(),n.getMonth()-(o||0),1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}   /* GPT_27OUT: dia 1 — no dia 31, "mês passado" não volta para o mês atual */
 function nomeMes(m){var p=String(m||'').split('-');var n=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][(+p[1]||1)-1];return n+'/'+(p[0]||'').slice(2);}
 function quando(t){if(!t)return '—';var s=Math.round(Date.now()/1000-t);if(s<90)return 'agora';if(s<3600)return 'há '+Math.round(s/60)+' min';if(s<86400)return 'há '+Math.round(s/3600)+' h';return new Date(t*1000).toLocaleDateString('pt-BR');}
 function dt(iso){if(!iso)return '—';var d=new Date(iso);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}

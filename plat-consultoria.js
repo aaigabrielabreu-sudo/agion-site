@@ -621,9 +621,17 @@ async function cstMov(id,tipo){
   if(tipo==='resgate'){
     var at=cstPosicao(c).patrimonio;
     if(v>at) return alert('Resgate ('+BRL(v)+') maior que o patrimônio ('+BRL(at)+').');
+    /* GPT_27OUT: resgate com data passada compara com o saldo daquela data, não com o de hoje */
+    var sr=cstSerie(c), q=0; (c.movimentos||[]).forEach(function(m){ if(m.data<=d){ var cq=cotaEm(sr,m.data), vv=+m.valor||0; q+=m.tipo==='resgate'?-vv/cq:vv/cq; } });
+    var naData=q*cotaEm(sr,d);
+    if(v>naData+0.005) return alert('Em '+dt(d)+' o saldo era de '+BRL(naData)+': o resgate de '+BRL(v)+' passa do que havia naquela data.');
   }
   c.movimentos.push({tipo:tipo, valor:v, data:d, obs: tipo==='resgate'?'Resgate':'Aporte'});
-  await cstGravar(c);
+  var sb0=_sb(), on0=!!(sb0&&_online), ok=await cstGravar(c);
+  if(on0&&!ok){   /* GPT_27OUT: falhou na nuvem — desfaz e avisa, em vez de dizer "registrado" */
+    c.movimentos.pop(); try{ var st=_local(), i=st.carteiras.findIndex(function(x){return x.id===c.id;}); if(i>=0) st.carteiras[i]=c; if(typeof save==='function') save(); }catch(e){} cstLimpaCache();
+    alert('Não consegui gravar o '+lbl+' na nuvem. Nada foi registrado — tente de novo em instantes.'); if(typeof render==='function') render(); return;
+  }
   try{ flash(tipo==='resgate'?'Resgate registrado':'Aporte registrado'); }catch(e){}
   if(typeof render==='function') render();
 }

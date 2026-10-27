@@ -178,9 +178,10 @@ function extJanela(){ var r=CS.ref||sod(new Date()); if(CS.vista==='ano') return
  return [new Date(r.getFullYear(),r.getMonth()-2,1),new Date(r.getFullYear(),r.getMonth()+14,1)]; }
 function extCobre(){ if(!CS.extJan) return false; var p=periodo(); return p[0]>=CS.extJan[0]&&p[1]<=CS.extJan[1]; }
 function carregaExt(forca){ if(RO()||CS.extBusy) return Promise.resolve(); if(!forca&&extCobre()) return Promise.resolve(); var j=extJanela(); CS.extBusy=true;
- return Promise.resolve(papi('/api/cal/externos?de='+ymd(j[0])+'&ate='+ymd(j[1]),{method:'GET'})).then(function(r){ CS.extBusy=false; CS.extJan=j;
-   if(r&&r.ok&&r.data&&r.data.ok){ CS.ext=r.data.calendarios||[]; CS.extEv=r.data.eventos||[]; regExt(); if(cur==='calendario') pinta(); } },
-  function(){ CS.extBusy=false; CS.extJan=j; }); }
+ return Promise.resolve(papi('/api/cal/externos?de='+ymd(j[0])+'&ate='+ymd(j[1]),{method:'GET'})).then(function(r){ CS.extBusy=false;
+   if(r&&r.ok&&r.data&&r.data.ok){ CS.extJan=j; CS.ext=r.data.calendarios||[]; CS.extEv=r.data.eventos||[]; regExt(); if(cur==='calendario') pinta(); return true; }
+   return false; },   /* GPT_27OUT: com erro, o período não fica marcado como carregado — a próxima leitura tenta de novo */
+  function(){ CS.extBusy=false; return false; }); }
 function salvaOffX(){ try{ var o={}; Object.keys(CS.off).forEach(function(k){ if(k.charAt(0)==='x'&&CS.off[k]) o[k]=1; }); localStorage.setItem('agcal_offx',JSON.stringify(o)); }catch(e){} }
 function linkOuTexto(t){ t=String(t||''); return /^https?:\/\/\S+$/.test(t)?'<a href="'+e4(t)+'" target="_blank" rel="noopener">'+e4(t.length>48?t.slice(0,46)+'…':t)+'</a>':e4(t); }
 function verExt(x,el,ev){ var c=TC['x'+x.cal]||['','Agenda de fora','#888'], k=CS.ext.filter(function(a){ return a.id===x.cal; })[0]||{}, quando;
@@ -222,7 +223,13 @@ function editExterno(id){ var c=CS.ext.filter(function(a){ return a.id===id; })[
   '<div class="cev cxf"><input id="cxn" value="'+e4(c.nome)+'" maxlength="60" placeholder="Nome">'+coresX(c.cor)+'<div class="cerr" id="cxer"></div>'+
   '<div class="cbt"><button class="cdel" id="cxdel">Remover</button><button class="btn sm ol" id="cxat">'+I('refresh',14)+'Atualizar agora</button><span class="sp"></span><button class="btn sm gd" id="cxok">Salvar</button></div></div>',440);
  ligaCores(s);
- $('#cxat',s).onclick=function(){ var b=this; b.disabled=true; Promise.resolve(papi('/api/cal/externos',{method:'POST',body:JSON.stringify({acao:'atualizar'})})).then(function(){ closeSheet(); carregaExt(true).then(function(){ toast('Agendas de fora atualizadas','refresh'); }); },function(){ b.disabled=false; }); };
+ $('#cxat',s).onclick=function(){ var b=this, er=$('#cxer',s); b.disabled=true; er.textContent='';   /* GPT_27OUT: só diz "atualizadas" quando atualizou de verdade */
+  Promise.resolve(papi('/api/cal/externos',{method:'POST',body:JSON.stringify({acao:'atualizar'})})).then(function(r){
+   if(!r||!r.ok||(r.data&&r.data.ok===false)){ b.disabled=false; er.textContent=(r&&r.data&&(r.data.erro||r.data.error))||'Não consegui atualizar agora. Tente de novo.'; return; }
+   carregaExt(true).then(function(ok){ if(!ok){ b.disabled=false; er.textContent='Atualizei, mas não consegui ler as agendas agora. Tente de novo.'; return; }
+    var falhas=CS.ext.filter(function(a){ return a.erro; }); closeSheet();
+    toast(falhas.length?(falhas.length===1?'1 agenda não atualizou: '+falhas[0].nome:falhas.length+' agendas não atualizaram'):'Agendas de fora atualizadas',falhas.length?'x':'refresh'); }); },
+   function(){ b.disabled=false; er.textContent='Sem conexão com o robô. Tente de novo.'; }); };
  $('#cxok',s).onclick=function(){ var cb=$('.cxcs .on',s); Promise.resolve(papi('/api/cal/externos',{method:'POST',body:JSON.stringify({acao:'editar',id:c.id,nome:$('#cxn',s).value.trim(),cor:cb?cb.dataset.c:''})})).then(function(r){
    if(!r||!r.ok){ $('#cxer',s).textContent=(r&&r.data&&r.data.erro)||'Não consegui salvar agora.'; return; } closeSheet(); carregaExt(true); }); };
  $('#cxdel',s).onclick=function(){ var x=this; if(!x.dataset.ok){ x.dataset.ok=1; x.textContent='Confirmar: remover'; return; } x.textContent='Removendo…';
@@ -443,7 +450,9 @@ function sincronizar(){ if(RO()){ toast('Saia do “Ver como” para pegar o seu
   $('#csext',l).onclick=function(){ closeSheet(); setTimeout(addExterno,60); };
   $('#cscp',l).onclick=function(){ try{ navigator.clipboard.writeText(u); toast('Link copiado','copy'); }catch(e){ perguntar('Seu link do calendário','Copie o link abaixo.','',  'Ok',u); } };
   $('#cstr',l).onclick=function(ev){ ev.preventDefault(); confirma('Trocar o link?','O link antigo para de funcionar. Depois é preciso assinar de novo com o novo link.','Trocar').then(function(ok){ if(!ok) return;
-   Promise.resolve(papi('/api/cal/link',{method:'POST',body:JSON.stringify({trocar:true})})).then(function(){ closeSheet(); toast('Link trocado. Assine de novo com o novo link.','ok'); sincronizar(); }); }); };
+   Promise.resolve(papi('/api/cal/link',{method:'POST',body:JSON.stringify({trocar:true})})).then(function(r){   /* GPT_27OUT: só confirma a troca se a API confirmou */
+    if(!r||!r.ok||!r.data||!r.data.ok){ toast('O link NÃO foi trocado: '+((r&&r.data&&(r.data.erro||r.data.error))||'erro no robô')+'. O antigo continua valendo. Tente de novo.','x'); return; }
+    closeSheet(); toast('Link trocado. Assine de novo com o novo link.','ok'); sincronizar(); },function(){ toast('Sem conexão: o link NÃO foi trocado. O antigo continua valendo.','x'); }); }); };
  },function(){ var l=$('#cslist',s); if(l) l.innerHTML='<div class="empty" style="padding:14px">Não consegui gerar o link agora.</div>'; }); }
 
 /* ---------- menu: Comercial › Calendário ---------- */
