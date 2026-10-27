@@ -4712,6 +4712,51 @@ var OPS={d:null};
 function opsGet(){return papi('/api/ops').then(function(r){OPS.d=(r&&r.ok&&r.data)?r.data:{erro:1};}).catch(function(){OPS.d={erro:1};});}
 var OCERD={auto:'Ativo: <b style="color:var(--ink)">Automático</b> · usa o Claude e cai para o Gemini se o crédito acabar — sem o cliente perceber. Vale para a próxima mensagem.',claude:'Ativo: <b style="color:var(--ink)">Claude</b> · respostas mais humanas e contexto longo.',gemini:'Ativo: <b style="color:var(--ink)">Gemini</b> · paridade de regras e tom com o Claude.'};
 function opsPend(p){var c={alto:'bad',medio:'au',baixo:'bl'}[p.nivel]||'bl';return '<div class="li" style="padding:9px 10px;align-items:flex-start"><span class="pill '+c+'" style="flex:none">'+(p.nivel||'')+'</span><div class="t" style="margin-left:8px"><b style="font-size:13px;white-space:normal">'+esc4(p.txt||'')+'</b></div></div>';}
+/* ---------- Uso e limites dos serviços (Supabase, Vercel, GitHub, Hostinger) ---------- OPS_USO_20261027 */
+var OUSO_PASSOS={
+ supabase:['Abra <a href="https://supabase.com/dashboard/account/tokens" target="_blank" style="color:inherit;text-decoration:underline">Supabase › Account › Access Tokens</a> (já logado na conta da Agion).','Clique em <b>Generate new token</b>. Nome: <b>Agion Operação</b>. Se aparecer a escolha de permissões, marque só <b>leitura</b> da organização da Agion. Validade: 1 ano.','Copie o token (começa com <b>sbp_</b>) e cole abaixo. Ele fica guardado só no servidor do robô.'],
+ vercel:['Abra <a href="https://vercel.com/account/settings/tokens" target="_blank" style="color:inherit;text-decoration:underline">Vercel › Account Settings › Tokens</a> (entre com a conta que publica o site).','Em <b>Create Token</b>: nome <b>Agion Operação</b>, Scope = a sua conta (aaigabrielabreu-7726s-projects), Expiration = 1 ano. Clique em <b>Create</b>.','Copie o token e cole abaixo. Ele fica guardado só no servidor do robô.'],
+ github:['Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" style="color:inherit;text-decoration:underline">GitHub › Settings › Fine-grained tokens › Generate new token</a>.','Nome <b>Agion Operação</b>, Expiration 1 ano, Repository access = <b>Public repositories</b>. Em <b>Account permissions</b>, coloque <b>Plan</b> = <b>Read-only</b> (só isso).','Clique em <b>Generate token</b>, copie (começa com <b>github_pat_</b>) e cole abaixo.']};
+function ousoN(v,u){if(v==null||v==='')return '—';v=+v;var d=u==='GB'?(v<1?3:v<10?2:v<100?1:0):(u==='%'?1:0);return v.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:d});}
+function ousoCor(n){return {ok:'#3D8B66',au:'#C98A3A',bad:'#B5473F'}[n]||'#C5A059';}
+function ousoItem(it){var u=it.unidade||'',p=it.pct,lim=it.limite!=null?ousoN(it.limite,u)+(u?' '+u:''):'sem limite fixo';
+ var pv=(it.previsao!=null&&it.limite)?'<small style="color:'+((it.pct_prev||0)>=100?'var(--badt)':'var(--mut)')+'">no ritmo atual o mês fecha em '+ousoN(it.previsao,u)+(u?' '+u:'')+' ('+ousoN(it.pct_prev,'%')+'% do limite)</small>':'';
+ return '<div style="margin-top:12px"><div class="row" style="gap:8px;align-items:baseline"><small style="flex:1;color:var(--ink);font-weight:600">'+esc4(it.nome)+'</small><small style="color:var(--mut);white-space:nowrap"><b style="color:var(--ink)">'+ousoN(it.uso,u)+(it.uso!=null&&u?' '+u:'')+'</b> de '+lim+'</small></div>'+
+  (p!=null?'<div style="margin-top:6px;height:8px;background:var(--bg2);border-radius:999px;overflow:hidden"><i style="display:block;height:100%;width:'+Math.min(100,Math.max(1.5,p))+'%;background:'+ousoCor(it.nivel)+'"></i></div>':'')+
+  '<div class="row" style="gap:8px;margin-top:4px">'+(p!=null?'<small style="color:var(--mut)">'+ousoN(p,'%')+'% usado</small>':'')+'<span class="sp"></span>'+pv+'</div>'+(it.nota?'<small style="color:var(--mut)">'+esc4(it.nota)+'</small>':'')+'</div>';}
+function ousoCard(s){var piorI='ok';(s.itens||[]).forEach(function(i){if(i.nivel==='bad')piorI='bad';else if(i.nivel==='au'&&piorI==='ok')piorI='au';});
+ var st=s.erro?'<span class="pill bad">sem leitura</span>':'<span class="pill '+piorI+'">'+({ok:'dentro do plano',au:'atenção',bad:'estourou'}[piorI])+'</span>';
+ var fonte=s.fonte==='api'?'leitura automática'+(s._cache_min!=null?' · há '+s._cache_min+' min':' · agora'):s.fonte==='vps'?'medido no próprio servidor':s.fonte==='manual'?'leitura manual de '+esc4(s.quando||'')+' · conecte o token para atualizar sozinho':'ainda sem leitura';
+ var bt=s.svc==='hostinger'?'':(s.conectado?'<button class="btn sm" data-ouk="'+s.svc+'">'+I('lock',14)+'Trocar token ···'+esc4(s.token_fim||'')+'</button><button class="btn sm" data-oud="'+s.svc+'">Desconectar</button>':'<button class="btn sm gd" data-ouk="'+s.svc+'">'+I('lock',14)+'Conectar token</button>');
+ var extra='';if(s.svc==='hostinger'){extra='<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:10px">'+(s.vence?'<span class="pill '+((s.vence_dias||99)<=10?'au':'bl')+'">vence '+esc4(s.vence)+' · renovação '+esc4(s.renovacao||'')+'</span>':'')+(s.backup?'<span class="pill bl">backup '+esc4(s.backup)+'</span>':'')+(s.ligado_ha?'<span class="pill bl">ligado há '+esc4(s.ligado_ha)+'</span>':'')+'</div>';}
+ if(s.ciclo)extra+='<small style="display:block;color:var(--mut);margin-top:8px">Ciclo de cobrança: '+esc4(s.ciclo)+'</small>';
+ if(s.custo_usd!=null)extra+='<small style="display:block;color:var(--mut);margin-top:4px">Custo no mês: US$ '+(+s.custo_usd).toFixed(2).replace('.',',')+(s.cobrado_usd!=null?' · cobrado US$ '+(+s.cobrado_usd).toFixed(2).replace('.',','):'')+'</small>';
+ return '<div class="catc" style="padding:16px 18px"><div class="row" style="gap:8px;align-items:center"><b style="font-size:15px">'+esc4(s.titulo||s.svc)+'</b><span class="pill bl">'+esc4(s.plano||'')+'</span><span class="sp"></span>'+st+'</div>'+
+  '<small style="color:var(--mut)">'+esc4(s.papel||'')+'</small>'+
+  (s.erro?'<div class="banner" style="margin-top:10px;background:rgba(122,46,42,.12);color:var(--badt)">'+I('x',16)+'<span>'+esc4(s.erro)+'</span></div>':'')+
+  (s.aviso?'<div class="banner bl" style="margin-top:10px">'+I('bolt',16)+'<span>'+esc4(s.aviso)+'</span></div>':'')+
+  (s.itens||[]).map(ousoItem).join('')+extra+
+  (s.nota?'<p style="font-size:12px;color:var(--mut);margin:10px 0 0">'+esc4(s.nota)+'</p>':'')+
+  '<div style="font-size:11.5px;color:var(--mut);margin-top:10px">'+fonte+(s.upgrade?' · próximo plano: '+esc4(s.upgrade):'')+'</div>'+
+  '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">'+bt+'<a class="btn sm ol" href="'+esc4(s.painel||'#')+'" target="_blank" rel="noopener">'+I('arrow',14)+'Abrir painel</a></div></div>';}
+function opsUso(SV){SV=SV||{};var L=SV.lista||[];if(SV.erro||!L.length)return '<div class="panel gl rv mb" id="ous"><div class="ph"><h3>'+I('layers',18)+'Uso e limites dos serviços</h3></div><div class="empty" style="padding:12px">Não consegui ler os serviços agora'+(SV.erro?': '+esc4(SV.erro):'')+'.</div></div>';
+ var pc={ok:['ok','tudo dentro do plano'],au:['au','atenção'],bad:['bad','algum serviço estourou']}[SV.pior||'ok'];
+ return '<div class="panel gl rv mb" id="ous"><div class="ph"><h3>'+I('layers',18)+'Uso e limites dos serviços</h3><span class="sp"></span><span class="pill '+pc[0]+'">'+pc[1]+'</span><button class="btn sm" id="ousr" style="margin-left:8px">'+I('refresh',14)+'Ler agora</button></div>'+
+  '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px">'+L.map(ousoCard).join('')+'</div>'+
+  '<div class="banner bl" style="margin-top:12px">'+I('layers',16)+'<span>Cada barra é o consumo do mês contra o limite do plano atual. Verde: folga; laranja: passou de 80% ou o ritmo do mês vai passar do limite; vermelho: estourou. Os tokens ficam só no servidor do robô, só o master conecta, e servem apenas para ler o consumo.</span></div></div>';}
+function ousoBind(){
+ var r=$('#ousr');if(r)r.onclick=function(){r.disabled=true;r.innerHTML=I('refresh',14)+'Lendo…';papi('/api/ops/servicos?forcar=1').then(function(x){if(x&&x.ok&&x.data&&OPS.d){OPS.d.servicos=x.data;}go('operacao',null,1);}).catch(function(){toast('Não consegui ler agora.','x');go('operacao',null,1);});};
+ $$('[data-oud]').forEach(function(b){b.onclick=function(){var s=b.dataset.oud;papi('/api/ops/servicos',{method:'POST',body:JSON.stringify({svc:s,token:''})}).then(function(){toast('Token desconectado','check');OPS.d=null;go('operacao',null,1);});};});
+ $$('[data-ouk]').forEach(function(b){b.onclick=function(){var s=b.dataset.ouk,nm={supabase:'Supabase',vercel:'Vercel',github:'GitHub'}[s]||s;
+  var sh=sheet('<h2 style="margin:0 0 6px">Conectar '+nm+'</h2><p style="color:var(--mut);font-size:13px;margin:0 0 14px">Um token de leitura deixa a Operação mostrar o consumo do '+nm+' sozinha, sem você abrir o painel.</p>'+
+   '<ol style="margin:0 0 14px;padding-left:20px;font-size:13.5px;line-height:1.55">'+(OUSO_PASSOS[s]||[]).map(function(t){return '<li style="margin-bottom:6px">'+t+'</li>';}).join('')+'</ol>'+
+   '<div class="fi"><label>Token</label><input id="ouin" type="password" autocomplete="off" spellcheck="false" placeholder="cole aqui"></div><div id="ouer" style="font-size:12.5px;color:var(--badt);min-height:18px"></div>'+
+   '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px"><button class="btn ol" id="ouca">Cancelar</button><button class="btn gd" id="ouok">'+I('ok',15)+'Testar e salvar</button></div>',560);
+  $('#ouca',sh).onclick=function(){closeSheet();};setTimeout(function(){var i=$('#ouin',sh);if(i)i.focus();},350);
+  $('#ouok',sh).onclick=function(){var tk=($('#ouin',sh).value||'').trim(),ok=$('#ouok',sh);if(!tk){$('#ouer',sh).textContent='Cole o token primeiro.';return;}
+   ok.disabled=true;ok.innerHTML='Testando…';$('#ouer',sh).textContent='';
+   papi('/api/ops/servicos',{method:'POST',body:JSON.stringify({svc:s,token:tk})}).then(function(x){var d=x&&x.data;if(x&&x.ok&&d&&d.ok){closeSheet();toast(nm+' conectado'+(d.aviso?' (com aviso)':''),'check');try{plog('ops_token','ops','Conectou o token de leitura do '+nm,{});}catch(e){}OPS.d=null;go('operacao',null,1);}
+    else{ok.disabled=false;ok.innerHTML=I('ok',15)+'Testar e salvar';$('#ouer',sh).textContent=(d&&d.erro)||'Não deu certo. Confira o token e tente de novo.';}}).catch(function(){ok.disabled=false;ok.innerHTML=I('ok',15)+'Testar e salvar';$('#ouer',sh).textContent='Falha de conexão com o robô.';});};};});}
 R.operacao=function(v){
  if(!isM()){v.innerHTML='<div class="empty" style="margin-top:80px">Esta área é só do Master.</div>';return;}
  if(!OPS.d){v.innerHTML='<div class="empty" style="margin-top:80px">Carregando a Operação…</div>';opsGet().then(function(){if(cur==='operacao')go('operacao',null,1);});return;}
@@ -4760,11 +4805,11 @@ R.operacao=function(v){
  var pend='<div class="panel gl rv mb" id="ope"><div class="ph"><h3>'+I('bolt',18)+'Pendências e alertas</h3><span class="sp"></span><span class="pill '+(PE.length?'au':'ok')+'">'+PE.length+'</span></div>'+(PE.length?PE.map(opsPend).join(''):'<div class="empty" style="padding:16px">Nada pendente. Tudo em ordem.</div>')+'</div>';
  var integ='<div class="panel gl rv mb" id="oig"><div class="ph"><h3>'+I('grid',18)+'Mapa de integrações</h3></div><div class="row" style="gap:8px;flex-wrap:wrap">'+IG.map(function(x){return '<span class="pill '+(x.ok?'ok':'bad')+'">'+(x.ok?'● ':'○ ')+esc4(x.nome)+'</span>';}).join('')+'</div></div>';
  v.innerHTML='<div class="hx rv"><div><h1 class="h1"><em>Operação</em> do robô</h1><div class="sub">Custo e saúde do bot · tudo num lugar para decidir se vale deixá-lo sempre ligado</div></div><span class="sp"></span><button class="btn" id="opr2">'+I('refresh',16)+'Atualizar</button></div>'+
-  sn('opn',[['vis','Visão geral'],['saude','Saúde'],['hs','HS & boletos'],['pend','Pendências']],'vis')+
-  hero+proxy+meta+cerebro+ativ+alice+saude+zap+bol+hist+pend+integ;
+  sn('opn',[['vis','Visão geral'],['uso','Serviços'],['saude','Saúde'],['hs','HS & boletos'],['pend','Pendências']],'vis')+
+  hero+opsUso(d.servicos)+proxy+meta+cerebro+ativ+alice+saude+zap+bol+hist+pend+integ;
  function cd(){var ok=CE.claude_ok!==false;if($('#ocerd'))$('#ocerd').innerHTML=(OCERD[CEREBRO]||'')+(ok?'':' <span class="pill bad">Claude indisponível agora</span>');}
  cd();bindSeg('ocer',function(k){var ant=CEREBRO;CEREBRO=k;cd();papi('/api/ia',{method:'POST',body:JSON.stringify({provider:k})}).then(function(r){if(!r||!r.ok){CEREBRO=ant;toast('Falha ao trocar o cérebro. Tente de novo.','x');go('operacao',null,1);return;}CE.provider=k;try{plog('ia_provider','bot','Trocou o cérebro do robô para '+k,{});}catch(e){}toast('Cérebro trocado sem reiniciar o robô','robot');});});
- anchors('opn',{vis:'#opx',saude:'#osa',hs:'#ohs',pend:'#ope'});
+ anchors('opn',{vis:'#opx',uso:'#ous',saude:'#osa',hs:'#ohs',pend:'#ope'});ousoBind();
  $('#opr2').onclick=function(){OPS.d=null;go('operacao',null,1);};
 };
 
@@ -5702,7 +5747,7 @@ vcMontar=function(){var vc=$('#vc');if(!vc)return;if(!vcPode()){vc.style.display
 vcMontar();
 })();
 </script>
-<script src="/plat2-tour.js?v=10"></script>
+<script src="/plat2-tour.js?v=11"></script>
 <script src="/plat-final-import.js?v=1"></script>
 <script src="/plat2-maav.js?v=3"></script>
 <script src="/calc-link.js?v=6"></script>

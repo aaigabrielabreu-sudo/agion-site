@@ -187,9 +187,10 @@ var CFG=[
    {t:q('#dls'),title:'Lista de envios',text:'Cada contato com a data e o que foi enviado.',optional:true}
  ]},
  /* ---------------- OPERACAO ---------------- */
- {id:'operacao',page:'operacao',v:1,roles:M,g:'Atendimento',title:'Operação',desc:'Custo e saúde do robô num lugar só: proxy, cérebro, saúde, atividade, boletos, reservas e pendências.',post:function(){ sub('opn','vis')(); },steps:[
+ {id:'operacao',page:'operacao',v:2,roles:M,g:'Atendimento',title:'Operação',desc:'Custo e saúde do robô num lugar só: proxy, cérebro, saúde, atividade, boletos, reservas e pendências.',post:function(){ sub('opn','vis')(); },steps:[
    {t:null,title:'Operação do robô',text:'Tudo sobre o custo e a saúde do bot, para decidir se vale deixá-lo sempre ligado.'},
-   {t:q('#opn'),title:'Quatro seções',text:'Visão geral, Saúde, HS & boletos e Pendências.',demo:'click',wait:5000},
+   {t:q('#opn'),title:'Cinco seções',text:'Visão geral, Serviços, Saúde, HS & boletos e Pendências.',demo:'click',wait:5000},
+   {act:sub('opn','uso'),t:q('#ous'),title:'Uso e limites dos serviços',text:'Supabase, Vercel, GitHub e a VPS da Hostinger: quanto cada um já usou do plano no mês, a previsão de fechamento e quando vale subir de plano. Conecte o token de leitura de cada um para a conta atualizar sozinha.'},
    {t:q('#opx'),title:'Proxy residencial',text:'Quanto já foi usado e quanto resta do proxy — e em quê (cotas, reservas, boletos).'},
    {t:q('#omt'),title:'Custo da Meta',text:'Quanto o WhatsApp está custando na Meta (gasto real), o que vai ser cobrado no cartão e se o cartão foi recusado.'},
    {t:q('#oce'),title:'Cérebro do bot',text:'Aqui você troca quem responde: Automático, Claude ou Gemini — sem reiniciar o robô.'},
