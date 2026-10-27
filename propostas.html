@@ -577,23 +577,25 @@ function renderCompleto(){
 function fitT(x,t,f,mw){x.font=f;t=String(t);if(tw(x,t)<=mw)return t;while(t.length>1&&tw(x,t+'…')>mw)t=t.slice(0,-1);return t+'…';}
 function _parc(ct){return ct.tipo==='padrao'?ct.parcela:ct.parcelam;}
 function _stTot(st,chn){let q=0,cr=0,pa=0,op=0;st.itens.forEach(o=>{q+=o.q;cr+=o.ct.credito*o.q;pa+=_parc(o.ct)*o.q;if(o.ct.tipo==='padrao')op+=chn*o.q;});return {q,cr,pa,op};}
-/* contemplação por proximidade: a "gangorra" — o saldo vai e volta entre as vizinhas (302→301→303→300→304) */
+/* GANGORRA_26OUT (regra da HS): se o número sorteado já foi contemplado, a vez anda em gangorra — primeiro a cota de cima (a maior),
+   depois a de baixo (a menor), alternando: 302 sorteado → 303 → 301 → 304 → 300 */
 function gangorra(x,px,y){
  left(x,'CONTEMPLAÇÃO POR PROXIMIDADE',px,y+14,fPop(13,'700'),C.gold);y+=30;
- const nums=[300,301,302,303,304],step={302:1,301:2,303:3,300:4,304:5};
+ const nums=[300,301,302,303,304],step={303:1,301:2,304:3,300:4};
  const cw=152,gap=24,totw=5*cw+4*gap,x0=M+((W-2*M)-totw)/2,arcH=104,rowY=y+arcH+36,chH=84,by=rowY-42;
  const bx=n=>x0+nums.indexOf(n)*(cw+gap)+cw/2;
- [[302,301],[301,303],[303,300],[300,304]].forEach((p,i)=>{const a=bx(p[0]),b=bx(p[1]),h=22+i*26,d=Math.sign(b-a),sx=a+d*10,ex=b-d*10,mx=(sx+ex)/2,cy=by-2*h;
+ [[302,303],[303,301],[301,304],[304,300]].forEach((p,i)=>{const a=bx(p[0]),b=bx(p[1]),h=22+i*26,d=Math.sign(b-a),sx=a+d*10,ex=b-d*10,mx=(sx+ex)/2,cy=by-2*h;
   x.save();x.globalAlpha=1-i*0.16;x.strokeStyle=C.gold;x.lineWidth=3.4;x.lineCap='round';
   x.beginPath();x.moveTo(sx,by);x.quadraticCurveTo(mx,cy,ex,by);x.stroke();
   const ang=Math.atan2(by-cy,ex-mx),al=14;x.fillStyle=C.gold;x.beginPath();x.moveTo(ex,by+1);x.lineTo(ex-al*Math.cos(ang-0.42),by+1-al*Math.sin(ang-0.42));x.lineTo(ex-al*Math.cos(ang+0.42),by+1-al*Math.sin(ang+0.42));x.closePath();x.fill();
   x.restore();});
- nums.forEach((num,i)=>{const cx=x0+i*(cw+gap),own=(num===302),b=cx+cw/2;
-  x.beginPath();x.arc(b,rowY-18,17,0,Math.PI*2);x.fillStyle=own?C.gold:C.line;x.fill();
-  {const t=String(step[num]);x.font=fPop(15,'700');left(x,t,b-tw(x,t)/2,rowY-13,fPop(15,'700'),own?'#FFFFFF':C.ink2);}
-  rr(x,cx,rowY,cx+cw,rowY+chH,14);x.fillStyle=own?C.cream:C.white;x.fill();x.strokeStyle=own?C.gold:C.line;x.lineWidth=own?3:1;x.stroke();
-  {const t=String(num);x.font=fLora(34,'700');left(x,t,cx+(cw-tw(x,t))/2,rowY+53,fLora(34,'700'),own?C.goldd:C.ink);}
-  if(own){const t='SUA COTA';x.font=fPop(12,'700');left(x,t,cx+(cw-tw(x,t))/2,rowY+chH+24,fPop(12,'700'),C.goldd);}});
+ nums.forEach((num,i)=>{const cx=x0+i*(cw+gap),sor=(num===302),own=(num===303),b=cx+cw/2;
+  if(!sor){x.beginPath();x.arc(b,rowY-18,17,0,Math.PI*2);x.fillStyle=own?C.gold:C.line;x.fill();
+   const t=step[num]+'º';x.font=fPop(14,'700');left(x,t,b-tw(x,t)/2,rowY-13,fPop(14,'700'),own?'#FFFFFF':C.ink2);}
+  rr(x,cx,rowY,cx+cw,rowY+chH,14);x.fillStyle=sor?C.ink:(own?C.cream:C.white);x.fill();x.strokeStyle=sor?C.ink:(own?C.gold:C.line);x.lineWidth=own?3:1;x.stroke();
+  {const t=String(num);x.font=fLora(34,'700');left(x,t,cx+(cw-tw(x,t))/2,rowY+53,fLora(34,'700'),sor?'#FFFFFF':(own?C.goldd:C.ink));}
+  const lb=sor?'Nº SORTEADO':(own?'RECEBE PRIMEIRO':'');
+  if(lb){x.font=fPop(12,'700');left(x,lb,cx+(cw-tw(x,lb))/2,rowY+chH+24,fPop(12,'700'),sor?C.ink2:C.goldd);}});
  return rowY+chH+48;}
 function build(s,pg,DEN,D,cartas,cw,first){
  const [c,x]=newpg();let y=160,px=M;
@@ -774,7 +776,7 @@ function build(s,pg,DEN,D,cartas,cw,first){
  if(s.id==='mapa'){/* PROPOSTAS_V2_25OUT · A sua cota no grupo */
    const mp=s.mp,sh=168,fv=(t,mw)=>{for(const z of [38,34,30,26]){x.font=fLora(z,'700');if(tw(x,t)<=mw)return z;}return 26;};
    y=eb(x,px,y,'MAPEAMENTO DE CARTAS');y=tit(x,px,y,'A sua cota no grupo',48);
-   y=para(x,px,y,'Escolhemos a cota '+(mp.cota||'—')+' do grupo '+(mp.grupo||'—')+(mp.adm?(' ('+mp.adm+')'):'')+' olhando o mapa de contemplações do grupo: a posição dela perto das cotas já contempladas aumenta as chances de contemplação por proximidade.',fPop(24,'400'),C.ink2,W-2*M,38);y+=26;
+   y=para(x,px,y,'Escolhemos a cota '+(mp.cota||'—')+' do grupo '+(mp.grupo||'—')+(mp.adm?(' ('+mp.adm+')'):'')+' olhando o mapa de contemplações do grupo: a posição dela colada às cotas já contempladas aumenta as chances: na gangorra da HS, os números que já saíram vão primeiro para a cota livre de cima e depois para a de baixo.',fPop(24,'400'),C.ink2,W-2*M,38);y+=26;
    const im=window.__mapaImg,iw=W-2*M;
    if(im){const ih=Math.round(im.height*iw/im.width);x.save();rr(x,px,y,px+iw,y+ih,18);x.clip();x.drawImage(im,px,y,iw,ih);x.restore();rr(x,px,y,px+iw,y+ih,18);x.strokeStyle=C.line;x.lineWidth=1.5;x.stroke();y+=ih+30;}
    else{const ih=240;rr(x,px,y,px+iw,y+ih,18);x.fillStyle=C.cream2;x.fill();ctr(x,'Imagem do mapa de cotas',y+ih/2+8,fPop(22,'500'),C.mut,W);y+=ih+30;}
@@ -869,7 +871,7 @@ function build(s,pg,DEN,D,cartas,cw,first){
    seg.forEach((sgv,k)=>{left(x,sgv[0],px+28+k*sw,y+80,fPop(13,'500'),'#B9C6BF');left(x,sgv[1],px+28+k*sw,y+108,fLora(26,'700'),C.goldl);});
    y+=124+26;}
   if(T.q>1||!many){y=gangorra(x,px,y);
-   y=noteBox(x,px,y,'Como numa gangorra: quando a sua cota (302) é contemplada, o saldo vai e volta entre as vizinhas — 301, 303, 300, 304. Cotas próximas = mais chances de contemplar antes.',W-2*M);}
+   y=noteBox(x,px,y,'Como numa gangorra: se o número sorteado (302) já foi contemplado, a vez vai primeiro para a cota de cima (303), depois para a de baixo (301), depois 304 e 300 — sempre a maior primeiro. Por isso a cota livre colada logo acima das contempladas é a que tem mais chances.',W-2*M);}
   else y=noteBox(x,px,y,many?'Compare com as outras alternativas na página “Escolha a sua estratégia” — os valores de cada uma não se somam.':'Cada cota tem a sua parcela; o crédito soma.',W-2*M);
   return crop(c,footer(x,y,pg,DEN));
  }
@@ -1191,7 +1193,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
-<script src="/tool-tour.js?v=12" defer></script>
+<script src="/tool-tour.js?v=15" defer></script>
 
 <script src="/calc-link.js?v=5"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js" async></script>
@@ -1412,7 +1414,7 @@ function mapaPuxar(manual){var o=null;try{o=JSON.parse(localStorage.getItem(MAPA
  var lv=o.lance||{},lm=lv['Médio HS']||lv['Médio']||'';_mpSet('mp_lance',lm&&lm!=='—'?lm:'');
  var tx={'Bloco colado':function(v){return 'Bloco de contempladas colado na cota: '+v+'.';},'Contempladas em volta':function(v){return v.replace(/\s*\(até[^)]*\)\s*\.?$/,'.');},
   'Números do sorteio':function(v){return v;},'À venda':function(v){return 'Disponível no portal da HS'+(v.indexOf('prazo')>=0?' · '+v.slice(v.indexOf('prazo')).replace(/\.$/,''):'')+'.';},
-  'Reservada pela Agion':function(){return 'Reservada no portal da HS em nome da Agion.';},'Contemplada mais perto':function(v){return v;}};
+  'Reservada pela Agion':function(){return 'Reservada no portal da HS em nome da Agion.';},'Contemplada mais perto':function(v){return v;},'Na gangorra':function(v){return v;}};
  var por=(o.fatos||[]).map(function(f){var fn=tx[f.k];return fn?fn(f.v):'';}).filter(Boolean).map(function(t){return t.replace(/\.\.$/,'.');});
  _mpSet('mp_porque',por.join('\n'));
  var res=(o.fatos||[]).some(function(f){return f.k==='Reservada pela Agion';});
