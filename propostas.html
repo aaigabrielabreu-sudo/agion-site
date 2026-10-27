@@ -577,8 +577,8 @@ function renderCompleto(){
 function fitT(x,t,f,mw){x.font=f;t=String(t);if(tw(x,t)<=mw)return t;while(t.length>1&&tw(x,t+'…')>mw)t=t.slice(0,-1);return t+'…';}
 function _parc(ct){return ct.tipo==='padrao'?ct.parcela:ct.parcelam;}
 function _stTot(st,chn){let q=0,cr=0,pa=0,op=0;st.itens.forEach(o=>{q+=o.q;cr+=o.ct.credito*o.q;pa+=_parc(o.ct)*o.q;if(o.ct.tipo==='padrao')op+=chn*o.q;});return {q,cr,pa,op};}
-/* GANGORRA_26OUT (regra da HS): se o número sorteado já foi contemplado, a vez anda em gangorra — primeiro a cota de cima (a maior),
-   depois a de baixo (a menor), alternando: 302 sorteado → 303 → 301 → 304 → 300 */
+/* GANGORRA_26OUT / ITEM_54A_26OUT (regulamento da HS, item 54-A): se o número sorteado já foi contemplado, a busca anda em gangorra —
+   +1, −1, +2, −2…: 302 sorteado → 303 → 301 → 304 → 300 */
 function gangorra(x,px,y){
  left(x,'CONTEMPLAÇÃO POR PROXIMIDADE',px,y+14,fPop(13,'700'),C.gold);y+=30;
  const nums=[300,301,302,303,304],step={303:1,301:2,304:3,300:4};
@@ -776,7 +776,7 @@ function build(s,pg,DEN,D,cartas,cw,first){
  if(s.id==='mapa'){/* PROPOSTAS_V2_25OUT · A sua cota no grupo */
    const mp=s.mp,sh=168,fv=(t,mw)=>{for(const z of [38,34,30,26]){x.font=fLora(z,'700');if(tw(x,t)<=mw)return z;}return 26;};
    y=eb(x,px,y,'MAPEAMENTO DE CARTAS');y=tit(x,px,y,'A sua cota no grupo',48);
-   y=para(x,px,y,'Escolhemos a cota '+(mp.cota||'—')+' do grupo '+(mp.grupo||'—')+(mp.adm?(' ('+mp.adm+')'):'')+' olhando o mapa de contemplações do grupo: a posição dela colada às cotas já contempladas aumenta as chances: na gangorra da HS, os números que já saíram vão primeiro para a cota livre de cima e depois para a de baixo.',fPop(24,'400'),C.ink2,W-2*M,38);y+=26;
+   y=para(x,px,y,'Escolhemos a cota '+(mp.cota||'—')+' do grupo '+(mp.grupo||'—')+(mp.adm?(' ('+mp.adm+')'):'')+' olhando o mapa de contemplações do grupo: a posição dela colada às cotas já contempladas aumenta as chances: pela gangorra da HS (item 54-A), cada número que já saiu vai para a cota livre mais perto dele; no empate, a de cima.',fPop(24,'400'),C.ink2,W-2*M,38);y+=26;
    const im=window.__mapaImg,iw=W-2*M;
    if(im){const ih=Math.round(im.height*iw/im.width);x.save();rr(x,px,y,px+iw,y+ih,18);x.clip();x.drawImage(im,px,y,iw,ih);x.restore();rr(x,px,y,px+iw,y+ih,18);x.strokeStyle=C.line;x.lineWidth=1.5;x.stroke();y+=ih+30;}
    else{const ih=240;rr(x,px,y,px+iw,y+ih,18);x.fillStyle=C.cream2;x.fill();ctr(x,'Imagem do mapa de cotas',y+ih/2+8,fPop(22,'500'),C.mut,W);y+=ih+30;}
@@ -871,7 +871,7 @@ function build(s,pg,DEN,D,cartas,cw,first){
    seg.forEach((sgv,k)=>{left(x,sgv[0],px+28+k*sw,y+80,fPop(13,'500'),'#B9C6BF');left(x,sgv[1],px+28+k*sw,y+108,fLora(26,'700'),C.goldl);});
    y+=124+26;}
   if(T.q>1||!many){y=gangorra(x,px,y);
-   y=noteBox(x,px,y,'Como numa gangorra: se o número sorteado (302) já foi contemplado, a vez vai primeiro para a cota de cima (303), depois para a de baixo (301), depois 304 e 300 — sempre a maior primeiro. Por isso a cota livre colada logo acima das contempladas é a que tem mais chances.',W-2*M);}
+   y=noteBox(x,px,y,'Como numa gangorra: se o número sorteado (302) já foi contemplado, a vez vai primeiro para a cota de cima (303), depois para a de baixo (301), depois 304 e 300, alternando (regulamento da HS, item 54-A). Por isso a cota livre colada em contempladas recebe os números mais perto dela.',W-2*M);}
   else y=noteBox(x,px,y,many?'Compare com as outras alternativas na página “Escolha a sua estratégia” — os valores de cada uma não se somam.':'Cada cota tem a sua parcela; o crédito soma.',W-2*M);
   return crop(c,footer(x,y,pg,DEN));
  }
@@ -1193,7 +1193,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
-<script src="/tool-tour.js?v=15" defer></script>
+<script src="/tool-tour.js?v=16" defer></script>
 
 <script src="/calc-link.js?v=5"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js" async></script>

@@ -665,7 +665,7 @@ body.sheet-on .tt-help,body.sheet-on .tt-inv{opacity:0;pointer-events:none}
 .rscs{display:flex;flex-wrap:wrap;gap:5px}
 .rsb{border:1px solid #BFE0CF;background:#E7F4EC;color:#1F6B47;border-radius:9px;padding:3px 9px;font:700 12px/1.3 var(--sans);cursor:pointer}
 .rsb:hover{background:#D3EBDD}
-.negbar .btn.ol.sm{margin-left:auto}
+.negbar .btn.ol.sm{margin-left:auto;flex:none;white-space:nowrap;color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5)}.negbar .btn.ol.sm svg{stroke:#fff;color:#fff}/* NEGBAR_BTN_26OUT: o Reservar sumia no celular */
 /* RESERVA_CARTA_26OUT */
 .csel{margin:0 0 14px}
 .cslb{font:700 10.5px/1.2 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
@@ -935,31 +935,39 @@ function total(g,h){if(TOT[g.k])return TOT[g.k];var mx=(h&&h.max)||1,vv=S.VD&&S.
 function contemp(g,h){var out={},mv=marcas(g);Object.keys(h.cont).forEach(function(n){if(mv[n]&&mv[n].avenda)return;var v=h.cont[n].filter(function(x){return noPeriodo(x.mes,g.tipo);});if(v.length)out[n]=v;});return out;}
 function marcas(g){return S.M[g.k]||{};}
 function bloqueada(m){return m&&(m.reservada||m.indisponivel);}
-/* GANGORRA_26OUT (Gabriel, regra da HS): a partir do número sorteado a vez anda em gangorra — primeiro a cota de cima (a maior),
-   depois a de baixo (a menor), depois a próxima de cima, a próxima de baixo, sempre alternando. Quando o número cai numa cota
-   já contemplada, ele sobe PRIMEIRO para a cota livre logo acima do bloco; a livre logo abaixo do bloco é a 2ª.
-   cap = números que caem primeiro na cota (ela mesma + o bloco de contempladas colado logo abaixo).
-   (A regra anterior, "a livre mais perto", dividia o bloco ao meio — estava errada.) */
-function captura(ct,N){var cap={},livre=function(c){return !ct[c];};var c;
+/* ITEM_54A_26OUT (regulamento da HS, item 54-A; Gabriel confirmou em 26/10 que a leitura literal é a certa):
+   a busca anda em gangorra a partir do número sorteado: +1, −1, +2, −2… até achar uma cota apta. Num bloco de contempladas,
+   cada número vai PRIMEIRO para a cota livre mais perto dele (no empate, a de cima, porque o +1 vem antes do −1);
+   se ela não puder, vai para a cota livre do outro lado do bloco (2ª opção).
+   cap = números que vão primeiro para a cota (ela mesma + a parte dos blocos colados mais perto dela);
+   ext.seg = números para os quais ela é a 2ª opção; ext.pri / ext.sec = as faixas desses números, para os textos.
+   (Substitui GANGORRA_26OUT, que mandava o bloco inteiro para a cota de cima.) */
+function captura(ct,N,ext){var cap={},seg={},pri={},sec={},livre=function(c){return !ct[c];};var c;
+ var faixa=function(o,k,x){var L=o[k]||(o[k]=[]),u=L[L.length-1];if(u&&u[1]===x-1)u[1]=x;else L.push([x,x]);};
  for(c=1;c<=N;c++)if(livre(c))cap[c]=1;
- c=1;while(c<=N){if(livre(c)){c++;continue;}var a=c;while(c<=N&&!livre(c))c++;var b=c-1,L=a-1,R=b+1,alvo=R<=N?R:(L>=1?L:0);
-  if(alvo)cap[alvo]=(cap[alvo]||1)+(b-a+1);}
+ c=1;while(c<=N){if(livre(c)){c++;continue;}var a=c;while(c<=N&&!livre(c))c++;var b=c-1,L=a-1,R=b+1;
+  for(var x=a;x<=b;x++){var dl=L>=1?x-L:1e9,dr=R<=N?R-x:1e9;if(dl===1e9&&dr===1e9)continue;
+   var p1=dr<=dl?R:L,p2=p1===R?(L>=1?L:0):(R<=N?R:0);
+   cap[p1]=(cap[p1]||1)+1;faixa(pri,p1,x);
+   if(p2){seg[p2]=(seg[p2]||0)+1;faixa(sec,p2,x);}}}
+ if(ext){ext.seg=seg;ext.pri=pri;ext.sec=sec;}
  return cap;}
-/* MCARTAS_PROX_20261021: a força da oportunidade é a cota por proximidade. cap = quantos números do sorteio caem na
-   cota primeiro, pela gangorra da HS (GANGORRA_26OUT: o número que já saiu sobe para a livre logo acima do bloco; a de baixo é a 2ª);
-   bloco = contempladas seguidas coladas logo abaixo e logo acima. Alta: 5 ou mais números; média: 3 ou 4; baixa: 2 números, 2ª da gangorra
-   de um bloco de 2+ ou no meio de um bolo denso (metade ou mais dos números a até ±janela já contemplados).
-   A ordem é pelos números que caem primeiro, depois por ser a 2ª da gangorra e pela distância. */
+function faixasTxt(L){return (L||[]).map(function(f){return f[0]===f[1]?String(f[0]):(f[1]===f[0]+1?f[0]+' e '+f[1]:f[0]+' a '+f[1]);}).join(', ');}
+/* MCARTAS_PROX_20261021: a força da oportunidade é a cota por proximidade. cap = quantos números do sorteio vão primeiro para a
+   cota, pelo item 54-A da HS (ITEM_54A_26OUT: a livre mais perto do número; no empate, a de cima); seg = de quantos ela é a 2ª opção;
+   bloco = contempladas seguidas coladas logo abaixo e logo acima. Alta: 5 ou mais números; média: 3 ou 4; baixa: 2 números, 2ª opção
+   de 2 ou mais, ou no meio de um bolo denso (metade ou mais dos números a até ±janela já contemplados).
+   A ordem é pelos números que vão primeiro, depois pela 2ª opção e pela distância. */
 function oport(g,h){var ct=contemp(g,h),lista=Object.keys(ct).map(Number).sort(function(a,b){return a-b;}),N=total(g,h),W=S.janela,out=[],mk=marcas(g);
- if(!lista.length)return {lista:out,cap:{},ct:ct};var cap=captura(ct,N);
+ if(!lista.length)return {lista:out,cap:{},ct:ct,seg:{}};var ext={},cap=captura(ct,N,ext);
  var j=0;for(var c=1;c<=N;c++){if(ct[c]||g.nossas[c])continue;var m=mk[c];if(m&&(m.posicao||bloqueada(m)))continue;
   while(j<lista.length-1&&Math.abs(lista[j+1]-c)<=Math.abs(lista[j]-c))j++;
   var d=Math.abs(lista[j]-c);if(d>W)continue;
   var perto=0;for(var t=Math.max(0,j-W);t<Math.min(lista.length,j+W+1);t++){if(Math.abs(lista[t]-c)<=W)perto++;}
   var bx=0,x=c-1;while(x>=1&&ct[x]){bx++;x--;}var cx=0;x=c+1;while(x<=N&&ct[x]){cx++;x++;}
-  var cp=cap[c]||1;if(cp<2&&cx<2&&perto<W)continue;   /* nenhum número sobe para ela, não é a 2ª de um bloco e está fora de um bolo denso: não é oportunidade */
-  out.push({c:c,d:d,ref:lista[j],perto:perto,cap:cp,baixo:bx,cima:cx,bloco:bx+cx,niv:cp>=5?'alta':(cp>=3?'media':'baixa')});}
- out.sort(function(a,b){return b.cap-a.cap||b.cima-a.cima||a.d-b.d||b.perto-a.perto||a.c-b.c;});return {lista:out,cap:cap,ct:ct};}/* GANGORRA_26OUT: primeiro a cota colada logo ACIMA do maior bloco de contempladas (recebe primeiro), depois a 2ª da gangorra (bloco logo acima dela), depois a mais perto */
+  var cp=cap[c]||1,sg=ext.seg[c]||0;if(cp<2&&sg<2&&perto<W)continue;   /* nenhum número vai primeiro para ela, não é 2ª opção de 2+ e está fora de um bolo denso: não é oportunidade */
+  out.push({c:c,d:d,ref:lista[j],perto:perto,cap:cp,seg:sg,pri:ext.pri[c]||[],sec:ext.sec[c]||[],baixo:bx,cima:cx,bloco:bx+cx,niv:cp>=5?'alta':(cp>=3?'media':'baixa')});}
+ out.sort(function(a,b){return b.cap-a.cap||b.seg-a.seg||a.d-b.d||b.perto-a.perto||a.c-b.c;});return {lista:out,cap:cap,ct:ct,seg:ext.seg};}/* ITEM_54A_26OUT: primeiro onde mais números vão primeiro, depois a 2ª opção, depois a mais perto */
 /* ---------------- telas ---------------- */
 function janelaW(g){var s=S.per;return g.w?g.w[s]:null;}
 function media(g){var w=janelaW(g);return w&&w.m?w.c/w.m:0;}
@@ -993,7 +1001,7 @@ function bindCab(){
 /* MCARTAS_V4_20261021 · visual da plataforma nova (v4) + MCARTAS_PROX_20261021 (cotas por proximidade e negociação)
    Gabriel, 21/10: contempladas numa cor só (o vermelho claro do lance livre); oportunidade em roxo (alta forte, média
    mais clara, baixa mais clara ainda); a força da cota é o bloco de contempladas colado nela (cota por proximidade):
-   na gangorra da HS os números do bloco logo abaixo sobem primeiro para ela (GANGORRA_26OUT). Botão que gera sozinho N cotas por proximidade
+   pela gangorra da HS (item 54-A) cada número vai primeiro para a cota livre mais perto dele (ITEM_54A_26OUT). Botão que gera sozinho N cotas por proximidade
    e a "negociação": várias cotas escolhidas para o mesmo cliente, posicionadas de uma vez. */
 var IC={
  grid:'<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.8"/></svg>',
@@ -1028,8 +1036,8 @@ function tileDe(g,c,ct,opm,m){
  if(opm[c])return {cl:'o'+opm[c].niv[0]};
  return {cl:''};}
 /* o bloco colado: quantas contempladas seguidas logo abaixo e logo acima da cota */
-function blocoTxt(o){if(!o)return 'longe das contempladas';if(!o.bloco)return 'a '+o.d+' números da contemplada '+o.ref;
- return (o.baixo?o.baixo+' contemplada'+(o.baixo>1?'s':'')+' logo abaixo (sobem primeiro para ela)':'')+(o.baixo&&o.cima?' · ':'')+(o.cima?o.cima+' logo acima (ela é a 2ª da gangorra)':'');}
+function blocoTxt(o){if(!o)return 'longe das contempladas';if(!o.bloco)return 'a '+o.d+' números da contemplada '+o.ref+(o.seg?' · 2ª opção de '+o.seg+' nº':'');
+ return 'colada em '+o.bloco+' contemplada'+(o.bloco>1?'s':'')+(o.baixo&&o.cima?' ('+o.baixo+' abaixo, '+o.cima+' acima)':(o.baixo?' abaixo':' acima'))+(o.seg?' · 2ª opção de '+o.seg+' nº':'');}
 
 /* ---------- negociação: várias cotas escolhidas para o mesmo cliente ---------- */
 var NEG={};try{NEG=JSON.parse(localStorage.getItem('agmc-neg')||'{}')||{};}catch(e){NEG={};}
@@ -1121,7 +1129,7 @@ function negHtml(g,O,mk){if(indisp(g))return '<div class="ph"><h3>'+IC.magnet+'C
   h+='<div class="nl">'+a.map(function(c){var o=opm[c];return '<div class="nr" data-ver="'+c+'"><span class="cel tile '+(o?'o'+o.niv[0]:'')+'">'+c+'</span><span class="t"><b>'+(O.cap[c]||1)+' nº caem primeiro</b><small>'+blocoTxt(o)+'</small></span><button class="rm" data-rm="'+c+'" title="Tirar da negociação" aria-label="Tirar a cota '+c+' da negociação">'+IC.x+'</button></div>';}).join('')+'</div>'+
    '<div class="nsum"><b>'+tot+' números do sorteio</b> caem nessa'+(a.length>1?'s '+a.length+' cotas':' cota')+'.</div>'+
    '<div class="acts">'+(function(){var k=a.filter(function(c){return podeReservar(g,c);}).length;return k?'<button class="btn pu" id="negres">'+IC.check+(k>1?'Reservar as '+k+' no portal':'Reservar no portal')+'</button>':'';})()+'<button class="btn gd" id="negpos">'+IC.user+(a.length>1?'Posicionar nas '+a.length+' cotas':'Posicionar na cota')+'</button><div class="a2"><button class="btn ol" id="negcp">'+IC.copy+'Copiar lista</button><button class="btn ol" id="negx">Limpar</button></div></div>';}
- else h+='<p class="dp">Gera sozinho as cotas livres coladas logo acima dos maiores blocos de contempladas: na gangorra da HS, os números do bloco sobem primeiro para elas. Para pôr ou tirar uma cota à mão, é só tocar nela no mapa.</p>';
+ else h+='<p class="dp">Gera sozinho as cotas livres coladas nos maiores blocos de contempladas: pela gangorra da HS (item 54-A), cada número do bloco vai primeiro para a cota livre mais perto dele. Para pôr ou tirar uma cota à mão, é só tocar nela no mapa.</p>';
  return h;}
 function negPinta(g){var h=S.H[g.k];if(!h)return;var O=oport(g,h),mk=marcas(g),p=$('#neg');if(!p)return;p.innerHTML=negHtml(g,O,mk);bindNeg(g);
  var a=negDe(g),set={};a.forEach(function(c){set[c]=1;});
@@ -1197,11 +1205,11 @@ function abaGrupo(v){
   kpiH(IC.grid,'Total de cotas',nf(N),'<a href="#" id="tedit">ajustar</a>')+
   kpiH('<i class="cel mini ct"></i>','Contempladas',nf(nCt),(S.per==='all'?(mesesG.length?'desde '+mesLb(mesesG[0])+' · '+mesesG.length+' assembleias':'sem resultado'):perLb().toLowerCase()))+
   kpiH('<i class="cel mini ns"></i>','Clientes Agion',(S.oculta?'—':nf(Object.keys(g.nossas).length+nPos)),(S.oculta?'ocultos na tela':'cotas da carteira'+(nRsv?' + '+nRsv+' reservada'+(nRsv>1?'s':'')+' no portal para clientes':'')+(nPos-nRsv?' + '+(nPos-nRsv)+((nPos-nRsv)>1?' posições':' posição'):'')))+
-  kpiH('<i class="cel mini oa"></i>','Alta oportunidade',(ind?'—':nf(alta)),(ind?'grupo indisponível na HS':(soV&&rob?'à venda':'livres')+' onde 5 ou mais nº do sorteio sobem primeiro (gangorra)'+(nMk?' · '+nMk+' reservada'+(nMk>1?'s':''):'')))+
+  kpiH('<i class="cel mini oa"></i>','Alta oportunidade',(ind?'—':nf(alta)),(ind?'grupo indisponível na HS':(soV&&rob?'à venda':'livres')+' para onde 5 ou mais nº do sorteio vão primeiro (gangorra)'+(nMk?' · '+nMk+' reservada'+(nMk>1?'s':''):'')))+
  '</div>'+(ind?'<div class="indisp">'+IC.info+'<span><b>Grupo '+g.grupo+' indisponível</b>100% alocado: não aparece na oferta de venda da HS. Fica fora das classificações e das sugestões de cotas.</span></div>':'')+'<div class="g2"><div class="panel" id="pmapa"><div class="ph"><h3>'+IC.grid+'Mapa de cotas</h3><span class="pill">Grupo '+g.grupo+' · '+admLb+'</span><span class="sp"></span><label class="search" title="Ir direto para uma cota">'+IC.search+'<input id="busca" placeholder="Nº da cota" inputmode="numeric" autocomplete="off"></label></div>'+
  '<details class="lgdet" data-dk="lg"'+(window.innerWidth>560?' open':'')+'><summary>Legenda'+IC.chev+'</summary><div class="legend lg2">'+
   '<span class="lgg"><span class="lgh">Contemplada</span><span><i class="cel mini ct"></i>Já saiu <em>'+nf(nCt)+'</em></span>'+(prel.length?'<span><i class="cel mini ct prl"></i>Resultado do mês ('+prel.map(mesLb).join(', ')+')</span>':'')+'</span>'+
-  '<span class="lgg"><span class="lgh">Oportunidade</span><span><i class="cel mini oa"></i>Alta · 5+ nº sobem primeiro nela</span><span><i class="cel mini om"></i>Média · 3 a 4</span><span><i class="cel mini ob"></i>Baixa · 2 nº, 2ª da gangorra ou no bolo (±'+S.janela+')</span></span>'+
+  '<span class="lgg"><span class="lgh">Oportunidade</span><span><i class="cel mini oa"></i>Alta · 5+ nº vão primeiro para ela</span><span><i class="cel mini om"></i>Média · 3 a 4</span><span><i class="cel mini ob"></i>Baixa · 2 nº, 2ª opção ou no bolo (±'+S.janela+')</span></span>'+
   '<span class="lgg"><span class="lgh">Equipe</span>'+(S.oculta?'':'<span><i class="cel mini ns"></i>Cliente Agion</span><span><i class="cel mini pl"></i>Posição guardada</span>')+'<span><i class="cel mini ng"></i>Na negociação</span>'+(ind?'<span><i class="cel mini rs"></i>Reservada / indisponível</span><span><i class="cel mini oc"></i>Já vendida (grupo 100% alocado)</span>':rob?'<span><i class="cel mini ra"></i>Reservada pela Agion</span><span><i class="cel mini rs"></i>Reservada / indisponível</span><span><i class="cel mini"></i>À venda</span><span><i class="cel mini oc"></i>Já vendida</span>':'<span><i class="cel mini av"></i>À venda na HS</span><span><i class="cel mini rs"></i>Reservada / indisponível</span><span><i class="cel mini"></i>Livre</span>')+'</span></div></details>'+
  '<div class="fil" id="fil">'+FIL.filter(function(f){if(ind)return f[0]!=='disp'&&f[0]!=='av';if(rob)return f[0]!=='disp';return f[0]!=='av'||cnt.av>0||S.filtro==='av';}).map(function(f){return '<button class="chip'+(S.filtro===f[0]?' on':'')+'" data-k="'+f[0]+'">'+f[1]+(f[0]==='todos'?'':'<span class="n">'+(f[0]==='ns'&&S.oculta?'—':nf(cnt[f[0]]))+'</span>')+'</button>';}).join('')+'<span class="sp"></span><button class="tgl'+(S.oculta?' on':'')+'" id="ocl" title="Esconde nomes e cotas da carteira, para mostrar a tela ao cliente"><span class="tg"></span>Ocultar clientes</button></div>'+
  (N>500?'<div class="jump" id="jump"><span class="lbl">Ir para</span>'+jump+'</div>':'')+
@@ -1209,9 +1217,9 @@ function abaGrupo(v){
  '<div class="side"><div class="panel neg" id="neg">'+negHtml(g,O,mk)+'</div><div class="panel rsv" id="rsv">'+rsvHtml()+'</div>'+cartasHtml(g)+lvHistHtml(g)+
  '<div class="panel'+(S.sel&&S.detOpen?' open':'')+'" id="det">'+detalhe(g,S.sel,ct,opm,cap)+'</div>'+
  '<div class="panel" id="pop"><div class="ph"><h3>'+IC.star+'Melhores oportunidades</h3><span class="sp"></span><span class="pill pu">'+nf(opL.length)+'</span></div>'+(ind?'':(soV?'<p class="phs avn"><i class="cel mini'+(rob?'':' av')+'"></i><span>Só cotas '+(rob?'à venda no portal da HS':'da lista à venda ('+ddmm(aiV.dt)+')')+' · '+nf(op.length-opL.length)+' '+(rob?'já vendidas':'fora dela')+'</span></p>':''))+'<div class="lst">'+
-  (opL.slice(0,12).map(function(o){var on=!!negS[o.c];return '<div class="li" data-ver="'+o.c+'" role="button" tabindex="0" title="Ver a cota '+o.c+'"><span class="cel tile o'+o.niv[0]+'">'+o.c+'</span><span class="t"><b>'+(o.bloco?'Bloco de '+o.bloco+' contemplada'+(o.bloco>1?'s':''):'A '+o.d+' da '+o.ref)+'</b><small>'+(o.bloco?(o.baixo&&o.cima?o.baixo+' abaixo · '+o.cima+' acima':(o.baixo?'bloco abaixo · recebe primeiro':'bloco acima · 2ª da gangorra')):'perto da contemplada')+'</small></span>'+(!soV&&ehAv(mk[o.c])?'<span class="avb">à venda</span>':'')+'<span class="cap"><b>'+o.cap+'</b><small>nº primeiro</small></span><button class="add'+(on?' on':'')+'" data-add="'+o.c+'" title="'+(on?'Tirar da negociação':'Pôr na negociação')+'">'+(on?IC.check:IC.plus)+'</button></div>';}).join('')||'<div class="empty"><p>'+(ind?'Grupo indisponível na HS: fora das sugestões.':soV&&op.length?'Nenhuma cota da lista à venda está perto das contempladas. Desligue “Só sugerir cotas à venda” para ver as outras.':'Sem contempladas neste período.')+'</p></div>')+
+  (opL.slice(0,12).map(function(o){var on=!!negS[o.c];return '<div class="li" data-ver="'+o.c+'" role="button" tabindex="0" title="Ver a cota '+o.c+'"><span class="cel tile o'+o.niv[0]+'">'+o.c+'</span><span class="t"><b>'+(o.bloco?'Bloco de '+o.bloco+' contemplada'+(o.bloco>1?'s':''):'A '+o.d+' da '+o.ref)+'</b><small>'+(o.bloco?(o.baixo&&o.cima?o.baixo+' abaixo · '+o.cima+' acima':(o.baixo?o.baixo+' abaixo':o.cima+' acima')):'perto da contemplada')+'</small></span>'+(!soV&&ehAv(mk[o.c])?'<span class="avb">à venda</span>':'')+'<span class="cap"><b>'+o.cap+'</b><small>nº primeiro</small></span><button class="add'+(on?' on':'')+'" data-add="'+o.c+'" title="'+(on?'Tirar da negociação':'Pôr na negociação')+'">'+(on?IC.check:IC.plus)+'</button></div>';}).join('')||'<div class="empty"><p>'+(ind?'Grupo indisponível na HS: fora das sugestões.':soV&&op.length?'Nenhuma cota da lista à venda está perto das contempladas. Desligue “Só sugerir cotas à venda” para ver as outras.':'Sem contempladas neste período.')+'</p></div>')+
  '</div></div>'+
- '<details class="info" data-dk="info"><summary>'+IC.info+'<b>Como funciona a cota por proximidade</b>'+IC.chev+'</summary><div class="ib">Na HS a contemplação anda em gangorra: a partir do número sorteado, a vez vai primeiro para a cota de cima (a maior), depois para a de baixo (a menor), depois a próxima de cima, a próxima de baixo, sempre alternando. Se o número cai numa cota já contemplada, ele sobe primeiro para a cota livre logo acima do bloco; a livre logo abaixo é a segunda. Por isso a melhor posição é a cota livre colada logo acima de um bloco de contempladas: todos os números do bloco sobem primeiro para ela. Exemplo: com 101, 102 e 103 contempladas, os números 101 a 103 vão primeiro para a 104 e, se ela não puder, para a 100. No lance fixo e no limitado, o desempate segue a mesma gangorra a partir do número sorteado. Confirme sempre no portal da HS se a cota não está reservada por outro corretor.'+(prel.length?'<br><br><b>'+prel.map(mesLb).join(', ')+'</b> ainda é o resultado do mês (o final da HS ainda não saiu).':'')+'<br><br>Histórico do resultado final desde jun/2019; grupos mais antigos podem ter contemplações de antes disso.</div></details></div></div>';
+ '<details class="info" data-dk="info"><summary>'+IC.info+'<b>Como funciona a cota por proximidade</b>'+IC.chev+'</summary><div class="ib">Na HS (regulamento, item 54-A) a busca anda em gangorra a partir do número sorteado: primeiro a cota de cima, depois a de baixo, depois a segunda de cima, a segunda de baixo, alternando até achar uma cota apta. Por isso, quando o número cai numa cota já contemplada, ele vai para a cota livre mais perto dele; no empate, a de cima leva. A cota livre colada num bloco de contempladas recebe os números do bloco que estão mais perto dela, e é a 2ª opção para os outros. Exemplo: com 101, 102 e 103 contempladas, o 102 e o 103 vão para a 104 e o 101 vai para a 100. No lance fixo e no limitado, o desempate segue a mesma gangorra a partir do número sorteado. Confirme sempre no portal da HS se a cota não está reservada por outro corretor.'+(prel.length?'<br><br><b>'+prel.map(mesLb).join(', ')+'</b> ainda é o resultado do mês (o final da HS ainda não saiu).':'')+'<br><br>Histórico do resultado final desde jun/2019; grupos mais antigos podem ter contemplações de antes disso.</div></details></div></div>';
  var _sd=$('.side',v),_st=_sd?_sd.scrollTop:0,_wy=window.scrollY,_op={};$$('details[data-dk]',v).forEach(function(d){_op[d.dataset.dk]=d.open;});/* PAINEL_FIXO_26OUT */
  v.innerHTML=html;bindCab();bindRsv();
  var _sd2=$('.side',v);if(_sd2&&_st)_sd2.scrollTop=_st;$$('details[data-dk]',v).forEach(function(d){if(_op[d.dataset.dk]!=null)d.open=_op[d.dataset.dk];});if(_wy&&Math.abs(window.scrollY-_wy)>2)window.scrollTo(0,_wy);
@@ -1253,12 +1261,12 @@ function detalhe(g,c,ct,opm,cap){
   if(bloqueada(m)){var b=m.indisponivel||m.reservada;F.push(fato(m.indisponivel?'Indisponível':'Reservada','Marcada'+quem(b)+(b.obs?' · '+esc(b.obs):'')+'. Fica fora das oportunidades.'));}
   if(!g.nossas[c]&&!m.posicao&&!bloqueada(m)){var o=opm[c];
    if(o&&o.bloco)F.push(fato('Bloco colado','<b>'+o.bloco+' contemplada'+(o.bloco>1?'s':'')+'</b>'+(o.baixo?' · '+o.baixo+' abaixo ('+(c-o.baixo)+(o.baixo>1?'–'+(c-1):'')+')':'')+(o.cima?' · '+o.cima+' acima ('+(c+1)+(o.cima>1?'–'+(c+o.cima):'')+')':'')));
-   if(o&&o.baixo)F.push(fato('Na gangorra','É a 1ª cota livre acima do bloco: os números '+(c-o.baixo)+(o.baixo>1?' a '+(c-1):'')+' vêm primeiro para ela.'+(o.cima?' E é a 2ª para os números '+(c+1)+(o.cima>1?' a '+(c+o.cima):'')+'.':'')));
-   else if(o&&o.cima)F.push(fato('Na gangorra','É a 2ª da gangorra para os números '+(c+1)+(o.cima>1?' a '+(c+o.cima):'')+': primeiro vai a cota livre logo acima deles, depois ela.'));
+   if(o&&o.pri.length)F.push(fato('Na gangorra','Vêm primeiro para ela os números '+faixasTxt(o.pri)+': estão mais perto dela do que de outra cota livre.'+(o.sec.length?' É a 2ª opção para '+faixasTxt(o.sec)+'.':'')));
+   else if(o&&o.sec.length)F.push(fato('Na gangorra','É a 2ª opção para os números '+faixasTxt(o.sec)+': primeiro vai a cota livre mais perto deles, depois ela.'));
    if(o&&!o.bloco)F.push(fato('Contemplada mais perto','A '+o.d+' números da cota '+o.ref+'. Não está colada num bloco.'));
    if(!o)F.push(fato('Contemplada mais perto','Longe das contempladas do período (mais de ±'+S.janela+').'));
    if(o)F.push(fato('Contempladas em volta','<b>'+o.perto+' cota'+(o.perto>1?'s':'')+' contemplada'+(o.perto>1?'s':'')+'</b> entre a '+Math.max(1,c-S.janela)+' e a '+(c+S.janela)+' (até '+S.janela+' números para cima e para baixo, como está na Janela).'));}
-  F.push(fato('Números do sorteio','<b>'+((cap&&cap[c])||1)+' número'+(((cap&&cap[c])||1)>1?'s':'')+'</b> caem primeiro nesta cota'+((cap&&cap[c]>1)?' (ela e as contempladas logo abaixo, que sobem para ela na gangorra).':' (só ela mesma).')));
+  F.push(fato('Números do sorteio','<b>'+((cap&&cap[c])||1)+' número'+(((cap&&cap[c])||1)>1?'s':'')+'</b> caem primeiro nesta cota'+((cap&&cap[c]>1)?' (ela e as contempladas mais perto dela do que de outra cota livre).':' (só ela mesma).')));
   pill=g.nossas[c]?(S.oculta?'<span class="pill">Carteira</span>':'<span class="pill ok">Cliente Agion</span>'):(m.posicao?'<span class="pill ok">Posição guardada</span>':(m.indisponivel?'<span class="pill">Indisponível</span>':(m.reservada?'<span class="pill">Reservada</span>':(opm[c]?'<span class="pill pu">'+(opm[c].niv==='alta'?IC.star:'')+'Oportunidade '+NIV[opm[c].niv].toLowerCase()+'</span>':'<span class="pill">Livre</span>'))));
   if(roboRa(g,c))pill='<span class="pill ok">'+(m.posicao&&!S.oculta?'Cliente Agion · reservada':'Reservada pela Agion')+'</span>';
   else if((roboOc(g,c)||indisp(g))&&!g.nossas[c]&&!m.posicao&&!bloqueada(m))pill='<span class="pill">Já vendida</span>';
@@ -1864,7 +1872,7 @@ window.AgionMC={S:S,pintar:pintar,captura:captura,ranking:ranking,recarregar:rec
 carregar().then(function(d){preparar(d);pintar();ligaImport();}).catch(function(e){$('#view').innerHTML='<div class="panel empty">Não consegui carregar os dados agora. Recarregue a página.<br><small>'+esc(e&&e.message||e)+'</small></div>';});
 })();
 </script>
-<script src="/tool-tour.js?v=15" defer></script>
+<script src="/tool-tour.js?v=16" defer></script>
 
 <style id="ag-sem-zoom">/* SEM_ZOOM_24OUT: no celular o campo precisa de 16px, senão o iPhone dá zoom ao digitar */
 @media (max-width:600px),(pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}#busca::placeholder{font-size:13px}}
