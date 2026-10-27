@@ -125,33 +125,48 @@ function anteriorV4(){ try{ var fr=D.querySelector('#v4wrap iframe'); if(!fr) re
   v.appendChild(p); }catch(e){} }
 /* UMA_PLATAFORMA_20261020: a versão anterior saiu (tudo aponta para a plataforma nova) */
 
-/* ---------- ATUALIZAÇÃO AUTOMÁTICA (19/out, pedido do Gabriel) ----------
-   O app instalado (iPhone/Android) e o computador pegam a versão nova sozinhos, sem reinstalar:
-   compara a versão carregada (<meta name="agion-build">) com /plataforma-versao.json ao voltar
-   para o app e a cada 5 min. Se mudou: recarrega na hora; se a pessoa estiver digitando, mostra
-   "Nova versão · Atualizar" e recarrega quando ela sair do app. Ícone e nome do app na tela
-   de início continuam exigindo reinstalar (limite do iPhone). */
+/* ---------- ATUALIZAÇÃO (19/out; AVISO_UPD_27OUT, pedido do Gabriel) ----------
+   Compara a versão carregada (<meta name="agion-build">) com /plataforma-versao.json ao voltar para a
+   plataforma, ao focar a janela e a cada 2 min. Se saiu versão nova:
+   - quem está usando a plataforma naquele momento vê o botão "Nova versão da plataforma · Atualizar"
+     (não recarrega sozinho no meio do uso);
+   - se a plataforma está em segundo plano (outra aba/app), atualiza sozinha e volta já na versão nova.
+   O botão recarrega com ?_v=<versão> para furar cache; depois de 3 tentativas sem pegar a versão nova
+   ele some (não fica preso na tela). O × esconde o aviso até sair outra versão.
+   Ícone e nome do app na tela de início continuam exigindo reinstalar (limite do iPhone). */
 (function(){
   var meta=D.querySelector('meta[name="agion-build"]'); var MEU=meta&&meta.content; if(!MEU) return;
-  var ult=0, pend=false;
-  function digitando(){ try{ var a=D.activeElement; var fr=D.querySelector('#v4wrap iframe');
-      if(a&&fr&&a===fr){ try{ a=fr.contentDocument.activeElement; }catch(e){} }
-      return !!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&String(a.value||'').length>0) || !!D.querySelector('.modal:not(.hidden), #leadModal:not(.hidden)');
-    }catch(e){ return false; } }
-  function recarrega(novo){ try{ var k='agion:upd:'+novo; var n=+(sessionStorage.getItem(k)||0); if(n>=2) return; sessionStorage.setItem(k,String(n+1)); }catch(e){} location.reload(); }
-  function aviso(novo){ if(D.getElementById('v2upd')) return; var b=D.createElement('button'); b.id='v2upd'; b.type='button';
-    b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:100000;border:0;border-radius:999px;padding:11px 18px;font:700 13px system-ui,sans-serif;background:#0B2A26;color:#E8CC8B;box-shadow:0 10px 30px rgba(0,0,0,.3);cursor:pointer';
-    b.textContent='Nova versão da plataforma · Atualizar'; b.onclick=function(){ recarrega(novo); }; D.body.appendChild(b); }
+  var ult=0, pend=false, fechou='';
+  function tentativas(novo){ try{ return +(sessionStorage.getItem('agion:upd:'+novo)||0); }catch(e){ return 0; } }
+  function tira(){ var b=D.getElementById('v2upd'); if(b) b.remove(); }
+  function recarrega(novo){
+    try{ var k='agion:upd:'+novo, n=tentativas(novo); if(n>=3){ tira(); return; } sessionStorage.setItem(k,String(n+1)); }catch(e){}
+    try{ var q=location.search.replace(/[?&]_v=[^&]*/g,'').replace(/^&/,'?'); q=(q&&q!=='?'?q+'&':'?')+'_v='+encodeURIComponent(novo);
+      location.replace(location.pathname+q+location.hash); }catch(e){ location.reload(); } }
+  function aviso(novo){ if(fechou===novo||tentativas(novo)>=3) return; var b=D.getElementById('v2upd');
+    if(b){ b.dataset.v=novo; return; }
+    b=D.createElement('div'); b.id='v2upd'; b.dataset.v=novo; b.setAttribute('role','status');
+    b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:100000;display:flex;align-items:center;gap:4px;border-radius:999px;padding:4px 4px 4px 6px;background:#0B2A26;box-shadow:0 10px 30px rgba(0,0,0,.3);font:700 13px system-ui,sans-serif;max-width:calc(100vw - 24px)';
+    var a=D.createElement('button'); a.type='button'; a.textContent='Nova versão da plataforma · Atualizar';
+    a.style.cssText='border:0;background:transparent;color:#E8CC8B;font:inherit;padding:7px 10px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+    a.onclick=function(){ recarrega(b.dataset.v); };
+    var x=D.createElement('button'); x.type='button'; x.setAttribute('aria-label','Fechar o aviso'); x.textContent='×';
+    x.style.cssText='border:0;background:rgba(255,255,255,.08);color:#E8CC8B;font:700 16px system-ui,sans-serif;width:30px;height:30px;border-radius:50%;cursor:pointer;flex:none';
+    x.onclick=function(){ fechou=b.dataset.v; tira(); };
+    b.appendChild(a); b.appendChild(x); D.body.appendChild(b); }
   function checa(forcar){ if(!forcar&&Date.now()-ult<60000) return; ult=Date.now();
     try{ fetch('/plataforma-versao.json?_='+Date.now(),{cache:'no-store'}).then(function(r){ return r.ok?r.json():null; }).then(function(j){
-      if(!j||!j.v||j.v===MEU) return;
-      if(D.hidden||!digitando()) recarrega(j.v); else { pend=j.v; aviso(j.v); }
+      if(!j||!j.v) return;
+      if(j.v===MEU){ pend=false; tira(); return; }
+      pend=j.v;
+      if(D.hidden) recarrega(j.v); else aviso(j.v);
     }).catch(function(){}); }catch(e){} }
   D.addEventListener('visibilitychange',function(){ if(D.hidden){ if(pend) recarrega(pend); } else checa(true); });
   W.addEventListener('pageshow',function(e){ if(e.persisted) checa(true); });
   W.addEventListener('focus',function(){ checa(false); });
-  setInterval(function(){ checa(false); },5*60*1000);
-  setTimeout(function(){ checa(true); },20000);
+  setInterval(function(){ checa(true); },2*60*1000);
+  setTimeout(function(){ checa(true); },15000);
+  try{ if(/[?&]_v=/.test(location.search)&&history.replaceState){ var q=location.search.replace(/[?&]_v=[^&]*/g,'').replace(/^&/,'?'); history.replaceState(null,'',location.pathname+(q==='?'?'':q)+location.hash); } }catch(e){}
 })();
 
 W.AgionV2={
