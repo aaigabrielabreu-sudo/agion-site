@@ -168,7 +168,7 @@ body.nova .only-cont{display:none!important}
 .vleg span{display:inline-flex;align-items:center;gap:6px}.vleg i{width:14px;height:7px;border-radius:4px;display:inline-block}
 
 /* KPIs */
-.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
 .kpi{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:22px;background:var(--card);box-shadow:var(--shadow);min-width:0}
 .kpi .ic{width:46px;height:46px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;flex:none;position:relative;color:var(--goldd)}
 .kpi .ic:after{content:"";position:absolute;inset:-3px;border-radius:50%;border:1.5px solid transparent;background:var(--gg) border-box;-webkit-mask:linear-gradient(#000 0 0) padding-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.55}
@@ -278,7 +278,7 @@ body.mbon .tt-help{bottom:calc(84px + env(safe-area-inset-bottom,0px))!important
 @keyframes fl{0%{opacity:.35}100%{opacity:1}}
 
 /* ===== responsivo ===== */
-@media screen and (max-width:1320px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.exs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media screen and (max-width:1320px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis .kpos{grid-column:1/-1}.exs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media screen and (max-width:1180px){.g2c{grid-template-columns:1fr}}
 @media screen and (max-width:1100px){
  .g2{grid-template-columns:1fr}
@@ -646,12 +646,13 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
     <div class="kpi rv" style="animation-delay:.2s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".6"/></svg></div><div class="kt"><small>Lance alvo</small><b id="k_alvo">—</b><span id="k_alvo_s">—</span></div></div>
     <div class="kpi rv" style="animation-delay:.25s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M12 3.5v17M16.5 7.5c-.8-1.4-2.5-2.2-4.5-2.2-2.6 0-4.3 1.3-4.3 3.1 0 4.4 9 2.4 9 6.9 0 1.9-1.9 3.3-4.6 3.3-2.2 0-4-.9-4.8-2.4"/></svg></div><div class="kt"><small>Lance necessário</small><b id="k_need">—</b><span id="k_need_s">—</span></div></div>
     <div class="kpi rv" style="animation-delay:.3s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div class="kt"><small>Crédito líquido</small><b id="k_liq">—</b><span id="k_liq_s">—</span></div></div>
+    <div class="kpi rv kpos" style="animation-delay:.35s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3M8 14h3"/></svg></div><div class="kt"><small>Parcela depois de contemplar</small><b id="k_pos">—</b><span id="k_pos_s">—</span></div></div>
    </div>
 
    <div class="panel rv" id="p_outros" style="animation-delay:.2s">
     <div class="ph"><h3><svg class="i" viewBox="0 0 24 24"><path d="M5 20v-7M12 20V5M19 20v-10M3 20h18"/></svg><span id="o_tit">Outros grupos onde o lance chega à referência</span></h3><span class="sp"></span><span class="pill" id="o_n">—</span></div>
     <p class="phs" id="o_sub">Toque num grupo para ver em destaque.</p>
-    <div class="lctw"><table class="lct"><thead><tr><th>Grupo</th><th class="r">Carta</th><th class="r">Lance alvo</th><th class="r">Necessário</th><th class="r">Do bolso</th><th class="r">Embutido</th><th class="r">Crédito líquido</th><th class="r hm">Cobertura</th></tr></thead><tbody id="o_body"></tbody></table></div>
+    <div class="lctw"><table class="lct"><thead><tr><th>Grupo</th><th class="r">Carta</th><th class="r">Lance alvo</th><th class="r">Necessário</th><th class="r">Do bolso</th><th class="r">Embutido</th><th class="r">Crédito líquido</th><th class="r">Parcela depois</th><th class="r hm">Cobertura</th></tr></thead><tbody id="o_body"></tbody></table></div>
     <div class="lcmore noprint" id="o_mais"></div>
    </div>
 
@@ -672,7 +673,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
     </div>
    </details>
 
-   <div class="lcnote">Como a conta é feita: o lance alvo é a média, em parcelas, dos lances livres que contemplaram no grupo nos últimos 6 meses; 1 parcela de lance é a parcela integral do plano, que já inclui a taxa de administração e o fundo de reserva; o lance em reais é a parcela integral × o número de parcelas. Estudo com base no histórico de lances livres do grupo e nas cartas do portal da HS. Não é garantia de contemplação: o resultado de cada assembleia depende dos lances daquele mês. Confirme o lance com o seu especialista Agion antes de ofertar.</div>
+   <div class="lcnote">Como a conta é feita: o lance alvo é a média, em parcelas, dos lances livres que contemplaram no grupo nos últimos 6 meses; 1 parcela de lance é a parcela integral do plano, que já inclui a taxa de administração e o fundo de reserva; o lance em reais é a parcela integral × o número de parcelas; a parcela depois de contemplar é (plano inteiro − meia parcela paga − lance) ÷ meses que faltam, contemplando na próxima assembleia, sem o seguro. Estudo com base no histórico de lances livres do grupo e nas cartas do portal da HS. Não é garantia de contemplação: o resultado de cada assembleia depende dos lances daquele mês. Confirme o lance com o seu especialista Agion antes de ofertar.</div>
   </section>
  </div>
 </main>
@@ -757,6 +758,10 @@ function taxa(c,P){var f=function(x){return x!=null&&x!==''&&isFinite(+x);};
  var K=+c.valor,p=+c.parcela;if(K>0&&p>0&&P>0&&c.modalidade!=='meia_taxa_antecipada'){var x=2*p*P/K-1;if(x>0.04&&x<0.5)return {t:x,adm:Math.round((x-0.01)*1000)/10,fr:1,est:true};}
  return TIPO==='AUTOMOVEL'?{t:0.16,adm:15,fr:1,est:true}:{t:0.23,adm:22,fr:1,est:true};}
 
+/* POS_CONT_27OUT · parcela depois da contemplação, por cota: (plano inteiro − meia parcela paga − lance) ÷ meses que faltam.
+   Considera a contemplação na próxima assembleia (1 meia parcela paga). O lance (livre + embutido) abate do saldo. Sem o seguro, que entra na contemplação. */
+function posCont(r){if(!r||(r.tipo!=='livre'&&r.tipo!=='emb'))return null;var x=r.x,n=(+r.R||0)-1;if(n<1)return null;
+ var plano=x.K*(1+x.tx.t),meia=x.pl/2,v=(plano-meia-x.need)/n;return v>0?{v:v,n:n}:null;}
 /* ---------- a conta ----------
    COTAS_26OUT (Gabriel): até 2 cotas no MESMO grupo. Ex.: em vez de 1 carta de R$ 1 mi, 2 de R$ 500 mil; o lance livre se divide
    entre as duas (cada uma precisa chegar ao lance alvo do grupo) e dá para contemplar as duas. A conta é feita por cota e somada. */
@@ -807,7 +812,7 @@ function calc(){
  $('o_n').textContent=vazio?'—':(bons.length?bons.length+' grupo'+(bons.length>1?'s':''):'nenhum chega à referência');
  $('o_sub').textContent=vazio?'A lista aparece quando você digitar os valores.':(bons.length?'Toque num grupo para ver em destaque. Ordem: a carta mais perto do crédito pedido, depois a cobertura.':'Com esse valor nenhum grupo contempla. Estes são os que ficam mais perto.');
  var mostra=MAIS?outros:outros.slice(0,10);
- $('o_body').innerHTML=mostra.length?mostra.map(linha).join(''):'<tr><td colspan="8" class="lcvz">'+(vazio?'—':'Só este grupo encaixa com esses valores.')+'</td></tr>';
+ $('o_body').innerHTML=mostra.length?mostra.map(linha).join(''):'<tr><td colspan="9" class="lcvz">'+(vazio?'—':'Só este grupo encaixa com esses valores.')+'</td></tr>';
  $('o_mais').innerHTML=outros.length>10?'<button type="button" id="o_mb">'+(MAIS?'Mostrar menos':'Ver os '+outros.length+' grupos')+'</button>':'';
  var mb=$('o_mb');if(mb)mb.onclick=function(){MAIS=!MAIS;calc();};
  [].forEach.call($('o_body').querySelectorAll('tr[data-k]'),function(tr){tr.onclick=function(){SEL=tr.dataset.k;calc();var v=$('verd');if(v&&v.getBoundingClientRect().top<0)window.scrollTo({top:Math.max(0,window.scrollY+v.getBoundingClientRect().top-90),behavior:'smooth'});};});
@@ -815,7 +820,7 @@ function calc(){
  var u=ultimoTipo(TIPO);$('i_dados').innerHTML='<b>Dados.</b> Lances livres do resultado final da HS'+(D.ult[TIPO]?' até '+mesLb(D.ult[TIPO]):'')+(D.ultMes[TIPO]?' e do resultado do mês de '+mesLb(D.ultMes[TIPO]):'')+'; cartas, prazos e taxas lidos no portal da HS'+(D.em?' (atualizado em '+new Date(D.em*1000).toLocaleDateString('pt-BR')+')':'')+'. '+o.total+' grupos de '+(TIPO==='IMOVEL'?'imóvel':'automóvel')+' na oferta.';
  if(window.agFit)setTimeout(window.agFit,30);}
 function heroVazio(t,s){$('v_tag').textContent='—';$('v_tag').className='vtag';$('v_prazo').textContent='—';$('v_head').textContent=t;$('v_sub').textContent=s||'A calculadora procura nos grupos da HS com cartas à venda onde esse lance contempla.';$('v_bar').innerHTML='';$('v_leg').innerHTML='';
- ['k_carta','k_alvo','k_need','k_liq'].forEach(function(k){setK(k,'—','—');});}
+ ['k_carta','k_alvo','k_need','k_liq','k_pos'].forEach(function(k){setK(k,'—','—');});}
 function cartaTxt(r){return r.q>1?r.q+' × '+R$(r.x.K):R$(r.x.K);}
 function pintaHero(r,o){var x=r.x,c=x.c,t=TAG[r.tipo],q=r.q||1,dois=q>1;
  $('v_tag').textContent=t[0];$('v_tag').className='vtag '+t[1];
@@ -833,7 +838,8 @@ function pintaHero(r,o){var x=r.x,c=x.c,t=TAG[r.tipo],q=r.q||1,dois=q>1;
  setK('k_carta',cartaTxt(r),dois?R$(r.Kt)+' em crédito · meia parcela '+R2(c.parcela)+' cada':'meia parcela '+R2(c.parcela)+'/mês');
  setK('k_alvo',r.Na+' parcelas',pct(r.Na/r.P)+' do plano'+(dois?' · em cada cota':'')+(r.folga?' · +'+r.folga+' de folga':''));
  setK('k_need',R$(r.needT),(dois?R$(x.need)+' por cota · ':'')+r.Na+' parcelas × '+R2(x.pl)+(dois?'':' de parcela integral'));
- setK('k_liq',r.tipo==='peq'?'—':R$(r.liqT),r.tipo==='livre'?'crédito cheio, se contemplar':(r.tipo==='emb'?'cartas − embutido, se contemplar':(r.tipo==='falta'?'se fechasse o lance':'—')));}
+ setK('k_liq',r.tipo==='peq'?'—':R$(r.liqT),r.tipo==='livre'?'crédito cheio, se contemplar':(r.tipo==='emb'?'cartas − embutido, se contemplar':(r.tipo==='falta'?'se fechasse o lance':'—')));
+ var po=posCont(r);setK('k_pos',po?R2(po.v):'—',po?((dois?'por cota · '+R2(po.v*q)+' nas duas · ':'')+'nos '+po.n+' meses que faltam, se contemplar na próxima assembleia (sem o seguro)'):'aparece quando o lance chega ao alvo');}
 function linha(r){var x=r.x,t=TAG[r.tipo];
  return '<tr data-k="'+esc(r.G.k)+'"'+(SEL===r.G.k?' class="on"':'')+'><td><b>Grupo '+esc(r.G.grupo)+'</b><span class="tg '+t[1]+'">'+(r.tipo==='livre'?'só lance livre':(r.tipo==='emb'?'+ embutido':(r.tipo==='falta'?'falta '+R$(r.faltaT):'carta menor')))+'</span><small>prazo '+r.R+'/'+r.P+' · andou '+pct(r.and)+'</small></td>'+
   '<td class="r" data-l="Carta"><b>'+cartaTxt(r)+'</b><small>parcela '+R2(x.c.parcela)+(r.q>1?' cada':'')+'</small></td>'+
@@ -842,6 +848,7 @@ function linha(r){var x=r.x,t=TAG[r.tipo];
   '<td class="r" data-l="Do bolso">'+R$(Math.min(r.usaT,r.needT))+'</td>'+
   '<td class="r" data-l="Embutido">'+(r.ET>0.5?R$(r.ET)+'<small>'+pct(r.E/x.K)+' da carta</small>':'—')+'</td>'+
   '<td class="r" data-l="Crédito líquido"><b>'+(r.tipo==='peq'?'—':R$(r.liqT))+'</b></td>'+
+  '<td class="r" data-l="Parcela depois">'+(function(){var po=posCont(r);return po?R2(po.v)+'<small>'+po.n+' meses'+(r.q>1?' · cada':'')+'</small>':'—';})()+'</td>'+
   '<td class="r hm" data-l="Cobertura">'+covTxt(r)+'</td></tr>';}
 function hist(r){var b=$('h_body');if(!r){$('h_tit').textContent='Lances livres do grupo';b.innerHTML='<div class="lcvz">—</div>';return;}
  $('h_tit').textContent='Lances livres do grupo '+r.G.grupo;

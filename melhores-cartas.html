@@ -772,7 +772,7 @@ body.neg-on .hsr{bottom:86px}
 .t-emb .lctag{background:var(--au);color:var(--aut)}
 .t-falta .lctag,.t-peq .lctag{background:var(--badb);color:var(--badt)}
 .lcfr{margin:0 0 14px;font-size:14px;line-height:1.55;color:var(--ink2);max-width:880px}
-.lcg{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.lcg{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}.lcg.c7{grid-template-columns:repeat(7,minmax(0,1fr))}
 .lcg>div{background:var(--bg);border-radius:14px;padding:10px 12px;min-width:0}
 .lcg small{display:block;font:700 9.5px/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
 .lcg b{display:block;font:800 16px/1.25 var(--sans);margin-top:5px;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -792,7 +792,7 @@ body.neg-on .hsr{bottom:86px}
 .lcinfo{margin-top:22px}
 .lcinfo .ib p{margin:0 0 10px}
 .lcempty svg.i{width:30px;height:30px;color:var(--gold)}
-@media (max-width:1240px){.lcg{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1240px){.lcg,.lcg.c7{grid-template-columns:repeat(3,minmax(0,1fr))}.lcg.c7>div:last-child{grid-column:1/-1}}
 @media (max-width:760px){
  .lcf .fld{flex:1 1 100%}
  .lcf2{gap:10px 14px}
@@ -1808,6 +1808,8 @@ function lcFonte(r){var f=r.ref;if(f.fonte==='ultimo')return 'menor lance da úl
  if(f.fonte==='portal')return 'sem lance livre nos últimos 6 meses · lance médio do portal da HS ≈ '+f.N+' parc.';
  return 'lance médio dos últimos 6 meses: '+lcD1(f.N)+' parc. ('+f.qt+' lance'+(f.qt>1?'s':'')+')';}
 function lcCovTxt(r){if(r.cov==null)return 'sem lances contemplados no período para comparar';return 'cobre '+r.cov+' de '+r.nIt+' lance'+(r.nIt>1?'s':'')+' livre'+(r.nIt>1?'s':'')+' que contemplaram nos últimos 6 meses';}
+/* POS_CONT_27OUT · parcela depois da contemplação: (plano inteiro − meia parcela − lance) ÷ meses que faltam, contemplando na próxima assembleia */
+function lcPos(r){if(!r||(r.tipo!=='livre'&&r.tipo!=='emb'))return null;var x=r.x,n=(+r.R||0)-1;if(n<1)return null;var v=(x.K*(1+x.tx.t)-x.pl/2-x.need)/n;return v>0?{v:v,n:n}:null;}
 function lcCard(r,hero){var x=r.x,g=r.g,c=x.c,tag={livre:'Só lance livre',emb:'Lance livre + embutido',falta:'Ainda não alcança',peq:'Carta menor que o pedido'}[r.tipo];
  var pz='prazo '+r.R+'/'+r.P+' · andou '+lcPct(r.and),as=r.v.dt_assembleia?('assembleia '+dtBR(r.v.dt_assembleia+'T12:00:00')):'';
  var cel=function(l,v,s,cls){return '<div'+(cls?' class="'+cls+'"':'')+'><small>'+l+'</small><b>'+v+'</b>'+(s?'<em>'+s+'</em>':'')+'</div>';};
@@ -1816,6 +1818,7 @@ function lcCard(r,hero){var x=r.x,g=r.g,c=x.c,tag={livre:'Só lance livre',emb:'
  else if(r.tipo==='emb')cells+=cel('Lance livre usado',lcR(r.usa),'todo o valor do cliente')+cel('Embutido',lcR(r.E),lcPct(r.E/x.K)+' da carta','au')+cel('Crédito líquido',lcR(r.liq),'o que ele recebe','hl');
  else if(r.tipo==='falta')cells+=cel('Faltam',lcR(r.falta),'≈ '+Math.ceil(r.faltaN)+' parcela'+(Math.ceil(r.faltaN)>1?'s':'')+(LC.usaEmb?' (já com o embutido)':''),'bad')+cel('Lance livre',lcR(lcNum(LC.L)),'o que o cliente tem')+cel('Embutido máx.',LC.usaEmb?lcR(Math.min(r.e0*x.K,Math.max(0,x.K-lcNum(LC.C)))):'—',LC.usaEmb?'sem baixar do crédito pedido':'desligado');
  else cells+=cel('Maior carta do grupo',lcR(x.K),'menor que o crédito pedido','bad');
+ var po=lcPos(r);if(po)cells+=cel('Parcela depois',brl2(po.v),'nos '+po.n+' meses que faltam, sem o seguro');
  var covp=r.cov==null?0:Math.round(r.cov/r.nIt*100);
  var frase='';if(hero){if(r.tipo==='livre')frase='Com '+lcR(r.usa)+' de lance livre o cliente chega a '+r.Na+' parcelas na carta de '+lcR(x.K)+', a referência dos lances que contemplaram no grupo. Se contemplar, recebe o crédito cheio; a contemplação depende do resultado da assembleia.'+(r.Amax&&r.Amax.K>x.K?' Só com o lance livre dá até a carta de '+lcR(r.Amax.K)+' neste grupo.':'');
   else if(r.tipo==='emb')frase='O dinheiro do cliente ('+lcR(r.usa)+') não chega sozinho às '+r.Na+' parcelas. Com '+lcR(r.E)+' de lance embutido ('+lcPct(r.E/x.K)+' da carta de '+lcR(x.K)+') o lance chega ao alvo. Se contemplar, ele recebe '+lcR(r.liq)+' de crédito líquido; a contemplação depende do resultado da assembleia.';
@@ -1823,7 +1826,7 @@ function lcCard(r,hero){var x=r.x,g=r.g,c=x.c,tag={livre:'Só lance livre',emb:'
  return '<div class="lcc t-'+r.tipo+(hero?' hero':'')+'" data-k="'+esc(g.k)+'" data-bem="'+esc(c.bem||'')+'" data-mod="'+esc(c.modalidade||'')+'">'+
   '<div class="lch">'+(hero?'<span class="lcbest">Melhor encaixe</span>':'')+'<b>Grupo '+g.grupo+'</b><span class="pill xs">'+pz+'</span>'+(as?'<span class="pill xs hm">'+as+'</span>':'')+'<span class="sp"></span><span class="lctag">'+tag+'</span></div>'+
   (frase?'<p class="lcfr">'+frase+'</p>':'')+
-  '<div class="lcg">'+cells+'</div>'+
+  '<div class="lcg'+(po?' c7':'')+'">'+cells+'</div>'+
   '<div class="lcft"><div class="lccov" title="'+esc(lcFonte(r))+'"><span class="lcb"><i style="width:'+covp+'%"></i></span><span>'+lcCovTxt(r)+' · '+lcFonte(r)+(x.tx.est?' · taxa estimada pela parcela':' · taxa de adm. '+lcD1(x.tx.adm)+'% + fundo de reserva '+lcD1(x.tx.fr)+'%')+'</span></div>'+
   '<button class="btn sm '+(hero?'gd':'ol')+'" data-abre="1">Abrir o grupo'+IC.arrow+'</button></div></div>';}
 function lcRes(){var box=$('#lcres');if(!box)return;var R=lcCalc();
