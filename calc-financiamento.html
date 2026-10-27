@@ -863,7 +863,7 @@ function modelo(rPct){
  const arrA=[a],arrC=[cpl];
  for(let m=0;m<H;m++){
    const pc=m<nC?cPmts[m]:0, pf=m<nF?fArr[m]:0, d=Math.max(0,pf-pc), dF=Math.max(0,pc-pf);
-   arrPc.push(m<nC?cParc[m]:0);arrPf.push(pf);arrDiff.push(Math.max(0,pf-(m<nC?cParc[m]:0)));
+   arrPc.push(m<nC?cParc[m]:0);arrPf.push(pf);arrDiff.push(d);   /* FIN_LANCE_26OUT: a sobra do gráfico é a mesma do cálculo (parcela + lance); no mês do lance pode ser zero */
    a=a*(1+rInv)+d; cdi=cdi*(1+rCdi)+d;
    { const yC=cpl*rInv, usedC=Math.min(yC,pc); cYield+=usedC; cpl=cpl+d+(yC-usedC); }
    fpl=fpl*(1+rInv)+dF;
@@ -881,7 +881,7 @@ function modelo(rPct){
    const y2=b2*rInv;
    if(ativo){const usado=Math.min(y2,par); eco2+=usado; bolso2+=par-usado; b2=b2+y2-usado+d;} else b2=b2+y2+d;
    arrB1.push(b1);arrB2.push(b2);}
- for(let m=0;m<nC;m++)cBolso+=cParc[m];
+ for(let m=0;m<nC;m++)cBolso+=cPmts[m];   /* FIN_LANCE_26OUT: tudo o que vai para o consórcio (parcelas + lance); a entrada da carta contemplada entra no texto da estratégia C */
  return {C,rInv,NOVA,nC,kC,cEnt,cLance,parcBase,parcPos,cSomaK,nDec,nTot,cTot,cExtra,cPf,cPmts,cParc,cCet,nF,fEnt,fArr,fJuros,fTot,fCet,iF,H,init,
   arrPc,arrPf,arrDiff,arrA,arrB1,arrB2,arrC,bkMonth,cYield,xMonth,eco1,eco2,bolso1,bolso2,acab1,cBolso,fvA:a,fvB1:b1,fvB2:b2,fvC:cpl,fvCdi:cdi,fvFin:fpl,net:a-fpl};
 }
@@ -951,10 +951,12 @@ function calc(){
  anim('sb1_v',R.fvB1,money); anim('sb2_v',R.fvB2,money);
  const pB=v=>v>0.5&&C>0?'economia de '+pct(v/C*100,0)+' do valor do bem':''; $('sa_p').textContent='';
  $('sb1_e').textContent=money(R.eco1); $('sb2_e').textContent=money(R.eco2); $('sb1_p').textContent=pB(R.eco1); $('sb2_p').textContent=pB(R.eco2);
- $('sb1_s').textContent=!xIn?'Sem ponto de equilíbrio no prazo.':(R.acab1?('Do mês '+X+' em diante as parcelas saem da aplicação. O saldo acaba no mês '+R.acab1+'; daí '+moneyK(R.bolso1)+' saem do bolso.'):('Do mês '+X+' ao '+fim+' as parcelas saem da aplicação: o cliente não tira mais nada do bolso para o consórcio.'));
- $('sb2_s').textContent=!xIn?'Sem ponto de equilíbrio no prazo.':(R.bolso2>1?('Só o rendimento do mês abate a parcela; o principal fica intacto e o cliente completa '+moneyK(R.bolso2)+' do bolso.'):('O rendimento do mês cobre a parcela inteira e ainda sobra para reinvestir — o principal fica intacto.'));
+ const lanceTxt=(R.NOVA&&R.cLance>0.5)?(' O lance de '+moneyK(R.cLance)+', no mês '+R.kC+', sai do bolso.'):'';   /* FIN_LANCE_26OUT */
+ $('sb1_s').textContent=!xIn?'Sem ponto de equilíbrio no prazo.'+lanceTxt:(R.acab1?('Do mês '+X+' em diante as parcelas saem da aplicação. O saldo acaba no mês '+R.acab1+'; daí '+moneyK(R.bolso1)+' de parcelas saem do bolso.'+lanceTxt):('Do mês '+X+' ao '+fim+' as parcelas saem da aplicação: o cliente não paga mais parcela do bolso.'+lanceTxt));
+ $('sb2_s').textContent=!xIn?'Sem ponto de equilíbrio no prazo.'+lanceTxt:(R.bolso2>1?('Só o rendimento do mês abate a parcela; o principal fica intacto e o cliente completa '+moneyK(R.bolso2)+' do bolso.'+lanceTxt):('O rendimento do mês cobre a parcela inteira e ainda sobra para reinvestir — o principal fica intacto.'+lanceTxt));
  anim('sc_v',R.fvC,money); $('sc_e').textContent=money(R.cYield); $('sc_p').textContent=pB(R.cYield);
- $('sc_s').textContent='Desde o 1º mês, o rendimento abate a parcela até o mês '+fim+'; o cliente paga do bolso só o que faltar ('+moneyK(Math.max(0,R.cBolso-R.cYield))+' no total).';
+ const scInc=(R.NOVA&&R.cLance>0.5)?', já com o lance de '+moneyK(R.cLance)+' no mês '+R.kC:((!R.NOVA&&R.cEnt>0.5)?', já com a entrada de '+moneyK(R.cEnt):'');
+ $('sc_s').textContent='Desde o 1º mês, o rendimento abate a parcela até o mês '+fim+'; o cliente paga do bolso só o que faltar ('+moneyK(Math.max(0,R.cEnt+R.cBolso-R.cYield))+' no total'+scInc+').';   /* FIN_LANCE_26OUT: entrada + parcelas + lance − rendimento usado */
  const fv={sg_a:R.fvA,sg_b1:R.fvB1,sg_b2:R.fvB2,sg_c:R.fvC}, ec={sg_b1:xIn?R.eco1:0,sg_b2:xIn?R.eco2:0,sg_c:R.cYield};
  const bF=Math.max.apply(null,Object.values(fv)), bE=Math.max.apply(null,Object.values(ec));
  Object.keys(fv).forEach(id=>{const k={sg_a:'sa_b',sg_b1:'sb1_b',sg_b2:'sb2_b',sg_c:'sc_b'}[id],mf=fv[id]>=bF-0.5,me=(ec[id]||0)>0&&ec[id]>=bE-0.5;
@@ -978,7 +980,7 @@ function calc(){
  $('ch3_n').innerHTML=EMP.tipo==='sempre'?'O consórcio vence em qualquer rendimento — até com a sobra parada, porque não paga juros.':(EMP.tipo==='r'?'O consórcio passa na frente com a sobra rendendo mais que <b>'+pct(EMP.r,2)+' ao mês</b>. Hoje: <b>'+pct(rinv,2)+'</b>.':'Nesta configuração o financiamento vence em qualquer rendimento até 5% ao mês.');
  const difM=Math.max(0,R.fArr[0]-R.cPmts[0]);
  $('note').innerHTML='Simulação para fins de apresentação. CET calculada pelo fluxo de caixa de cada opção (entrada + parcelas × crédito); o custo da carta não inclui o reajuste, que corrige também o crédito. As estratégias A, B e C são formas de usar a diferença investida; rendimento, reajuste, juros e CDI reais dependem do grupo, da instituição e do mercado. Com CDI de '+pct(num('cdi'))+' ao ano, a estratégia A chegaria a '+money(R.fvCdi)+'.';
- $('resumo').innerHTML='<b>Resumo.</b> A parcela do consórcio começa <b>'+money(difM)+'</b> menor por mês. A diferença pode ser usada de 3 jeitos: <b>A)</b> acumular tudo e terminar com <b>'+money(R.fvA)+'</b>; <b>B)</b> deixar render'+(R.xMonth?' até o mês '+R.xMonth+' (quando a parcela do consórcio passa a do financiamento) e daí usar a aplicação para pagar — <b>B1</b>, a parcela inteira: a aplicação paga <b>'+money(R.eco1)+'</b> ('+pct(R.eco1/C*100,0)+' do bem) e termina com <b>'+money(R.fvB1)+'</b>; <b>B2</b>, só o rendimento: paga <b>'+money(R.eco2)+'</b> ('+pct(R.eco2/C*100,0)+' do bem) e termina com <b>'+money(R.fvB2)+'</b>':', terminando igual ao A')+'; ou <b>C)</b> resgatar o rendimento desde o 1º mês: paga <b>'+money(R.cYield)+'</b> das parcelas ('+pct(R.cYield/C*100,0)+' do bem) e termina com <b>'+money(R.fvC)+'</b>. No consórcio não há juros: o custo além do crédito é <b>'+money(R.cExtra)+'</b>, contra <b>'+money(R.fJuros)+'</b> de juros no financiamento. Somando o que se investe, o consórcio '+(cw?'termina <b>'+money(net)+'</b> na frente.':'fica <b>'+money(-net)+'</b> atrás nesta configuração.');
+ $('resumo').innerHTML='<b>Resumo.</b> A parcela do consórcio começa <b>'+money(difM)+'</b> menor por mês. A diferença pode ser usada de 3 jeitos: <b>A)</b> acumular tudo e terminar com <b>'+money(R.fvA)+'</b>; <b>B)</b> deixar render'+(R.xMonth?' até o mês '+R.xMonth+' (quando a parcela do consórcio passa a do financiamento) e daí usar a aplicação para pagar — <b>B1</b>, a parcela inteira: a aplicação paga <b>'+money(R.eco1)+'</b> ('+pct(R.eco1/C*100,0)+' do bem) e termina com <b>'+money(R.fvB1)+'</b>; <b>B2</b>, só o rendimento: paga <b>'+money(R.eco2)+'</b> ('+pct(R.eco2/C*100,0)+' do bem) e termina com <b>'+money(R.fvB2)+'</b>':', terminando igual ao A')+'; ou <b>C)</b> resgatar o rendimento desde o 1º mês: paga <b>'+money(R.cYield)+'</b> do consórcio ('+pct(R.cYield/C*100,0)+' do bem) e termina com <b>'+money(R.fvC)+'</b>. No consórcio não há juros: o custo além do crédito é <b>'+money(R.cExtra)+'</b>, contra <b>'+money(R.fJuros)+'</b> de juros no financiamento. Somando o que se investe, o consórcio '+(cw?'termina <b>'+money(net)+'</b> na frente.':'fica <b>'+money(-net)+'</b> atrás nesta configuração.');
  explica(R,cCetA,fCetA,cw,net);
  try{ draw(R,EMP,rinv); }catch(e){ console.warn(e); }
  window.__FIN=R;
