@@ -861,9 +861,10 @@ function modelo(rPct){
  }
  const lanceIdx=NOVA?kC-1:-1, cLanceN=NOVA?cLance:0;
  const cFlow=cBase.map((p,m)=>p+(m===lanceIdx?cLanceN:0));
- const cTot=cEnt+cFlow.reduce((x,y)=>x+y,0), cExtra=Math.max(0,cTot-C);
  const cPmts=[],cParc=[];let cPf=0;
  for(let m=0;m<nC;m++){const p=cBase[m]*Math.pow(1+rA,Math.floor(m/12));cParc.push(p);cPmts.push(p+(m===lanceIdx?cLanceN:0));cPf=p;}
+ /* GPT_27OUT: o total desembolsado e o custo da carta usam as parcelas já com o reajuste anual (o mesmo fluxo do patrimônio) */
+ const cTot=cEnt+cPmts.reduce((x,y)=>x+y,0), cExtra=Math.max(0,cTot-C);
  const nF=Math.max(1,Math.round(num('f_prazo')));
  const cCet=cetMensal(C,cEnt,cFlow,kC);
  const fEnt=FENT==='VAL'?num('f_ent'):C*num('f_ent')/100, fin=Math.max(0,C-fEnt);

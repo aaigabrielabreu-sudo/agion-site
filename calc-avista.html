@@ -770,8 +770,11 @@ function modelo(rInv,mpx){
      av=av*(1+rl)+ap;
    } else {
      usedY+=Math.min(y,o); totOut+=o;
-     inv=inv*(1+rl)-o;
-     av=av*(1+rl);
+     /* GPT_27OUT: quando o capital acaba, o resto da parcela sai do bolso (sem saldo negativo rendendo juros); o mesmo valor fica investido no à vista */
+     const disp=Math.max(0,inv)*(1+rl);
+     if(disp>=o)inv=disp-o;
+     else{ap=o-disp;inv=0;if(runout===null)runout=m+1;totAp+=ap;mesAp++;if(apIni===null)apIni=m+1;if(ap>apMax)apMax=ap;}
+     av=av*(1+rl)+ap;
    }
    if(inv<0&&runout===null)runout=m+1;
    aC.push(inv); aA.push(av); yM.push(y); oM.push(p+a); pM.push(p); apM.push(ap);
@@ -781,7 +784,7 @@ function modelo(rInv,mpx){
  /* custo real do bem = o dinheiro que de fato foi para o bem: entrada/complemento de hoje + lance/complemento da contemplação
     + o que saiu do bolso (só rendimento) ou o capital que foi gasto (rendimento + capital). O que o rendimento pagou não entra. */
  const exTot=NOVA?(L+compK):0, d0=D-inv0;
- const custo=mp==='REND'?d0+exTot+totAp:d0+Math.max(0,inv0-inv), dscP=P>0?(P-custo)/P*100:0;
+ const custo=mp==='REND'?d0+exTot+totAp:d0+Math.max(0,inv0-inv)+totAp, dscP=P>0?(P-custo)/P*100:0;
  return {mp,totAp,mesAp,apIni,apMax,apM,custo,dscP,P,d,Pv,D,Din,gap,ir,rl,Pref,C,taxa,rA,NOVA,n,k,ent,comp0,parcBase,meia,parcPos,somaK,L,E,Ck,Pk,compK,nDec,nTot,fK,A0,base,inv0,
    invT:inv,avT:av,aC,aA,yM,oM,pM,usedY,totOut,runout,totParc,totAlug,pFirst,pLast,cobreDesde,T,bemT,diff};
 }
@@ -865,7 +868,7 @@ function jornada(R){
   ev.push({m:0,c:'g',t:'Compra o bem hoje',p:'Entrada de <strong>'+money(R.ent)+'</strong> a quem vende a carta'+(R.comp0>0?' e '+money(R.comp0)+' de complemento':'')+'. O resto (<strong>'+moneyK(R.inv0)+'</strong>) fica investido.'});
  }
  if(R.cobreDesde&&R.cobreDesde<n)ev.push({m:R.cobreDesde,c:'o',t:R.cobreDesde<=1?'O rendimento paga a parcela':'O rendimento passa a pagar a parcela',p:'Daqui em diante o rendimento do dinheiro investido cobre a parcela'+(R.NOVA&&R.cobreDesde<R.k&&R.totAlug>0?' e o aluguel':'')+' sozinho, até o fim.'});
- if(R.runout)ev.push({m:R.runout,c:'r',t:'O dinheiro investido acaba',p:'A partir daqui as parcelas saem do bolso. Na conta, esse valor fica como saldo negativo.'});
+ if(R.runout)ev.push({m:R.runout,c:'r',t:'O dinheiro investido acaba',p:'A partir daqui as parcelas saem do bolso — e o mesmo valor fica investido no à vista, para comparar igual.'});
  ev.push({m:n,c:'',t:'Última parcela',p:'O bem vale <strong>'+moneyK(R.bemT)+'</strong>. Sobram <strong>'+moneyK(R.invT)+'</strong> investidos (no à vista, só o bem).'});
  ev.sort((a,b)=>a.m-b.m);
  const bar=$('tlbar');bar.innerHTML=R.NOVA?'<i class="meia" style="left:0;width:'+(R.k/n*100)+'%"></i><i class="cheia" style="left:'+(R.k/n*100)+'%;right:0"></i>':'<i class="cheia" style="left:0;right:0"></i>';
@@ -941,7 +944,7 @@ function calc(){
  if(R.gap>1) av.push('O dinheiro disponível ('+money(R.Din)+') não cobre o preço à vista ('+money(R.Pv)+'): faltam '+money(R.gap)+'. Para comparar igual, a conta põe esses '+money(R.gap)+' nos dois lados: no à vista eles completam o pagamento, no consórcio ficam investidos.');
  if(!NOVA&&R.ent>R.D+1) av.push('A entrada ao vendedor ('+money(R.ent)+') é maior que o dinheiro disponível.');
  if(!NOVA&&R.parcBase<=0) av.push('Digite a parcela da carta: com o prazo, ela diz quanto falta pagar.');
- if(R.runout) av.push(R.mp==='REND'?'O lance e o complemento passam do dinheiro investido no mês '+R.runout+'.':'No consórcio o dinheiro investido acaba no mês '+R.runout+'. Daí em diante as parcelas saem do bolso; na conta, esse valor fica como saldo negativo.');
+ if(R.runout) av.push(R.mp==='REND'?'O lance e o complemento passam do dinheiro investido no mês '+R.runout+'.':'No consórcio o dinheiro investido acaba no mês '+R.runout+'. Daí em diante as parcelas saem do bolso, e o mesmo valor fica investido no à vista.');
  $('aviso').innerHTML=av.join('<br>'); $('aviso').classList.toggle('on',av.length>0);
  /* empate */
  if(EMP.tipo==='r'){ $('v_emp').textContent=pct(EMP.r,2)+' a.m.'; $('v_emp_s').textContent='≈ '+pct((Math.pow(1+EMP.r/100,12)-1)*100)+' ao ano · acima disso o consórcio vence'; }
@@ -988,13 +991,13 @@ function mpBloco(R,rinv){
  const usado=Math.max(0,B.inv0-B.invT);
  $('mpT_s').innerHTML=B.runout?'O dinheiro investido <b>acaba no mês '+B.runout+'</b>; daí em diante a parcela sai do bolso.':(usado>0.5?'Quando o rendimento não cobre, a parcela tira do próprio capital.':'O rendimento cobre a parcela e ainda sobra: o capital cresce.');
  $('mpT_ap').textContent=money(usado);
- $('mpT_aps').textContent=usado>0.5?'de '+moneyK(B.inv0)+' investidos no começo':'nada: o capital só cresce';
+ $('mpT_aps').textContent=usado>0.5?'de '+moneyK(B.inv0)+' investidos no começo'+(B.totAp>0.5?' · depois, '+money(B.totAp)+' do bolso':''):'nada: o capital só cresce';
  $('mpT_cap').textContent=money(B.invT);
- $('mpT_cps').textContent=B.invT<0?'saldo negativo = saiu do bolso':'o que sobra do capital';
- $('mpT_cus').textContent=money(B.custo); $('mpT_cuss').textContent=(B.NOVA?'lance e complemento':'entrada')+(usado>0.5?' + capital gasto':' · as parcelas saíram do rendimento'); ds(B,'mpT_ds');
+ $('mpT_cps').textContent=B.invT<0.5&&B.runout?'o capital acabou no mês '+B.runout:'o que sobra do capital';
+ $('mpT_cus').textContent=money(B.custo); $('mpT_cuss').textContent=(B.NOVA?'lance e complemento':'entrada')+(usado>0.5?' + capital gasto':' · as parcelas saíram do rendimento')+(B.totAp>0.5?' + o que saiu do bolso':''); ds(B,'mpT_ds');
  $('mpR').classList.toggle('win',R.mp==='REND'); $('mpT').classList.toggle('win',R.mp==='TUDO');
  const S=R.mp==='REND'?A:B;
- $('mp_n').innerHTML=S.dscP>=0?('Do jeito que está na conta, o bem de <b>'+money(S.P)+'</b> sai, de verdade, por <b>'+money(S.custo)+'</b>: <b>'+pct(S.dscP,1)+' de desconto</b>, e no fim ainda sobram <b>'+money(S.invT)+'</b> investidos (começou com '+moneyK(S.inv0)+').'):('Do jeito que está na conta, o bem de <b>'+money(S.P)+'</b> sai por <b>'+money(S.custo)+'</b> ('+pct(-S.dscP,1)+' acima do preço)'+(S.invT<0?' e o dinheiro investido acaba antes do fim.':', sobrando '+money(S.invT)+' investidos.'));
+ $('mp_n').innerHTML=S.dscP>=0?('Do jeito que está na conta, o bem de <b>'+money(S.P)+'</b> sai, de verdade, por <b>'+money(S.custo)+'</b>: <b>'+pct(S.dscP,1)+' de desconto</b>, e no fim ainda sobram <b>'+money(S.invT)+'</b> investidos (começou com '+moneyK(S.inv0)+').'):('Do jeito que está na conta, o bem de <b>'+money(S.P)+'</b> sai por <b>'+money(S.custo)+'</b> ('+pct(-S.dscP,1)+' acima do preço)'+(S.runout&&S.invT<0.5?' e o dinheiro investido acaba antes do fim (no mês '+S.runout+').':', sobrando '+money(S.invT)+' investidos.'));
 }
 function explica(R,consWin,net,cetA,totPago,rp){
  const st=(n,ti,v,p,hl)=>'<div class="st'+(hl?' hl':'')+'"><div class="n">'+n+'</div><div class="t">'+ti+'</div><div class="v">'+v+'</div><p>'+p+'</p></div>';
