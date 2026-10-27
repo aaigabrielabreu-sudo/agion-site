@@ -1590,18 +1590,25 @@ function bindRsv(){var R=rsvLista();
 /* ---------- CANCELAR_RESERVA_26OUT: cancelar a reserva da Agion no portal da HS ---------- */
 function hsSoltou(g,c){vdRefaz(g,function(v){v.reservadas_agion=(v.reservadas_agion||[]).filter(function(x){return +x!==+c;});if((v.cotas||[]).indexOf(c)<0)v.cotas=(v.cotas||[]).concat([c]);});}
 function cancelarHS(g,c){if(HSR.rodando||HSR.canc){toast('Espere o robô terminar a fila de reservas (ou toque em “Parar o robô”)');return;}
+ var pk=String(g.grupo)+'|'+c;if(HSR.pend&&HSR.pend[pk]){cancelarHSvai(g,c,HSR.pend[pk]);return;}   /* CANC_INCERTO_27OUT: já tem pedido aguardando confirmação → confere o mesmo */
  var b=hsrPinta('ind','<b>Cancelar a reserva da cota '+c+' no portal da HS?</b><small>Grupo '+esc(String(g.grupo))+'. A cota volta à venda e qualquer corretor pode reservar ou vender.</small>','<div class="hsra"><button class="btn rd sm" data-hcs="1">Sim, cancelar no portal</button><button class="btn ol sm" data-hcn="1">Não</button></div>');
  $('[data-hcn]',b).onclick=hsrFecha;$('[data-hcs]',b).onclick=function(){cancelarHSvai(g,c);};}
-async function cancelarHSvai(g,c){HSR.canc=true;
- hsrPinta('run','<b>Cancelando a reserva da cota '+c+' no portal da HS</b><small>O robô entra no portal, cancela e confere. Leva cerca de 1 minuto.</small>');
- var r=null;try{var j=await hsApi('POST','/api/hs_reserva_cancelar',{grupo:String(g.grupo),cota:c,tipo:g.tipo,adm:'HS'});var id=j.id,t0=Date.now();
-  while(Date.now()-t0<420000){await new Promise(function(ok){setTimeout(ok,window.__MC_RES?400:4000);});r=await hsApi('GET','/api/hs_reservar/'+id);if(r&&r.status&&r.status!=='fila'&&r.status!=='rodando')break;
+async function cancelarHSvai(g,c,id0){HSR.canc=true;var pk=String(g.grupo)+'|'+c;HSR.pend=HSR.pend||{};
+ /* CANC_INCERTO_27OUT: se o pedido foi aceito mas a conferência falhou ou demorou, o resultado é DESCONHECIDO
+    (não "não foi cancelada"), e conferir de novo consulta o MESMO pedido em vez de abrir outro. */
+ hsrPinta('run',id0?'<b>Conferindo o cancelamento da cota '+c+'</b><small>Consultando o mesmo pedido no robô…</small>':'<b>Cancelando a reserva da cota '+c+' no portal da HS</b><small>O robô entra no portal, cancela e confere. Leva cerca de 1 minuto.</small>');
+ var r=null,id=id0||null;try{if(!id){var j=await hsApi('POST','/api/hs_reserva_cancelar',{grupo:String(g.grupo),cota:c,tipo:g.tipo,adm:'HS'});id=j&&j.id;if(!id)throw new Error('o robô não devolveu o número do pedido');HSR.pend[pk]=id;}
+  var t0=Date.now(),lim=id0?90000:420000;
+  while(Date.now()-t0<lim){await new Promise(function(ok){setTimeout(ok,window.__MC_RES?400:4000);});r=await hsApi('GET','/api/hs_reservar/'+id);if(r&&r.status&&r.status!=='fila'&&r.status!=='rodando')break;
    if(r&&r.msg)hsrPinta('run','<b>Cancelando a reserva da cota '+c+'</b><small>'+esc(r.msg)+'…</small>');}
- }catch(e){r={status:'erro',msg:'Não consegui falar com o robô agora ('+(e&&e.message||e)+').'};}
+ }catch(e){r=id?{status:'incerto',msg:'Perdi a conexão com o robô enquanto ele conferia ('+(e&&e.message||e)+').'}:{status:'erro',msg:'O pedido não chegou ao robô ('+(e&&e.message||e)+'). Nada foi feito no portal.'};}
  finally{HSR.canc=false;}
- if(!r||r.status==='fila'||r.status==='rodando')r={status:'erro',msg:'O robô ainda não respondeu. Confira daqui a pouco no portal da HS.'};
- if(r.status==='ok'){hsSoltou(g,c);try{await recarregaMarcas();}catch(e){pintar();}
+ if(!r||r.status==='fila'||r.status==='rodando')r={status:'incerto',msg:'O robô ainda não terminou de conferir.'};
+ if(r.status==='ok'){delete HSR.pend[pk];hsSoltou(g,c);try{await recarregaMarcas();}catch(e){pintar();}
   hsrPinta('ok','<b>Reserva da cota '+c+' cancelada</b><small>'+esc(r.msg||'Cancelada no portal da HS')+'. A equipe toda vê no mapa.</small>');toast('Reserva da cota '+c+' cancelada no portal da HS');return;}
+ if(r.status==='incerto'){var bi=hsrPinta('ind','<b>Cancelamento da cota '+c+': aguardando confirmação</b><small>'+esc(r.msg||'')+' O pedido já foi feito, não precisa pedir de novo: toque em “Conferir de novo” para ver o resultado deste mesmo pedido. Até lá, não dá para afirmar se a cota ainda está reservada.</small>','<div class="hsra"><button class="btn ol sm" data-hck="1">Conferir de novo</button><button class="btn ol sm" data-hcp="1">Já cancelei no portal</button></div>');
+  $('[data-hck]',bi).onclick=function(){cancelarHSvai(g,c,id);};$('[data-hcp]',bi).onclick=function(){delete HSR.pend[pk];soPlataformaHS(g,c);};return;}
+ delete HSR.pend[pk];
  var b=hsrPinta('err','<b>A reserva da cota '+c+' não foi cancelada</b><small>'+esc(r.msg||'')+'</small>','<div class="hsra"><button class="btn ol sm" data-hcx="1">Tentar de novo</button><button class="btn ol sm" data-hcp="1">Já cancelei no portal</button></div>');
  $('[data-hcx]',b).onclick=function(){cancelarHSvai(g,c);};$('[data-hcp]',b).onclick=function(){soPlataformaHS(g,c);};}
 async function soPlataformaHS(g,c){try{await hsApi('POST','/api/hs_reserva_cancelar',{grupo:String(g.grupo),cota:c,adm:'HS',so_plataforma:true});

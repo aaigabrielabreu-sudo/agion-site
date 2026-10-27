@@ -1167,10 +1167,20 @@ function pinta(){var c=$('rsC');if(!c)return;var V=visiveis(),src=(V.semMatch?V.
 function conta(){var ks=Object.keys(SEL),gs={};ks.forEach(function(k){gs[k.split('|')[0]]=1;});var b=$('rsOk');if(!b)return;var ng=Object.keys(gs).length;b.disabled=!ks.length;
  b.textContent=ks.length?('Adicionar '+ks.length+' cota'+(ks.length>1?'s':'')+(ng>1?' de '+ng+' grupos':'')):'Adicionar';}
 async function aplica(troca){var ks=Object.keys(SEL);if(!ks.length)return;var por={};ks.forEach(function(k){var p=k.split('|');(por[p[0]]=por[p[0]]||[]).push(+p[1]);});
- var gs=Object.keys(por).sort(function(a,b){return a-b;}),box=$('c_cartas');
+ var gs=Object.keys(por).sort(function(a,b){return a-b;}),box=$('c_cartas'),okb=$('rsOk'),INF={},falta=[];
+ /* PROP_RSV_VALIDA_27OUT: confere os dados de TODOS os grupos antes de mexer na proposta. Se algum falhar, nada muda
+    (antes: a carta entrava com os valores de exemplo 238.452,72 / 89 / 1.553,99 e a mensagem dizia que deu certo). */
+ if(okb){okb.disabled=true;okb.textContent='Conferindo as cartas…';}
+ for(var i=0;i<gs.length;i++){var g=gs[i],gi=await grupoInfo(g).catch(function(){return null;}),cs=cartasDe(gi),z=cs[CART[g]||0];
+  if(!gi||!z||!(+z.valor>0)||!(+z.parcela>0)||!(+gi.prazo_restante>0)){falta.push(g);continue;}
+  INF[g]={z:z,pz:+gi.prazo_restante};}
+ if(falta.length){var er=$('rsEr');if(!er){er=document.createElement('div');er.id='rsEr';er.className='rsdn';er.style.cssText='color:#9b2c24;background:rgba(155,44,36,.08);border-radius:10px;padding:10px 12px;margin:8px 0';var ft=okb&&okb.parentNode;if(ft&&ft.parentNode)ft.parentNode.insertBefore(er,ft);}
+  er.textContent='Não consegui ler o valor, a parcela ou o prazo da carta do grupo '+falta.join(', ')+' agora. Nada foi alterado na proposta. Tente de novo em instantes ou monte a carta à mão em “+ carta padrão”.';
+  setStatus('Cartas reservadas: não consegui ler os dados do grupo '+falta.join(', ')+'. Nada foi alterado.');conta();return;}
+ var er0=$('rsEr');if(er0)er0.remove();
  if(troca&&box){box.innerHTML='';try{STRATS=[];STRAT_MODE='separar';}catch(e){}}
- for(var i=0;i<gs.length;i++){var g=gs[i],gi=await grupoInfo(g).catch(function(){return null;}),cs=cartasDe(gi),z=cs[CART[g]||0]||{},ct=por[g].sort(function(a,b){return a-b;});
-  addCarta('padrao',{rotulo:'Grupo '+g+' · cota'+(ct.length>1?'s ':' ')+ct.join(', '),credito:z.valor?br2(z.valor):'',prazo:gi&&gi.prazo_restante?String(gi.prazo_restante):'',parcela:z.parcela?br2(z.parcela):'',lance:'0',qtd:String(ct.length)});}
+ for(var i=0;i<gs.length;i++){var g=gs[i],z=INF[g].z,ct=por[g].sort(function(a,b){return a-b;});
+  addCarta('padrao',{rotulo:'Grupo '+g+' · cota'+(ct.length>1?'s ':' ')+ct.join(', '),credito:br2(z.valor),prazo:String(INF[g].pz),parcela:br2(z.parcela),lance:'0',qtd:String(ct.length)});}
  try{stratPreset(gs.length>1?'unir':'separar');}catch(e){try{stratSync();}catch(x){}}
  try{var mg=$('mp_grupo'),mc=$('mp_cota');if(mg&&mc&&!mg.value.trim()&&gs.length===1){mg.value=gs[0];mc.value=por[gs[0]].join(', ');var ma=$('mp_adm');if(ma&&!ma.value)ma.value='HS';}}catch(e){}
  var gc=$('c_grupo');if(gc)gc.value=gs.length>1?('Grupos '+gs.join(', ')+' (HS)'):('Grupo '+gs[0]+' (HS)');
