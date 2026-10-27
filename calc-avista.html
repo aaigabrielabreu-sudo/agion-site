@@ -657,7 +657,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
    </div>
 
    <div class="panel rv" style="animation-delay:.35s">
-    <div class="chd"><div><h3><svg class="i" viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M5 15l4-4 3 3 7-7"/></svg>O dinheiro investido, mês a mês</h3><p>Nas duas opções o cliente começa com o mesmo dinheiro. No consórcio ele continua investido e paga as parcelas; no à vista o dinheiro todo vai para o bem e ele fica só com o imóvel.</p></div></div>
+    <div class="chd"><div><h3><svg class="i" viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M5 15l4-4 3 3 7-7"/></svg>O dinheiro investido, mês a mês</h3><p>Nas duas opções o cliente começa com o mesmo dinheiro. No consórcio ele continua investido e paga as parcelas; no à vista o dinheiro vai para o bem e ele fica com o imóvel; o que ele tiver além do preço, e o que o consórcio tirar do bolso, fica investido do lado do à vista, para os dois começarem e terminarem com o mesmo desembolso.</p></div></div>
     <div class="lgd"><span><i style="background:#C5A059"></i>Consórcio</span><span><i style="background:#2E6A8A"></i>À vista</span><span id="lg_mk"></span></div>
     <div class="cvb"><canvas id="ch1"></canvas></div>
    </div>
@@ -746,7 +746,9 @@ function modelo(rInv,mpx){
    for(let m=0;m<n;m++)base.push(m<k?meia:parcPos);
    Pk=Pref*Math.pow(1+vA,k/12); compK=Math.max(0,Pk-(Ck-E));
  }
- let inv=D-ent-comp0, av=0;   /* AVISTA_SO_BEM_26OUT: no à vista o cliente deu todo o dinheiro pelo bem: fica só com o imóvel */
+ let inv=D-ent-comp0, av=Math.max(0,D-Pv);   /* AVISTA_SO_BEM_26OUT: no à vista o cliente deu o dinheiro pelo bem e fica com o imóvel.
+   DOT2_27OUT: se ele tinha mais do que o preço, a sobra fica investida do lado do à vista (com o mesmo rendimento);
+   e no modo "só rendimento" o que sai do bolso no consórcio também fica investido no à vista — os dois lados com o mesmo desembolso. */
  const inv0=inv, aC=[inv], aA=[av], yM=[], oM=[], pM=[];
  let usedY=0,totOut=0,runout=null,totParc=0,totAlug=0,pLast=0,pFirst=0,cobreDesde=null,totAp=0,mesAp=0,apIni=null,apMax=0;
  const apM=[];
@@ -758,14 +760,16 @@ function modelo(rInv,mpx){
    let ap=0;
    if(mp==='REND'){
      /* só o rendimento paga parcela e aluguel; sobra volta para o investimento; o que faltar sai do bolso.
-        Lance e complemento (ex) saem do capital, como a entrada. No à vista não sobra dinheiro: só o bem. */
+        Lance e complemento (ex) saem do capital, como a entrada. No à vista, o que sai do bolso aqui fica investido (DOT2_27OUT). */
      const reg=p+a; usedY+=Math.min(y,reg); totOut+=o;
      if(y>=reg)inv=inv+(y-reg); else ap=reg-y;
      inv-=ex;
      if(ap>0.005){totAp+=ap;mesAp++;if(apIni===null)apIni=m+1;if(ap>apMax)apMax=ap;}
+     av=av*(1+rl)+ap;
    } else {
      usedY+=Math.min(y,o); totOut+=o;
      inv=inv*(1+rl)-o;
+     av=av*(1+rl);
    }
    if(inv<0&&runout===null)runout=m+1;
    aC.push(inv); aA.push(av); yM.push(y); oM.push(p+a); pM.push(p); apM.push(ap);
@@ -824,7 +828,7 @@ function draw(R,EMP,rinv){
  if(R.runout)mk.push({x:R.runout,t:'o dinheiro acaba',c:COL.bad,row:mk.length?1:0});
  /* 1) dinheiro investido */
  const d1=[{label:'Consórcio · dinheiro investido',data:pts(R.aC),borderColor:COL.gold,borderWidth:2.6,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:COL.gold,tension:.08,fill:{target:'origin',above:'rgba(197,160,89,.16)',below:'rgba(194,70,59,.12)'},order:1},
-  {label:'À vista · sem dinheiro (só o bem)',data:pts(R.aA),borderColor:COL.av,borderWidth:2.4,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:COL.av,tension:.08,fill:false,borderDash:[],order:0}];
+  {label:R.avT>0.5?'À vista · dinheiro investido':'À vista · sem dinheiro (só o bem)',data:pts(R.aA),borderColor:COL.av,borderWidth:2.4,pointRadius:0,pointHoverRadius:5,pointHoverBackgroundColor:COL.av,tension:.08,fill:false,borderDash:[],order:0}];
  if(!CH1){CH1=new Chart($('ch1'),{type:'line',data:{datasets:d1},options:baseOpts(R.n,fmtAx,false),plugins:[marks,cross]});}
  else{CH1.data.datasets.forEach((ds,i)=>{ds.data=d1[i].data;});}
  CH1.options.scales.x.max=R.n;CH1.options.scales.x.ticks.stepSize=R.n>36?12:Math.max(1,Math.round(R.n/8));CH1.options.scales.x.ticks.callback=mesTick(R.n);CH1.options.plugins.agMarks.lines=mk;CH1.update();
@@ -994,7 +998,7 @@ function explica(R,consWin,net,cetA,totPago,rp){
  const st=(n,ti,v,p,hl)=>'<div class="st'+(hl?' hl':'')+'"><div class="n">'+n+'</div><div class="t">'+ti+'</div><div class="v">'+v+'</div><p>'+p+'</p></div>';
  const cond=R.NOVA?'<div class="exc"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.2M12 7.6v.4"/></svg><div>Na carta nova, a simulação considera a contemplação no <b>mês '+R.k+'</b>. A data não é garantida: pode vir antes ou depois, por sorteio ou lance. Mude a “Contemplação prevista” e os números se ajustam.</div></div>':'<div class="exc"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.2M12 7.6v.4"/></svg><div>Na carta contemplada o crédito já está liberado: o cliente compra o bem hoje, como no à vista. A diferença é que o dinheiro dele continua investido.</div></div>';
  $('ex1t').innerHTML=cond+'<div class="exs">'+
-  st(1,'À vista',moneyK(R.bemT+R.avT),'paga '+money(R.Pv)+' hoje com todo o dinheiro e termina só com o bem, sem dinheiro investido.')+
+  st(1,'À vista',moneyK(R.bemT+R.avT),R.avT>0.5?'paga '+money(R.Pv)+' hoje e termina com o bem e '+moneyK(R.avT)+' investidos'+(R.D>R.Pv+0.5?' (o que tinha além do preço'+(R.totAp>0.5?' e o mesmo dinheiro que no consórcio sai do bolso':'')+')':' (o mesmo dinheiro que no consórcio sai do bolso)')+'.':'paga '+money(R.Pv)+' hoje com todo o dinheiro e termina só com o bem, sem dinheiro investido.')+
   st(2,'Consórcio',moneyK(R.bemT+R.invT),'paga '+money(totPago)+' na carta (custo efetivo de '+pct(cetA)+' ao ano) e termina com '+money(R.invT)+' investido, mais o bem.')+
   st(3,'O rendimento',pct(rp,0),'do que o consórcio cobra sai só do rendimento do dinheiro investido.')+
   st(4,'Resultado',moneyK(Math.abs(net)),consWin?'a mais pelo consórcio.':'a mais pagando à vista.',true)+'</div>';

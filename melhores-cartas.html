@@ -1476,7 +1476,7 @@ function podeReservar(g,c){return g.adm==='HS'&&!!vd(g)&&roboAv(g,c)&&!bloqueada
 async function hsApi(m,u,b){if(window.__MC_RES)return window.__MC_RES(m,u,b);
  var ss=await S.sb.auth.getSession(),tk=ss&&ss.data&&ss.data.session?ss.data.session.access_token:'';
  var r=await fetch(BOT_API+u,{method:m,headers:{'Authorization':'Bearer '+tk,'Content-Type':'application/json'},body:b?JSON.stringify(b):undefined});
- var j=null;try{j=await r.json();}catch(e){}if(!r.ok)throw new Error((j&&j.error)||('o servidor respondeu '+r.status));return j||{};}
+ var j=null;try{j=await r.json();}catch(e){}if(!r.ok){var er=new Error((j&&j.error)||('o servidor respondeu '+r.status));er.http=r.status;throw er;}return j||{};}   /* CANC_ENVIO_27OUT: er.http = o servidor respondeu (≠ queda de conexão) */
 function hsrBox(){var b=$('#hsr');if(!b){b=document.createElement('div');b.id='hsr';b.className='hsr';document.body.appendChild(b);}return b;}
 function hsrFecha(){var b=$('#hsr');if(b)b.classList.remove('on');}
 var HSR={rodando:false,parar:false,pid:null,canc:false,lote:null};/* CANCELAR_RESERVA_26OUT: X e Parar param o robô de verdade */
@@ -1601,13 +1601,15 @@ async function cancelarHSvai(g,c,id0){HSR.canc=true;var pk=String(g.grupo)+'|'+c
   var t0=Date.now(),lim=id0?90000:420000;
   while(Date.now()-t0<lim){await new Promise(function(ok){setTimeout(ok,window.__MC_RES?400:4000);});r=await hsApi('GET','/api/hs_reservar/'+id);if(r&&r.status&&r.status!=='fila'&&r.status!=='rodando')break;
    if(r&&r.msg)hsrPinta('run','<b>Cancelando a reserva da cota '+c+'</b><small>'+esc(r.msg)+'…</small>');}
- }catch(e){r=id?{status:'incerto',msg:'Perdi a conexão com o robô enquanto ele conferia ('+(e&&e.message||e)+').'}:{status:'erro',msg:'O pedido não chegou ao robô ('+(e&&e.message||e)+'). Nada foi feito no portal.'};}
+ }catch(e){r=id?{status:'incerto',msg:'Perdi a conexão com o robô enquanto ele conferia ('+(e&&e.message||e)+').'}:(e&&e.http&&e.http<500?{status:'erro',msg:'O robô recusou o pedido ('+(e.message||e)+'). Nada foi feito no portal.'}:{status:'incerto0',msg:'A conexão caiu enquanto o pedido era enviado ('+(e&&e.message||e)+'), então não dá para saber se ele chegou ao robô.'});}
  finally{HSR.canc=false;}
  if(!r||r.status==='fila'||r.status==='rodando')r={status:'incerto',msg:'O robô ainda não terminou de conferir.'};
  if(r.status==='ok'){delete HSR.pend[pk];hsSoltou(g,c);try{await recarregaMarcas();}catch(e){pintar();}
   hsrPinta('ok','<b>Reserva da cota '+c+' cancelada</b><small>'+esc(r.msg||'Cancelada no portal da HS')+'. A equipe toda vê no mapa.</small>');toast('Reserva da cota '+c+' cancelada no portal da HS');return;}
  if(r.status==='incerto'){var bi=hsrPinta('ind','<b>Cancelamento da cota '+c+': aguardando confirmação</b><small>'+esc(r.msg||'')+' O pedido já foi feito, não precisa pedir de novo: toque em “Conferir de novo” para ver o resultado deste mesmo pedido. Até lá, não dá para afirmar se a cota ainda está reservada.</small>','<div class="hsra"><button class="btn ol sm" data-hck="1">Conferir de novo</button><button class="btn ol sm" data-hcp="1">Já cancelei no portal</button></div>');
   $('[data-hck]',bi).onclick=function(){cancelarHSvai(g,c,id);};$('[data-hcp]',bi).onclick=function(){delete HSR.pend[pk];soPlataformaHS(g,c);};return;}
+ if(r.status==='incerto0'){var b0=hsrPinta('ind','<b>Cancelamento da cota '+c+': resultado desconhecido</b><small>'+esc(r.msg||'')+' Confira no portal da HS ou peça de novo: se a reserva já tiver sido cancelada, o robô só avisa que ela não está mais reservada.</small>','<div class="hsra"><button class="btn ol sm" data-hcx="1">Pedir de novo</button><button class="btn ol sm" data-hcp="1">Já cancelei no portal</button></div>');
+  $('[data-hcx]',b0).onclick=function(){cancelarHSvai(g,c);};$('[data-hcp]',b0).onclick=function(){soPlataformaHS(g,c);};return;}   /* CANC_ENVIO_27OUT */
  delete HSR.pend[pk];
  var b=hsrPinta('err','<b>A reserva da cota '+c+' não foi cancelada</b><small>'+esc(r.msg||'')+'</small>','<div class="hsra"><button class="btn ol sm" data-hcx="1">Tentar de novo</button><button class="btn ol sm" data-hcp="1">Já cancelei no portal</button></div>');
  $('[data-hcx]',b).onclick=function(){cancelarHSvai(g,c);};$('[data-hcp]',b).onclick=function(){soPlataformaHS(g,c);};}
@@ -1775,7 +1777,7 @@ function lcRef(g){var lv=lvG(g),it=((lv&&lv.it)||[]).filter(function(x){return !
  if(it.length){var s=0,mn2=Infinity,mx2=0;it.forEach(function(x){s+=x.n;if(x.n<mn2)mn2=x.n;if(x.n>mx2)mx2=x.n;});return {N:s/it.length,fonte:'media',qt:it.length,mn:mn2,mx:mx2,it:it,lv:lv};}
  if(lv&&lv.med>0)return {N:lv.medN,fonte:'portal',qt:0,it:[],lv:lv};return null;}
 function lcGrupos(){var out=[],vis={};Object.keys(S.VG||{}).forEach(function(k){var v=S.VG[k];if(!v||adm(v.administradora)!=='HS'||tipoN(v.segmento)!==S.cat)return;var g=S.GR[k];if(!g)return;if(!vis[k]){vis[k]=1;out.push(g);}});return out;}
-function lcCalc(){var L=lcNum(LC.L),C=lcNum(LC.C),e=LC.usaEmb?Math.max(0,Math.min(50,+LC.emb||0))/100:0,folga=Math.max(0,Math.min(60,Math.round(+LC.folga||0)));
+function lcCalc(){var L=lcNum(LC.L),C=lcNum(LC.C),e=LC.usaEmb?Math.max(0,Math.min(30,+LC.emb||0))/100:0,folga=Math.max(0,Math.min(60,Math.round(+LC.folga||0)));
  var R={L:L,C:C,e:e,lista:[],fora:{andou:0,sem:0,quit:0,peq:0,mod:0},total:0};
  lcGrupos().forEach(function(g){var v=S.VG[g.k];if(!v||v.disponivel===false)return;var P=+v.prazo_original,Rr=+v.prazo_restante||0;if(!P)return;R.total++;
   var and=Rr?(P-Rr)/P:0;if(LC.ate40&&and>0.4+1e-9){R.fora.andou++;return;}
@@ -1815,9 +1817,9 @@ function lcCard(r,hero){var x=r.x,g=r.g,c=x.c,tag={livre:'Só lance livre',emb:'
  else if(r.tipo==='falta')cells+=cel('Faltam',lcR(r.falta),'≈ '+Math.ceil(r.faltaN)+' parcela'+(Math.ceil(r.faltaN)>1?'s':'')+(LC.usaEmb?' (já com o embutido)':''),'bad')+cel('Lance livre',lcR(lcNum(LC.L)),'o que o cliente tem')+cel('Embutido máx.',LC.usaEmb?lcR(Math.min(r.e0*x.K,Math.max(0,x.K-lcNum(LC.C)))):'—',LC.usaEmb?'sem baixar do crédito pedido':'desligado');
  else cells+=cel('Maior carta do grupo',lcR(x.K),'menor que o crédito pedido','bad');
  var covp=r.cov==null?0:Math.round(r.cov/r.nIt*100);
- var frase='';if(hero){if(r.tipo==='livre')frase='Com '+lcR(r.usa)+' de lance livre o cliente chega a '+r.Na+' parcelas na carta de '+lcR(x.K)+' e recebe o crédito cheio.'+(r.Amax&&r.Amax.K>x.K?' Só com o lance livre dá até a carta de '+lcR(r.Amax.K)+' neste grupo.':'');
-  else if(r.tipo==='emb')frase='O dinheiro do cliente ('+lcR(r.usa)+') não chega sozinho às '+r.Na+' parcelas. Com '+lcR(r.E)+' de lance embutido ('+lcPct(r.E/x.K)+' da carta de '+lcR(x.K)+') o lance fecha e ele ainda recebe '+lcR(r.liq)+' de crédito líquido.';
-  else if(r.tipo==='falta')frase='Nenhum grupo contempla com esse valor agora. O mais perto é este: faltam '+lcR(r.falta)+' para chegar às '+r.Na+' parcelas.';}
+ var frase='';if(hero){if(r.tipo==='livre')frase='Com '+lcR(r.usa)+' de lance livre o cliente chega a '+r.Na+' parcelas na carta de '+lcR(x.K)+', a referência dos lances que contemplaram no grupo. Se contemplar, recebe o crédito cheio; a contemplação depende do resultado da assembleia.'+(r.Amax&&r.Amax.K>x.K?' Só com o lance livre dá até a carta de '+lcR(r.Amax.K)+' neste grupo.':'');
+  else if(r.tipo==='emb')frase='O dinheiro do cliente ('+lcR(r.usa)+') não chega sozinho às '+r.Na+' parcelas. Com '+lcR(r.E)+' de lance embutido ('+lcPct(r.E/x.K)+' da carta de '+lcR(x.K)+') o lance chega ao alvo. Se contemplar, ele recebe '+lcR(r.liq)+' de crédito líquido; a contemplação depende do resultado da assembleia.';
+  else if(r.tipo==='falta')frase='Com esse valor, nenhum grupo chega agora à referência dos lances que contemplaram. O mais perto é este: faltam '+lcR(r.falta)+' para chegar às '+r.Na+' parcelas.';}
  return '<div class="lcc t-'+r.tipo+(hero?' hero':'')+'" data-k="'+esc(g.k)+'" data-bem="'+esc(c.bem||'')+'" data-mod="'+esc(c.modalidade||'')+'">'+
   '<div class="lch">'+(hero?'<span class="lcbest">Melhor encaixe</span>':'')+'<b>Grupo '+g.grupo+'</b><span class="pill xs">'+pz+'</span>'+(as?'<span class="pill xs hm">'+as+'</span>':'')+'<span class="sp"></span><span class="lctag">'+tag+'</span></div>'+
   (frase?'<p class="lcfr">'+frase+'</p>':'')+
@@ -1833,7 +1835,7 @@ function lcRes(){var box=$('#lcres');if(!box)return;var R=lcCalc();
  var hero=bons[0]||resto[0]||null,outros=(bons.length?bons.slice(1):resto.slice(1)),mostra=LC.mais?outros:outros.slice(0,8);
  var h='<div class="kpis lck">'+kpiH(LCI.calc,'Grupos de '+CATS[S.cat].toLowerCase(),R.total,'com cartas à venda na HS')+kpiH(IC.check,'Só lance livre',nl,'contemplam com o valor do cliente')+kpiH(IC.plus,'Com embutido',ne,LC.usaEmb?'até '+lcD1(R.e*100)+'% da carta':'embutido desligado')+kpiH(IC.x,'Fora da conta',nf2,(LC.ate40&&R.fora.andou?R.fora.andou+' andaram mais de 40%':'')+(R.fora.sem?(LC.ate40&&R.fora.andou?' · ':'')+R.fora.sem+' sem lance':'')||'—')+'</div>';
  if(hero)h+=lcCard(hero,true);else h+='<div class="panel empty lcempty">'+LCI.alvo+'<p>Nenhum grupo com cartas para esse crédito nesta categoria e modalidade. Tente outra modalidade ou inclua os grupos que já andaram mais de 40%.</p></div>';
- if(mostra.length)h+='<div class="lcsub">'+(bons.length?'Outros grupos que contemplam':'Também perto')+'<span class="pill xs">'+outros.length+'</span></div><div class="lcl">'+mostra.map(function(r){return lcCard(r,false);}).join('')+'</div>'+(outros.length>8?'<div class="lcmore"><button class="btn ol sm" id="lcmais">'+(LC.mais?'Mostrar menos':'Ver os '+outros.length+' grupos')+'</button></div>':'');
+ if(mostra.length)h+='<div class="lcsub">'+(bons.length?'Outros grupos onde o lance chega à referência':'Também perto')+'<span class="pill xs">'+outros.length+'</span></div><div class="lcl">'+mostra.map(function(r){return lcCard(r,false);}).join('')+'</div>'+(outros.length>8?'<div class="lcmore"><button class="btn ol sm" id="lcmais">'+(LC.mais?'Mostrar menos':'Ver os '+outros.length+' grupos')+'</button></div>':'');
  h+='<details class="info lcinfo" data-dk="lcinfo"><summary>'+IC.info+'<b>Como a conta é feita</b>'+IC.chev+'</summary><div class="ib">'+
   '<p><b>Em parcelas, como a HS.</b> O lance livre contempla pelo número de parcelas. O lance alvo de cada grupo é o lance livre médio que contemplou nos últimos 6 meses (ou, se escolher “Último lance”, o menor lance que contemplou na última assembleia), arredondado para cima, mais a folga que você puser. Lance que quitou a cota fica fora da média.</p>'+
   '<p><b>Quanto vale 1 parcela de lance.</b> É a parcela integral do plano, que já tem dentro a taxa de administração e o fundo de reserva (o dobro da meia parcela). O lance em reais é a parcela integral vezes o número de parcelas: se o grupo contempla com 141 parcelas e a parcela integral é R$ 4.029,14, o lance é 141 × R$ 4.029,14 = R$ 568.109.</p>'+
@@ -1866,7 +1868,7 @@ function abaLance(v){
  $$('#lcbase .chip').forEach(function(b){b.onclick=function(){LC.base=b.dataset.k;$$('#lcbase .chip').forEach(function(x){x.classList.toggle('on',x===b);});lcSalva();lcRes();};});
  $$('#lcmod .chip').forEach(function(b){b.onclick=function(){LC.mod=b.dataset.k;$$('#lcmod .chip').forEach(function(x){x.classList.toggle('on',x===b);});lcSalva();lcRes();};});
  $('#lcemb').onclick=function(){LC.usaEmb=!LC.usaEmb;this.classList.toggle('on',LC.usaEmb);$('#lcembp').disabled=!LC.usaEmb;lcSalva();lcRes();};
- $('#lcembp').oninput=function(){var n=parseFloat(String(this.value).replace(',','.'));LC.emb=isFinite(n)?Math.max(0,Math.min(50,n)):0;agenda();};
+ $('#lcembp').oninput=function(){var n=parseFloat(String(this.value).replace(',','.'));LC.emb=isFinite(n)?Math.max(0,Math.min(30,n)):0;agenda();};
  $('#lcfol').oninput=function(){var n=parseInt(this.value,10);LC.folga=isFinite(n)?Math.max(0,Math.min(60,n)):0;agenda();};
  $('#lc40').onclick=function(){LC.ate40=!LC.ate40;this.classList.toggle('on',LC.ate40);lcSalva();lcRes();};
  lcRes();}

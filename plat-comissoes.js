@@ -74,7 +74,7 @@ function proxCluster(prod){ for(var i=0;i<CLUSTERS.length;i++) if(prod<=CLUSTERS
 function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%'; }
 
 /* ===================== DADOS ===================== */
-var _vendas=[], _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
+var _vendas=[], _loadErr='', _loaded=false, _compSel=null, _funcSel='', _tab='andamento';
 var VERSAO='v39';
 function eRole(){ return (typeof effRole==='function')?effRole():session.role; }
 function eId(){ return (typeof effId==='function')?effId():meId(); }
@@ -92,8 +92,8 @@ function aprovada(v){ var a=analise(v); return a==='APROVADA'||a==='APROVADA_AUT
 function ativa(v){ return aprovada(v) && v.situacao!=='CANCELADA' && v.situacao!=='REEMBOLSO_TOTAL'; }
 function elegivelCluster(v){ return v.origem==='LEAD_AGION' && v.origem_status==='VALIDADA' && ativa(v); }
 async function load(){
-  try{ var r=await supa.from('comissoes_vendas').select('*').order('data_insercao',{ascending:false}); _vendas=r.data||[]; }
-  catch(e){ _vendas=[]; }
+  try{ var r=await supa.from('comissoes_vendas').select('*').order('data_insercao',{ascending:false}); if(r.error) throw r.error; _vendas=r.data||[]; _loadErr=''; }
+  catch(e){ _vendas=[]; _loadErr=String((e&&e.message)||e||'erro desconhecido'); }   /* DOT2_27OUT: erro de leitura não vira "nenhuma venda" */
   _loaded=true;
 }
 function parc(v,n){ var p=(v.parcelas||[]).find(function(x){return +x.n===n;}); return p||{n:n,hs:'PREVISTA',func:'PREVISTA'}; }
@@ -835,7 +835,9 @@ window.cmsEditar=async function(id){
       +'<div class="cms-acts"><button class="btn btn-ghost btn-sm" id="edC">Cancelar</button><button class="btn btn-gold btn-sm" id="edOk">Salvar alterações</button></div></div>';
     document.body.appendChild(bg);
     document.getElementById('edC').onclick=function(){bg.remove();res(null);};
-    document.getElementById('edOk').onclick=function(){ var r={vend:document.getElementById('edVend').value,credito:Number(String(document.getElementById('edCred').value).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0,data:document.getElementById('edData').value,origem:document.getElementById('edOrig').value,categoria:document.getElementById('edCat').value,adm:document.getElementById('edAdm').value,rpct:Number(String(document.getElementById('edRpct').value).replace(',','.'))||0,rn:parseInt(document.getElementById('edRn').value,10)||0}; if(!(r.credito>0)){flash('Informe o valor do crédito vendido.');return;} if(!r.data){flash('Informe a data da venda.');return;} bg.remove(); res(r); };
+    document.getElementById('edOk').onclick=function(){ var r={vend:document.getElementById('edVend').value,credito:Number(String(document.getElementById('edCred').value).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0,data:document.getElementById('edData').value,origem:document.getElementById('edOrig').value,categoria:document.getElementById('edCat').value,adm:document.getElementById('edAdm').value,rpct:Number(String(document.getElementById('edRpct').value).replace(',','.'))||0,rn:parseInt(document.getElementById('edRn').value,10)||0}; var _rp=String(document.getElementById('edRpct').value).trim(),_rn=String(document.getElementById('edRn').value).trim();
+      if((_rp||_rn)&&!(r.rpct>0&&r.rn>0)){flash('Regra própria: preencha o % total e o nº de parcelas juntos (ou deixe os dois em branco para usar a regra padrão).');return;}   /* DOT2_27OUT */
+      if(!(r.credito>0)){flash('Informe o valor do crédito vendido.');return;} if(!r.data){flash('Informe a data da venda.');return;} bg.remove(); res(r); };
   });
   if(!out)return;
   var patch={vendedor_id:out.vend,credito:out.credito,data_insercao:out.data,origem:out.origem,origem_status:'VALIDADA',categoria:out.categoria||null,administradora:out.adm||v.administradora,regra:(out.rpct>0&&out.rn>0)?{pct:out.rpct/100,n:out.rn}:null};
@@ -846,7 +848,9 @@ window.cmsEditar=async function(id){
 window.cmsExcluir=async function(id){
   if(!eMaster())return; var v=_vendas.find(function(x){return x.id===id;}); if(!v)return;
   if(!(await ask({title:'Excluir venda?',msg:'A venda de '+(v.cliente_nome||'')+' sai da aba Comissões. A carta do cliente continua cadastrada.',ok:'Excluir venda'})))return;
-  try{ await supa.from('comissoes_vendas').delete().eq('id',id); logEvt('comissao','comissoes','Excluiu venda de '+(v.cliente_nome||''),{id:id}); }catch(e){}
+  try{ var rd=await supa.from('comissoes_vendas').delete().eq('id',id).select('id'); if(rd.error) throw rd.error; if(!rd.data||!rd.data.length) throw new Error('o banco não confirmou a exclusão');
+    logEvt('comissao','comissoes','Excluiu venda de '+(v.cliente_nome||''),{id:id}); }
+  catch(e){ await ask({title:'Não foi possível excluir a venda',msg:'A venda continua registrada. Tente de novo em instantes. Detalhe: '+String((e&&e.message)||e),ok:'Fechar'}); }   /* DOT2_27OUT */
   await load(); render();
 };
 window.cmsAprovar=async function(id){
@@ -881,14 +885,14 @@ window.cmsNovaVenda=async function(pre){
   // valores pré-definidos: carta HS (valor) e lead do CRM (valor)
   var cartasAll=[]; try{ var rc=await supa.from('cartas').select('id,cliente_id,administradora,grupo,cota,valor,categoria'); cartasAll=(rc.data||[]).filter(function(x){return /hs/i.test(x.administradora||'')||x.categoria==='SERVICOS';}); }catch(e){}
   function leadDe(c){ var n=String(c.nome||'').trim().toLowerCase(); return (db.crm||[]).filter(function(l){return String(l.nome||'').trim().toLowerCase()===n;}).sort(function(x,y){return (y.stage||0)-(x.stage||0);})[0]||null; }
-  function info(c){ var ks=cartasAll.filter(function(x){return x.cliente_id===c.id;}); var l=leadDe(c); var val=(ks.find(function(x){return x.valor;})||{}).valor||(l&&l.valor)||0; var cad=(c.cadastroId&&typeof window.cadOf==='function')?window.cadOf(c.cadastroId):null; var orig=cad?((cad.origem==='COLABORADOR'&&cad.origem_por===eId())?'CLIENTE_PROPRIO':'LEAD_AGION'):((l&&/^\s*origem:/i.test(l.obs||''))?'LEAD_AGION':''); return {cartas:ks,lead:l,valor:val,origem:orig,fonte:ks.some(function(x){return x.valor;})?'carta':(l&&l.valor?'CRM':'')}; }
+  function info(c){ var ks=cartasAll.filter(function(x){return x.cliente_id===c.id;}); var l=leadDe(c); var val=(ks.find(function(x){return x.valor;})||{}).valor||(l&&l.valor)||0; var cad=(c.cadastroId&&typeof window.cadOf==='function')?window.cadOf(c.cadastroId):null; var por=(cad&&cad.origem==='COLABORADOR')?(cad.origem_por||''):''; var orig=cad?((por&&por===eId())?'CLIENTE_PROPRIO':'LEAD_AGION'):((l&&/^\s*origem:/i.test(l.obs||''))?'LEAD_AGION':''); return {cartas:ks,lead:l,valor:val,origem:orig,por:por,fonte:ks.some(function(x){return x.valor;})?'carta':(l&&l.valor?'CRM':'')}; }
   var bx='cms-in', sel=function(inner){ return '<span class="cms-sel">'+inner+'</span>'; };
   var fld=function(lb,inner){ return '<label class="cms-fld"><span>'+lb+'</span>'+inner+'</label>'; };
   // sugestões: últimos ganhos no CRM da própria pessoa (ou de todos, p/ master) ainda não registrados
   var meu=eId(); var ja={}; _vendas.forEach(function(v){ ja[String(v.cliente_nome||'').trim().toLowerCase()]=1; if(v.cliente_id) ja[v.cliente_id]=1; });
   var ganhos=(db.crm||[]).filter(function(l){ return !l.perdido && l.stage===CRM_STAGES.length-1 && (eMaster()||l.ownerId===meu) && !ja[String(l.nome||'').trim().toLowerCase()]; }).sort(function(a,b){ return (b.criadoEm||0)-(a.criadoEm||0); }).slice(0,6);
   var sug=ganhos.map(function(l){ var c=clis.find(function(x){return String(x.nome||'').trim().toLowerCase()===String(l.nome||'').trim().toLowerCase();}); return c?'<button type="button" class="cms-pill cms-pill--txt" data-cid="'+c.id+'" data-valor="'+(l.valor||'')+'">'+esc(l.nome)+(l.valor?' · '+BRL(l.valor):'')+'</button>':''; }).join('');
-  var opts=clis.map(function(c){ var i=info(c); return '<option value="'+c.id+'" data-valor="'+(i.valor||'')+'" data-origem="'+i.origem+'" data-fonte="'+i.fonte+'"'+(pre.cliente_id===c.id?' selected':'')+'>'+esc(c.nome||'')+(i.valor?' — '+BRL(i.valor)+' ('+i.fonte+')':'')+'</option>'; }).join('');
+  var opts=clis.map(function(c){ var i=info(c); return '<option value="'+c.id+'" data-valor="'+(i.valor||'')+'" data-origem="'+i.origem+'" data-por="'+(i.por||'')+'" data-fonte="'+i.fonte+'"'+(pre.cliente_id===c.id?' selected':'')+'>'+esc(c.nome||'')+(i.valor?' — '+BRL(i.valor)+' ('+i.fonte+')':'')+'</option>'; }).join('');
   var vendOpts=''; if(eMaster()){ var vs=staffList(); vendOpts=vs.map(function(a){return '<option value="'+a.id+'">'+esc(a.nome||'')+'</option>';}).join(''); }
   var out=await new Promise(function(res){
     var bg=document.createElement('div'); bg.id='cmsSel'; bg.style.cssText='position:fixed;inset:0;z-index:210;background:var(--surface-overlay,rgba(4,12,14,.72));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px';
@@ -904,18 +908,21 @@ window.cmsNovaVenda=async function(pre){
       +'<div class="cms-acts"><button class="btn btn-ghost btn-sm" id="cmsCancel">Cancelar</button><button class="btn btn-gold btn-sm" id="cmsOk">Registrar venda</button></div></div>';
     document.body.appendChild(bg);
     var $=function(i){return document.getElementById(i);};
-    function fill(){ var o=$('cmsCli').selectedOptions[0]; var cid=o.value; var ks=cartasAll.filter(function(x){return x.cliente_id===cid;});
-      $('cmsCarta').innerHTML=(ks.map(function(x){return '<option value="'+x.id+'" data-cat="'+(x.categoria||'')+'" data-valor="'+(x.valor||'')+'"'+(pre.carta_id===x.id?' selected':'')+'>Grupo '+esc(x.grupo)+' / cota '+esc(x.cota)+(x.valor?' — '+BRL(x.valor):'')+'</option>';}).join(''))+'<option value="">Sem carta vinculada</option>';
-      var pv=pre.credito||o.getAttribute('data-valor')||''; $('cmsCred').value=pv?String(Math.round(+pv)):''; $('cmsHint').textContent=pv?'sugerido: '+BRL(+pv)+' ('+(o.getAttribute('data-fonte')||'')+')':'sem valor sugerido';
-      if(o.getAttribute('data-origem')) $('cmsOrig').value=o.getAttribute('data-origem');
-      var cc=clis.find(function(x){return x.id===cid;})||{}, ko=$('cmsCarta').selectedOptions[0], ld=leadDe(cc);
-      var catSug=pre.categoria||(ko&&ko.getAttribute('data-cat'))||cc.categoria||(ld&&ld.categoria)||''; if(catSug) $('cmsCat').value=catSug; catTxt();
-      if($('cmsVend')){ var c=clis.find(function(x){return x.id===cid;}); if(c&&c.ownerId&&[].some.call($('cmsVend').options,function(op){return op.value===c.ownerId;})) $('cmsVend').value=c.ownerId; else $('cmsVend').value=meId(); } }
+    var origTocada=false;
+    function sugOrig(){ if(origTocada)return; var o=$('cmsCli').selectedOptions[0]; if(!o)return; var por=o.getAttribute('data-por')||'', quem=$('cmsVend')?$('cmsVend').value:eId();   /* DOT2_27OUT: origem pelo vendedor escolhido, não por quem opera */
+      if(por) $('cmsOrig').value=(por===quem)?'CLIENTE_PROPRIO':'LEAD_AGION'; else if(o.getAttribute('data-origem')) $('cmsOrig').value=o.getAttribute('data-origem'); catTxt(); }
+    function fill(){ var o=$('cmsCli').selectedOptions[0]; var cid=o.value; var ks=cartasAll.filter(function(x){return x.cliente_id===cid;}); var usaPre=(pre.cliente_id===cid); origTocada=false;   /* DOT2_27OUT: dados do 1º cliente não passam para o 2º */
+      $('cmsCarta').innerHTML=(ks.map(function(x){return '<option value="'+x.id+'" data-cat="'+(x.categoria||'')+'" data-valor="'+(x.valor||'')+'"'+(usaPre&&pre.carta_id===x.id?' selected':'')+'>Grupo '+esc(x.grupo)+' / cota '+esc(x.cota)+(x.valor?' — '+BRL(x.valor):'')+'</option>';}).join(''))+'<option value="">Sem carta vinculada</option>';
+      var cc=clis.find(function(x){return x.id===cid;})||{}, ko=$('cmsCarta').selectedOptions[0], ld=leadDe(cc), kv=ko&&ko.getAttribute('data-valor');
+      var pv=(usaPre&&pre.credito)||kv||o.getAttribute('data-valor')||''; $('cmsCred').value=pv?String(Math.round(+pv)):''; $('cmsHint').textContent=pv?'sugerido: '+BRL(+pv)+' ('+((usaPre&&pre.credito)?'carta escolhida':(kv?'carta':(o.getAttribute('data-fonte')||'')))+')':'sem valor sugerido';
+      var catSug=(usaPre&&pre.categoria)||(ko&&ko.getAttribute('data-cat'))||cc.categoria||(ld&&ld.categoria)||''; $('cmsCat').value=catSug||''; catTxt();
+      if($('cmsVend')){ if(cc.ownerId&&[].some.call($('cmsVend').options,function(op){return op.value===cc.ownerId;})) $('cmsVend').value=cc.ownerId; else $('cmsVend').value=meId(); }
+      sugOrig(); }
     function catTxt(){ var sv=$('cmsCat').value==='SERVICOS'; var op=$('cmsOrig').options; op[0].textContent=sv?'Lead da Agion — serviços: 0,25% ao mês × 4 (1%)':'Lead da Agion — comissão pelo cluster'; op[1].textContent=(sv?'Cliente próprio — serviços: 0,5% ao mês × 4 (2%)':'Cliente próprio — 1% pré + 1% na contemplação')+(eMaster()?'':' (o Master valida)'); $('cmsCatHint').textContent=sv?'administradora Âncora':''; }
-    fill(); $('cmsCli').onchange=fill; $('cmsCat').onchange=catTxt;
+    fill(); $('cmsCli').onchange=fill; $('cmsCat').onchange=catTxt; $('cmsOrig').onchange=function(){origTocada=true;}; if($('cmsVend')) $('cmsVend').onchange=sugOrig;
     $('cmsBusca').oninput=function(){ var q=this.value.trim().toLowerCase(); var first=null; [].forEach.call($('cmsCli').options,function(o){ var hit=!q||o.textContent.toLowerCase().indexOf(q)>=0; o.hidden=!hit; if(hit&&!first)first=o; }); if(first){ $('cmsCli').value=first.value; fill(); } };
     if($('cmsSug')) [].forEach.call($('cmsSug').querySelectorAll('button'),function(b){ b.onclick=function(){ $('cmsCli').value=b.getAttribute('data-cid'); fill(); var v=b.getAttribute('data-valor'); if(v&&!$('cmsCred').value) $('cmsCred').value=String(Math.round(+v)); [].forEach.call($('cmsSug').querySelectorAll('button'),function(x){x.classList.remove('on');}); b.classList.add('on'); }; });
-    $('cmsCarta').onchange=function(){ var o2=this.selectedOptions[0]; var v=o2&&o2.getAttribute('data-valor'); if(v) $('cmsCred').value=String(Math.round(+v)); var ct=o2&&o2.getAttribute('data-cat'); if(ct){ $('cmsCat').value=ct; catTxt(); } };
+    $('cmsCarta').onchange=function(){ var o2=this.selectedOptions[0]; var v=o2&&o2.getAttribute('data-valor'); if(v){ $('cmsCred').value=String(Math.round(+v)); $('cmsHint').textContent='sugerido: '+BRL(+v)+' (carta)'; } var ct=o2&&o2.getAttribute('data-cat'); if(ct){ $('cmsCat').value=ct; catTxt(); } };
     $('cmsUsar').onclick=function(){ var o=$('cmsCli').selectedOptions[0]; var v=o.getAttribute('data-valor'); if(v) $('cmsCred').value=String(Math.round(+v)); else flash('Este cliente não tem valor sugerido. Digite o crédito.'); };
     $('cmsCancel').onclick=function(){bg.remove();res(null);};
     $('cmsOk').onclick=function(){ var r={cid:$('cmsCli').value,carta_id:$('cmsCarta').value||null,credito:Number(String($('cmsCred').value).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0,data:$('cmsData').value,origem:$('cmsOrig').value,categoria:$('cmsCat').value,vend:$('cmsVend')?$('cmsVend').value:null}; if(!r.categoria){flash('Escolha a categoria da carta.');return;} if(!(r.credito>0)){flash('Informe o valor do crédito vendido.');return;} if(!r.data){flash('Informe a data da venda.');return;} bg.remove(); res(r); };
@@ -988,7 +995,9 @@ function repaint(focoCard, topo){
   var g2=C.querySelector('.cms-kts'); if(g2){ g2.scrollLeft=x; if(focoCard){ var on=g2.querySelector('.cms-kt.on'); if(on){ var gl=g2.getBoundingClientRect(), r=on.getBoundingClientRect(); if(r.left<gl.left||r.right>gl.right) g2.scrollTo({left:g2.scrollLeft+(r.left-gl.left)-8,behavior:'smooth'}); } } }
   C.scrollTop=topo?0:y;
 }
+function _falhaLeitura(C){ C.innerHTML='<div class="cms-wrap"><div class="panel"><h2>Não consegui carregar as comissões</h2><p class="cms-desc">A consulta ao banco falhou, então nada aqui significa que não há vendas ou pendências. Detalhe: '+esc(_loadErr)+'</p><button class="btn btn-gold btn-sm" onclick="window.renderComissoes&&window.renderComissoes(document.querySelector(\'.main>.content\')||document.getElementById(\'content\'))">Tentar de novo</button></div></div>'; }
 function _pinta(C){
+  if(_loadErr){ _falhaLeitura(C); return; }
   var M=eMaster(), L=eLider();
   if(!M) _vendas=vendasVisiveis();
   if(M&&!_funcSel) return paintMaster(C);
@@ -1002,6 +1011,7 @@ async function _rotaComissoes(C){
   setTop('Comissões', M?'Gestão das comissões':(L?'Suas comissões e as da sua equipe':'Suas comissões'), (M?'':'<button class="btn btn-gold btn-sm" onclick="cmsNovaVenda()">+ Registrar venda</button>')+'<span class="note" style="margin-left:10px;opacity:.6">'+VERSAO+'</span>');
   C.innerHTML='<p class="note" style="padding:20px">Carregando comissões…</p>';
   await load();
+  if(_loadErr) return _falhaLeitura(C);
   if(!M) _vendas=vendasVisiveis();
   if(M&&!_funcSel) return paintMaster(C);
   if((M||L)&&_funcSel){ var u=user(_funcSel); if(L&&teamIds().indexOf(_funcSel)<0){ _funcSel=''; return window.renderComissoes(C); } C.innerHTML=''; paintFunc(C,_funcSel,u.nome); C.insertAdjacentHTML('afterbegin','<div style="margin-bottom:12px"><button class="btn btn-ghost btn-sm" onclick="cmsVerFunc(\'\')">← Voltar</button> <b style="margin-left:8px">'+esc(u.nome||'')+'</b></div>'); return; }

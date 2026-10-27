@@ -590,7 +590,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
     <div class="kpi rv" style="animation-delay:.15s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M4 17l5-5 4 4 7-8"/><path d="M15 8h5v5"/></svg></div><div class="kt"><small>Lucro líquido</small><b id="o_lucro">—</b><span id="o_lucro_s">—</span></div></div>
     <div class="kpi rv" style="animation-delay:.2s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="2.5"/><path d="M3.5 10h17"/></svg></div><div class="kt"><small>Crédito liberado</small><b id="o_credlib">—</b><span id="o_credlib_s">depois do lance embutido</span></div></div>
     <div class="kpi rv" style="animation-delay:.25s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 2 2.6 4.5 3 4.5 1.3 4.5 3-2 3-4.5 3-4.5-1.3-4.5-3"/></svg></div><div class="kt"><small>Valor de venda</small><b id="o_venda">—</b><span id="o_venda_s">—</span></div></div>
-    <div class="kpi rv" style="animation-delay:.3s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M9 15l6-6M9.5 9.5h.01M14.5 14.5h.01"/></svg></div><div class="kt"><small>Rendimento equivalente</small><b id="o_req">—</b><span>no período, ao mês</span></div></div>
+    <div class="kpi rv" style="animation-delay:.3s"><div class="ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M9 15l6-6M9.5 9.5h.01M14.5 14.5h.01"/></svg></div><div class="kt"><small>Rendimento equivalente</small><b id="o_req">—</b><span>taxa mensal efetiva, pela data de cada parcela</span></div></div>
    </div>
    <div class="cmp s1">
     <div class="pane rv" style="animation-delay:.2s">
@@ -669,7 +669,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
    </div>
    <div class="panel rv s1" style="animation-delay:.4s">
     <div class="chd"><div><h3><svg class="i" viewBox="0 0 24 24"><path d="M5 19V9M10 19V5M15 19v-7M20 19v-11"/></svg>Rendimento ao mês: consórcio × aplicação</h3><p>O lucro da venda dividido pelos meses até a contemplação, contra o rendimento da aplicação no mesmo período. Enquanto a linha dourada estiver acima da azul, vender a carta rende mais.</p></div></div>
-    <div class="lgd"><span><i style="background:#C5A059"></i>Consórcio (lucro ÷ meses)</span><span><i style="background:#2E6A8A"></i><span id="a2_l">Aplicação</span></span></div>
+    <div class="lgd"><span><i style="background:#C5A059"></i>Consórcio (taxa mensal efetiva)</span><span><i style="background:#2E6A8A"></i><span id="a2_l">Aplicação</span></span></div>
     <div class="cvb sm"><canvas id="a2"></canvas></div>
     <p class="cnote" id="a2_n">—</p>
    </div>
@@ -815,8 +815,13 @@ function c1(m){
  const cf=Math.pow(1+corr,m/12), credCorr=cred*cf, contrato=credCorr*(1+taxa), lanceEmb=emb*contrato, credLib=credCorr-lanceEmb;
  const venda=agio*credLib, lucro=venda-aporte, lucroPct=aporte>0?lucro/aporte*100:0;
  const parcelaPos=(prazo-m)>0?(contrato-aporte-lanceEmb)/(prazo-m):0;
- const apc=credLib>0?aporte/credLib*100:0, reqAM=m>0?lucroPct/m:0, aplic=(Math.pow(1+rend,m/12)-1)*100;
- return {cred,corr,red,prazo,taxa,emb,agio,rend,reduzida,aporte,credCorr,contrato,lanceEmb,credLib,venda,lucro,lucroPct,parcelaPos,apc,reqAM,aplic,m};
+ const apc=credLib>0?aporte/credLib*100:0;
+ /* DOT2_27OUT: taxa mensal EFETIVA (TIR) do fluxo real — paga a parcela reduzida todo mês e recebe a venda no mês m —
+    em vez de lucro ÷ meses; e a aplicação com o MESMO fluxo de depósitos, para comparar igual com igual */
+ const ra=Math.pow(1+rend,1/12)-1, fvA=ra>0?reduzida*(Math.pow(1+ra,m)-1)/ra:aporte, aplic=aporte>0?(fvA-aporte)/aporte*100:0;
+ const tirM=(function(){if(!(reduzida>0)||!(m>0))return 0;const g=i=>(Math.abs(i)<1e-9?reduzida*m:reduzida*(Math.pow(1+i,m)-1)/i)-venda;let lo=-0.99,hi=1;if(g(lo)>0||g(hi)<0)return venda>aporte?hi*100:lo*100;for(let k=0;k<90;k++){const mid=(lo+hi)/2;if(g(mid)<0)lo=mid;else hi=mid;}return (lo+hi)/2*100;})();
+ const reqAM=tirM, aplicM=ra*100;
+ return {cred,corr,red,prazo,taxa,emb,agio,rend,reduzida,aporte,credCorr,contrato,lanceEmb,credLib,venda,lucro,lucroPct,parcelaPos,apc,reqAM,aplic,aplicM,m};
 }
 /* cenário 2 — idêntico ao original */
 function c2(m){
@@ -825,8 +830,11 @@ function c2(m){
  let bruto=0;for(let k=0;k<prazoR;k++)bruto+=alugIni*Math.pow(1+reaj,Math.floor(k/12));
  const impostoT=bruto*imp, liq=bruto-impostoT, patrim=imovel*Math.pow(1+val,prazoR/12);
  const parcelas=S.contrato-S.lanceEmb, compl=Math.max(0,imovel-S.credLib), sobra=Math.max(0,S.credLib-imovel);
+ let cum=0,pico=0;for(let t=1;t<=S.m;t++){cum+=S.reduzida;}cum+=compl;pico=cum;   /* DOT2_27OUT: o aluguel só começa depois da contemplação */
+ for(let k=0;k<prazoR;k++){cum+=S.parcelaPos-alugIni*Math.pow(1+reaj,Math.floor(k/12))*(1-imp);if(cum>pico)pico=cum;}
+ const antes=S.aporte+compl;
  const totCons=parcelas+compl, bolso=totCons-liq, pctPago=patrim>0?totCons/patrim*100:0, custo=S.venda*Math.pow(1+S.rend,prazoR/12), dbp=patrim>0?bolso/patrim*100:0;
- return {S,imovel,val,alug,reaj,imp,prazoR,alugIni,bruto,impostoT,liq,patrim,parcelas,compl,sobra,totCons,bolso,pctPago,custo,dbp};
+ return {S,imovel,val,alug,reaj,imp,prazoR,alugIni,bruto,impostoT,liq,patrim,parcelas,compl,sobra,totCons,bolso,pctPago,custo,dbp,antes,pico};
 }
 function nota(d){return d<25?['EXCELENTE','','excelente']:d<40?['BOM','md','boa']:['AVALIAR','lo','para reavaliar'];}
 const R2=v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -850,8 +858,8 @@ function calc(){
  const vh1=$('v1_head'),ok1=S.lucro>0; vh1.classList.toggle('av',!ok1);
  vh1.innerHTML=ok1?'Vendendo a carta, o cliente lucra <em id="v1_big">—</em>.':'Com esses números a venda dá <em id="v1_big">—</em> de prejuízo.';
  ANI.v1_big=ANI.__v1==null?Math.abs(S.lucro):ANI.__v1;anim('v1_big',Math.abs(S.lucro),money);ANI.__v1=Math.abs(S.lucro);
- $('o_lucro_d').innerHTML='Paga '+money(S.aporte)+' em '+M+' meses de parcela reduzida, contempla com lance embutido e vende a carta por '+money(S.venda)+'. Lucro de <b>'+pct(S.lucroPct,1)+'</b> sobre o que pagou — '+(S.aplic>0&&S.lucroPct>S.aplic?'cerca de <b>'+(S.lucroPct/S.aplic).toLocaleString('pt-BR',{maximumFractionDigits:1})+' vezes</b> o que uma aplicação a '+pct(S.rend*100,1)+' ao ano renderia no período.':'a aplicação a '+pct(S.rend*100,1)+' ao ano renderia '+pct(S.aplic,1)+' no período.');
- $('v1_tag').textContent=ok1?(S.lucroPct>S.aplic?'Consórcio rende mais':'Aplicação rende mais'):'Não compensa';
+ $('o_lucro_d').innerHTML='Paga '+money(S.aporte)+' em '+M+' meses de parcela reduzida, contempla com lance embutido e vende a carta por '+money(S.venda)+'. Lucro de <b>'+pct(S.lucroPct,1)+'</b> sobre o que pagou — '+(S.aplic>0&&S.lucroPct>S.aplic?'cerca de <b>'+(S.lucroPct/S.aplic).toLocaleString('pt-BR',{maximumFractionDigits:1})+' vezes</b> o que as mesmas parcelas numa aplicação a '+pct(S.rend*100,1)+' ao ano renderiam no período.':'as mesmas parcelas numa aplicação a '+pct(S.rend*100,1)+' ao ano renderiam '+pct(S.aplic,1)+' no período.');
+ $('v1_tag').textContent=ok1?(S.reqAM>S.aplicM?'Consórcio rende mais':'Aplicação rende mais'):'Não compensa';
  $('v1_prazo').textContent='contemplação no mês '+M+' · '+anos(M);
  const mx1=Math.max(S.lucroPct,S.aplic,1);setW('o_b1',Math.max(0,S.lucroPct)/mx1*100);setW('o_b2',Math.max(0,S.aplic)/mx1*100);
  $('o_b1v').textContent=pct(S.lucroPct,1); $('o_b2v').textContent=pct(S.aplic,1);
@@ -860,7 +868,7 @@ function calc(){
  const nt=nota(P.dbp);
  anim('p_patrim',P.patrim,money); $('p_patrim_s').textContent='o imóvel em '+anos(P.prazoR)+', a '+pct(P.val*100,2)+' ao ano';
  anim('p_aluglq',P.liq,money); $('p_aluglq_s').textContent=P.prazoR+' meses, sem o imposto · paga '+pct(P.totCons>0?Math.min(P.liq,P.totCons)/P.totCons*100:0,0)+' do custo';
- anim('p_bolso',Math.max(0,P.bolso),money); $('p_bolso_s').textContent='parcelas'+(P.compl>1?' + complemento':'')+' − aluguel líquido';
+ anim('p_bolso',Math.max(0,P.bolso),money); $('p_bolso_s').textContent='parcelas'+(P.compl>1?' + complemento':'')+' − aluguel líquido · até a contemplação: '+moneyK(P.antes);
  $('p_dbp').textContent=pct(P.dbp,1); $('p_dbp_s').textContent='operação '+nt[2];
  const rg=$('dbp_ring');rg.style.strokeDashoffset=(125.66*(1-Math.min(100,P.dbp)/100)).toFixed(2);rg.style.stroke=P.dbp<25?COL.ok:P.dbp<40?COL.gold:COL.bad;
  const bd=$('p_badge');bd.textContent='✓ '+nt[0];bd.className='badge '+nt[1];
@@ -868,10 +876,10 @@ function calc(){
  $('p_brt').textContent=money(P.bruto); $('p_impt').textContent='− '+money(P.impostoT); $('p_liq').textContent=money(P.liq); $('p_liq2').textContent='− '+money(P.liq); $('p_liq2_s').textContent='economia de '+pct(P.totCons>0?Math.min(P.liq,P.totCons)/P.totCons*100:0,0)+' do custo · '+pct(P.imovel>0?P.liq/P.imovel*100:0,0)+' do imóvel';
  $('p_totcons').textContent=money(P.parcelas); $('p_compl').textContent='+ '+money(P.compl); $('p_compl_l').style.display=P.compl>1?'':'none'; $('p_pct').textContent=pct(P.pctPago,1); $('p_custo').textContent=money(P.custo); $('p_patrim2').textContent=money(P.patrim);
  $('p_rd_s').innerHTML='Aluguel de <b>'+pct(P.alug*100,2)+'</b> do imóvel ao mês'+(P.reaj>0?', reajustado '+pct(P.reaj*100,1)+' ao ano':'')+'; imposto de '+pct(P.imp*100,1);
- $('p_op_s').innerHTML='Do bolso: <b>'+money(Math.max(0,P.bolso))+'</b> para um patrimônio de <b>'+moneyK(P.patrim)+'</b>';
- const vh2=$('v2_head');vh2.innerHTML='O imóvel vira <em id="v2_big">—</em> de patrimônio'+(P.bolso>0?' — e só '+moneyK(P.bolso)+' sai do bolso.':' — e o aluguel paga tudo.');
+ $('p_op_s').innerHTML='Do bolso: <b>'+money(Math.max(0,P.bolso))+'</b> no saldo final, para um patrimônio de <b>'+moneyK(P.patrim)+'</b> · antes do aluguel começar: <b>'+money(P.antes)+'</b>';
+ const vh2=$('v2_head');vh2.innerHTML='O imóvel vira <em id="v2_big">—</em> de patrimônio'+(P.bolso>0?' — e só '+moneyK(P.bolso)+' sai do bolso no saldo final.':' — e, no saldo final, o aluguel cobre o custo.');
  ANI.v2_big=ANI.__v2==null?P.patrim:ANI.__v2;anim('v2_big',P.patrim,money);ANI.__v2=P.patrim;
- $('p_patrim_d').innerHTML='As parcelas do consórcio somam '+money(P.parcelas)+(P.compl>1?' e o complemento na compra, '+money(P.compl):'')+'. O aluguel paga '+money(Math.min(P.liq,P.totCons))+' disso e o imóvel de '+money(P.imovel)+' vira '+money(P.patrim)+' no fim do grupo. Do bolso: <b>'+(P.bolso>0?pct(P.dbp,1)+'</b> do patrimônio.':'nada</b> — o aluguel paga tudo.');
+ $('p_patrim_d').innerHTML='As parcelas do consórcio somam '+money(P.parcelas)+(P.compl>1?' e o complemento na compra, '+money(P.compl):'')+'. O aluguel paga '+money(Math.min(P.liq,P.totCons))+' disso e o imóvel de '+money(P.imovel)+' vira '+money(P.patrim)+' no fim do grupo. Do bolso: <b>'+(P.bolso>0?pct(P.dbp,1)+'</b> do patrimônio no saldo final.':'nada no saldo final</b>, porque o aluguel depois cobre o custo.')+' Mas até a contemplação o aluguel ainda não existe: o cliente precisa ter <b>'+money(P.antes)+'</b> para as parcelas'+(P.compl>1?' e o complemento':'')+(P.pico>P.antes+1?', e no pior momento chega a ter <b>'+money(P.pico)+'</b> investidos':'')+'.';
  $('v2_prazo').textContent='contemplação no mês '+M+' · '+P.prazoR+' meses de aluguel';
  const mx2=Math.max(P.totCons,P.patrim,1);setW('vb2_lq',Math.max(0,Math.min(P.liq,P.totCons))/mx2*100);setW('vb2_bo',Math.max(0,P.bolso)/mx2*100);setW('vb2_pt',P.patrim/mx2*100);
  anim('vb2_cv',P.totCons,moneyK); anim('vb2_pv',P.patrim,moneyK);
@@ -890,7 +898,7 @@ function calc(){
  timeline(ev,Math.max(1,S.prazo),'<i class="meia" style="left:0;width:'+(M/S.prazo*100)+'%"></i><i class="cheia" style="left:'+(M/S.prazo*100)+'%;right:0;'+(v2?'':'opacity:.35')+'"></i>');
  /* ---- textos ---- */
  $('mb_k').textContent=v2?'Alavancagem patrimonial':'Alavancagem financeira';$('mb_v').textContent=v2?('Patrimônio '+moneyK(P.patrim)+' · bolso '+pct(P.dbp,0)):('Lucro '+moneyK(S.lucro)+' · '+pct(S.lucroPct,0)+' sobre o pago');
- $('resumo').innerHTML=v2?('<b>Resumo.</b> Contemplando no mês '+M+' e comprando um imóvel de '+money(P.imovel)+' para alugar, o aluguel líquido de '+money(P.liq)+' paga parte do custo ('+money(P.totCons)+(P.compl>1?', com o complemento na compra':'')+'). Do bolso saem '+money(P.bolso)+' — <b>'+pct(P.dbp,1)+'</b> de um patrimônio de <b>'+money(P.patrim)+'</b> no fim do grupo: operação <b>'+nt[2]+'</b>.'):('<b>Resumo.</b> Pagando '+money(S.aporte)+' em '+M+' meses e vendendo a carta contemplada com '+pct(S.agio*100,0)+' de ágio, o cliente recebe '+money(S.venda)+': lucro de <b>'+money(S.lucro)+'</b> ('+pct(S.lucroPct,1)+' sobre o que pagou, cerca de '+pct(S.reqAM,2)+' ao mês). A mesma quantia numa aplicação a '+pct(S.rend*100,1)+' ao ano renderia '+pct(S.aplic,1)+' no período.');
+ $('resumo').innerHTML=v2?('<b>Resumo.</b> Contemplando no mês '+M+' e comprando um imóvel de '+money(P.imovel)+' para alugar, o aluguel líquido de '+money(P.liq)+' paga parte do custo ('+money(P.totCons)+(P.compl>1?', com o complemento na compra':'')+'). Até a contemplação saem '+money(P.antes)+' do bolso; no saldo final, '+money(Math.max(0,P.bolso))+' — <b>'+pct(P.dbp,1)+'</b> de um patrimônio de <b>'+money(P.patrim)+'</b> no fim do grupo: operação <b>'+nt[2]+'</b>.'):('<b>Resumo.</b> Pagando '+money(S.aporte)+' em '+M+' meses e vendendo a carta contemplada com '+pct(S.agio*100,0)+' de ágio, o cliente recebe '+money(S.venda)+': lucro de <b>'+money(S.lucro)+'</b> ('+pct(S.lucroPct,1)+' sobre o que pagou, taxa efetiva de '+pct(S.reqAM,2)+' ao mês). As mesmas parcelas numa aplicação a '+pct(S.rend*100,1)+' ao ano renderiam '+pct(S.aplic,1)+' no período ('+pct(S.aplicM,2)+' ao mês).');
  $('note').innerHTML='Simulações para apresentação comercial. A data da contemplação depende de sorteio e de lances; nenhum mês é garantido. O ágio é referência de mercado e pode variar na hora da venda. Aluguel e valorização são estimativas: meses sem inquilino, condomínio, manutenção, ITBI, escritura, taxa de transferência e imposto sobre o ganho não estão na conta. Condições reais dependem do grupo e da administradora.';
  explica(S,P,M);
  try{ draw(S,P,M,v2); }catch(e){ console.warn(e); }
@@ -901,10 +909,10 @@ function explica(S,P,M){
  $('ex1t').innerHTML=cond+'<div class="exs">'+st(1,'Enquanto não contempla',money(S.reduzida)+'/mês','parcela reduzida; até o mês '+M+' o cliente paga <b>'+money(S.aporte)+'</b>.')+
   st(2,'Na contemplação',moneyK(S.credLib),'crédito liberado'+(S.emb>0?', depois do lance embutido de '+moneyK(S.lanceEmb)+' que sai da própria carta':'')+'.')+
   st(3,'Vende a carta',moneyK(S.venda),'quem precisa do crédito paga '+pct(S.agio*100,0)+' de ágio e assume as parcelas que faltam (≈ '+money(S.parcelaPos)+'/mês).')+
-  st(4,S.lucro>0?'Lucro':'Resultado',moneyK(S.lucro),S.lucro>0?pct(S.lucroPct,0)+' sobre o pago, cerca de '+pct(S.reqAM,1)+' ao mês.':'o ágio fica abaixo do que foi pago: tente ágio maior ou contemplação mais cedo.',true)+'</div>';
+  st(4,S.lucro>0?'Lucro':'Resultado',moneyK(S.lucro),S.lucro>0?pct(S.lucroPct,0)+' sobre o pago, taxa efetiva de '+pct(S.reqAM,1)+' ao mês.':'o ágio fica abaixo do que foi pago: tente ágio maior ou contemplação mais cedo.',true)+'</div>';
  $('ex2t').innerHTML=cond+'<div class="exs">'+st(1,'Compra o imóvel',moneyK(P.imovel),'com a carta contemplada no mês '+M+', para alugar.')+
   st(2,'O aluguel',money(P.alugIni)+'/mês','nos '+P.prazoR+' meses que faltam soma <b>'+moneyK(P.liq)+'</b> já sem o imposto.')+
-  st(3,'Do bolso',moneyK(Math.max(0,P.bolso)),'parcelas'+(P.compl>1?' + complemento na compra':'')+' somam '+moneyK(P.totCons)+'; o aluguel paga '+moneyK(Math.min(P.liq,P.totCons))+' disso.')+
+  st(3,'Do bolso',moneyK(Math.max(0,P.bolso)),'parcelas'+(P.compl>1?' + complemento na compra':'')+' somam '+moneyK(P.totCons)+'; o aluguel paga '+moneyK(Math.min(P.liq,P.totCons))+' disso, mas só depois da contemplação: até lá saem '+moneyK(P.antes)+'.')+
   st(4,'Patrimônio',moneyK(P.patrim),'o imóvel quitado no fim do grupo. Do bolso: '+pct(P.dbp,1)+' do patrimônio.',true)+'</div>';
 }
 const bands={id:'agBands',beforeDatasetsDraw(c){const B=(c.options.plugins.agBands||{}).b||[];if(!B.length)return;const y=c.scales.y,a=c.chartArea,ctx=c.ctx;ctx.save();
@@ -922,7 +930,7 @@ function draw(S,P,M,v2){
   if(!A1)A1=new Chart($('a1'),{type:'line',data:{datasets:d1},options:o1,plugins:[marks,cross]});else A1.data.datasets.forEach((ds,i)=>{ds.data=d1[i].data;});
   setX(A1,last,1);A1.options.plugins.agMarks.lines=mk;A1.update();
   $('a1_n').innerHTML='Contemplando no mês <b>'+M+'</b>: pagou <b>'+money(S.aporte)+'</b> e recebe <b>'+money(S.venda)+'</b>.'+(be?' A partir do mês <b>'+be.m+'</b> o que foi pago passa o valor de venda.':' Em qualquer mês do plano a venda paga o que foi aportado.');
-  const rr=sell.map(r=>({m:r.m,c:r.p>0?(r.v-r.p)/r.p*100/r.m:0,a:(Math.pow(1+S.rend,r.m/12)-1)*100/r.m}));
+  const rr=ms.map(m=>{const q=c1(m);return {m,c:q.reqAM,a:q.aplicM};});   /* DOT2_27OUT: taxas mensais efetivas */
   const cx=rr.find(r=>r.m>=3&&r.c<r.a);
   const yTop=Math.max(2,Math.ceil(Math.max(S.reqAM*2.2,(rr[rr.length-1]||{a:1}).a*1.6)));
   const d2=[{label:'Consórcio',data:rr.map(r=>({x:r.m,y:r.c})),borderColor:COL.gold,borderWidth:2.6,pointRadius:0,pointHoverRadius:5,tension:.15,fill:{target:1,above:'rgba(197,160,89,.18)',below:'rgba(194,70,59,.1)'}},
