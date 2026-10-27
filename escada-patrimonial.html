@@ -1054,7 +1054,7 @@ function fin(L){
  const D=lerDeg(L).map((g,i)=>{const ag=agio*g.lib,pm=i===0?g.meia:Math.max(0,g.meia-prev),bo=pm*cic;bolso+=bo;cap+=ag;const rende=r*cap;prev=rende;
   return Object.assign(g,{i:i+1,agio:ag,cap,rende,pm,bo,boAc:bolso,mes:(i+1)*cic});});
  D.forEach((g,i)=>{g.prox=i+1<D.length?D[i+1].meia:null;g.cobre=g.prox!=null&&g.rende>=g.prox-.005;});
- const Lt=D[D.length-1],soma=D.reduce((s,g)=>s+g.credit,0),ps=D.findIndex((g,i)=>i>0&&g.pm<.5);
+ const Lt=D[D.length-1],soma=D.reduce((s,g)=>s+g.credit,0),ps=(()=>{let k=-1;for(let i=D.length-1;i>0;i--){if(D[i].pm<.5)k=i;else break;}return k;})();   /* DOT3_27OUT: só 'sobe sozinha' se TODOS os degraus seguintes se pagam */
  return {D,L:Lt,agio,r,e,cic,cap:Lt.cap,rende:Lt.rende,bolso,soma,meses:D.length*cic,sozinha:ps>0?ps+1:0};
 }
 function pat(L){
@@ -1064,7 +1064,7 @@ function pat(L){
   const n=Math.floor(g.lib/im+1e-9),rl=n*im*rr,pos=g.credit*pp,resto=Math.max(0,g.lib-n*im);nTot+=n;patr+=n*im;renda+=rl;parc+=pos;const sobra=renda-parc;prev=sobra;
   return Object.assign(g,{i:i+1,n,rl,pos,resto,nTot,patr,renda,parc,sobra,pm,bo,boAc:bolso,mes:(i+1)*cic});});
  D.forEach((g,i)=>{g.prox=i+1<D.length?D[i+1].meia:null;g.cobre=g.prox!=null&&g.sobra>=g.prox-.005;});
- const Lt=D[D.length-1],ps=D.findIndex((g,i)=>i>0&&g.pm<.5);
+ const Lt=D[D.length-1],ps=(()=>{let k=-1;for(let i=D.length-1;i>0;i--){if(D[i].pm<.5)k=i;else break;}return k;})();   /* DOT3_27OUT: só 'sobe sozinha' se TODOS os degraus seguintes se pagam */
  return {D,L:Lt,im,rr,pp,e,cic,nTot:Lt.nTot,patr:Lt.patr,renda:Lt.renda,parc:Lt.parc,sobra:Lt.sobra,bolso,soma:D.reduce((s,g)=>s+g.credit,0),meses:D.length*cic,sozinha:ps>0?ps+1:0};
 }
 
@@ -1119,6 +1119,7 @@ function calc(){
  if(au&&lim+.5<ci.m)avt='O aporte máximo ('+money(lim)+'/mês) é menor que a parcela da carta inicial ('+R2(ci.m)+'): o primeiro degrau já passa do que o cliente pode pagar.';
  else if(au&&v2&&Math.floor(ci.c*(1-e)/Math.max(1,num('p_imovel'))+1e-9)<1)avt='A carta inicial'+(e>0?' (já com o lance embutido)':'')+' não compra um imóvel de '+money(num('p_imovel'))+': aumente a carta ou escolha imóveis menores.';
  if(!avt&&au&&v2){const gp=ganhoP()(ci,1);if(gp<=0){const n1=Math.floor(ci.c*(1-e)/Math.max(1,num('p_imovel'))+1e-9);avt='Com essas premissas a carta não se paga: '+plural(n1,'imóvel rende ','imóveis rendem ')+money(n1*num('p_imovel')*num('p_renda')/100)+'/mês e a parcela depois de contemplar é '+money(ci.c*num('p_pos')/100)+'/mês. Aumente a renda, mude o valor do imóvel'+(e>0?' ou tire o lance embutido':'')+'.';}}
+ if(au&&R&&R.D){const mx=Math.max(...R.D.map(g=>g.pm));if(mx>lim+.5&&!(lim+.5<ci.m))avt+=(avt?'<br>':'')+'Um dos degraus pede <b>'+money(mx)+'/mês</b> do bolso, acima do aporte máximo de '+money(lim)+'/mês (passa '+money(mx-lim)+'). Aumente o aporte, diminua os degraus ou mude a carta inicial.';}   /* DOT3_27OUT */
  av.innerHTML=avt;av.style.display=avt?'block':'none';
  /* gráficos */
  lgd(v2);
@@ -1147,7 +1148,7 @@ function porque(R,v2,au){
  h+=it(k++,(au?'A carta inicial: ':'A primeira carta: ')+MI(ci.c),(ci.pk?'Dividida em <b>'+pkLongo(ci.pk)+'</b> ('+uPz(ci)+') para contemplar mais rápido por proximidade. Meia parcela somada de <b>'+R2(ci.m)+'/mês</b> até contemplar; cada degrau repete esse pacote de cotas.':'Prazo de '+ci.p+' meses e parcela reduzida de <b>'+R2(ci.m)+'/mês</b> até contemplar.')+
   (e>0?' Contemplando com <b>lance embutido de '+pct(e*100,0)+'</b>, o crédito liberado é '+moneyK(lib)+' por carta'+(v2?' — é com ele que se compram os imóveis ('+plural(Math.floor(lib/im+1e-9),'imóvel','imóveis')+' por carta).':', e o comprador paga o ágio sobre ele: '+moneyK(lib*R.agio)+' por carta.')
       :(v2?' Cada carta compra '+plural(Math.floor(ci.c/im+1e-9),'imóvel','imóveis')+' de '+moneyK(im)+'.':' Vendida com '+pct(R.agio*100,0)+' de ágio, cada carta deixa '+moneyK(ci.c*R.agio)+' de capital guardado.')));
- h+=it(k++,'A base: '+(bN===1?'degrau 1':'degraus 1 a '+bN),'É a parte paga do bolso — no máximo <b>'+money(maxPm)+'/mês</b>'+(au?', dentro do aporte de '+money(lim)+'/mês':'')+', <b>'+money(R.bolso)+'</b> no total. '+(bN>1?'A base cresce até '+quem+' conseguir pagar sozinho o degrau seguinte.':'Logo depois do primeiro degrau, '+quem+' já paga o seguinte.'));
+ h+=it(k++,'A base: '+(bN===1?'degrau 1':'degraus 1 a '+bN),'É a parte paga do bolso — no máximo <b>'+money(maxPm)+'/mês</b>'+(au?(maxPm<=lim+.5?', dentro do aporte de '+money(lim)+'/mês':', <b>acima do aporte máximo</b> de '+money(lim)+'/mês (passa '+money(maxPm-lim)+'/mês)'):'')+', <b>'+money(R.bolso)+'</b> no total. '+(bN>1?'A base cresce até '+quem+' conseguir pagar sozinho o degrau seguinte.':'Logo depois do primeiro degrau, '+quem+' já paga o seguinte.'));
  if(R.sozinha)h+=it(k++,'Do degrau '+R.sozinha+' em diante, '+(v2?'os imóveis pagam':'o capital paga'),au?'Cada novo degrau é o maior que '+quem+' paga sozinho, usando no máximo <b>'+pct(100-P.f*100,0)+'</b> dele (folga de '+pct(P.f*100,0)+') e com até <b>'+(P.g===1.5?'50% mais':P.g.toLocaleString('pt-BR')+'×')+'</b> cotas que o degrau anterior (perfil '+P.n.toLowerCase()+'). O cliente não coloca mais nada.':'Esses degraus nascem pagos por '+quem+'. O cliente não coloca mais nada.');
  else h+=it(k++,'A escada ainda não se paga sozinha','Com essas premissas, '+quem+' não chega a cobrir nenhum degrau inteiro. Aumente '+(v2?'a renda dos imóveis':'o ágio ou o rendimento')+', reduza o lance embutido ou aumente o aporte da base.',true);
  const L=R.L;

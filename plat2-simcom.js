@@ -63,6 +63,7 @@ var ORIG={CLIENTE_PROPRIO:['👤','Cliente próprio'],LEAD_AGION:['🏢','Lead d
 /* um tipo de cliente por vez (botão no topo): cliente próprio OU lead da empresa */
 function resultado(k){var M=master(),o=ST.orig,emo=ORIG[o][0],tit=ORIG[o][1];
  if(!k)return '<div class="scr"><div class="scv">—</div><p class="mu">Não consegui calcular agora. Feche e abra de novo.</p></div>';
+ var aj=(!k.empresa&&k.jan&&k.jan.tipo==='ANTECIPACAO'&&k.ajuste>0)?+k.ajuste:0;   /* DOT3_27OUT: o ajuste de cluster vira linha nos dois fluxos, para as linhas fecharem com o total */
  var emp=!!k.empresa,serv=!!k.serv,tot=(+k.funcPre||0),pos=(+k.posFunc||0),ps=k.parcelas||[];
  var regra=emp?'Venda do proprietário é venda da empresa: não gera comissão de colaborador.':serv?(o==='CLIENTE_PROPRIO'?'Serviços · 0,50% ao mês × 4 = 2,00% do crédito':'Serviços · 0,25% ao mês × 4 = 1,00% do crédito'):o==='CLIENTE_PROPRIO'?'1,00% na venda + 1,00% depois da contemplação':'Cluster de '+pc(k.rate)+' sobre o crédito';
  var h='<div class="scr '+(o==='CLIENTE_PROPRIO'?'au':'bl')+'">'+
@@ -80,12 +81,14 @@ function resultado(k){var M=master(),o=ST.orig,emo=ORIG[o][0],tit=ORIG[o][1];
  h+=f;
  /* parcelas em lista (cabe no celular sem rolar para o lado) */
  h+='<div class="scph"><span>Parcelas</span><span>'+(emp?'Colaborador':quem())+'</span></div><div class="scps">'+ps.map(function(p){
-   return '<div class="scp"><span class="scpn">'+p.n+'ª</span><span class="scpd">'+dBR(p.data)+'</span><span class="scpv"><b>'+rs(p.func)+'</b></span></div>';}).join('')+'</div>';
+   return '<div class="scp"><span class="scpn">'+p.n+'ª</span><span class="scpd">'+dBR(p.data)+'</span><span class="scpv"><b>'+rs(p.func)+'</b></span></div>';}).join('')+
+   (aj>0.005?'<div class="scp"><span class="scpn">Aj.</span><span class="scpd">'+dBR(k.ajusteData)+'</span><span class="scpv"><b>'+rs(aj)+'</b><small>ajuste de cluster</small></span></div>':'')+'</div>';
  /* SIMCOM_AGION_27OUT: só o proprietário vê o fluxo de pagamento da Agion — quando a administradora paga a Agion
     (dataEmp: antecipação dia 20), quanto vai para o colaborador e quanto fica com a Agion, parcela a parcela, + o pós */
  if(M){var nm=emp?'':nomeDe(ST.vend).split(' ')[0];
   h+='<div class="scph scagh"><span>'+ic('lock',12)+' Fluxo da Agion · só o proprietário vê</span><span>Agion recebe</span></div><div class="scps scag">'+ps.map(function(p){
    return '<div class="scp"><span class="scpn">'+p.n+'ª</span><span class="scpd">'+dBR(p.dataEmp||p.data)+'</span><span class="scpv"><b>'+rs(p.hs)+'</b><small>'+(emp?'fica tudo com a Agion':'paga '+e4(nm)+' '+rs0(p.func)+' em '+dCurta(p.data)+' · fica '+rs0(p.agion))+'</small></span></div>';}).join('')+
+   (aj>0.005?'<div class="scp"><span class="scpn">Aj.</span><span class="scpd">'+dBR(k.ajusteData)+'</span><span class="scpv"><b>− '+rs(aj)+'</b><small>ajuste de cluster pago a '+e4(nm)+' · sai da parte da Agion</small></span></div>':'')+
    (k.posHs>0?'<div class="scp"><span class="scpn">Pós</span><span class="scpd">na contemplação</span><span class="scpv"><b>'+rs(k.posHs)+'</b><small>'+(pos>0&&!emp?'paga '+e4(nm)+' '+rs0(pos)+' · ':'')+'fica '+rs0(k.posAgion)+'</small></span></div>':'')+'</div>';}
  if(M)h+='<div class="scemp"><div><small>Administradora paga</small><b>'+rs(k.hsPre)+'</b><span>na venda'+(k.posHs>0?' · + '+rs(k.posHs)+' na contemplação':'')+'</span></div>'+
   '<div><small>Fica com a Agion</small><b>'+rs(k.agionPre)+'</b><span>na venda'+(k.posHs>0?' · + '+rs(k.posAgion)+' na contemplação':'')+'</span></div></div>';

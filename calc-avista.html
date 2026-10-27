@@ -725,7 +725,7 @@ function cetMensal(C,ent,pmts,k){
 function modelo(rInv,mpx){
  const mp=mpx||MP;
  const P=Math.max(0,num('p_bem')), d=Math.min(100,Math.max(0,num('p_desc')))/100, vA=num('p_val')/100;
- const Pv=P*(1-d), D=vazio('din')?Pv:num('din');
+ const Pv=P*(1-d), Din=vazio('din')?Pv:num('din'), gap=Math.max(0,Pv-Din), D=Din+gap;   /* DOT3_27OUT: se o dinheiro não cobre o preço à vista, os R$ que faltam entram nos DOIS lados (no consórcio ficam investidos) — sem isso o à vista "vencia" sem pagar o bem */
  const ir=Math.min(100,Math.max(0,num('ir')))/100, rl=(rInv/100)*(1-ir);
  const Pref=DC==='SIM'?Pv:P;                                   // preço que a carta precisa cobrir
  const C=vazio('c_cred')?Pref:num('c_cred');
@@ -782,7 +782,7 @@ function modelo(rInv,mpx){
     + o que saiu do bolso (só rendimento) ou o capital que foi gasto (rendimento + capital). O que o rendimento pagou não entra. */
  const exTot=NOVA?(L+compK):0, d0=D-inv0;
  const custo=mp==='REND'?d0+exTot+totAp:d0+Math.max(0,inv0-inv), dscP=P>0?(P-custo)/P*100:0;
- return {mp,totAp,mesAp,apIni,apMax,apM,custo,dscP,P,d,Pv,D,ir,rl,Pref,C,taxa,rA,NOVA,n,k,ent,comp0,parcBase,meia,parcPos,somaK,L,E,Ck,Pk,compK,nDec,nTot,fK,A0,base,inv0,
+ return {mp,totAp,mesAp,apIni,apMax,apM,custo,dscP,P,d,Pv,D,Din,gap,ir,rl,Pref,C,taxa,rA,NOVA,n,k,ent,comp0,parcBase,meia,parcPos,somaK,L,E,Ck,Pk,compK,nDec,nTot,fK,A0,base,inv0,
    invT:inv,avT:av,aC,aA,yM,oM,pM,usedY,totOut,runout,totParc,totAlug,pFirst,pLast,cobreDesde,T,bemT,diff};
 }
 function empate(){
@@ -938,7 +938,7 @@ function calc(){
  $('vleg_t').textContent='patrimônio em '+anos(R.n);
  /* avisos */
  const av=[];
- if(R.D<R.Pv-1) av.push('O dinheiro disponível ('+money(R.D)+') não cobre o preço à vista ('+money(R.Pv)+'): faltam '+money(R.Pv-R.D)+'.');
+ if(R.gap>1) av.push('O dinheiro disponível ('+money(R.Din)+') não cobre o preço à vista ('+money(R.Pv)+'): faltam '+money(R.gap)+'. Para comparar igual, a conta põe esses '+money(R.gap)+' nos dois lados: no à vista eles completam o pagamento, no consórcio ficam investidos.');
  if(!NOVA&&R.ent>R.D+1) av.push('A entrada ao vendedor ('+money(R.ent)+') é maior que o dinheiro disponível.');
  if(!NOVA&&R.parcBase<=0) av.push('Digite a parcela da carta: com o prazo, ela diz quanto falta pagar.');
  if(R.runout) av.push(R.mp==='REND'?'O lance e o complemento passam do dinheiro investido no mês '+R.runout+'.':'No consórcio o dinheiro investido acaba no mês '+R.runout+'. Daí em diante as parcelas saem do bolso; na conta, esse valor fica como saldo negativo.');

@@ -4754,6 +4754,8 @@ function ousoProxy(P){P=P||{};var pf=P.por_funcao_gb||{};if(P.erro)return {svc:'
 function opsUso(SV,PX,MT){SV=SV||{};var L=(SV.lista||[]).slice();if(SV.erro||!L.length)L.push({svc:'servicos',titulo:'Supabase, Vercel, GitHub e Hostinger',plano:'',papel:'leitura dos serviços da plataforma',erro:'Não consegui ler estes serviços agora'+(SV.erro?': '+SV.erro:'')+'. Toque em “Ler agora” para tentar de novo.',itens:[]});   /* DOT2_27OUT: o erro fica só no card afetado */
  if(MT)L.push(ousoMeta(MT));if(PX)L.push(ousoProxy(PX));if(!L.length)return '<div class="panel gl rv mb" id="ous"><div class="ph"><h3>'+I('layers',18)+'Uso e limites dos serviços</h3></div><div class="empty" style="padding:12px">Não consegui ler os serviços agora'+(SV.erro?': '+esc4(SV.erro):'')+'.</div></div>';
  var pior=SV.pior||'ok';L.forEach(function(s){(s.itens||[]).forEach(function(i){if(i.nivel==='bad')pior='bad';else if(i.nivel==='au'&&pior==='ok')pior='au';});});var pc={ok:['ok','tudo dentro do plano'],au:['au','atenção'],bad:['bad','algum serviço estourou']}[pior];
+ var nErr=L.filter(function(s){return s.erro;}).length;   /* DOT3_27OUT: sem leitura não é "tudo dentro do plano" */
+ if(nErr){if(nErr>=L.length)pc=['bad','sem leitura'];else if(pior==='ok')pc=['au','leitura incompleta · '+nErr+' sem leitura'];else pc=[pc[0],pc[1]+' · '+nErr+' sem leitura'];}
  return '<div class="panel gl rv mb" id="ous"><div class="ph"><h3>'+I('layers',18)+'Uso e limites dos serviços</h3><span class="sp"></span><span class="pill '+pc[0]+'">'+pc[1]+'</span><button class="btn sm" id="ousr" style="margin-left:8px">'+I('refresh',14)+'Ler agora</button></div>'+
   '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px">'+L.map(ousoCard).join('')+'</div>'+
   '<div class="banner bl" style="margin-top:12px">'+I('layers',16)+'<span>Cada barra é o consumo do mês contra o limite do plano atual. Verde: folga; laranja: passou de 80% ou o ritmo do mês vai passar do limite; vermelho: estourou. Os tokens ficam só no servidor do robô, só o master conecta, e servem apenas para ler o consumo.</span></div></div>';}
@@ -5775,7 +5777,7 @@ vcMontar();
 <script src="/plat2-crm7.js?v=5"></script>
 <script src="/plat2-plano.js?v=7"></script>
 <script src="/plat2-cal.js?v=10"></script>
-<script src="/plat2-simcom.js?v=6"></script>
+<script src="/plat2-simcom.js?v=7"></script>
 <script src="/plat2-novabas.js?v=2"></script>
 <script src="/plat2-avisos.js?v=2"></script>
 <script id="b-tab-estavel">/* Chat B 19/out: abas do celular respondem no 1º toque.
