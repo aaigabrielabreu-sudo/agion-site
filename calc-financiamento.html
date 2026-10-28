@@ -34,7 +34,7 @@
  function aj(){try{var so=screen.orientation&&screen.orientation.type,p=so?/portrait/.test(so):(typeof window.orientation==='number'?Math.abs(window.orientation)!==90:screen.height>=screen.width),
   sw=screen.width||0,sh=screen.height||0,dw=p?Math.min(sw,sh):Math.max(sw,sh),c=mv.getAttribute('content')||'',fit=/viewport-fit=cover/.test(c)?', viewport-fit=cover':'';
   if(dw>=240&&dw<M){var s=Math.ceil(dw/M*10000)/10000;mv.setAttribute('content','width='+M+', initial-scale='+s+', minimum-scale='+s+', maximum-scale='+s+fit);H.classList.add('vpEnq');}
-  else if(H.classList.contains('vpEnq')){mv.setAttribute('content','width=device-width, initial-scale=1'+fit);H.classList.remove('vpEnq');}}catch(e){}}
+  else{var nc='width=device-width, initial-scale=1, maximum-scale=1'+fit;if(c!==nc)mv.setAttribute('content',nc);H.classList.remove('vpEnq');}}catch(e){}}   /* ZOOM28: em nenhum celular a tela aumenta sozinha ao tocar num campo para escrever */
  aj();var t=0,re=function(){clearTimeout(t);t=setTimeout(aj,150);};window.addEventListener('orientationchange',re);if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',re);}catch(e){}})();</script>
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#F4EFE4">

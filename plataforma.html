@@ -11,7 +11,7 @@
  function aj(){try{var so=screen.orientation&&screen.orientation.type,p=so?/portrait/.test(so):(typeof window.orientation==='number'?Math.abs(window.orientation)!==90:screen.height>=screen.width),
   sw=screen.width||0,sh=screen.height||0,dw=p?Math.min(sw,sh):Math.max(sw,sh),c=mv.getAttribute('content')||'',fit=/viewport-fit=cover/.test(c)?', viewport-fit=cover':'';
   if(dw>=240&&dw<M){var s=Math.ceil(dw/M*10000)/10000;mv.setAttribute('content','width='+M+', initial-scale='+s+', minimum-scale='+s+', maximum-scale='+s+fit);H.classList.add('vpEnq');}
-  else if(H.classList.contains('vpEnq')){mv.setAttribute('content','width=device-width, initial-scale=1'+fit);H.classList.remove('vpEnq');}}catch(e){}}
+  else{var nc='width=device-width, initial-scale=1, maximum-scale=1'+fit;if(c!==nc)mv.setAttribute('content',nc);H.classList.remove('vpEnq');}}catch(e){}}   /* ZOOM28: em nenhum celular a tela aumenta sozinha ao tocar num campo para escrever */
  aj();var t=0,re=function(){clearTimeout(t);t=setTimeout(aj,150);};window.addEventListener('orientationchange',re);if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',re);}catch(e){}})();</script>
 <title>Agion Wealth — Plataforma</title>
 <meta name="robots" content="noindex,nofollow">
@@ -1391,7 +1391,7 @@ html.capNative body.isApp #viewbar,html.capNative body.isApp .topbar,html.capNat
 <link rel="stylesheet" href="/plat-theme.css?v=15">
 <link rel="stylesheet" href="/plat-crm.css?v=5">
 <link rel="stylesheet" href="/plat2-shell.css?v=2">
-<meta name="agion-build" content="9b7ec89d30ef">
+<meta name="agion-build" content="25163e682601">
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
 <div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" type="email" inputmode="email" placeholder="seu@email.com" value="" autocomplete="username" aria-label="E-mail"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="" autocomplete="current-password" aria-label="Senha" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> </div>
