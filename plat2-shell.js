@@ -146,7 +146,8 @@ function anteriorV4(){ try{ var fr=D.querySelector('#v4wrap iframe'); if(!fr) re
   function aviso(novo){ if(fechou===novo||tentativas(novo)>=3) return; var b=D.getElementById('v2upd');
     if(b){ b.dataset.v=novo; return; }
     b=D.createElement('div'); b.id='v2upd'; b.dataset.v=novo; b.setAttribute('role','status');
-    b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:100000;display:flex;align-items:center;gap:4px;border-radius:999px;padding:4px 4px 4px 6px;background:#0B2A26;box-shadow:0 10px 30px rgba(0,0,0,.3);font:700 13px system-ui,sans-serif;max-width:calc(100vw - 24px)';
+    var cel=(W.innerWidth||1000)<=760;   /* MOB28: no celular o aviso fica logo abaixo do topo, sem cobrir o campo de mensagem nem a barra de baixo */
+    b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);'+(cel?'top:calc(env(safe-area-inset-top,0px) + 70px);max-width:calc(100vw - 24px)':'bottom:calc(84px + env(safe-area-inset-bottom,0px))')+';z-index:100000;display:flex;align-items:center;gap:4px;border-radius:999px;padding:4px 4px 4px 6px;background:#0B2A26;box-shadow:0 10px 30px rgba(0,0,0,.3);font:700 13px system-ui,sans-serif;max-width:calc(100vw - 24px)';
     var a=D.createElement('button'); a.type='button'; a.textContent='Nova versão da plataforma · Atualizar';
     a.style.cssText='border:0;background:transparent;color:#E8CC8B;font:inherit;padding:7px 10px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
     a.onclick=function(){ recarrega(b.dataset.v); };

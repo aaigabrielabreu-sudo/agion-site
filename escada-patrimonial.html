@@ -388,6 +388,8 @@ body.v2 .s1{display:none!important}
 .ib.tx input{text-align:left;font-weight:600}
 /* editor dos degraus */
 .dgr{display:grid;grid-template-columns:24px minmax(0,1fr) 74px 30px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line2)}
+.dgr.pkr{border-bottom:0}
+.dgc{font:600 11.5px/1.35 var(--sans);color:var(--mut);padding:0 0 8px 32px;margin-top:-3px;border-bottom:1px solid var(--line2)}
 .dgr .n{width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--gold2);font:800 11px/24px var(--sans);text-align:center}
 .dgr select{width:100%;min-width:0;height:40px;border:0;border-radius:12px;background:var(--bg);box-shadow:inset 0 0 0 1px var(--line);padding:0 10px;font:600 12.6px var(--sans);color:var(--ink);outline:0;cursor:pointer}
 .dgr select:focus{box-shadow:inset 0 0 0 1.5px var(--gold),0 0 0 3px rgba(197,160,89,.22);background:#fff}
@@ -965,7 +967,7 @@ const xs=v=>v.toLocaleString('pt-BR',{maximumFractionDigits:v>=100?0:1})+'×';
 const ateD=k=>k===2?'só no degrau 1':'só até o degrau '+(k-1);
 const plural=(n,s,p)=>n.toLocaleString('pt-BR')+' '+(n===1?s:p);
 const dec2=v=>v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-function cLabel(ct){return ct.pk?(moneyK(ct.c)+' em '+pkCurto(ct.pk)):(moneyK(ct.c)+' · '+ct.p+'m'+(innerWidth<620?'':' · '+money(ct.m)));}
+function cLabel(ct){return ct.pk?(moneyK(ct.c)+' · '+ct.pk.reduce((a,x)=>a+x.n,0)+' cotas'):(moneyK(ct.c)+' · '+ct.p+'m'+(innerWidth<620?'':' · '+money(ct.m)));}
 Object.assign(CALC,{pdfTitle:'Agion - Escada Financeira',charts:[['e1',340,160],['e2',340,160]],
  cap:(id,v)=>{if(id==='f_ciclo')return anos(v)+' por degrau';if(id==='f_agio')return pct(v,0)+' de ágio';if(id==='f_rende')return '≈ '+pct((Math.pow(1+v/100,12)-1)*100,1)+' a.a.';if(id==='p_renda')return money(1e6*v/100)+'/mês por R$ 1 mi';
   if(id==='a_emb')return v>0?'libera '+pct(100-v,0)+' da carta':'sem lance embutido';if(id==='a_n')return Math.round(v)+' degraus';return '';},
@@ -1085,7 +1087,7 @@ function optList(){const L=CARTAS.slice(),add=ct=>{const k=ct.k||(ct.c+'/'+ct.p)
 function idxOf(d){const k=d.k||(d.c+'/'+d.p);return OPT.findIndex(x=>x.k===k);}
 function renderDeg(){const L=DEG[SCN],au=MONT[SCN]==='auto';OPT=optList();
  $('deg_h').innerHTML=au?'<b>Montados automaticamente</b> a partir da carta inicial. Se mudar a carta ou as cotas de um degrau, a escada passa para manual.':'Cada degrau soma cotas da mesma carta para contemplar por proximidade. A carta mostra prazo e parcela reduzida até contemplar.';
- $('degs').innerHTML=L.map((d,i)=>{const k=idxOf(d);return '<div class="dgr" data-i="'+i+'"><span class="n">'+(i+1)+'</span><select aria-label="Carta do degrau '+(i+1)+'">'+OPT.map((ct,j)=>'<option value="'+j+'"'+(j===k?' selected':'')+'>'+cLabel(ct)+'</option>').join('')+'</select><div class="ib" title="Quantidade de cotas"><input value="'+d.q+'" inputmode="numeric" aria-label="Quantidade de cotas do degrau '+(i+1)+'"><span class="u">×</span></div><button type="button" class="x" title="Tirar o degrau"'+(L.length<=1?' disabled style="opacity:.3"':'')+'>×</button></div>';}).join('');
+ $('degs').innerHTML=L.map((d,i)=>{const k=idxOf(d);return '<div class="dgr'+(d.pk?' pkr':'')+'" data-i="'+i+'"><span class="n">'+(i+1)+'</span><select aria-label="Carta do degrau '+(i+1)+'">'+OPT.map((ct,j)=>'<option value="'+j+'"'+(j===k?' selected':'')+'>'+cLabel(ct)+'</option>').join('')+'</select><div class="ib" title="Quantidade de cotas"><input value="'+d.q+'" inputmode="numeric" aria-label="Quantidade de cotas do degrau '+(i+1)+'"><span class="u">×</span></div><button type="button" class="x" title="Tirar o degrau"'+(L.length<=1?' disabled style="opacity:.3"':'')+'>×</button></div>'+(d.pk?'<div class="dgc">'+pkLongo(d.pk,d.q)+'</div>':'');}).join('');   /* MOB28: composição inteira do degrau (no celular o seletor corta o texto) */
  $('degs').querySelectorAll('.dgr').forEach(r=>{const i=+r.dataset.i;
   r.querySelector('select').onchange=e=>{paraManual();const ct=OPT[+e.target.value];Object.assign(DEG[SCN][i],{c:ct.c,p:ct.p,m:ct.m,k:ct.k,pk:ct.pk||null});renderDeg();calc();};
   r.querySelector('input').oninput=e=>{const q=parseInt(String(e.target.value).replace(/\D/g,''),10);if(q>0){paraManual();DEG[SCN][i].q=Math.min(500,q);calc();}};
