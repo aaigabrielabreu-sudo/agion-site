@@ -732,8 +732,8 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
 
    <div class="panel rv s2" style="animation-delay:.1s">
     <div class="ph"><h3><svg class="i" viewBox="0 0 24 24"><path d="M4 11.5L12 5l8 6.5"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg>Os imóveis</h3></div>
-    <div class="fld"><label for="p_imovel">Valor de cada imóvel<small>comprado com a carta contemplada</small></label><div class="ctl"><div class="ib w"><span class="u pre">R$</span><input id="p_imovel" value="500.000" inputmode="decimal" data-f="brl"></div></div></div>
-    <div class="fld"><label for="p_renda">Renda líquida do imóvel<small id="p_renda_h">aluguel ou temporada, já sem custos</small></label><div class="ctl"><div class="ib"><input id="p_renda" value="1" inputmode="decimal"><span class="u">% a.m.</span></div></div>
+    <div class="fld" style="display:none" aria-hidden="true"><label for="p_imovel">Valor de cada imóvel<small>comprado com a carta contemplada</small></label><div class="ctl"><div class="ib w"><span class="u pre">R$</span><input id="p_imovel" value="500.000" inputmode="decimal" data-f="brl"></div></div></div>
+    <div class="fld"><label for="p_renda">Renda líquida dos imóveis<small id="p_renda_h">sobre o crédito liberado · aluguel ou temporada, já sem custos</small></label><div class="ctl"><div class="ib"><input id="p_renda" value="1" inputmode="decimal"><span class="u">% a.m.</span></div></div>
      <div class="rgw"><input class="rg" type="range" data-for="p_renda" min="0.4" max="1.4" step="0.05"><small data-cap="p_renda"></small></div></div>
     <div class="fld"><label for="p_pos">Parcela depois de contemplar<small id="p_pos_h">calculada pela ferramenta</small></label><div class="ctl"><div class="ib w"><span class="u pre">R$</span><input id="p_pos" value="—" readonly tabindex="-1"><span class="u">/mês</span></div></div></div>
    </div>
@@ -955,7 +955,7 @@ CARTAS.forEach(ct=>{ct.k=ct.c+'/'+ct.p;});
 const doPadrao=s=>PADRAO[s].map(d=>Object.assign({q:d[1]},CARTAS[d[0]]));
 const MAN={S1:doPadrao('S1'),S2:doPadrao('S2')};/* a escada manual fica guardada à parte: voltar para Manual traz ela de volta */
 const DEG={S1:MAN.S1,S2:MAN.S2};
-const MONT={S1:'auto',S2:'auto'}   /* ESC_PAT_27OUT: a patrimonial também monta sozinha: o cliente paga o 1º degrau e a sobra dos imóveis faz as próximas cartas */,PF={S1:'c',S2:'c'};
+const MONT={S1:'auto',S2:'auto'}   /* ESC_PAT_27OUT: a patrimonial também monta sozinha: o cliente paga o 1º degrau e a sobra dos imóveis faz as próximas cartas */,PF={S1:'c',S2:'e'};   /* ESC_RENDA_28OUT: a patrimonial abre na equilibrada */
 const TOQ={lim:false};
 const R2=v=>'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const MI=v=>{const a=Math.abs(v);if(a>=1e6){const m=a/1e6;return 'R$ '+m.toLocaleString('pt-BR',{maximumFractionDigits:m>=10?1:2})+(m<2?' milhão':' milhões');}if(a>=1e3)return 'R$ '+Math.round(a/1e3).toLocaleString('pt-BR')+' mil';return money(a);};
@@ -966,11 +966,11 @@ const plural=(n,s,p)=>n.toLocaleString('pt-BR')+' '+(n===1?s:p);
 const dec2=v=>v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 function cLabel(ct){return ct.pk?(moneyK(ct.c)+' em '+pkCurto(ct.pk)):(moneyK(ct.c)+' · '+ct.p+'m'+(innerWidth<620?'':' · '+money(ct.m)));}
 Object.assign(CALC,{pdfTitle:'Agion - Escada Financeira',charts:[['e1',340,160],['e2',340,160]],
- cap:(id,v)=>{if(id==='f_ciclo')return anos(v)+' por degrau';if(id==='f_agio')return pct(v,0)+' de ágio';if(id==='f_rende')return '≈ '+pct((Math.pow(1+v/100,12)-1)*100,1)+' a.a.';if(id==='p_renda')return money(num('p_imovel')*v/100)+'/mês por imóvel';
+ cap:(id,v)=>{if(id==='f_ciclo')return anos(v)+' por degrau';if(id==='f_agio')return pct(v,0)+' de ágio';if(id==='f_rende')return '≈ '+pct((Math.pow(1+v/100,12)-1)*100,1)+' a.a.';if(id==='p_renda')return money(1e6*v/100)+'/mês por R$ 1 mi';
   if(id==='a_emb')return v>0?'libera '+pct(100-v,0)+' da carta':'sem lance embutido';if(id==='a_n')return Math.round(v)+' degraus';return '';},
  isBRL:el=>el.id==='p_imovel'||el.id==='a_lim'});
 const emb=()=>num('a_emb')>=15?.30:0;   /* ESC_POS_28OUT: financeira e patrimonial escolhem (Não usar / 30%) */
-const EMBS={S1:'30',S2:'0'};let EMB_SCN=null;
+const EMBS={S1:'30',S2:'30'};   /* ESC_RENDA_28OUT: as duas abrem com o lance embutido (Sim) */let EMB_SCN=null;
 /* ESC_POS_28OUT (Gabriel): a parcela depois de contemplar não tem % padrão: sai do mês da contemplação (o ritmo da escada).
    Plano inteiro = 2 × meia parcela × prazo; menos as meias parcelas já pagas e o lance embutido (abate o saldo); dividido pelos meses que faltam. */
 function posUnit(ct,cic,e){const pk=ct.pk||[{c:ct.c,p:ct.p,m:ct.m,n:1}];
@@ -1018,7 +1018,10 @@ $('a_lim').addEventListener('input',()=>{TOQ.lim=true;});
    1) se F, com a folga do perfil, paga o alvo → o capital paga;  2) senão, o maior que F paga com folga, se ainda cresce;
    3) senão é base: o cliente completa do bolso, até o aporte máximo. */
 function ganhoF(){const a=num('f_agio')/100,r=num('f_rende')/100,e=emb();return (ct,q)=>r*a*q*ct.c*(1-e);}
-function ganhoP(){const im=Math.max(1,num('p_imovel')),rr=num('p_renda')/100,cic=Math.max(1,Math.round(num('f_ciclo'))),e=emb();return (ct,q)=>{const n=Math.floor(q*ct.c*(1-e)/im+1e-9);return n*im*rr-q*posUnit(ct,cic,e);};}   /* ESC_BOLSO_27OUT: o lance embutido abate o saldo, a parcela depois é sobre o crédito liberado */
+/* ESC_RENDA_28OUT (Gabriel): o valor do imóvel não é premissa. Todo o crédito liberado vira imóveis e rende a renda líquida (% a.m.);
+   a quantidade de imóveis é só indicativa: imóveis de até R$ 500 mil, nunca menores que R$ 300 mil (ex.: R$ 700 mil = 2 de R$ 350 mil). */
+function imN(lib){let n=Math.max(1,Math.ceil(lib/500000-1e-9));if(n>1&&lib/n<300000)n--;return n;}
+function ganhoP(){const rr=num('p_renda')/100,cic=Math.max(1,Math.round(num('f_ciclo'))),e=emb();return (ct,q)=>q*ct.c*(1-e)*rr-q*posUnit(ct,cic,e);}   /* ESC_BOLSO_27OUT: o lance embutido abate o saldo, a parcela depois é sobre o crédito liberado */
 function montar(ct,N,pf,lim,gan){const P=PERF[pf];let F=0,prev=0;const out=[];
  for(let i=0;i<N;i++){let q;
   if(i===0)q=1;
@@ -1030,8 +1033,43 @@ function montar(ct,N,pf,lim,gan){const P=PERF[pf];let F=0,prev=0;const out=[];
     else{const qa=Math.floor((F+lim)/ct.m+1e-9);q=Math.max(1,Math.min(t,qa));}}}
   out.push({c:ct.c,p:ct.p,m:ct.m,k:ct.k,pk:ct.pk,q});F+=gan(ct,q);prev=q;}
  return out;}
+/* ESC_BASE_28OUT (Gabriel): os degraus usam qualquer valor da tabela HS (1 valor em várias cotas, ou 2 valores juntos,
+   ex.: 1 de R$ 1 mi + 1 de R$ 200 mil). Financeira: os degraus 1 e 2 são a base (bolso) e do 3 em diante o rendimento paga tudo.
+   Patrimonial: a 1ª carta é a base e do 2 em diante a sobra dos imóveis paga tudo. O perfil usa 80/85/95% do que o capital paga
+   e limita o crescimento; se isso deixaria o degrau menor que o anterior, repete o anterior quando o capital paga ele inteiro. */
+function combos(B,Cmin,Cmax,todos){const M={};
+ const add=(cr,mm,n,u)=>{if(mm>B+1e-6||cr>Cmax+.5||cr<Cmin-.5||n<1)return;const k=Math.round(cr),o=M[k];if(!o||n<o.n||(n===o.n&&mm<o.mm-1e-6))M[k]={cr,mm,n,u};};
+ CARTAS.forEach(a=>{const xa=Math.min(Math.floor(B/a.m+1e-9),Math.floor(Cmax/a.c+1e-9));if(xa<1)return;
+  for(let x=xa;x>=Math.max(1,todos?1:xa-1);x--){add(x*a.c,x*a.m,x,{a,x});
+   CARTAS.forEach(c=>{if(c.c>=a.c)return;for(let y=1;y<=2;y++)add(x*a.c+y*c.c,x*a.m+y*c.m,x+y,{a,x,b:c,y});});}});
+ return Object.keys(M).map(k=>M[k]).sort((u,v)=>v.cr-u.cr);}
+function mkU(u){if(!u.b)return {c:u.a.c,p:u.a.p,m:u.a.m,k:u.a.k,pk:null,q:u.x};
+ return Object.assign(mkUnit([{c:u.a.c,p:u.a.p,m:u.a.m,n:u.x},{c:u.b.c,p:u.b.p,m:u.b.m,n:u.y}]),{q:1});}
+/* entre as opções até 5% abaixo do maior crédito, fica a de menos cotas (evita 13 cotas pequenas no lugar de 2 grandes) */
+function enxuto(L){if(!L.length)return null;const mx=L[0].cr;return L.filter(x=>x.cr>=mx*.95-.5).sort((u,v)=>u.n-v.n||v.cr-u.cr||u.mm-v.mm)[0];}
+function escolheP(B,C){const b=enxuto(combos(B,0,C,false));return b?mkU(b.u):null;}
+const crU=d=>d.c*d.q;
+function proximo(F,P,prev){let d=escolheP(F*(1-P.f),crU(prev)*P.g);
+ if((!d||crU(d)<crU(prev)-.5)&&prev.m*prev.q<=F+1e-6)d=Object.assign({},prev);   /* não encolhe: repete o anterior se o capital paga ele inteiro */
+ return d;}
+const cp=ct=>({c:ct.c,p:ct.p,m:ct.m,k:ct.k,pk:ct.pk||null,q:ct.q||1});
+function montarP(ct,N,pf){const P=PERF[pf],gan=ganhoP(),out=[cp(ct)];let F=gan(ct,1);
+ for(let i=1;i<N;i++){const pr=out[i-1];let d=proximo(F,P,pr);
+  if(!d){const mn=CARTAS[0];d={c:mn.c,p:mn.p,m:mn.m,k:mn.k,pk:null,q:1};}   /* a sobra não paga nem a menor carta: o bolso completa (aviso na tela) */
+  out.push(d);F+=gan(d,d.q);}
+ return out;}
+function montarF(ct,N,pf){const P=PERF[pf],gan=ganhoF(),lim=ct.m,d1=cp(ct),R1=gan(ct,1);const out=[d1];
+ /* degrau 2 = o maior (de 1× a g× a carta inicial) que o cliente paga com o rendimento do 1º + no máximo a mesma parcela do 1º,
+    e que deixa o degrau 3 já pago pelo rendimento, sem ficar menor que ele */
+ const ok=combos(R1+lim,ct.c,ct.c*P.g,true).filter(c=>{const u=mkU(c.u),d3=proximo(R1+gan(u,u.q),P,u);return d3&&crU(d3)>=crU(u)-.5;});
+ const b2=enxuto(ok);let d2=b2?mkU(b2.u):cp(ct);
+ if(N>1)out.push(d2);let F=R1+gan(d2,d2.q);
+ for(let i=2;i<N;i++){const pr=out[i-1];let d=proximo(F,P,pr);
+  if(!d)d=escolheP(F+lim,crU(pr)*P.g)||cp(ct);   /* o rendimento ainda não paga: o bolso completa até a parcela da carta inicial */
+  out.push(d);F+=gan(d,d.q);}
+ return out;}
 function autoLadder(pf){const ct=cartaIni(),N=Math.min(12,Math.max(3,Math.round(num('a_n'))||8));
- return montar(ct,N,pf||PF[SCN],ct.m,SCN==='S2'?ganhoP():ganhoF());}
+ return SCN==='S2'?montarP(ct,N,pf||PF[SCN]):montarF(ct,N,pf||PF[SCN]);}
 
 /* ---------- montagem: automática ou manual ---------- */
 function setMont(m){MONT[SCN]=m;document.querySelectorAll('#segMont button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));document.body.classList.toggle('mman',m==='man');}
@@ -1068,14 +1106,14 @@ function fin(L){
  return {D,L:Lt,agio,r,e,cic,cap:Lt.cap,rende:Lt.rende,bolso,soma,meses:D.length*cic,sozinha:ps>0?ps+1:0};
 }
 function pat(L){
- const im=Math.max(1,num('p_imovel')),rr=num('p_renda')/100,cic=Math.max(1,Math.round(num('f_ciclo'))),e=emb();
+ const rr=num('p_renda')/100,cic=Math.max(1,Math.round(num('f_ciclo'))),e=emb();
  let patr=0,renda=0,parc=0,bolso=0,prev=0,nTot=0;
  const D=lerDeg(L).map((g,i)=>{const pm=i===0?g.meia:Math.max(0,g.meia-prev),bo=pm*cic;bolso+=bo;
-  const n=Math.floor(g.lib/im+1e-9),rl=n*im*rr,pos=g.q*posUnit(g.ct,cic,e),resto=Math.max(0,g.lib-n*im);nTot+=n;patr+=n*im;renda+=rl;parc+=pos;const sobra=renda-parc;prev=sobra;
+  const n=imN(g.lib),rl=g.lib*rr,pos=g.q*posUnit(g.ct,cic,e),resto=0;nTot+=n;patr+=g.lib;renda+=rl;parc+=pos;const sobra=renda-parc;prev=sobra;
   return Object.assign(g,{i:i+1,n,rl,pos,resto,nTot,patr,renda,parc,sobra,pm,bo,boAc:bolso,mes:(i+1)*cic});});
  D.forEach((g,i)=>{g.prox=i+1<D.length?D[i+1].meia:null;g.cobre=g.prox!=null&&g.sobra>=g.prox-.005;});
  const Lt=D[D.length-1],ps=(()=>{let k=-1;for(let i=D.length-1;i>0;i--){if(D[i].pm<.5)k=i;else break;}return k;})();   /* DOT3_27OUT: só 'sobe sozinha' se TODOS os degraus seguintes se pagam */
- return {D,L:Lt,im,rr,e,cic,pos1:posUnit(D[0].ct,cic,e),c1:D[0].ct.c,nTot:Lt.nTot,patr:Lt.patr,renda:Lt.renda,parc:Lt.parc,sobra:Lt.sobra,bolso,soma:D.reduce((s,g)=>s+g.credit,0),meses:D.length*cic,sozinha:ps>0?ps+1:0};
+ return {D,L:Lt,im:500000,rr,e,cic,pos1:posUnit(D[0].ct,cic,e),c1:D[0].ct.c,nTot:Lt.nTot,patr:Lt.patr,renda:Lt.renda,parc:Lt.parc,sobra:Lt.sobra,bolso,soma:D.reduce((s,g)=>s+g.credit,0),meses:D.length*cic,sozinha:ps>0?ps+1:0};
 }
 
 /* ---------- tela ---------- */
@@ -1119,9 +1157,9 @@ function calc(){ try{embCtl();}catch(e){}
   $('h_s').innerHTML='Cada carta contemplada <b>compra imóveis</b> e eles vão para locação. A renda paga a parcela da própria carta, e a sobra paga a parcela do próximo degrau. A escada sobe com a renda dos imóveis — e os imóveis são seus.';
   $('v_ey').textContent='Escada patrimonial · imóveis de renda';
   $('v_head').innerHTML='Começa em <em>'+MI(F.credit)+'</em>. Chega a <em>'+plural(L.nTot,'imóvel','imóveis')+'</em>.';
-  $('v_sub').innerHTML='Cada '+MI(R.im)+' de crédito vira um imóvel rendendo <b>'+money(R.im*R.rr)+'/mês</b> líquidos. A renda paga a parcela de cada carta contemplada ('+money(R.pos1)+'/mês numa carta de '+MI(R.c1)+', contemplando no mês '+R.cic+') e a sobra paga a parcela do próximo degrau.'+embTx+' Do seu bolso saem <b>'+money(R.bolso)+'</b>'+(R.sozinha?', '+ateD(R.sozinha):'')+'. No topo, <b>'+money(R.renda)+'/mês</b> de renda pagam todas as parcelas e sobram <b>'+money(R.sobra)+'/mês</b>.';
+  $('v_sub').innerHTML='O crédito liberado de cada carta compra imóveis que rendem <b>'+pct(R.rr*100,2)+' ao mês</b> líquidos ('+money(1e6*R.rr)+'/mês por R$ 1 milhão). A renda paga a parcela de cada carta contemplada ('+money(R.pos1)+'/mês numa carta de '+MI(R.c1)+', contemplando no mês '+R.cic+') e a sobra paga a parcela do próximo degrau.'+embTx+' Do seu bolso saem <b>'+money(R.bolso)+'</b>'+(R.sozinha?', '+ateD(R.sozinha):'')+'. No topo, <b>'+money(R.renda)+'/mês</b> de renda pagam todas as parcelas e sobram <b>'+money(R.sobra)+'/mês</b>.';
   if(R.sobra<0)$('v_sub').innerHTML+=' <b style="color:#F2B8A8">Atenção: com essa renda os imóveis não pagam as parcelas das cartas — ajuste a renda, o valor do imóvel ou os degraus.</b>';
-  anim('k1',R.patr,moneyK);$('k1_k').textContent='Patrimônio no topo';$('k1_s').textContent=plural(L.nTot,'imóvel','imóveis')+' de '+moneyK(R.im);
+  anim('k1',R.patr,moneyK);$('k1_k').textContent='Patrimônio no topo';$('k1_s').textContent='≈ '+plural(L.nTot,'imóvel','imóveis')+' de R$ 300 a 500 mil';
   anim('k2',R.renda,money);$('k2_k').textContent='Renda no topo';$('k2_s').textContent='líquida, por mês · parcelas de '+moneyK(R.parc);
   anim('k3',R.sobra,money);$('k3_k').textContent='Sobra livre';$('k3_s').textContent='por mês, depois de todas as parcelas';
   anim('k4',R.bolso,moneyK);$('k4_k').textContent='Do seu bolso';$('k4_s').textContent=R.sozinha?ateD(R.sozinha)+' · depois os imóveis pagam':N+' degraus · '+anos(R.meses);
@@ -1134,8 +1172,7 @@ function calc(){ try{embCtl();}catch(e){}
  $('escl').innerHTML='<span><i style="background:rgba(244,239,228,.3)"></i>base · com parcela do bolso</span><span><i style="background:var(--gg)"></i>'+(v2?'pago pela sobra dos imóveis':'pago pelo rendimento da base')+'</span>'+(v2?'<span>no alto: imóveis acumulados · embaixo: a carta</span>':'');
  /* aviso da montagem */
  const av=$('a_av'),ci=cartaIni(),lim=num('a_lim');let avt='';
- if(au&&v2&&Math.floor(ci.c*(1-e)/Math.max(1,num('p_imovel'))+1e-9)<1)avt='A carta inicial'+(e>0?' (já com o lance embutido)':'')+' não compra um imóvel de '+money(num('p_imovel'))+': aumente a carta ou escolha imóveis menores.';
- if(!avt&&au&&v2){const gp=ganhoP()(ci,1);if(gp<=0){const n1=Math.floor(ci.c*(1-e)/Math.max(1,num('p_imovel'))+1e-9);avt='Com essas premissas a carta não se paga: '+plural(n1,'imóvel rende ','imóveis rendem ')+money(n1*num('p_imovel')*num('p_renda')/100)+'/mês e a parcela depois de contemplar é '+money(posUnit(ci,Math.max(1,Math.round(num('f_ciclo'))),e))+'/mês. Aumente a renda ou mude o valor do imóvel.';}}
+ if(!avt&&au&&v2){const gp=ganhoP()(ci,1),cc=Math.max(1,Math.round(num('f_ciclo')));if(gp<=0)avt='Com essas premissas a carta não se paga: o crédito liberado rende '+money(ci.c*(1-e)*num('p_renda')/100)+'/mês e a parcela depois de contemplar é '+money(posUnit(ci,cc,e))+'/mês. Aumente a renda ou o ritmo da escada.';else if(gp*(1-PERF[PF[SCN]].f)<CARTAS[0].m)avt='A sobra da carta inicial ('+money(gp)+'/mês) não paga nem a menor carta da tabela: o bolso completa o próximo degrau.';}
  av.innerHTML=avt;av.style.display=avt?'block':'none';
  /* gráficos */
  lgd(v2);
@@ -1161,12 +1198,12 @@ function porque(R,v2,au){
  const it=(n,t,p,w)=>'<div class="pqi'+(w?' w':'')+'"><span class="n">'+n+'</span><div><b class="t">'+t+'</b><p>'+p+'</p></div></div>';
  $('pq_tag').textContent=au?'Automática · '+P.n:'Montada à mão';
  $('pq_p').textContent=au?'A escada sai da carta inicial: a base, o tamanho de cada degrau e o momento em que '+quem+' assume foram calculados para que cada degrau se pague.':'Os degraus foram escolhidos à mão. Abaixo, como eles se pagam.';
- let h='',k=1;const lib=ci.c*(1-e),im=Math.max(1,R.im||1);
+ let h='',k=1;const lib=ci.c*(1-e);
  h+=it(k++,(au?'A carta inicial: ':'A primeira carta: ')+MI(ci.c),(ci.pk?'Dividida em <b>'+pkLongo(ci.pk)+'</b> ('+uPz(ci)+') para contemplar mais rápido por proximidade. Meia parcela somada de <b>'+R2(ci.m)+'/mês</b> até contemplar; cada degrau repete esse pacote de cotas.':'Prazo de '+ci.p+' meses e parcela reduzida de <b>'+R2(ci.m)+'/mês</b> até contemplar.')+
-  (e>0?' Contemplando com <b>lance embutido de '+pct(e*100,0)+'</b>, o crédito liberado é '+moneyK(lib)+' por carta'+(v2?' — é com ele que se compram os imóveis ('+plural(Math.floor(lib/im+1e-9),'imóvel','imóveis')+' por carta) — e a parcela depois de contemplar diminui para <b>'+R2(R.pos1)+'/mês</b>.':', e o comprador paga o ágio sobre ele: '+moneyK(lib*R.agio)+' por carta.')
-      :(v2?' Cada carta compra '+plural(Math.floor(ci.c/im+1e-9),'imóvel','imóveis')+' de '+moneyK(im)+'.':' Vendida com '+pct(R.agio*100,0)+' de ágio, cada carta deixa '+moneyK(ci.c*R.agio)+' de capital guardado.')));
+  (e>0?' Contemplando com <b>lance embutido de '+pct(e*100,0)+'</b>, o crédito liberado é '+moneyK(lib)+' por carta'+(v2?' — é com ele que se compram os imóveis (≈ '+plural(imN(lib),'imóvel','imóveis')+' de '+moneyK(lib/imN(lib))+') — e a parcela depois de contemplar diminui para <b>'+R2(R.pos1)+'/mês</b>.':', e o comprador paga o ágio sobre ele: '+moneyK(lib*R.agio)+' por carta.')
+      :(v2?' A carta compra ≈ '+plural(imN(ci.c),'imóvel','imóveis')+' de '+moneyK(ci.c/imN(ci.c))+'.':' Vendida com '+pct(R.agio*100,0)+' de ágio, cada carta deixa '+moneyK(ci.c*R.agio)+' de capital guardado.')));
  h+=it(k++,'A base: '+(bN===1?'degrau 1':'degraus 1 a '+bN),'É a parte paga do bolso: no degrau 1, a parcela da carta inicial (<b>'+R2(D[0].meia)+'/mês</b>); depois, só o que '+quem+' ainda não cobre. São <b>'+money(R.bolso)+'</b> no total. '+(bN>1?'A base cresce até '+quem+' conseguir pagar sozinho o degrau seguinte.':'Logo depois do primeiro degrau, '+quem+' já paga o seguinte.'));
- if(R.sozinha)h+=it(k++,'Do degrau '+R.sozinha+' em diante, '+(v2?'os imóveis pagam':'o capital paga'),au?'Cada novo degrau é o maior que '+quem+' paga sozinho, usando no máximo <b>'+pct(100-P.f*100,0)+'</b> dele (folga de '+pct(P.f*100,0)+') e com até <b>'+(P.g===1.5?'50% mais':P.g.toLocaleString('pt-BR')+'×')+'</b> cotas que o degrau anterior (perfil '+P.n.toLowerCase()+'). O cliente não coloca mais nada.':'Esses degraus nascem pagos por '+quem+'. O cliente não coloca mais nada.');
+ if(R.sozinha)h+=it(k++,'Do degrau '+R.sozinha+' em diante, '+(v2?'os imóveis pagam':'o capital paga'),au?'Cada novo degrau é o maior que '+quem+' paga sozinho, usando no máximo <b>'+pct(100-P.f*100,0)+'</b> dele (folga de '+pct(P.f*100,0)+') e com até <b>'+(P.g===1.5?'50% mais':P.g.toLocaleString('pt-BR')+'×')+'</b> '+(v2?'o crédito do degrau anterior':'cotas que o degrau anterior')+' (perfil '+P.n.toLowerCase()+'). O cliente não coloca mais nada.':'Esses degraus nascem pagos por '+quem+'. O cliente não coloca mais nada.');
  else{const pg=D.filter(g=>g.i>1&&g.pm<.5).map(g=>'D'+g.i);   /* GPT_27OUT: se algum degrau já se paga, não dizer que nenhum se paga */
   h+=it(k++,'A escada ainda não se paga sozinha',(pg.length?'Com essas premissas, '+quem+' paga '+(pg.length===1?'o degrau '+pg[0].slice(1):'os degraus '+pg.join(', '))+' sozinho, mas algum degrau seguinte volta a precisar do bolso. Aumente ':'Com essas premissas, '+quem+' não chega a cobrir nenhum degrau inteiro. Aumente ')+(v2?'a renda dos imóveis':'o ágio ou o rendimento')+', ou comece com uma carta inicial maior.',true);}
  const L=R.L;
@@ -1242,17 +1279,17 @@ function textos(R,v2){
   $('note').innerHTML='Proposta ilustrativa, de potencial máximo. Valores em moeda de hoje: o reajuste anual do crédito (INCC) sobe a carta, a parcela e o ágio na mesma proporção. Parcelas reduzidas da tabela HS (cartas de imóvel) até a contemplação; contemplação por proximidade ou lance, sem data garantida. O ágio é referência de mercado e pode variar na venda; o rendimento não é garantido. Taxa de transferência da cota e imposto sobre o ganho não estão na conta.'+(R.e>0?' Com lance embutido de '+pct(R.e*100,0)+', o crédito liberado é '+pct(100-R.e*100,0)+' da carta e o ágio é calculado sobre ele.':'');
  } else {
   $('regras').innerHTML=st(1,'Contempla','Proximidade','várias cotas da mesma carta, no mesmo grupo, aumentam a chance a cada assembleia.')+
-   st(2,'Compra imóveis',moneyK(R.im),'em vez de vender a carta, usa o crédito: cada '+moneyK(R.im)+' vira um imóvel para alugar.')+
-   st(3,'O imóvel rende',pct(R.rr*100,2)+' a.m.',money(R.im*R.rr)+' líquidos por imóvel, por mês — o imóvel inteiro trabalhando, não só o ágio.')+
+   st(2,'Compra imóveis','Todo o crédito','em vez de vender a carta, usa o crédito liberado em imóveis para alugar, de R$ 300 a 500 mil cada.')+
+   st(3,'O imóvel rende',pct(R.rr*100,2)+' a.m.',money(1e6*R.rr)+' líquidos por mês a cada R$ 1 milhão em imóveis — o imóvel inteiro trabalhando, não só o ágio.')+
    st(4,'A renda paga a parcela',moneyK(R.pos1)+'/mês','parcela de uma carta de '+MI(R.c1)+' contemplada no mês '+R.cic+': o aluguel cobre e ainda sobra.')+
    st(5,'A sobra sobe a escada',R.sozinha?'Desde o D'+R.sozinha:'Com o bolso','você só entra na carta maior quando a sobra dos imóveis cobre a parcela dela.',true);
   $('ctr').innerHTML=[['A contemplação não tem data','Proximidade e lance aceleram, mas não garantem o mês. Enquanto a carta não contempla, a parcela reduzida dela é paga pela sobra dos degraus anteriores — por isso só subimos quando a sobra cobre.'],
-   ['Locação tem vacância',money(R.im*R.rr)+' por imóvel é a média de um imóvel bem posicionado. Meses fracos reduzem a sobra; com renda menor a escada continua, só sobe mais devagar.'],
+   ['Locação tem vacância',pct(R.rr*100,2)+' ao mês é a média de um imóvel bem posicionado. Meses fracos reduzem a sobra; com renda menor a escada continua, só sobe mais devagar.'],
    ['Gestão de muitos imóveis','A partir de alguns degraus são dezenas de unidades: exige administradora de locação (custo já fora do líquido) e padronização de compra.'],
    ['As parcelas correm em paralelo','As parcelas de todas as cartas seguem até o fim de cada grupo. A escada funciona porque cada degrau é pago pela renda — nunca pelo próximo degrau.']].map(x=>'<div><b>'+x[0]+'</b><p>'+x[1]+'</p></div>').join('');
   $('cta_b').textContent=MI(R.D[0].credit)+' hoje. '+R.L.nTot.toLocaleString('pt-BR')+' imóveis no topo.';
   $('cta_p').textContent='A Agion monta cada degrau com você: a carta certa, as cotas no mesmo grupo, os imóveis certos e a renda que paga o próximo passo.';
-  $('resumo').innerHTML='<b>Resumo.</b> '+R.D.length+' degraus, de '+MI(R.D[0].credit)+' a '+MI(R.L.credit)+', um a cada '+anos(R.cic)+'. Cada carta contemplada compra imóveis de '+money(R.im)+' que rendem '+pct(R.rr*100,2)+' ao mês. No topo são <b>'+R.L.nTot.toLocaleString('pt-BR')+' imóveis</b> ('+money(R.patr)+'), com renda de '+money(R.renda)+'/mês, parcelas de '+money(R.parc)+'/mês e <b>sobra livre de '+money(R.sobra)+'/mês</b>. Do bolso: <b>'+money(R.bolso)+'</b>.';
+  $('resumo').innerHTML='<b>Resumo.</b> '+R.D.length+' degraus, de '+MI(R.D[0].credit)+' a '+MI(R.L.credit)+', um a cada '+anos(R.cic)+'. Cada carta contemplada compra imóveis com o crédito liberado, rendendo '+pct(R.rr*100,2)+' ao mês. No topo são <b>'+R.L.nTot.toLocaleString('pt-BR')+' imóveis</b> ('+money(R.patr)+'), com renda de '+money(R.renda)+'/mês, parcelas de '+money(R.parc)+'/mês e <b>sobra livre de '+money(R.sobra)+'/mês</b>. Do bolso: <b>'+money(R.bolso)+'</b>.';
   $('note').innerHTML='Proposta ilustrativa, de potencial máximo. Valores em moeda de hoje, sem a valorização dos imóveis nem o reajuste do aluguel — os dois jogam a favor. Parcelas reduzidas da tabela HS (cartas de imóvel) até a contemplação; depois de contemplar, a parcela é o saldo que falta dividido pelos meses que faltam (parcela integral + o diferido da fase reduzida): '+money(R.pos1)+'/mês numa carta de '+MI(R.c1)+' contemplada no mês '+R.cic+'. Contemplação por proximidade ou lance, sem data garantida. Renda líquida já descontados administração e custos de locação; ITBI, escritura e vacância não estão na conta.'+(R.e>0?' Com lance embutido de '+pct(R.e*100,0)+', só o crédito liberado ('+pct(100-R.e*100,0)+' da carta) compra imóveis; o crédito e a parcela depois de contemplar diminuem.':'');
  }
 }
@@ -1606,7 +1643,7 @@ if(ios()){ W.baixarPDF=W.agPdfImagem; W.addEventListener('load',function(){ W.ba
  $('agLinkBtn').onclick=function(){if(window.AgCalcLink)AgCalcLink.modal({pagina:'escada-financeira',extra:function(){return window.escEstadoQS?escEstadoQS():'';}});};
 })();
 </script>
-<script src="/tool-tour.js?v=10" defer></script>
+<script src="/tool-tour.js?v=11" defer></script>
 <style id="ag-sem-zoom">/* SEM_ZOOM_24OUT: no celular o campo precisa de 16px, senão o iPhone dá zoom ao digitar */
 @media (max-width:600px),(pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}}
 
