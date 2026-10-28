@@ -456,6 +456,67 @@ body.light .cms-wrap,body.light .cms-md{--csurf-2:var(--surface-2,rgba(14,74,65,
   .cms-rc .v{font-size:1.15rem}
 }
 
+/* CMS_MD_V4_28OUT: pop-ups das comissões no visual atual (creme, dourado, Lora/DM Sans). No celular abre por baixo, com os botões fixos. */
+.cms-md.v4{--v4bg:#F4EFE4;--v4bg2:#ECE4D3;--v4card:#FFFDF8;--v4line:#E6DCC8;--v4ink:#0B2A26;--v4ink2:#2B3D38;--v4mut:#6E7A75;--v4gold:#C5A059;--v4gold2:#E8CC8B;--v4goldd:#A3833F;
+  background:var(--v4card);color:var(--v4ink);border:0;border-radius:26px;width:100%;max-width:560px;max-height:min(90vh,860px);padding:0;display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 1px 2px rgba(11,42,38,.06),0 30px 80px -20px rgba(4,20,18,.55);font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;text-align:left}
+.cms-md.v4 .v4hd{position:relative;padding:22px 64px 8px 24px;flex:none}
+.cms-md.v4 .v4k{font:700 10.5px/1 "DM Sans",system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--v4goldd)}
+.cms-md.v4 h2{margin:6px 0 4px;font:600 25px/1.2 Lora,Georgia,serif;color:var(--v4ink)}
+.cms-md.v4 .cms-sub{margin:0;font-size:13.5px;line-height:1.5;color:var(--v4mut)}
+.cms-md.v4 .v4x{position:absolute;top:16px;right:16px;width:38px;height:38px;border-radius:50%;border:0;background:var(--v4bg);color:var(--v4ink);font:400 22px/1 system-ui;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cms-md.v4 .v4x:hover{background:var(--v4bg2)}
+.cms-md.v4 .v4bd{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:12px 24px 6px}
+.cms-md.v4 .v4sec{display:flex;align-items:center;gap:8px;margin:4px 0 12px;font:700 10.5px/1 "DM Sans",system-ui,sans-serif;letter-spacing:.13em;text-transform:uppercase;color:var(--v4goldd)}
+.cms-md.v4 .v4sec::after{content:"";flex:1;height:1px;background:var(--v4line)}
+.cms-md.v4 .v4sec:not(:first-child){margin-top:20px}
+.cms-md.v4 .cms-fld{display:block;margin:0 0 14px}
+.cms-md.v4 .cms-fld>span{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 6px;font:700 12.5px/1.35 "DM Sans",system-ui,sans-serif;color:var(--v4ink)}
+.cms-md.v4 .cms-fld>span .note,.cms-md.v4 .note{font-weight:500;font-size:11.5px;color:var(--v4mut)}
+.cms-md.v4 .cms-fld>.note{display:block;margin-top:6px}
+.cms-md.v4 .cms-in,.cms-md.v4 .cms-sel select{display:block;width:100%;max-width:100%;min-width:0;height:48px;box-sizing:border-box;border:0;border-radius:14px;background:var(--v4bg);
+  box-shadow:inset 0 0 0 1px var(--v4line);color:var(--v4ink);font:600 15px/1.2 "DM Sans",system-ui,sans-serif;padding:0 14px;transition:box-shadow .2s,background .2s}
+.cms-md.v4 .cms-sel{display:block;position:relative}
+.cms-md.v4 .cms-sel select{padding-right:40px;text-overflow:ellipsis;cursor:pointer}
+.cms-md.v4 .cms-sel::after{right:17px;border-color:var(--v4goldd)}
+.cms-md.v4 .cms-in:hover,.cms-md.v4 .cms-sel select:hover{box-shadow:inset 0 0 0 1px #D6C8AA}
+.cms-md.v4 .cms-in:focus,.cms-md.v4 .cms-sel select:focus{background:#fff;box-shadow:inset 0 0 0 1.5px var(--v4gold);outline:0}
+.cms-md.v4 .cms-in::placeholder{color:#98A09B;font-weight:500}
+.cms-md.v4 input[type=search].cms-in{-webkit-appearance:none;appearance:none;padding-left:40px;
+  background:var(--v4bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A3833F' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") no-repeat 14px 50%/17px 17px}
+.cms-md.v4 input[type=search].cms-in:focus{background-color:#fff}
+.cms-md.v4 input[type=date].cms-in{-webkit-appearance:none;appearance:none;line-height:48px;text-align:left}
+.cms-md.v4 input[type=date].cms-in::-webkit-date-and-time-value{text-align:left;margin:0}
+.cms-md.v4 input[type=date].cms-in::-webkit-calendar-picker-indicator{opacity:.6;cursor:pointer}
+.cms-md.v4 .cms-row{display:flex;gap:8px;align-items:stretch}
+.cms-md.v4 .cms-row>*{flex:1;min-width:0}
+.cms-md.v4 .cms-row.v4cli{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.cms-md.v4 .cms-row>.btn{flex:0 0 auto;height:48px;margin:0;border:0;border-radius:14px;background:var(--v4card);box-shadow:inset 0 0 0 1.5px var(--v4line);color:var(--v4ink);font:700 13px "DM Sans",system-ui,sans-serif;padding:0 14px;white-space:nowrap;cursor:pointer}
+.cms-md.v4 .cms-row>.btn:hover{box-shadow:inset 0 0 0 1.5px var(--v4gold)}
+.cms-md.v4 .cms-sug{display:flex;flex-wrap:wrap;gap:6px}
+.cms-md.v4 .cms-pill--txt{height:36px;margin:0;border:0;border-radius:999px;background:var(--v4card);box-shadow:inset 0 0 0 1px var(--v4line);color:var(--v4ink);
+  font:600 12.5px "DM Sans",system-ui,sans-serif;letter-spacing:0;text-transform:none;padding:0 13px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cms-md.v4 .cms-pill--txt:hover{box-shadow:inset 0 0 0 1px var(--v4gold)}
+.cms-md.v4 .cms-pill--txt.on{background:color-mix(in srgb,var(--v4gold2) 32%,var(--v4card));box-shadow:inset 0 0 0 1.5px var(--v4gold)}
+.cms-md.v4 .cms-acts{flex:none;display:flex;gap:10px;margin:0;padding:14px 24px calc(16px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--v4line);background:var(--v4card)}
+.cms-md.v4 .cms-acts .btn{height:48px;margin:0;border:0;border-radius:999px;font:700 14px "DM Sans",system-ui,sans-serif;padding:0 22px;cursor:pointer;text-transform:none;letter-spacing:0}
+.cms-md.v4 .cms-acts .btn-ghost{flex:0 0 auto;background:var(--v4card);color:var(--v4ink);box-shadow:inset 0 0 0 1.5px var(--v4line)}
+.cms-md.v4 .cms-acts .btn-gold{flex:1;background:linear-gradient(115deg,#A8853E,#E8CC8B 52%,#C5A059 92%);color:#0B2A26;box-shadow:0 10px 24px -12px rgba(163,131,63,.8)}
+#cmsSel>.cms-md.v4{background:#FFFDF8!important;border:0!important;border-radius:26px!important;padding:0!important}   /* o pop-up da v1 força fundo escuro no #cmsSel */
+#cmsSel>.cms-md.v4 h2{font-size:25px!important;color:#0B2A26}
+@media (max-width:600px){
+  .cms-ov4{align-items:flex-end!important;padding:0!important}
+  .cms-md.v4{max-width:none;max-height:92vh;border-radius:24px 24px 0 0}
+  .cms-md.v4 .v4hd{padding:18px 60px 6px 18px}
+  .cms-md.v4 h2{font-size:22px}
+  .cms-md.v4 .v4bd{padding:10px 18px 6px}
+  .cms-md.v4 .cms-acts{padding:12px 18px calc(14px + env(safe-area-inset-bottom,0px))}
+  .cms-md.v4 .cms-in,.cms-md.v4 .cms-sel select{font-size:16px}
+  .cms-md.v4 .cms-row>.btn{padding:0 12px;font-size:12.5px}
+  #cmsSel>.cms-md.v4{border-radius:24px 24px 0 0!important}
+  #cmsSel>.cms-md.v4 h2{font-size:22px!important}
+}
+
 `;
 function ensureCss(){ if(document.getElementById('cmsCss'))return; var st=document.createElement('style'); st.id='cmsCss'; st.textContent=CSS; document.head.appendChild(st); }
 /* CMSCSS_23OUT: no visual novo a aba é desenhada pela v4, então os pop-ups da v1 (Registrar venda, Editar…) abriam sem o CSS. Injeta já no carregamento. */
@@ -843,7 +904,7 @@ window.cmsEditar=async function(id){
       +fld('Data da venda (inserção na administradora)','<input id="edData" type="date" value="'+String(v.data_insercao||'').slice(0,10)+'" class="'+bx+'">')
       +fld('Origem do cliente',sel('<select id="edOrig" class="'+bx+'"><option value="LEAD_AGION"'+(v.origem==='LEAD_AGION'?' selected':'')+'>Lead da Agion — comissão pelo cluster</option><option value="CLIENTE_PROPRIO"'+(v.origem==='CLIENTE_PROPRIO'?' selected':'')+'>Cliente próprio — 1% pré + 1% na contemplação</option></select>'))
       +'<div class="cms-acts"><button class="btn btn-ghost btn-sm" id="edC">Cancelar</button><button class="btn btn-gold btn-sm" id="edOk">Salvar alterações</button></div></div>';
-    document.body.appendChild(bg);
+    document.body.appendChild(bg); v4md(bg,'Comissões · editar',[['#edVend','Comissão'],['#edCred','A venda'],['#edOrig','Origem']]);   /* CMS_MD_V4_28OUT */
     document.getElementById('edC').onclick=function(){bg.remove();res(null);};
     document.getElementById('edOk').onclick=function(){ var r={vend:document.getElementById('edVend').value,credito:Number(String(document.getElementById('edCred').value).replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'))||0,data:document.getElementById('edData').value,origem:document.getElementById('edOrig').value,categoria:document.getElementById('edCat').value,adm:document.getElementById('edAdm').value,rpct:Number(String(document.getElementById('edRpct').value).replace(',','.'))||0,rn:parseInt(document.getElementById('edRn').value,10)||0}; var _rp=String(document.getElementById('edRpct').value).trim(),_rn=String(document.getElementById('edRn').value).trim();
       if((_rp||_rn)&&!(r.rpct>0&&r.rn>0)){flash('Regra própria: preencha o % total e o nº de parcelas juntos (ou deixe os dois em branco para usar a regra padrão).');return;}   /* DOT2_27OUT */
@@ -878,12 +939,32 @@ window.cmsDesignar=async function(id){
   var cliD=(db.clients||[]).find(function(c){return c.id===v.cliente_id;})||{};
   var pick=await new Promise(function(res){ var bg=document.createElement('div'); bg.style.cssText='position:fixed;inset:0;z-index:210;background:var(--surface-overlay,rgba(4,12,14,.72));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px';
     bg.innerHTML='<div class="cms-md" role="dialog" aria-modal="true" aria-labelledby="cmsDt" style="max-width:420px"><h2 id="cmsDt">Designar comissão</h2><p class="cms-sub">Venda de '+esc(v.cliente_nome||'')+' · crédito de '+BRL(v.credito)+'.</p><label class="cms-fld"><span>Quem recebe a comissão</span><span class="cms-sel"><select id="cmsDv" class="cms-in">'+vs.map(function(a){return '<option value="'+a.id+'"'+(a.id===v.vendedor_id?' selected':'')+'>'+esc(a.nome||'')+(cliD.ownerId===a.id?' — dono do cliente':'')+'</option>';}).join('')+'</select></span></label><div class="cms-acts"><button class="btn btn-ghost btn-sm" id="cmsDc">Cancelar</button><button class="btn btn-gold btn-sm" id="cmsDo">Designar</button></div></div>';
-    document.body.appendChild(bg); document.getElementById('cmsDc').onclick=function(){bg.remove();res(null);}; document.getElementById('cmsDo').onclick=function(){var x=document.getElementById('cmsDv').value;bg.remove();res(x);}; });
+    document.body.appendChild(bg); v4md(bg,'Comissões');   /* CMS_MD_V4_28OUT */ document.getElementById('cmsDc').onclick=function(){bg.remove();res(null);}; document.getElementById('cmsDo').onclick=function(){var x=document.getElementById('cmsDv').value;bg.remove();res(x);}; });
   if(!pick||pick===v.vendedor_id)return;
   await upd(id,{vendedor_id:pick},'Designou a comissão de '+(v.cliente_nome||'')+' para '+(user(pick).nome||''));
 };
 window.cmsSetComp=function(k){ _compSel=k; repaint(); };
 window.cmsVerFunc=function(id){ _funcSel=id; repaint(false,true); };
+
+
+/* CMS_MD_V4_28OUT: veste os pop-ups das comissões com o visual atual (cabeçalho, corpo que rola, botões fixos embaixo). */
+function v4md(bg,kicker,secoes){ try{
+  var md=bg.querySelector('.cms-md'); if(!md||md.classList.contains('v4'))return;
+  md.classList.add('v4'); bg.classList.add('cms-ov4');
+  var h2=md.querySelector('h2'), sub=md.querySelector('.cms-sub'), acts=md.querySelector('.cms-acts');
+  var hd=document.createElement('div'); hd.className='v4hd';
+  hd.innerHTML='<div class="v4k">'+esc(kicker||'Comissões')+'</div>';
+  if(h2) hd.appendChild(h2); if(sub) hd.appendChild(sub);
+  var x=document.createElement('button'); x.type='button'; x.className='v4x'; x.setAttribute('aria-label','Fechar'); x.innerHTML='&times;';
+  x.onclick=function(){ var c=acts&&acts.querySelector('.btn-ghost'); if(c) c.click(); else bg.remove(); };
+  hd.appendChild(x);
+  var bd=document.createElement('div'); bd.className='v4bd';
+  [].slice.call(md.childNodes).forEach(function(n){ if(n!==acts) bd.appendChild(n); });
+  md.innerHTML=''; md.appendChild(hd); md.appendChild(bd); if(acts) md.appendChild(acts);
+  (secoes||[]).forEach(function(s){ var alvo=s[0]&&bd.querySelector(s[0]); var f=alvo&&(alvo.closest('.cms-fld')||alvo); if(!f)return; var t=document.createElement('div'); t.className='v4sec'; t.textContent=s[1]; f.parentNode.insertBefore(t,f); });
+  var kd=function(e){ if(!bg.isConnected){ document.removeEventListener('keydown',kd); return; } if(e.key==='Escape') x.click(); };
+  document.addEventListener('keydown',kd);
+}catch(e){ try{console.warn('[cms v4md]',e);}catch(_){} } }
 
 /* ===================== REGISTRAR VENDA ===================== */
 window.cmsNovaVenda=async function(pre){
@@ -908,7 +989,7 @@ window.cmsNovaVenda=async function(pre){
     var bg=document.createElement('div'); bg.id='cmsSel'; bg.style.cssText='position:fixed;inset:0;z-index:210;background:var(--surface-overlay,rgba(4,12,14,.72));backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px';
     bg.innerHTML='<div class="cms-md" role="dialog" aria-modal="true" aria-labelledby="cmsNvT"><h2 id="cmsNvT">Registrar venda</h2><p class="cms-sub">Informe o cliente, a categoria, o crédito e a origem da carta vendida.</p>'
       +(sug?'<div class="cms-fld"><span>Fechados recentemente no CRM</span><div id="cmsSug" class="cms-sug">'+sug+'</div></div>':'')
-      +fld('Cliente','<div class="cms-row"><input id="cmsBusca" type="search" placeholder="Buscar cliente" class="'+bx+'">'+sel('<select id="cmsCli" class="'+bx+'">'+opts+'</select>')+'</div>')
+      +fld('Cliente','<div class="cms-row v4cli"><input id="cmsBusca" type="search" placeholder="Buscar cliente pelo nome" class="'+bx+'" autocomplete="off">'+sel('<select id="cmsCli" class="'+bx+'">'+opts+'</select>')+'</div>')
       +fld('Carta',sel('<select id="cmsCarta" class="'+bx+'"></select>'))
       +fld('Categoria da carta <span id="cmsCatHint" class="note"></span>',sel('<select id="cmsCat" class="'+bx+'"><option value="">Selecione…</option>'+catOpts(pre.categoria||'')+'</select>'))
       +fld('Crédito vendido (R$) <span id="cmsHint" class="note"></span>','<div class="cms-row"><input id="cmsCred" inputmode="decimal" placeholder="Ex.: 800000" class="'+bx+'"><button class="btn btn-ghost btn-sm" id="cmsUsar" type="button" title="Preencher com o valor da carta ou do CRM">Usar valor sugerido</button></div>')
@@ -916,7 +997,7 @@ window.cmsNovaVenda=async function(pre){
       +fld('Origem do cliente',sel('<select id="cmsOrig" class="'+bx+'"><option value="">Confirme a origem do cliente…</option><option value="LEAD_AGION">Lead da Agion — comissão pelo cluster</option><option value="CLIENTE_PROPRIO">Cliente próprio — 1% pré + 1% na contemplação'+(eMaster()?'':' (o Master valida)')+'</option></select>'))
       +(eMaster()?fld('Quem recebe a comissão',sel('<select id="cmsVend" class="'+bx+'">'+vendOpts+'</select>')):'')
       +'<div class="cms-acts"><button class="btn btn-ghost btn-sm" id="cmsCancel">Cancelar</button><button class="btn btn-gold btn-sm" id="cmsOk">Registrar venda</button></div></div>';
-    document.body.appendChild(bg);
+    document.body.appendChild(bg); v4md(bg,'Comissões · nova venda',[[document.getElementById('cmsSug')?'#cmsSug':'#cmsBusca','Cliente e carta'],['#cmsCat','A venda'],['#cmsOrig','Comissão']]);   /* CMS_MD_V4_28OUT */
     var $=function(i){return document.getElementById(i);};
     var origTocada=false;
     function sugOrig(){ if(origTocada)return; var o=$('cmsCli').selectedOptions[0]; if(!o)return; var por=o.getAttribute('data-por')||'', quem=$('cmsVend')?$('cmsVend').value:eId();   /* DOT2_27OUT: origem pelo vendedor escolhido, não por quem opera */
