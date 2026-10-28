@@ -4,7 +4,7 @@
    Host: esc() BRL() BRL2() ask() chooseModal() flash() setTop() supa
          session meId() isMaster() isLider() effRole() user() db logEvt()
    Regras: ver especificação de 07/10/2026 (competência 26→25, clusters,
-   33/12/12/12/31, antecipação 26→15 = dia 23, 16→25 = dia 10).
+   33/12/12/12/31, antecipação 26→15 = dia 23, 16→25 = dia 10; DIA23_28OUT: demais parcelas todo dia 23).
    ===================================================================== */
 (function(){
 'use strict';
@@ -40,7 +40,10 @@ function catOpts(sel){ return Object.keys(CATS).map(function(k){ return '<option
    Funcionário: 1ª parcela dia 23 (antecipação) ou dia 10 do mês seguinte; demais todo dia 10.
    Empresa (proprietário): recebe SEMPRE por antecipação, no dia 20 — um mês à frente do funcionário
    (a parcela que o funcionário recebe dia 10 de novembro a empresa já recebeu dia 20 de outubro). */
-var DIA_FUNC = 10, DIA_EMP = 20, DIA_EMP_NORMAL = 7;   // venda na janela normal: empresa recebe a 1ª parcela dia 7 (paga o funcionário dia 10)
+/* DIA23_28OUT (Gabriel, 28/out): o colaborador segue a mesma estratégia da empresa, 3 dias depois.
+   Janela antecipada (venda 26→15): 1ª parcela dia 23. Janela normal (16→25): 1ª parcela dia 10 do mês seguinte, junto com o extra do cluster.
+   Demais parcelas: todo dia 23 (a empresa recebe dia 20). Antes: demais todo dia 10 e, na antecipação, a 2ª pulava um mês (23/10 → 10/12). */
+var DIA_FUNC = 23, DIA_FUNC_NORMAL = 10, DIA_EMP = 20, DIA_EMP_NORMAL = 7;   // venda na janela normal: empresa recebe a 1ª parcela dia 7 (paga o funcionário dia 10)
 var CUTOFF_ANTEC = 15;   // CORTE15_28OUT (Gabriel): o cluster da antecipação (dia 23) conta só as vendas da janela antecipada, dia 26 ao 15; as do dia 16 ao 25 são da janela normal (dia 10) e entram no ajuste
 var SIT_LBL = {EM_DIA:'Em dia', INADIMPLENTE:'Não pagou', REEMBOLSO_PARCIAL:'Reembolso parcial', REEMBOLSO_TOTAL:'Reembolso total', CANCELADA:'Cancelada'};
 var POS_LBL = {NAO_CONTEMPLADA:'Aguardando contemplação', CONTEMPLADA:'Contemplada', COMISSAO_POS_RECEBIDA:'Comissão pós recebida'};
@@ -62,13 +65,14 @@ function compShift(key,n){ var d=parseISO(key); return competencia(iso(mkDate(d.
 function janelaDe(dateISO){
   var c=competencia(dateISO), d=parseISO(dateISO), fim=parseISO(c.fim);
   var antec = !(d.getMonth()===fim.getMonth() && d.getFullYear()===fim.getFullYear() && d.getDate()>=16);
-  var p1 = antec ? mkDate(fim.getFullYear(), fim.getMonth(), 23) : mkDate(fim.getFullYear(), fim.getMonth()+1, DIA_FUNC);
+  var p1 = antec ? mkDate(fim.getFullYear(), fim.getMonth(), 23) : mkDate(fim.getFullYear(), fim.getMonth()+1, DIA_FUNC_NORMAL);
   var datas=[iso(p1)];
-  /* 14/out/2026: na antecipação o funcionário recebe a 1ª dia 23 e a 2ª só no dia 10 do mês seguinte ao próximo (ex.: 23/10 → 10/12) */
-  for(var k=1;k<5;k++) datas.push(iso(mkDate(p1.getFullYear(), p1.getMonth()+k+(antec?1:0), DIA_FUNC)));
-  return {tipo: antec?'ANTECIPACAO':'NORMAL', datas:datas, ajusteData: iso(mkDate(fim.getFullYear(), fim.getMonth()+1, DIA_FUNC))};
+  /* DIA23_28OUT: a parcela k a empresa recebe dia 20 do mês (fim+k); o colaborador recebe dia 23 desse mesmo mês.
+     Antecipada: 23/10, 23/11, 23/12… · Normal (venda 20/10): 10/11, 23/11, 23/12… */
+  for(var k=1;k<5;k++) datas.push(iso(mkDate(fim.getFullYear(), fim.getMonth()+k, DIA_FUNC)));
+  return {tipo: antec?'ANTECIPACAO':'NORMAL', datas:datas, ajusteData: iso(mkDate(fim.getFullYear(), fim.getMonth()+1, DIA_FUNC_NORMAL))};
 }
-function dataEmpresa(funcISO, i, tipo, vendaISO){ var f=parseISO(funcISO); var d=(i===0&&tipo==='ANTECIPACAO')?mkDate(f.getFullYear(),f.getMonth(),DIA_EMP):(i===0)?mkDate(f.getFullYear(),f.getMonth(),DIA_EMP_NORMAL):mkDate(f.getFullYear(),f.getMonth()-1,DIA_EMP); var v=parseISO(vendaISO); while(d<v) d=mkDate(d.getFullYear(),d.getMonth()+1,DIA_EMP); return iso(d); }
+function dataEmpresa(funcISO, i, tipo, vendaISO){ var f=parseISO(funcISO); var d=(i===0&&tipo!=='ANTECIPACAO')?mkDate(f.getFullYear(),f.getMonth(),DIA_EMP_NORMAL):mkDate(f.getFullYear(),f.getMonth(),DIA_EMP);   /* DIA23_28OUT: a empresa recebe no mesmo mês, dia 20 (ou dia 7 na 1ª da janela normal) */ var v=parseISO(vendaISO); while(d<v) d=mkDate(d.getFullYear(),d.getMonth()+1,DIA_EMP); return iso(d); }
 function clusterDe(prod){ for(var i=0;i<CLUSTERS.length;i++) if(prod<=CLUSTERS[i].ate) return CLUSTERS[i]; return CLUSTERS[CLUSTERS.length-1]; }
 function proxCluster(prod){ for(var i=0;i<CLUSTERS.length;i++) if(prod<=CLUSTERS[i].ate) return CLUSTERS[i+1]||null; return null; }
 function pct(r){ return (r*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%'; }
@@ -467,7 +471,7 @@ function vendaCard(v,all,master){
   master=master&&eMaster();
   var k=calc(v,all), u=user(v.vendedor_id), a=analise(v);
   var tags=admTag(v)+catChip(v)+(vendaEmpresa(v)?tag('Venda da empresa','ok'):origemChip(v))+anChip(v)+sitChip(v.situacao)+(v.reembolso_valor?tag('reemb. '+BRL2(v.reembolso_valor),'warn'):'');
-  var meta=[master?'<span class="nm">'+esc((u.nome||'').split(' ').slice(0,2).join(' '))+'</span>':null, v.administradora?'<span>'+esc(v.administradora)+'</span>':null, v.grupo?'<span>grupo '+esc(v.grupo)+' / cota '+esc(v.cota||'')+'</span>':null, '<span>venda em '+fmtBR(v.data_insercao)+'</span>', '<span>competência '+esc(k.comp.rot)+'</span>', '<span>'+(k.jan.tipo==='ANTECIPACAO'?'antecipação · 1ª parcela dia 23':'janela normal · 1ª parcela dia 10 do mês seguinte')+(k.serv?' · 4 parcelas':'')+'</span>'].filter(Boolean).join('');
+  var meta=[master?'<span class="nm">'+esc((u.nome||'').split(' ').slice(0,2).join(' '))+'</span>':null, v.administradora?'<span>'+esc(v.administradora)+'</span>':null, v.grupo?'<span>grupo '+esc(v.grupo)+' / cota '+esc(v.cota||'')+'</span>':null, '<span>venda em '+fmtBR(v.data_insercao)+'</span>', '<span>competência '+esc(k.comp.rot)+'</span>', '<span>'+(k.jan.tipo==='ANTECIPACAO'?'antecipação · parcelas todo dia 23':'janela normal · 1ª parcela dia 10 do mês seguinte, demais dia 23')+(k.serv?' · 4 parcelas':'')+'</span>'].filter(Boolean).join('');
   var head='<div class="cms-head"><div class="who"><h3>'+esc(v.cliente_nome||'—')+'</h3><div class="meta">'+meta+'</div><div class="tags">'+tags+'</div></div><div class="amt"><b>'+BRL(k.credito)+'</b><span>comissão de <em>'+pct(k.rate)+'</em> sobre o crédito'+(k.ajuste?'<br>ajuste de cluster de '+BRL2(k.ajuste)+' em '+fmtBR(k.ajusteData):'')+'</span></div></div>';
   var sum='<div class="cms-sum">'
     +(master?'<div><div class="l">Pré · '+admCurta(v)+' ('+pct(k.hsPre/(k.credito||1))+')</div><div class="v">'+BRL2(k.hsPre)+'<small>recebido '+BRL2(k.hsRec)+'</small></div></div>':'')

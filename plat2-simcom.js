@@ -5,7 +5,7 @@
    mostra uma opção por vez (botão Cliente próprio / Lead da empresa), para não ficar comparando.
    Usa o MESMO motor da aba (cmsCalc da plataforma): clusters da competência
    (somando a produção de leads que a pessoa já tem), parcelas 33/12/12/12/31,
-   datas (antecipação dia 23 / dia 10), Serviços da Âncora e pós-contemplação.
+   datas (parcelas dia 23; janela normal e extra do cluster dia 10), Serviços da Âncora e pós-contemplação.
    Nada é gravado. Hierarquia: especialista vê só a comissão dele; líder, a dele
    e a da equipe; só o proprietário vê o que a administradora paga e o que fica
    com a Agion.
