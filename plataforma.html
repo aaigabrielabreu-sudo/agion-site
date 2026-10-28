@@ -6,6 +6,13 @@
 <style id="agv4pre">html:not(.v1on) #loginView,html:not(.v1on) #app{visibility:hidden!important}html:not(.v1on),html:not(.v1on) body{background:#0B2A26}html:not(.v1on):not(.v4ok) body::after{content:"";position:fixed;inset:0;z-index:1990;background:radial-gradient(circle at 50% 38%,#1B5A4D,#0B2A26 64%)}html.v4cl:not(.v1on),html.v4cl:not(.v1on) body{background:var(--v4clbg,#F4EFE4)}html.v4cl:not(.v1on):not(.v4ok) body::after{background:var(--v4clbg,#F4EFE4)}</style>
 <script>(function(){var h=document.documentElement;if(/[?&]v1=1/.test(location.search)||!/^\/plataforma(v2)?(\.html)?$/.test(location.pathname))h.classList.add("v1on");setTimeout(function(){if(!h.classList.contains("v4ok")){h.classList.add("v1on");h.classList.add("v4ok");}},12000);try{var cl=0;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i)||"";if(/^sb-.*-auth-token$/.test(k)&&(localStorage.getItem(k)||"").indexOf("refresh_token")>=0){cl=1;break;}}if(cl){var m=localStorage.getItem("agp-tema-modo"),t=localStorage.getItem("agp-tema"),hr=new Date().getHours(),dk=m==="e"||(m==="sis"&&matchMedia("(prefers-color-scheme: dark)").matches)||(m==="hor"&&(hr>=19||hr<6))||(!m&&t==="1"),bg=dk?"#071C19":"#F4EFE4";h.classList.add("v4cl");h.style.setProperty("--v4clbg",bg);document.addEventListener("DOMContentLoaded",function(){var mt=document.querySelector("meta[name=theme-color]");if(mt)mt.setAttribute("content",bg);});}}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>/* ENQ28: celular mais estreito que 390 px mostra a mesma tela do iPhone (390 px) reenquadrada no tamanho da tela, sem cortar nada */
+(function(){try{if(window.top!==window)return;var M=390,mv=document.querySelector('meta[name="viewport"]'),H=document.documentElement;if(!mv)return;
+ function aj(){try{var so=screen.orientation&&screen.orientation.type,p=so?/portrait/.test(so):(typeof window.orientation==='number'?Math.abs(window.orientation)!==90:screen.height>=screen.width),
+  sw=screen.width||0,sh=screen.height||0,dw=p?Math.min(sw,sh):Math.max(sw,sh),c=mv.getAttribute('content')||'',fit=/viewport-fit=cover/.test(c)?', viewport-fit=cover':'';
+  if(dw>=240&&dw<M){var s=Math.ceil(dw/M*10000)/10000;mv.setAttribute('content','width='+M+', initial-scale='+s+', minimum-scale='+s+', maximum-scale='+s+fit);H.classList.add('vpEnq');}
+  else if(H.classList.contains('vpEnq')){mv.setAttribute('content','width=device-width, initial-scale=1'+fit);H.classList.remove('vpEnq');}}catch(e){}}
+ aj();var t=0,re=function(){clearTimeout(t);t=setTimeout(aj,150);};window.addEventListener('orientationchange',re);if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',re);}catch(e){}})();</script>
 <title>Agion Wealth — Plataforma</title>
 <meta name="robots" content="noindex,nofollow">
 <!-- ================== AUTO-ATUALIZACAO (NAO REMOVER) ==================
@@ -1384,7 +1391,7 @@ html.capNative body.isApp #viewbar,html.capNative body.isApp .topbar,html.capNat
 <link rel="stylesheet" href="/plat-theme.css?v=15">
 <link rel="stylesheet" href="/plat-crm.css?v=5">
 <link rel="stylesheet" href="/plat2-shell.css?v=2">
-<meta name="agion-build" content="ca88739ff175">
+<meta name="agion-build" content="35914f756b2e">
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
 <div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" type="email" inputmode="email" placeholder="seu@email.com" value="" autocomplete="username" aria-label="E-mail"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="" autocomplete="current-password" aria-label="Senha" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> </div>
@@ -4261,6 +4268,6 @@ function masterReportPDF(){
 }catch(e){}})();
 </script>
 <script src="/plat2-shell.js?v=7"></script>
-<script src="/plat2-v4.js?v=80"></script>
+<script src="/plat2-v4.js?v=81"></script>
 </body>
 </html>

@@ -1,6 +1,13 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>/* ENQ28: celular mais estreito que 390 px mostra a mesma tela do iPhone (390 px) reenquadrada no tamanho da tela, sem cortar nada */
+(function(){try{if(window.top!==window)return;var M=390,mv=document.querySelector('meta[name="viewport"]'),H=document.documentElement;if(!mv)return;
+ function aj(){try{var so=screen.orientation&&screen.orientation.type,p=so?/portrait/.test(so):(typeof window.orientation==='number'?Math.abs(window.orientation)!==90:screen.height>=screen.width),
+  sw=screen.width||0,sh=screen.height||0,dw=p?Math.min(sw,sh):Math.max(sw,sh),c=mv.getAttribute('content')||'',fit=/viewport-fit=cover/.test(c)?', viewport-fit=cover':'';
+  if(dw>=240&&dw<M){var s=Math.ceil(dw/M*10000)/10000;mv.setAttribute('content','width='+M+', initial-scale='+s+', minimum-scale='+s+', maximum-scale='+s+fit);H.classList.add('vpEnq');}
+  else if(H.classList.contains('vpEnq')){mv.setAttribute('content','width=device-width, initial-scale=1'+fit);H.classList.remove('vpEnq');}}catch(e){}}
+ aj();var t=0,re=function(){clearTimeout(t);t=setTimeout(aj,150);};window.addEventListener('orientationchange',re);if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',re);}catch(e){}})();</script>
 <title>Melhores cartas disponíveis · Agion</title>
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" sizes="192x192" href="/plat2-v4/icon-192.png">
