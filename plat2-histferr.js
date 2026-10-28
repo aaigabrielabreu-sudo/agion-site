@@ -68,8 +68,9 @@ function carrega(force){
       var r=await sb.from('calc_links').select('token,calculadora,lead_id,cliente_nome,criado_por,criado_por_nome,criado_em,expira_em,aberturas,primeira_abertura,ultima_abertura,url').gte('criado_em',desde).order('criado_em',{ascending:false}).limit(2000);
       if(r.error) throw r.error;
       var L=(r.data||[]).map(normLink), ev={}, tk=L.map(function(l){ return l.token; });
-      for(var i=0;i<tk.length;i+=100){ var p=tk.slice(i,i+100); var e=await sb.from('calc_eventos').select('token,dados,criado_em').in('token',p).order('criado_em',{ascending:true}).limit(5000);
+      for(var i=0;i<tk.length;i+=100){ var p=tk.slice(i,i+100); var e=await sb.from('calc_eventos').select('token,dados,criado_em').in('token',p).order('criado_em',{ascending:false}).limit(5000);   /* GPT28_25: com muitas simulações, ficam de fora as mais antigas, não as mais recentes */
         if(e.error) throw e.error; (e.data||[]).forEach(function(x){ (ev[x.token]=ev[x.token]||[]).push({ts:ms(x.criado_em)/1000,d:x.dados||{}}); }); }
+      Object.keys(ev).forEach(function(k){ ev[k].reverse(); });
       HF.links=L; HF.ev=ev; HF.ok=true; HF.t=agora();
     }catch(err){ console.warn('[histferr] links',err); HF.ok=false; HF.t=agora(); }
     HF.load=null;

@@ -64,7 +64,7 @@ function montar(){
   D.head.appendChild(st);
   wrap=D.createElement('div'); wrap.id='v4wrap';
   fr=D.createElement('iframe'); fr.title='Agion Wealth'; fr.setAttribute('allow','clipboard-read; clipboard-write; notifications');
-  var src=W.__V4SRC||('/plat2-v4.html?v=72');
+  var src=W.__V4SRC||('/plat2-v4.html?v=73');
   if(W.__V4SRCDOC) fr.srcdoc=W.__V4SRCDOC; else fr.src=src;
   wrap.appendChild(fr); D.body.appendChild(wrap); D.body.classList.add('v4on'); D.documentElement.classList.add('v4on');
   fr.addEventListener('load',function(){ try{ if(D.documentElement.classList.contains('isApp')) fr.contentDocument.documentElement.classList.add('emapp'); }catch(e){} corApp(); marcaToast(); });
@@ -162,7 +162,8 @@ function pkPrep(tipo){ var c=PKC[tipo]; if(c&&Date.now()-c.ts<240000) return Pro
  var p=tipo==='reg'?pkSessao().then(function(s){ if(!s) throw new Error('Entre com a senha primeiro.'); return pkPost('/api/passkey/registro/opcoes',{},s.access_token).then(function(r){ return {r:r,tok:s.access_token,email:(s.user&&s.user.email)||''}; }); })
   :pkPost('/api/passkey/entrar/opcoes',{}).then(function(r){ return {r:r}; });
  return p.then(function(x){ if(!x.r.ok||!x.r.data.opcoes) throw new Error((x.r.data&&(x.r.data.erro||x.r.data.error))||'Sem conexão com o servidor.'); var c={id:x.r.data.id,o:x.r.data.opcoes,tok:x.tok,email:x.email,ts:Date.now()}; PKC[tipo]=c; return c; }); }
-function pkPega(tipo){ var c=PKC[tipo]; delete PKC[tipo]; if(c&&Date.now()-c.ts<240000) return Promise.resolve(c); return pkPrep(tipo).then(function(x){ delete PKC[tipo]; return x; }); }
+function pkEmailAtual(){ try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(/^sb-.*-auth-token$/.test(k)){ var o=JSON.parse(localStorage.getItem(k)||'null'); return (o&&o.user&&o.user.email)||(o&&o.currentSession&&o.currentSession.user&&o.currentSession.user.email)||''; } } }catch(e){} return ''; }
+function pkPega(tipo){ var c=PKC[tipo]; delete PKC[tipo]; if(c&&tipo==='reg'&&c.email&&pkEmailAtual()&&c.email!==pkEmailAtual()) c=null;   /* GPT28_30: trocou de conta — não reaproveita a da conta anterior */ if(c&&Date.now()-c.ts<240000) return Promise.resolve(c); return pkPrep(tipo).then(function(x){ delete PKC[tipo]; return x; }); }
 async function pkAtivar(){
  var k=await pkPega('reg'), o=k.o, r={data:{id:k.id}}, s={access_token:k.tok,user:{email:k.email}};
  var pub={challenge:de64(o.challenge),rp:o.rp,user:{id:de64(o.user.id),name:o.user.name,displayName:o.user.displayName},pubKeyCredParams:o.pubKeyCredParams,timeout:o.timeout||60000,
@@ -286,16 +287,16 @@ function apHints(){ if(apCH) return Promise.resolve(apCH); try{ var u=navigator.
 function apPing(forca){ try{ if(apSaindo||typeof apiFetch!=='function') return Promise.resolve(); var uid=apUid(); if(!uid) return Promise.resolve(); if(!forca&&Date.now()-apUlt<60000) return Promise.resolve(); apUlt=Date.now();
   var id=apId(uid); if(!id) return Promise.resolve();
   return Promise.all([apEndpoint(),apHints()]).then(function(v){ var inf=apInfo(); inf.ch=v[1]||{}; return apiFetch('/api/aparelho/ping',{method:'POST',body:JSON.stringify({id:id,ua:String(navigator.userAgent||'').slice(0,240),app:apApp(),endpoint:v[0]||null,plataforma:(navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||'',info:inf})}); })
-   .then(function(r){ if(r&&r.data&&r.data.revogado) apDesconectado(); }).catch(function(){}); }catch(e){ return Promise.resolve(); } }
+   .then(function(r){ if(r&&r.data&&r.data.revogado&&apUid()===uid) apDesconectado(); }).catch(function(){}); }catch(e){ return Promise.resolve(); } }   /* GPT28_30: resposta atrasada de outra conta não desconecta a atual */
 function apLimpaLocal(){ try{ localStorage.removeItem(APK); localStorage.setItem('agion_push_ok','0'); }catch(e){}
   try{ if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations) navigator.serviceWorker.getRegistrations().then(function(rs){ (rs||[]).forEach(function(r){ if(r.pushManager) r.pushManager.getSubscription().then(function(s){ if(s) s.unsubscribe(); }).catch(function(){}); }); }).catch(function(){}); }catch(e){} }
-function apDesconectado(){ if(apSaindo) return; apSaindo=true; apLimpaLocal();
+function apDesconectado(){ if(apSaindo) return; apSaindo=true; PKC={}; apLimpaLocal();
   try{ W.AgionV4Ponte._sair0(); }catch(e){ try{ logout(); }catch(_){} }
   setTimeout(function(){ apSaindo=false; try{ lgForm(); lgMsg('Este aparelho foi desconectado da sua conta. Entre de novo para continuar.'); }catch(e){} },1500); }
 /* ponte para a tela de Ajustes (iframe) */
 W.AgionV4Ponte._sair0=W.AgionV4Ponte.sair;
 W.AgionV4Ponte.sair=function(){ /* sair pelo botão: este aparelho some da lista */ var uid=apUid(), id=null; try{ var o=JSON.parse(localStorage.getItem(APK)||'null'); if(o&&o.uid===uid) id=o.id; }catch(e){}
-  var fim=function(){ apLimpaLocal(); try{ W.AgionV4Ponte._sair0(); }catch(e){ try{ logout(); }catch(_){} } };
+  var fim=function(){ PKC={}; apLimpaLocal(); try{ W.AgionV4Ponte._sair0(); }catch(e){ try{ logout(); }catch(_){} } };
   if(!id||typeof apiFetch!=='function') return fim();
   var feito=false, t=setTimeout(function(){ if(!feito){ feito=true; fim(); } },1800);
   apiFetch('/api/aparelho/desconectar',{method:'POST',body:JSON.stringify({id:id})}).then(function(){ if(!feito){ feito=true; clearTimeout(t); fim(); } },function(){ if(!feito){ feito=true; clearTimeout(t); fim(); } }); };

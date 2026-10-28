@@ -155,14 +155,14 @@ async function revisarPagamentos(state){
 }
 async function gravarPagamentos(state,adm){
   var mes=$('#ipMes').value||mesAtual(), ok=$('#ipOk'); ok.disabled=true; ok.textContent='Gravando…';
-  var sel=state.lin.filter(function(l){ return l.st; }); var nUpd=0, err=null;
+  var sel=state.lin.filter(function(l){ return l.st; }); var nUpd=0, err=null, mesOk=false;
   var reg=sel.map(function(l){ return {mes_ref:mes,administradora:adm,venda_id:l.v.id,cliente_nome:l.v.cliente_nome,grupo:l.v.grupo||'',cota:l.v.cota||'',status:l.st,parcelas_atraso:l.parc,linha_original:l.hit?l.hit.text.slice(0,500):null,arquivo:state.file}; });
-  if(reg.length){ var r=await SB().from('pagamentos_mes').upsert(reg,{onConflict:'mes_ref,administradora,grupo,cota'}); if(r.error) err=r.error; }
+  if(reg.length){ var r=await SB().from('pagamentos_mes').upsert(reg,{onConflict:'mes_ref,administradora,grupo,cota'}); if(r.error) err=r.error; else mesOk=true; }
   if(!err){ for(var i=0;i<sel.length;i++){ var l=sel[i], cur=l.v.situacao, nv=null;
       if(l.st==='NAO_PAGO'&&cur==='EM_DIA') nv='INADIMPLENTE';
       if(l.st==='PAGO'&&cur==='INADIMPLENTE') nv='EM_DIA';
       if(nv){ var u=await SB().from('comissoes_vendas').update({situacao:nv}).eq('id',l.v.id); if(u.error){ err=u.error; break; } nUpd++; } } }
-  if(err){ ok.disabled=false; ok.textContent='Confirmar e gravar'; $('#ipOut').insertAdjacentHTML('afterbegin','<p class="imp-err">Não gravou: '+esc(err.message||err)+'</p>'); return; }
+  if(err){ ok.disabled=false; ok.textContent='Confirmar e gravar'; $('#ipOut').insertAdjacentHTML('afterbegin',mesOk?'<p class="imp-err">Gravou os pagamentos de '+esc(mesLbl(mes))+', mas parou ao atualizar a situação das vendas ('+nUpd+' atualizada(s)): '+esc(err.message||err)+'. Toque em “Confirmar e gravar” de novo para completar — repetir é seguro.</p>':'<p class="imp-err">Não gravou: '+esc(err.message||err)+'</p>'); return; }   /* GPT28_15 */
   closeModal(); toast('Pagamentos de '+mesLbl(mes)+' gravados · '+nUpd+' situação(ões) atualizada(s)');
   try{ if(typeof loadCloud==='function'){} render(); }catch(e){}
 }
@@ -198,8 +198,8 @@ function guessField(h){ var t=norm(h); if(!t) return '';
   if(/limitad/.test(t)) return 'lance_limitado';
   if(/livre/.test(t)) return 'lance_livre';
   if(/fix/.test(t)) return 'lance_fixo';
+  if(/exclu/.test(t)) return 'excluidos';   /* GPT28_16: "Excluídas sorteadas" é exclusão */
   if(/sorte/.test(t)) return 'sorteio';
-  if(/exclu/.test(t)) return 'excluidos';
   if(/menor/.test(t)) return 'menor_lance_pct';
   if(/maior/.test(t)) return 'maior_lance_pct';
   if(/taxa|adm/.test(t)) return 'taxa_adm_pct';
@@ -274,9 +274,9 @@ async function gravarHS(st){
   var recs=st.HS.filter(function(x){ return x.grupo; }).map(function(x){ return {administradora:adm,tipo:tipo,mes_ref:mes,data_assembleia:data,grupo:x.grupo,sorteio:x.sorteio,excluidos:x.excluidos,lance_fixo:x.lance_fixo,lance_fixo2:x.lance_fixo2,lance_livre:x.lance_livre,lance_limitado:x.lance_limitado,lance_embutido:0,contemplados:x.contemplados,lance_parcelas:x.lance_parcelas,detalhes:x.detalhes,arquivo:st.file||null}; });
   ok.disabled=true; ok.textContent='Gravando…';
   var r=await SB().from('assembleias_resultado').upsert(recs,{onConflict:'administradora,mes_ref,grupo'});
-  if(!r.error&&data){ await SB().from('assembleias_agenda').upsert([{administradora:adm,tipo:tipo,data_assembleia:data,obs:'realizada'}],{onConflict:'administradora,tipo,data_assembleia'}); }
+  var agErr=null; if(!r.error&&data){ var ra=await SB().from('assembleias_agenda').upsert([{administradora:adm,tipo:tipo,data_assembleia:data,obs:'realizada'}],{onConflict:'administradora,tipo,data_assembleia'}); if(ra&&ra.error) agErr=ra.error; }   /* GPT28_16: a data da agenda que não gravou agora avisa */
   if(r.error){ ok.disabled=false; ok.textContent='Confirmar e gravar'; $('#iaOut').insertAdjacentHTML('afterbegin','<p class="imp-err">Não gravou: '+esc(r.error.message)+'</p>'); return; }
-  closeModal(); toast(recs.length+' grupos de '+(ADM_LBL[adm]||adm)+' · '+(TIPO_LBL[tipo]||tipo)+' · '+mesLbl(mes)+' gravados'); AS.adm=adm; AS.tipo=tipo; AS.mes=mes; if(AS.open) abrirAssembleias(); }
+  closeModal(); toast(recs.length+' grupos de '+(ADM_LBL[adm]||adm)+' · '+(TIPO_LBL[tipo]||tipo)+' · '+mesLbl(mes)+' gravados'+(agErr?' · a data '+data+' não entrou no calendário ('+(agErr.message||'erro')+'): use “+ Data de assembleia”':'')); AS.adm=adm; AS.tipo=tipo; AS.mes=mes; if(AS.open) abrirAssembleias(); }
 function abrirAssembleiaImport(){
   if(!isM()) return;
   modal('Importar resultado das assembleias','PDF de resultado da administradora. Você confere as colunas e os números antes de gravar. Fica visível para a equipe (clientes não veem).',
@@ -320,9 +320,9 @@ async function gravarAssembleia(st){
   if(!recs.length){ $('#iaOut').insertAdjacentHTML('afterbegin','<p class="imp-err">Nenhuma linha com grupo preenchido.</p>'); return; }
   ok.disabled=true; ok.textContent='Gravando…';
   var r=await SB().from('assembleias_resultado').upsert(recs,{onConflict:'administradora,mes_ref,grupo'});
-  if(!r.error&&data){ await SB().from('assembleias_agenda').upsert([{administradora:adm,tipo:tipo,data_assembleia:data,obs:'realizada'}],{onConflict:'administradora,tipo,data_assembleia'}); }
+  var agErr=null; if(!r.error&&data){ var ra=await SB().from('assembleias_agenda').upsert([{administradora:adm,tipo:tipo,data_assembleia:data,obs:'realizada'}],{onConflict:'administradora,tipo,data_assembleia'}); if(ra&&ra.error) agErr=ra.error; }   /* GPT28_16: a data da agenda que não gravou agora avisa */
   if(r.error){ ok.disabled=false; ok.textContent='Confirmar e gravar'; $('#iaOut').insertAdjacentHTML('afterbegin','<p class="imp-err">Não gravou: '+esc(r.error.message)+'</p>'); return; }
-  closeModal(); toast(recs.length+' grupos de '+(ADM_LBL[adm]||adm)+' · '+(TIPO_LBL[tipo]||tipo)+' · '+mesLbl(mes)+' gravados'); AS.adm=adm; AS.tipo=tipo; AS.mes=mes; if(AS.open) abrirAssembleias(); }
+  closeModal(); toast(recs.length+' grupos de '+(ADM_LBL[adm]||adm)+' · '+(TIPO_LBL[tipo]||tipo)+' · '+mesLbl(mes)+' gravados'+(agErr?' · a data '+data+' não entrou no calendário ('+(agErr.message||'erro')+'): use “+ Data de assembleia”':'')); AS.adm=adm; AS.tipo=tipo; AS.mes=mes; if(AS.open) abrirAssembleias(); }
 async function novaData(){
   if(!isM()) return;
   modal('Calendário de assembleias','Datas das próximas assembleias, para a equipe se programar.',
@@ -343,7 +343,8 @@ async function abrirAssembleias(){
   try{ setTop('Assembleias','Resultado dos grupos e calendário',isM()?'<button class="btn btn-ghost btn-sm" onclick="AgionImport.novaData()">+ Data de assembleia</button><button class="btn btn-gold btn-sm" onclick="AgionImport.importarAssembleias()">⇪ Importar resultado</button>':''); }catch(e){}
   C.innerHTML='<button class="as-back" onclick="go(\'ferramentas\')">‹ Ferramentas</button><div class="panel"><p class="imp-note">Carregando assembleias…</p></div>';
   var r1=await SB().from('assembleias_resultado').select('*').order('mes_ref',{ascending:false}).limit(5000);
-  var r2=await SB().from('assembleias_agenda').select('*').order('data_assembleia',{ascending:true}).limit(500);
+  var _h=new Date(), _hj=_h.getFullYear()+'-'+('0'+(_h.getMonth()+1)).slice(-2)+'-'+('0'+_h.getDate()).slice(-2);
+  var r2=await SB().from('assembleias_agenda').select('*').gte('data_assembleia',_hj).order('data_assembleia',{ascending:true}).limit(500);   /* GPT28_16: a agenda busca só de hoje em diante */
   if(view.page!=='ferramentas'||!AS.open) return;
   if(r1.error){ C.innerHTML='<button class="as-back" onclick="go(\'ferramentas\')">‹ Ferramentas</button><div class="panel"><p class="imp-err">Não foi possível carregar: '+esc(r1.error.message)+'</p></div>'; return; }
   AS.data=r1.data||[]; AS.agenda=r2.data||[];

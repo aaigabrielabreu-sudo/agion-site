@@ -103,7 +103,7 @@ function ctx(){ var c=cliente(ST.cid); if(!c) return null; var ps=c.plans||[], m
  return {c:c,p:p,mp:mp,R:projeta(p),ps:ps}; }
 function soLeitura(){ try{ return RO()||!ehCliente(); }catch(e){ return true; } }
 function ehCliente(){ try{ var s=px().session(); return !!(s&&s.role==='cliente'); }catch(e){ return false; } }
-function salvar(){ try{ pcall('save'); return true; }catch(e){ toast('Não consegui salvar agora','x'); return false; } }
+function salvar(){ var r; try{ r=pcall('save'); }catch(e){ r=null; } if(r===null){ toast('Não consegui salvar neste aparelho agora. Tente de novo.','x'); return false; } return true; }   /* GPT28_24: pcall devolve null quando o salvamento falha */
 
 /* ---------------- tela ---------------- */
 var ABAS=[['inicio','Início'],['plano','Planejamento'],['jornada','Jornada'],['gastos','Gastos'],['cota','Minha cota']];
@@ -233,13 +233,19 @@ function abaJornada(X){ var p=X.p; try{ var f=ev('ensureSteps'); if(f&&!soLeitur
 function cats(){ return ev('CATS_GASTO')||[['Outros','','#6E8B88']]; }
 function catM(c){ return cats().filter(function(x){ return x[0]===c; })[0]||['Outros','M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z','#6E8B88']; }
 function catIc(c,sz){ var m=catM(c); return '<svg viewBox="0 0 24 24" style="width:'+(sz||18)+'px;height:'+(sz||18)+'px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round">'+m[1]+'</svg>'; }
-function gastosDe(m){ return {L:Array.isArray(m.lancamentos)?m.lancamentos:[], bud:m.budgets||{}, hist:Array.isArray(m.histGastos)?m.histGastos:[], contas:Array.isArray(m.contas)?m.contas:[]}; }
+/* GPT28_35: cada lançamento guarda o mês; a tela mostra um mês por vez (os antigos, sem mês, entram no mês atual) */
+function mesKey(d){ d=d||new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2); }
+function mesNome(k){ var p=String(k).split('-'); return ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][(+p[1]||1)-1]+'/'+p[0]; }
+function mesDoL(x){ return x.mes||mesKey(); }
+function gastosDe(m){ var LA=Array.isArray(m.lancamentos)?m.lancamentos:[], mk=ST.gmes||mesKey(); return {LA:LA, mes:mk, L:LA.filter(function(x){ return mesDoL(x)===mk; }), bud:m.budgets||{}, hist:Array.isArray(m.histGastos)?m.histGastos:[], contas:Array.isArray(m.contas)?m.contas:[]}; }
 function abaGastos(X){ var g=gastosDe(X.mp), L=g.L, desp=L.filter(function(x){ return x.tipo==='despesa'; }), rec=L.filter(function(x){ return x.tipo==='receita'; });
  var td=desp.reduce(function(s,x){ return s+(+x.valor||0); },0), tr=rec.reduce(function(s,x){ return s+(+x.valor||0); },0), sal=tr-td, cs={};
  desp.forEach(function(x){ cs[x.cat]=(cs[x.cat]||0)+(+x.valor||0); }); var ca=Object.keys(cs).map(function(k){ return [k,cs[k]]; }).sort(function(a,b){ return b[1]-a[1]; });
  var est=ca.filter(function(x){ return g.bud[x[0]]&&x[1]>g.bud[x[0]]; }), ro=soLeitura(), tc=g.contas.reduce(function(s,x){ return s+(+x.saldo||0); },0);
- var hist=g.hist.concat([['Atual',td]]), hm=Math.max.apply(null,hist.map(function(h){ return +h[1]||0; }).concat([1]));
+ var ms0={}; g.LA.forEach(function(x){ ms0[mesDoL(x)]=1; }); ms0[mesKey()]=1; ms0[g.mes]=1; var mlist=Object.keys(ms0).sort().reverse();
+ var hist=g.LA.some(function(x){ return x.mes; })?mlist.slice().reverse().filter(function(k){ return k<=g.mes; }).slice(-6).map(function(k){ return [mesNome(k), g.LA.filter(function(x){ return x.tipo==='despesa'&&mesDoL(x)===k; }).reduce(function(s,x){ return s+(+x.valor||0); },0)]; }):g.hist.concat([['Atual',td]]), hm=Math.max.apply(null,hist.map(function(h){ return +h[1]||0; }).concat([1]));
  return (est.length?'<div class="banner rv" style="border-color:var(--bad);background:var(--badb)">⚠️ <span>Você passou da meta em <b>'+est.map(function(e){ return e4(e[0]); }).join(', ')+'</b>. Vale rever esses gastos.</span></div>':'')+
+  '<div class="row mb" style="justify-content:flex-end;align-items:center;gap:8px"><span style="font-size:12.5px;color:var(--mut)">Mês</span><div class="fi" style="margin:0;width:150px"><select id="glmes">'+mlist.map(function(k){ return '<option value="'+k+'"'+(k===g.mes?' selected':'')+'>'+mesNome(k)+'</option>'; }).join('')+'</select></div></div>'+
   '<div class="plsum rv"><div><small>Receitas</small><b style="color:var(--ok)">'+brl(tr)+'</b></div><div><small>Despesas</small><b style="color:var(--bad)">'+brl(td)+'</b></div><div><small>Saldo</small><b style="color:'+(sal>=0?'var(--goldd)':'var(--bad)')+'">'+brl(sal)+'</b></div></div>'+
   '<div class="g2 mb"><div class="panel rv"><div class="ph"><h3>'+I('money',18)+'Despesas por categoria</h3></div>'+(ca.length?'<div class="pldon">'+donutPct(ca.map(function(c){ return [c[0],c[1],catM(c[0])[2]]; }),'Despesas')+'</div><div class="plrow" style="border:0;padding-bottom:4px;margin-top:10px"><span>Comprometimento da renda</span><b>'+(tr?Math.round(td/tr*100):0)+'%</b></div>'+barra(tr?td/tr*100:0):'<div class="empty">Sem despesas lançadas neste mês.</div>')+'</div>'+
   '<div class="panel rv"><div class="ph"><h3>'+I('target',18)+'Categorias</h3><span class="sp"></span>'+(ro?'':'<button class="btn sm ol" id="glmeta">Definir metas</button>')+'</div>'+(ca.map(function(c){ var me=catM(c[0]), meta=g.bud[c[0]]||0, over=meta&&c[1]>meta, uso=meta?Math.min(100,Math.round(c[1]/meta*100)):(td?Math.round(c[1]/td*100):0);
@@ -252,13 +258,15 @@ function abaGastos(X){ var g=gastosDe(X.mp), L=g.L, desp=L.filter(function(x){ r
 /* GPT_27OUT: valor em reais digitado do jeito brasileiro (1.234,56 · 500,50 · 1.000) — centavos não viram parte do número */
 function pBRv(t){ t=String(t==null?'':t).trim().replace(/R\$|\s/g,''); if(t.indexOf(',')>=0) t=t.replace(/\./g,'').replace(',','.'); else if(/^\d{1,3}(\.\d{3})+$/.test(t)) t=t.replace(/\./g,''); var v=parseFloat(t); return isFinite(v)?Math.round(v*100)/100:0; }
 function ligaGastos(b,X){ var m=X.mp;
+ var gm=$('#glmes',b); if(gm) gm.onchange=function(){ ST.gmes=gm.value; corpo(); };
+ if(!soLeitura()&&Array.isArray(m.lancamentos)&&m.lancamentos.some(function(x){ return !x.mes; })){ m.lancamentos.forEach(function(x){ if(!x.mes) x.mes=mesKey(); }); salvar(); }   /* GPT28_35: os antigos ficam no mês atual */
  var nv=$('#glnovo',b); if(nv) nv.onclick=function(){ var ops=cats().map(function(c){ return '<option>'+e4(c[0])+'</option>'; }).join('');
   var s=sheet('<h2>Novo lançamento</h2><div class="fi"><label>Descrição</label><input id="gld" placeholder="Ex.: Supermercado"></div><div style="display:flex;gap:10px"><div class="fi" style="flex:1"><label>Valor (R$)</label><input id="glv" inputmode="decimal" placeholder="0,00"></div><div class="fi" style="width:96px"><label>Dia</label><input id="gldia" type="number" min="1" max="31" value="'+new Date().getDate()+'"></div></div>'+
    '<div style="display:flex;gap:10px"><div class="fi" style="flex:1"><label>Tipo</label><select id="glt"><option value="despesa">Despesa</option><option value="receita">Receita</option></select></div><div class="fi" style="flex:1"><label>Categoria</label><select id="glc">'+ops+'</select></div></div>'+
    '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:6px"><button class="btn ol" id="gln">Cancelar</button><button class="btn gd" id="gly">'+I('ok',15)+'Salvar</button></div>',460);
   setTimeout(function(){ var i=$('#gld',s); if(i) i.focus(); },80); $('#gln',s).onclick=function(){ closeSheet(); };
   $('#gly',s).onclick=function(){ var d=$('#gld',s).value.trim(), v=pBRv($('#glv',s).value); if(!d||!v){ toast('Preencha descrição e valor','x'); return; }
-   if(!Array.isArray(m.lancamentos)) m.lancamentos=[]; var uid=ev('uuid'); m.lancamentos.push({id:uid?uid():String(Date.now()),desc:d,valor:v,tipo:$('#glt',s).value,cat:$('#glc',s).value,dia:Math.max(1,Math.min(31,+$('#gldia',s).value||1))});
+   if(!Array.isArray(m.lancamentos)) m.lancamentos=[]; var uid=ev('uuid'); m.lancamentos.push({id:uid?uid():String(Date.now()),mes:ST.gmes||mesKey(),desc:d,valor:v,tipo:$('#glt',s).value,cat:$('#glc',s).value,dia:Math.max(1,Math.min(31,+$('#gldia',s).value||1))});
    if(salvar()){ closeSheet(); toast('Lançamento salvo','ok'); corpo(); } }; };
  $$('[data-del]',b).forEach(function(x){ x.onclick=function(){ confirma('Apagar este lançamento?','Ele sai do seu controle de gastos.','Apagar').then(function(ok){ if(!ok) return; m.lancamentos=(m.lancamentos||[]).filter(function(l){ return String(l.id)!==x.dataset.del; }); if(salvar()){ toast('Lançamento apagado','ok'); corpo(); } }); }; });
  var mt=$('#glmeta',b); if(mt) mt.onclick=function(){ var bud=m.budgets||{}; var s=sheet('<h2>Metas de gasto por mês</h2><p style="color:var(--mut);font-size:13px;margin:6px 0 14px">Quanto você quer gastar, no máximo, em cada categoria.</p>'+cats().filter(function(c){ return c[0]!=='Receita'; }).map(function(c){ return '<div class="fi" style="flex-direction:row;align-items:center;gap:10px;margin-bottom:8px"><span style="width:140px;display:flex;align-items:center;gap:8px;color:'+c[2]+'">'+catIc(c[0],16)+'<span style="color:var(--ink)">'+e4(c[0])+'</span></span><input data-bud="'+e4(c[0])+'" inputmode="decimal" value="'+(bud[c[0]]?String(bud[c[0]]).replace('.',','):'')+'" placeholder="0" style="flex:1"></div>'; }).join('')+

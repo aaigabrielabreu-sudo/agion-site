@@ -104,10 +104,11 @@ function abrir(o){o=o||{};css();var sb=o.sb;if(!sb){alert('Sem conexão com o ba
  dz.ondragover=function(e){e.preventDefault();};dz.ondrop=function(e){e.preventDefault();if(e.dataTransfer.files[0])processa(e.dataTransfer.files[0]);};
  fi.onchange=function(){if(fi.files[0])processa(fi.files[0]);};
  bg.querySelector('#afiT').onchange=function(){if(st.file)processa(st.file,1);};bg.querySelector('#afiM').onchange=function(){if(st.file)processa(st.file,1);};
- async function processa(f,manual){st.file=f;gv.disabled=true;out.innerHTML='<p style="margin-top:12px">Lendo '+esc(f.name)+'…</p>';
-  var gs;try{gs=await lerPdf(f);}catch(e){
+ async function processa(f,manual){var seq=(st.seq=(st.seq||0)+1);st.file=f;   /* GPT28_28: só vale a leitura do último PDF escolhido */gv.disabled=true;out.innerHTML='<p style="margin-top:12px">Lendo '+esc(f.name)+'…</p>';
+  var gs;try{gs=await lerPdf(f);}catch(e){if(seq!==st.seq)return;
    out.innerHTML=e.message==='IMAGEM'?'<div class="er"><b>Este PDF é uma imagem</b> (foi escaneado ou impresso como figura), então não tem texto para a plataforma ler. Baixe de novo pelo GDI; se continuar assim, me mande o arquivo que eu leio por fora.</div>':
     e.message==='CABECALHO'?'<div class="er">Não reconheci a tabela do resultado final neste PDF (colunas Grupo, Ativa, Excluída, Fixo, Seg. Fixo, Livre, Limitado). Confira se é o arquivo certo.</div>':'<div class="er">Não consegui ler o PDF: '+esc(e.message||e)+'</div>';return;}
+  if(seq!==st.seq)return;
   if(!gs.length){out.innerHTML='<div class="er">Não encontrei nenhum grupo neste PDF.</div>';return;}
   var med=gs.map(function(g){return g.grupo;}).sort(function(a,b){return a-b;})[Math.floor(gs.length/2)],tSel=bg.querySelector('#afiT');
   if(!manual)tSel.value=med>=1000?'IMOVEL':'AUTOMOVEL';
@@ -121,9 +122,11 @@ function abrir(o){o=o||{};css();var sb=o.sb;if(!sb){alert('Sem conexão com o ba
   /* já existe final deste mês? conteúdo igual a outro mês? (o GDI já teve arquivo com o mês errado) */
   var ja=await sb.from('assembleias_final').select('grupo,mes_ref,detalhes').eq('tipo',tipo).eq('mes_ref',mes).limit(1000);
   var men=await sb.from('assembleias_resultado').select('grupo,detalhes,contemplados').eq('tipo',tipo).eq('mes_ref',mes).limit(1000);
+  if(seq!==st.seq)return;
   var sig=assinatura(rows);
   if(ja.data&&ja.data.length){if(assinatura(ja.data)===sig)avis.push('Este resultado final de '+mesLb(mes)+' já está na plataforma, igualzinho. Gravar de novo não muda nada.');else avis.push('Já existe um resultado final de '+mesLb(mes)+' na plataforma ('+ja.data.length+' grupos). Gravar substitui pelo deste PDF.');}
   var viz=await sb.from('assembleias_final').select('mes_ref,grupo,detalhes').eq('tipo',tipo).neq('mes_ref',mes).in('grupo',rows.slice(0,8).map(function(r){return r.grupo;})).limit(2000);
+  if(seq!==st.seq)return;
   if(viz.data&&viz.data.length){var porMes={};viz.data.forEach(function(r){(porMes[r.mes_ref]=porMes[r.mes_ref]||{})[r.grupo]=((r.detalhes||{}).ativa||[]).join(',');});
    var am={};rows.slice(0,8).forEach(function(r){am[r.grupo]=r.detalhes.ativa.join(',');});
    Object.keys(porMes).forEach(function(m){var com=Object.keys(am).filter(function(g){return porMes[m][g]!=null;});if(com.length>=4&&com.every(function(g){return porMes[m][g]===am[g];}))avis.push('Atenção: o sorteio deste PDF é igual ao de '+mesLb(m)+'. Confira se o arquivo é mesmo de '+mesLb(mes)+' (no GDI já teve arquivo com o mês trocado).');});}

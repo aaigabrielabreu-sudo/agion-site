@@ -172,8 +172,10 @@
   desenhaCli();
   function gera(){if(ult&&ult.expira>Date.now()/1000)return Promise.resolve(ult);if(!tok())return Promise.reject(new Error('Entre na plataforma para gerar links.'));
    if(!cli&&!nomeCli())return Promise.reject(new Error('Escolha o cliente do CRM (ou digite o nome).'));
-   return criar(pag,horas,nomeCli(),cli?cli.id:'').then(function(j){if(!j||!j.ok)throw new Error('Não gerou: '+((j&&j.error)||'erro'));
-    ult={token:j.token||String(j.url).split('acesso=').pop(),url:j.url+(opt.extra?(opt.extra()||''):''),expira:j.expira,pagina:pag,cliente:nomeCli(),lead:cli?cli.id:''};
+   var c0=cli,n0=nomeCli();   /* GPT28_27: o link fica com o cliente de quando foi pedido; se trocar no meio, não usa */
+   return criar(pag,horas,n0,c0?c0.id:'').then(function(j){if(!j||!j.ok)throw new Error('Não gerou: '+((j&&j.error)||'erro'));
+    if(cli!==c0||nomeCli()!==n0)throw new Error('O cliente mudou enquanto o link era gerado. Toque de novo para gerar o link do cliente certo.');
+    ult={token:j.token||String(j.url).split('acesso=').pop(),url:j.url+(opt.extra?(opt.extra()||''):''),expira:j.expira,pagina:pag,cliente:n0,lead:c0?c0.id:''};
     if(opt.selecionavel){try{localStorage.setItem(SEL_KEY,JSON.stringify({token:ult.token,url:ult.url,expira:ult.expira,pagina:pag,cliente:ult.cliente||''}));}catch(e){}opt.onSel&&opt.onSel(selecionado());}
     resultado();try{opt.onCriado&&opt.onCriado(ult);}catch(e){}return ult;});}
   function resultado(){var r=$('.agl-rs');if(!ult){r.innerHTML='';return;}

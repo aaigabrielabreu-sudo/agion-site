@@ -24,7 +24,7 @@
   async function consulta(tel,cpf){
     if(!cadOn()||!supa) return null;
     if(!telKey(tel)&&!cpfLimpo(cpf)&&!emailDe(tel)) return null;
-    try{ var em=emailDe(tel); var r=await supa.rpc('cadastro_consulta',{p_tel:tel||null,p_cpf:cpf||null,p_email:em||null}); return (r&&!r.error&&r.data&&r.data.found)?r.data:null; }catch(e){ return null; }
+    try{ var em=emailDe(tel); var r=await supa.rpc('cadastro_consulta',{p_tel:tel||null,p_cpf:cpf||null,p_email:em||null}); if(!r||r.error) return {__erro:1}; return (r.data&&r.data.found)?r.data:null; }catch(e){ return {__erro:1}; }   /* GPT28_33: falha na consulta não é "não encontrado" */
   }
 
   /* modal com WhatsApp + CPF (e nome, quando pedido) */
@@ -53,6 +53,7 @@
   /* antes de criar cliente: acha a pessoa e decide se acumula no cliente que já existe */
   async function checarCliente(tel,cpf){
     var k=await consulta(tel,cpf);
+    if(k&&k.__erro){ var _ok=await ask({title:'Não consegui conferir o Cadastro',msg:'A conferência para saber se essa pessoa já está na plataforma falhou (sem conexão com o servidor). Se continuar, ela pode ficar duplicada.',ok:'Continuar mesmo assim'}); return _ok?{acao:'novo'}:null; }   /* GPT28_33: avisa e deixa criar */
     if(!k) return {acao:'novo'};
     var clis=k.clientes||[]; var vis=clis.filter(function(c){return c.visivel;}); var inv=clis.filter(function(c){return !c.visivel;});
     var desde='No Cadastro desde '+dBR(k.criado_em)+' · origem: '+origemTxt(k)+'.';
@@ -76,6 +77,7 @@
   /* antes de criar lead manual */
   async function checarLead(tel,cpf){
     var k=await consulta(tel,cpf);
+    if(k&&k.__erro){ var _ok=await ask({title:'Não consegui conferir o Cadastro',msg:'A conferência para saber se essa pessoa já está na plataforma falhou (sem conexão com o servidor). Se continuar, ela pode ficar duplicada.',ok:'Continuar mesmo assim'}); return {ok:!!_ok}; }   /* GPT28_33: avisa e deixa criar */
     if(!k) return {ok:true};
     var last=(typeof CRM_STAGES!=='undefined')?CRM_STAGES.length-1:4;
     var ativo=(k.leads||[]).find(function(l){ return !l.perdido && (l.stage||0)<last; });
@@ -215,6 +217,7 @@
     if(!v) return;
     var cpf=cpfLimpo(v.cpf)||null, tel=(v.tel||'').replace(/\D/g,'')||null;
     var dup=(cpf||tel)?await consulta(tel,cpf):null;
+    if(dup&&dup.__erro){ await ask({title:'Não consegui conferir',msg:'Não deu para conferir se esse telefone/CPF já é de outro cadastro (sem conexão). Tente de novo em instantes.',ok:'Ok'}); return; }
     if(dup&&dup.id!==id){ await ask({title:'Já existe outro cadastro',msg:'Esse telefone/CPF já pertence ao cadastro de '+(dup.nome||'outra pessoa')+'. Se for a mesma pessoa, use "Unificar com outro cadastro".',ok:'Ok'}); return; }
     var r=await supa.from('cadastros').update({nome:v.nome||k.nome,tel:tel,tel_chave:tel?telKey(tel):null,cpf:cpf,atualizado_em:new Date().toISOString()}).eq('id',id);
     if(r&&r.error){ await ask({title:'Não foi possível salvar',msg:String(r.error.message||r.error),ok:'Ok'}); return; }
@@ -249,7 +252,8 @@
     var ok=await ask({title:'Unificar fichas de cliente?',msg:'Fica só a ficha mais antiga de '+nomeM+'. As cartas, as vendas/comissões e o histórico das outras '+(ord.length-1)+' ficha(s) passam para ela, e as fichas repetidas são apagadas.',ok:'Unificar'});
     if(!ok) return;
     flash('Unificando…');
-    for(var i=0;i<ord.length;i++){ if(ord[i]===manter) continue; var r=await supa.rpc('cliente_mesclar',{p_manter:manter,p_remover:ord[i]}); if(r&&r.error){ await ask({title:'Não foi possível unificar',msg:String(r.error.message||r.error),ok:'Ok'}); break; } }
+    var nOk=0,nTent=0,falhou=false; for(var i=0;i<ord.length;i++){ if(ord[i]===manter) continue; nTent++; var r=await supa.rpc('cliente_mesclar',{p_manter:manter,p_remover:ord[i]}); if(r&&r.error){ falhou=true; await ask({title:'Não foi possível unificar',msg:String(r.error.message||r.error)+(nOk?'\n\n'+nOk+' de '+nTent+' ficha(s) já tinham sido unificadas antes do erro.':''),ok:'Ok'}); break; } nOk++; }
+    if(falhou){ if(nOk) recarregar(id); return; }   /* GPT28_17: depois de um erro não diz que unificou */
     flash('Fichas unificadas'); fechar(); recarregar(id);
   };
 

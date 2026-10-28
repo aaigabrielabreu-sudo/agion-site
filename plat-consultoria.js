@@ -625,6 +625,10 @@ async function cstMov(id,tipo){
     var sr=cstSerie(c), q=0; (c.movimentos||[]).forEach(function(m){ if(m.data<=d){ var cq=cotaEm(sr,m.data), vv=+m.valor||0; q+=m.tipo==='resgate'?-vv/cq:vv/cq; } });
     var naData=q*cotaEm(sr,d);
     if(v>naData+0.005) return alert('Em '+dt(d)+' o saldo era de '+BRL(naData)+': o resgate de '+BRL(v)+' passa do que havia naquela data.');
+    /* GPT28_23: o resgate com data antiga não pode deixar sem saldo um resgate que veio depois */
+    var mv=(c.movimentos||[]).concat([{tipo:'resgate',valor:v,data:d}]).slice().sort(function(a,b){return a.data<b.data?-1:a.data>b.data?1:0;}), qq=0, neg=null;
+    mv.forEach(function(m){ var cq=cotaEm(sr,m.data), vv=+m.valor||0; qq+=m.tipo==='resgate'?-vv/cq:vv/cq; if(!neg&&qq*cq<-0.005) neg=m; });
+    if(neg) return alert('Com esse resgate em '+dt(d)+', o resgate de '+BRL(+neg.valor||0)+' de '+dt(neg.data)+' ficaria maior que o saldo. Ajuste o valor ou a data.');
   }
   c.movimentos.push({tipo:tipo, valor:v, data:d, obs: tipo==='resgate'?'Resgate':'Aporte'});
   var sb0=_sb(), on0=!!(sb0&&_online), ok=await cstGravar(c);

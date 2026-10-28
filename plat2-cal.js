@@ -133,7 +133,7 @@ function iniSem(d){ return addD(sod(d),-((d.getDay()+6)%7)); }
 function chave(d){ return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
 function ymd(d){ return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); }
 function hmD(d){ return z(d.getHours())+':'+z(d.getMinutes()); }
-function hm(e){ return e.dia?'dia todo':hmD(e.d); }
+function hm(e){ return e.dia?'dia todo':e._cont?('até '+hmD(e.f)):hmD(e.d); }
 function cap(s){ s=String(s||''); return s.charAt(0).toUpperCase()+s.slice(1); }
 function cor(e,p){ return 'color-mix(in srgb,'+TC[e.tipo][2]+' '+p+'%,var(--card))'; }
 function curto(n){ var p=String(n||'').trim().split(/\s+/).filter(Boolean); return p.length>1?p[0]+' '+p[p.length-1].charAt(0)+'.':(p[0]||''); }
@@ -277,12 +277,15 @@ function titulo(){ var r=CS.ref;
  var a=iniSem(r), b=addD(a,6); return a.getMonth()===b.getMonth()?a.getDate()+' – '+b.getDate()+' de '+MESES[a.getMonth()]+' <span>'+b.getFullYear()+'</span>':a.getDate()+' '+MES3[a.getMonth()]+' – '+b.getDate()+' '+MES3[b.getMonth()]+' <span>'+b.getFullYear()+'</span>'; }
 var ITENS=[];
 function reg(e){ var i=ITENS.length; ITENS.push(e); return i; }
-function pinta(){ var b=$('#calb'); if(!b) return; ITENS=[]; if(!CS.extBusy&&!RO()&&CS.extJan&&!extCobre()) carregaExt(); var E=eventos(), por={}; E.forEach(function(e){ var k=chave(e.d); (por[k]=por[k]||[]).push(e); });
+/* GPT28_18: agrupa por dia; o compromisso que passa da meia-noite aparece também nos dias seguintes */
+function porDe(E){ var por={}; E.forEach(function(e){ var k=chave(e.d); (por[k]=por[k]||[]).push(e);
+  if(!e.dia&&e.f&&e.f>e.d){ var dd=sod(e.d), n=0; while(n<6){ dd=addD(dd,1); n++; if(e.f<=dd) break; var cl=Object.assign({},e,{d:dd,_cont:1}); (por[chave(dd)]=por[chave(dd)]||[]).push(cl); } } }); return por; }
+function pinta(){ var b=$('#calb'); if(!b) return; ITENS=[]; if(!CS.extBusy&&!RO()&&CS.extJan&&!extCobre()) carregaExt(); var E=eventos(), por=porDe(E);
  $('#calt').innerHTML=titulo(); dots();
  if(CS.vista==='mes') pintaMes(b,por); else if(CS.vista==='ano') pintaAno(b,por); else pintaGrade(b,E,por);
  pintaSide(E,por); }
 function dots(){ var d=$('#caldots'); if(!d) return; var on=TIPOS.filter(function(t){ return !CS.off[t[0]]; }); d.innerHTML=on.slice(0,6).map(function(t){ return '<i style="background:'+t[2]+'"></i>'; }).join(''); var bt=$('#calcals'); if(bt) bt.classList.toggle('on',on.length<TIPOS.length||Object.keys(CS.offP).some(function(k){ return CS.offP[k]; })); }
-function selDia(d){ CS.dia=sod(d); $$('#calb .sel').forEach(function(x){ x.classList.remove('sel'); }); $$('#calb [data-d="'+CS.dia.getTime()+'"]').forEach(function(x){ x.classList.add('sel'); }); var E=eventos(), por={}; E.forEach(function(e){ var k=chave(e.d); (por[k]=por[k]||[]).push(e); }); pintaSide(E,por); }
+function selDia(d){ CS.dia=sod(d); $$('#calb .sel').forEach(function(x){ x.classList.remove('sel'); }); $$('#calb [data-d="'+CS.dia.getTime()+'"]').forEach(function(x){ x.classList.add('sel'); }); var E=eventos(), por=porDe(E); pintaSide(E,por); }
 
 /* ---- Mês ---- */
 function pintaMes(b,por){ var m0=new Date(CS.ref.getFullYear(),CS.ref.getMonth(),1), ini2=addD(m0,-((m0.getDay()+6)%7)), hoje=chave(new Date()), cells='';
@@ -405,7 +408,8 @@ function novoEvento(o,ancora,ev,aoFechar){ if(RO()){ toast('Saia do “Ver como�
   var tit=$('#cvt',p).value.trim(); if(!tit){ er.textContent='Dê um título ao evento.'; $('#cvt',p).focus(); return; }
   var dia=$('#cvd',p).value; if(!dia){ er.textContent='Escolha a data.'; return; }
   var corpo={acao:c?'editar':'criar',id:c?c.id:undefined,titulo:tit,dia_todo:$('#cvdt',p).checked,dia:dia,local:$('#cvl',p).value.trim(),convidados:$('#cvc',p).value,notas:$('#cvn',p).value.trim(),meet:!!($('#cvm',p)&&$('#cvm',p).checked)};
-  if(!corpo.dia_todo){ var a=$('#cvi',p).value||'09:00', b=$('#cvf',p).value, i1=new Date(dia+'T'+a), f1=b?new Date(dia+'T'+b):null; if(!f1||f1<=i1) f1=new Date(i1.getTime()+60*6e4); if(isNaN(i1)){ er.textContent='Horário inválido.'; return; } corpo.ini=i1.toISOString(); corpo.fim=f1.toISOString(); }
+  if(!corpo.dia_todo){ var a=$('#cvi',p).value||'09:00', b=$('#cvf',p).value, i1=new Date(dia+'T'+a), f1=b?new Date(dia+'T'+b):null; if(f1&&f1<i1) f1=new Date(f1.getTime()+864e5);   /* GPT28_18: 23h às 2h termina no dia seguinte */
+ if(!f1||f1<=i1) f1=new Date(i1.getTime()+60*6e4); if(isNaN(i1)){ er.textContent='Horário inválido.'; return; } corpo.ini=i1.toISOString(); corpo.fim=f1.toISOString(); }
   ocupado=true; var btn=$('#cvok',p); btn.textContent='Salvando…';
   Promise.resolve(papi('/api/cal/eventos',{method:'POST',body:JSON.stringify(corpo)})).then(function(r){ ocupado=false;
    if(!r||!r.ok||!r.data||!r.data.evento){ btn.textContent=c?'Salvar':'Adicionar'; er.textContent=(r&&r.data&&(r.data.erro||r.data.error))||'Não consegui salvar agora. Tente de novo.'; return; }

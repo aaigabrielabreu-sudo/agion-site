@@ -1384,7 +1384,7 @@ html.capNative body.isApp #viewbar,html.capNative body.isApp .topbar,html.capNat
 <link rel="stylesheet" href="/plat-theme.css?v=15">
 <link rel="stylesheet" href="/plat-crm.css?v=5">
 <link rel="stylesheet" href="/plat2-shell.css?v=2">
-<meta name="agion-build" content="f540ea3fcfcf">
+<meta name="agion-build" content="bdbaae3b56d5">
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
 <div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" type="email" inputmode="email" placeholder="seu@email.com" value="" autocomplete="username" aria-label="E-mail"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="" autocomplete="current-password" aria-label="Senha" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> </div>
@@ -1697,12 +1697,15 @@ function projetar(p){
   // gera uma série de patrimônio para uma dada taxa (3 cenários: preta/verde/vermelha)
   function serieFor(rate){
     const arr=[]; let pat=t.patr;
-    for(let a=idade;a<=apos;a++){ arr.push(Math.max(0,isFinite(pat)?pat:0));
+    /* GPT28_34: aporta até o ano anterior à aposentadoria; no ano da aposentadoria já saca (igual ao Monte Carlo e ao balanço) */
+    for(let a=idade;a<apos;a++){ arr.push(Math.max(0,isFinite(pat)?pat:0));
       const gm=metas.filter(g=>(g.idade||apos)===a).reduce((s,g)=>s+(+g.valor||0),0);
       const cc=consAt(a-idade);
       pat=(pat-gm+cc.e)*(1+rate)+(apAno[a-idade]!==undefined?apAno[a-idade]:aporteAnual)-cc.s+cc.rent; }
     let pd=pat;
-    for(let a=apos+1;a<=vida;a++){ const cc=consAt(a-idade); pd=(pd+cc.e)*(1+rate)-saqueAnual-cc.s+cc.rent; arr.push(Math.max(0,isFinite(pd)?pd:0)); }
+    for(let a=apos;a<=vida;a++){ arr.push(Math.max(0,isFinite(pd)?pd:0)); if(a===vida) break;
+      const gm=a===apos?metas.filter(g=>(g.idade||apos)===a).reduce((s,g)=>s+(+g.valor||0),0):0;
+      const cc=consAt(a-idade); pd=(pd-gm+cc.e)*(1+rate)-saqueAnual-cc.s+cc.rent; }
     return arr;
   }
   const spread=({Conservador:.02,Moderado:.03,Arrojado:.045}[p.perfil]||.025);
@@ -1727,7 +1730,7 @@ function projetar(p){
   let ok=0,N=500;
   for(let s=0;s<N;s++){let v=t.patr;
     for(let a=idade;a<apos;a++){const gm=metas.filter(g=>(g.idade||apos)===a).reduce((x,g)=>x+(+g.valor||0),0);const cc=consAt(a-idade);v=(v-gm+cc.e)*(1+r+gauss()*vol)+(apAno[a-idade]!==undefined?apAno[a-idade]:aporteAnual)-cc.s+cc.rent;}
-    let alive=true;for(let a=apos;a<vida;a++){const cc=consAt(a-idade);v=(v+cc.e)*(1+r+gauss()*vol)-saqueAnual-cc.s+cc.rent;if(v<-1){alive=false;break}}
+    let alive=true;for(let a=apos;a<vida;a++){const gm=a===apos?metas.filter(g=>(g.idade||apos)===a).reduce((x,g)=>x+(+g.valor||0),0):0;const cc=consAt(a-idade);v=(v-gm+cc.e)*(1+r+gauss()*vol)-saqueAnual-cc.s+cc.rent;if(v<-1){alive=false;break}}   /* GPT28_34: a meta da idade da aposentadoria também entra no Monte Carlo */
     if(alive)ok++;}
   const reservaIdeal=t.desp*6;
   const reservaAtual=(p.assets||[]).filter(a=>a.cat==='Renda Fixa').reduce((s,a)=>s+(+a.valor||0),0);
@@ -4046,13 +4049,13 @@ function masterReportPDF(){
 })();
 </script>
 <script src="/plat-charts.js?v=1"></script>
-<script src="/plat-consultoria.js?v=5"></script>
+<script src="/plat-consultoria.js?v=6"></script>
 <script src="/plat-comissoes.js?v=47"></script>
-<script src="/plat-cadastro.js?v=5"></script>
+<script src="/plat-cadastro.js?v=6"></script>
 <script src="/plat-kpicat.js?v=5"></script>
 <script src="/plat-motion-hook.js?v=1"></script>
 <script src="/plat-motion-2.js?v=4"></script>
-<script src="/plat-importar.js?v=6"></script>
+<script src="/plat-importar.js?v=7"></script>
 <script src="/plat-humano.js?v=6"></script>
 <script src="/plat-rodizio.js?v=2"></script>
 <script src="/plat-crm-alice.js?v=2"></script>
@@ -4258,6 +4261,6 @@ function masterReportPDF(){
 }catch(e){}})();
 </script>
 <script src="/plat2-shell.js?v=6"></script>
-<script src="/plat2-v4.js?v=78"></script>
+<script src="/plat2-v4.js?v=79"></script>
 </body>
 </html>
