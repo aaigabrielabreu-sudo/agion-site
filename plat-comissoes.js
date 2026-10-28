@@ -41,7 +41,7 @@ function catOpts(sel){ return Object.keys(CATS).map(function(k){ return '<option
    Empresa (proprietário): recebe SEMPRE por antecipação, no dia 20 — um mês à frente do funcionário
    (a parcela que o funcionário recebe dia 10 de novembro a empresa já recebeu dia 20 de outubro). */
 var DIA_FUNC = 10, DIA_EMP = 20, DIA_EMP_NORMAL = 7;   // venda na janela normal: empresa recebe a 1ª parcela dia 7 (paga o funcionário dia 10)
-var CUTOFF_ANTEC = 20;   // vendas até o dia 20 entram no cluster da antecipação (dia 23)
+var CUTOFF_ANTEC = 15;   // CORTE15_28OUT (Gabriel): o cluster da antecipação (dia 23) conta só as vendas da janela antecipada, dia 26 ao 15; as do dia 16 ao 25 são da janela normal (dia 10) e entram no ajuste
 var SIT_LBL = {EM_DIA:'Em dia', INADIMPLENTE:'Não pagou', REEMBOLSO_PARCIAL:'Reembolso parcial', REEMBOLSO_TOTAL:'Reembolso total', CANCELADA:'Cancelada'};
 var POS_LBL = {NAO_CONTEMPLADA:'Aguardando contemplação', CONTEMPLADA:'Contemplada', COMISSAO_POS_RECEBIDA:'Comissão pós recebida'};
 
