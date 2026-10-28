@@ -1140,7 +1140,7 @@ function calc(){ try{embCtl();}catch(e){}
  $('pr_t').textContent=nm+(nome?' · '+nome:'');$('cr_t').textContent=v2?'Patrimonial':'Financeira';
  $('v_cli').textContent=nome?'Preparado para '+nome:'';
  const R=v2?pat(DEG[SCN]):fin(DEG[SCN]),D=R.D,L=R.L,N=D.length,F=D[0],e=R.e;
- if(v2){$('p_pos').value=brl(Math.round(R.pos1));$('p_pos_h').innerHTML='carta de '+MI(R.c1)+', contemplando no mês '+R.cic+(e>0?', com o lance embutido':'')+' · calculada: saldo que falta ÷ meses que faltam';}
+ if(v2){$('p_pos').value=brl(Math.round(R.pos1));$('p_pos_h').innerHTML='pelo ritmo da escada: carta de '+MI(R.c1)+' contemplada no mês '+R.cic+(e>0?', com o lance embutido':'');   /* ESC_POSTXT_28OUT */}
  const embTx=e>0?' Com lance embutido de <b>'+pct(e*100,0)+'</b>, cada carta libera '+pct(100-e*100,0)+' do crédito'+(v2?' para comprar os imóveis.':' — e o ágio é sobre o crédito liberado.'):'';
  if(!v2){
   $('h_t').innerHTML='Uma carta paga a próxima. <em>A escada sobe sozinha.</em>';
@@ -1290,7 +1290,7 @@ function textos(R,v2){
   $('cta_b').textContent=MI(R.D[0].credit)+' hoje. '+R.L.nTot.toLocaleString('pt-BR')+' imóveis no topo.';
   $('cta_p').textContent='A Agion monta cada degrau com você: a carta certa, as cotas no mesmo grupo, os imóveis certos e a renda que paga o próximo passo.';
   $('resumo').innerHTML='<b>Resumo.</b> '+R.D.length+' degraus, de '+MI(R.D[0].credit)+' a '+MI(R.L.credit)+', um a cada '+anos(R.cic)+'. Cada carta contemplada compra imóveis com o crédito liberado, rendendo '+pct(R.rr*100,2)+' ao mês. No topo são <b>'+R.L.nTot.toLocaleString('pt-BR')+' imóveis</b> ('+money(R.patr)+'), com renda de '+money(R.renda)+'/mês, parcelas de '+money(R.parc)+'/mês e <b>sobra livre de '+money(R.sobra)+'/mês</b>. Do bolso: <b>'+money(R.bolso)+'</b>.';
-  $('note').innerHTML='Proposta ilustrativa, de potencial máximo. Valores em moeda de hoje, sem a valorização dos imóveis nem o reajuste do aluguel — os dois jogam a favor. Parcelas reduzidas da tabela HS (cartas de imóvel) até a contemplação; depois de contemplar, a parcela é o saldo que falta dividido pelos meses que faltam (parcela integral + o diferido da fase reduzida): '+money(R.pos1)+'/mês numa carta de '+MI(R.c1)+' contemplada no mês '+R.cic+'. Contemplação por proximidade ou lance, sem data garantida. Renda líquida já descontados administração e custos de locação; ITBI, escritura e vacância não estão na conta.'+(R.e>0?' Com lance embutido de '+pct(R.e*100,0)+', só o crédito liberado ('+pct(100-R.e*100,0)+' da carta) compra imóveis; o crédito e a parcela depois de contemplar diminuem.':'');
+  $('note').innerHTML='Proposta ilustrativa, de potencial máximo. Valores em moeda de hoje, sem a valorização dos imóveis nem o reajuste do aluguel — os dois jogam a favor. Parcelas reduzidas da tabela HS (cartas de imóvel) até a contemplação; depois de contemplar, a parcela sai do ritmo da escada: '+money(R.pos1)+'/mês numa carta de '+MI(R.c1)+' contemplada no mês '+R.cic+'. Contemplação por proximidade ou lance, sem data garantida. Renda líquida já descontados administração e custos de locação; ITBI, escritura e vacância não estão na conta.'+(R.e>0?' Com lance embutido de '+pct(R.e*100,0)+', só o crédito liberado ('+pct(100-R.e*100,0)+' da carta) compra imóveis; o crédito e a parcela depois de contemplar diminuem.':'');
  }
 }
 function lgd(v2){
