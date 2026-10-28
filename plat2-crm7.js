@@ -350,8 +350,10 @@ function compoe(d,tipo,op){op=op||{};var fechou=false,L=[];
    fechou=true;W.closeSheet();toast('E-mail enviado para '+para,'send');if(op.depois)op.depois({para:para,via:j.via,doc:o.t});});};
  var wb=$('[data-c7="wa"]',s);if(wb)wb.onclick=async function(){var o=doc(),t=telDig(d),er=$('#c7er',s);
   if(!t){er.innerHTML='<div class="c7w er">O card não tem o WhatsApp do cliente.</div>';return;}
-  var link='';try{if(o){var p=o.fonte==='arq'?o.path:o.x.arquivo_path;if(p){var c=sb(),r=await c.storage.from('propostas').createSignedUrl(p,60*60*24*30);link=(r&&r.data&&r.data.signedUrl)||'';}else if(o.x&&o.x.url)link=o.x.url;}}catch(e){}
-  var txt=$('#c7ms',s).value.trim()+(link?'\n\n'+link:'');
+  var link='',temArq=false,corpoTx='';try{if(o){var p=o.fonte==='arq'?o.path:o.x.arquivo_path;if(p){temArq=true;var c=sb(),r=await c.storage.from('propostas').createSignedUrl(p,60*60*24*30);link=(r&&r.data&&r.data.signedUrl)||'';}else if(o.x&&o.x.url)link=o.x.url;else if(o.x&&o.x.texto)corpoTx=String(o.x.texto).trim();}}catch(e){}
+  if(temArq&&!link){er.innerHTML='<div class="c7w er">Não consegui gerar o link da proposta agora. Tente de novo em instantes.</div>';return;}   /* GPT28_13: sem o link, a mensagem sairia sem a proposta */
+  if(o&&!link&&!corpoTx){er.innerHTML='<div class="c7w er">Esta proposta não tem arquivo, link nem texto para ir na mensagem.</div>';return;}
+  var txt=$('#c7ms',s).value.trim()+(link?'\n\n'+link:'')+(corpoTx?'\n\n'+corpoTx:'');   /* GPT28_13: proposta salva como texto vai no corpo da mensagem */
   var jw=null;try{jw=W.open('https://wa.me/'+t+'?text='+encodeURIComponent(txt),'_blank');}catch(e){}
   if(!jw){er.innerHTML='<div class="c7w er">O navegador não abriu o WhatsApp. Libere as janelas deste site e tente de novo.</div>';return;}
   /* GPT_27OUT: abrir o WhatsApp não é enviar — só registra depois que a pessoa confirma */

@@ -699,7 +699,7 @@ body.light .logo-img,body.light .top-logo{filter:none}
   };
   /* se ja foi autorizado antes, reassina em silencio a cada abertura */
   setTimeout(function(){ try{
-    if(window.Notification&&Notification.permission==='granted') window.agionAtivarPush(true);
+    if(window.Notification&&Notification.permission==='granted'&&localStorage.getItem('agion_push_ok')!=='0') window.agionAtivarPush(true);   /* GPT28_5: quem desligou neste aparelho não é reinscrito sozinho */
   }catch(e){} },3000);
   var cap=!!(window.Capacitor||window.cordova);
   var standalone=(window.navigator.standalone===true)||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches);
@@ -1384,7 +1384,7 @@ html.capNative body.isApp #viewbar,html.capNative body.isApp .topbar,html.capNat
 <link rel="stylesheet" href="/plat-theme.css?v=15">
 <link rel="stylesheet" href="/plat-crm.css?v=5">
 <link rel="stylesheet" href="/plat2-shell.css?v=2">
-<meta name="agion-build" content="af4378792699">
+<meta name="agion-build" content="f540ea3fcfcf">
 </head>
 <body> <!-- ===================== LOGIN ===================== -->
 <div id="loginView"> <div class="login"> <img class="logo-img" src="https://cdn.jsdelivr.net/gh/aaigabrielabreu-sudo/agionconsorcio@main/frontend/public/images/logo-agion.png" alt="Agion Consórcios" onerror="this.style.display='none'"> <div class="lg serif">Agion <em>Wealth</em></div> <div class="tg">Plataforma de Planejamento Financeiro</div> <div class="field"><label>E-mail</label><input id="logEmail" type="email" inputmode="email" placeholder="seu@email.com" value="" autocomplete="username" aria-label="E-mail"></div> <div class="field"><label>Senha</label><input id="logPass" type="password" value="" autocomplete="current-password" aria-label="Senha" onkeydown="if(event.key==='Enter')doLogin()"></div> <button class="btn btn-gold" style="width:100%;margin-top:8px" onclick="doLogin()">Entrar</button> <div style="text-align:center;margin-top:12px"><a href="#" onclick="forgotPass();return false" style="font-size:.82rem;color:var(--teal)">Esqueci minha senha</a></div> <div id="loginMsg" class="note" style="margin-top:12px;text-align:center"></div> </div>
@@ -1481,7 +1481,7 @@ async function loadCloud(){
   }catch(e){ console.warn('loadCloud',e); cloudReady=false; }
 }
 async function saveLeadCloud(l){ if(!supa||!isUuid(l.id))return; try{ await supa.from('leads').upsert({id:l.id,nome:l.nome,contato:l.contato||null,tipo:l.tipo||null,valor:l.valor||0,stage:l.stage||0,perdido:!!l.perdido,obs:l.obs||null,atividades:l.atividades||[],owner_id:l.ownerId||meId(),categoria:l.categoria||null,...(window._cadOn?{cpf:(window.cpfLimpo?cpfLimpo(l.cpf):'')||null}:{})}); }catch(e){} }
-async function saveTaskCloud(t){ if(!supa||!isUuid(t.id))return; try{ tkNorm(t); const row={id:t.id,titulo:t.titulo,quando:t.quando||null,feito:t.status==='feito',owner_id:t.ownerId||meId(),tipo:t.tipo||'manual',status:t.status,prazo:t.prazo||null,lead_id:t.leadId||null,lead_nome:t.leadNome||null,telefone:t.telefone||null,origem:t.origem||'manual',resultado:t.resultado||null,anotacao:t.anotacao||null,concluida_em:t.concluidaEm||null,arquivada:!!t.arquivada,criado_por:t.criadoPor||null,atualizado_em:new Date().toISOString()}; if(t._resetLembrete){row.lembrete_em=null;delete t._resetLembrete;} if(t._renotificar){row.notificado_em=null;delete t._renotificar;} await supa.from('tarefas').upsert(row); }catch(e){} } /* TAREFAS_V2 */
+async function saveTaskCloud(t){ if(!supa)return false; if(!isUuid(t.id))return true; try{ tkNorm(t); const row={id:t.id,titulo:t.titulo,quando:t.quando||null,feito:t.status==='feito',owner_id:t.ownerId||meId(),tipo:t.tipo||'manual',status:t.status,prazo:t.prazo||null,lead_id:t.leadId||null,lead_nome:t.leadNome||null,telefone:t.telefone||null,origem:t.origem||'manual',resultado:t.resultado||null,anotacao:t.anotacao||null,concluida_em:t.concluidaEm||null,arquivada:!!t.arquivada,criado_por:t.criadoPor||null,atualizado_em:new Date().toISOString()}; const _rs=!!t._resetLembrete,_rn=!!t._renotificar; if(_rs)row.lembrete_em=null; if(_rn)row.notificado_em=null; const _r=await supa.from('tarefas').upsert(row); if(_r&&_r.error) return false; if(_rs)delete t._resetLembrete; if(_rn)delete t._renotificar; return true; }catch(e){ return false; } } /* TAREFAS_V2 · GPT28_4: devolve se gravou; o rearme do lembrete só sai depois de gravar */
 async function delLeadCloud(id){ if(!supa||!isUuid(id))return; try{ await supa.from('leads').delete().eq('id',id); }catch(e){} }
 async function delTaskCloud(id){ if(!supa||!isUuid(id))return; try{ await supa.from('tarefas').delete().eq('id',id); }catch(e){} }
 async function saveFeedCloud(p){ if(!supa||!isUuid(p.id))return; try{ await supa.from('posts').upsert({id:p.id,owner_id:p.autorId||meId(),texto:p.texto||'',quando:p.quando||Date.now(),likes:p.likes||[],coments:p.coments||[]}); }catch(e){} }
@@ -4049,7 +4049,7 @@ function masterReportPDF(){
 <script src="/plat-consultoria.js?v=5"></script>
 <script src="/plat-comissoes.js?v=47"></script>
 <script src="/plat-cadastro.js?v=5"></script>
-<script src="/plat-kpicat.js?v=4"></script>
+<script src="/plat-kpicat.js?v=5"></script>
 <script src="/plat-motion-hook.js?v=1"></script>
 <script src="/plat-motion-2.js?v=4"></script>
 <script src="/plat-importar.js?v=6"></script>
@@ -4258,6 +4258,6 @@ function masterReportPDF(){
 }catch(e){}})();
 </script>
 <script src="/plat2-shell.js?v=6"></script>
-<script src="/plat2-v4.js?v=77"></script>
+<script src="/plat2-v4.js?v=78"></script>
 </body>
 </html>

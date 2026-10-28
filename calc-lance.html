@@ -774,7 +774,7 @@ function taxa(c,P){var f=function(x){return x!=null&&x!==''&&isFinite(+x);};
 /* POS_CONT_27OUT · parcela depois da contemplação, por cota: (plano inteiro − meia parcela paga − lance) ÷ meses que faltam.
    Considera a contemplação na próxima assembleia (1 meia parcela paga). O lance (livre + embutido) abate do saldo. Sem o seguro, que entra na contemplação. */
 function posCont(r){if(!r||(r.tipo!=='livre'&&r.tipo!=='emb'))return null;var x=r.x,n=(+r.R||0)-1;if(n<1)return null;
- var plano=x.K*(1+x.tx.t),meia=x.pl/2,v=(plano-meia-x.need)/n;return v>0?{v:v,n:n}:null;}
+ var lance=r.tipo==='emb'?Math.max(x.need,(r.usa||0)+(r.E||0)):x.need,plano=x.K*(1+x.tx.t),meia=x.pl/2,v=(plano-meia-lance)/n;   /* GPT28_9: com embutido o lance é sempre os 30% (mais o livre que faltar), mesmo passando do alvo */return v>0?{v:v,n:n}:null;}
 /* ---------- a conta ----------
    COTAS_26OUT (Gabriel): até 2 cotas no MESMO grupo. Ex.: em vez de 1 carta de R$ 1 mi, 2 de R$ 500 mil; o lance livre se divide
    entre as duas (cada uma precisa chegar ao lance alvo do grupo) e dá para contemplar as duas. A conta é feita por cota e somada. */
@@ -847,7 +847,7 @@ function pintaHero(r,o){var x=r.x,c=x.c,t=TAG[r.tipo],q=r.q||1,dois=q>1;
  else if(r.tipo==='falta')s='Com esse valor, nenhum grupo chega agora à referência dos lances que contemplaram. O mais perto é este'+(r.E>0?': o lance total do cliente seria de '+R$(r.usaT+r.ET)+' ('+R$(r.usaT)+' de lance livre + '+R$(r.ET)+' de embutido, 30% da carta'+(dois?', nas duas cotas':'')+')':'')+' e faltam '+R$(r.faltaT)+(dois?' ('+R$(r.falta)+' por cota)':'')+' para chegar às '+r.Na+' parcelas.'+(r.embBaixo?' Com o embutido, o crédito líquido ficaria em '+R$(r.liqT)+', abaixo do pedido.':'');
  else s='As cartas deste grupo vão até '+R$(x.K)+', abaixo do crédito pedido'+(dois?' por cota':'')+'.';
  $('v_sub').textContent=s;
- var lv=Math.min(r.usaT,r.needT),em=r.tipo==='falta'?r.ET:Math.min(r.ET,Math.max(0,r.needT-lv)),ft=Math.max(0,r.needT-lv-em),tot=Math.max(r.needT,lv+em,1);   /* GPT_27OUT: a legenda mostra o embutido inteiro, igual ao texto */
+ var lv=Math.min(r.usaT,r.needT),em=(r.tipo==='falta'||r.tipo==='emb')?r.ET:Math.min(r.ET,Math.max(0,r.needT-lv)),ft=Math.max(0,r.needT-lv-em),tot=Math.max(r.needT,lv+em,1);   /* GPT_27OUT: a legenda mostra o embutido inteiro, igual ao texto */
  $('v_bar').innerHTML='<span class="lv" style="width:'+(lv/tot*100).toFixed(2)+'%"></span><span class="em" style="width:'+(em/tot*100).toFixed(2)+'%"></span><span class="ft" style="width:'+(ft/tot*100).toFixed(2)+'%"></span>';
  $('v_leg').innerHTML='<span><i style="background:var(--gg)"></i>lance livre <b>'+R$(lv)+'</b></span>'+(em>0.5?'<span><i style="background:#E8D9B5"></i>embutido <b>'+R$(em)+'</b></span>':'')+(ft>0.5?'<span><i style="background:#E4705F"></i>falta <b>'+R$(ft)+'</b></span>':'')+(em>0.5&&r.tipo==='falta'?'<span>lance total <b>'+R$(lv+em)+'</b></span>':'')+'<span>'+(dois?'2 lances de '+r.Na+' parcelas':'lance de '+r.Na+' parcelas')+' = <b>'+R$(r.needT)+'</b></span>';
  setK('k_carta',cartaTxt(r),dois?R$(r.Kt)+' em crédito':'meia parcela '+R2(c.parcela));

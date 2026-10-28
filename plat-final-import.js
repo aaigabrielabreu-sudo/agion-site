@@ -65,7 +65,7 @@ function paraBanco(g,tipo,mes,arq){var det={},n={};KEYS.forEach(function(k){det[
  var pf=g.fixo.map(function(i){return i.parc;}).filter(function(x){return x!=null;});
  return {administradora:'HS',tipo:tipo,mes_ref:mes,grupo:String(g.grupo),sorteio:n.ativa,excluidos:n.excluida,lance_fixo:n.fixo,lance_fixo2:n.fixo2,lance_livre:n.livre,lance_limitado:n.limitado,lance_fidelidade:n.fidelidade,
   contemplados:n.ativa+n.fixo+n.fixo2+n.livre+n.limitado+n.fidelidade,lance_parcelas:pf.length?Math.min.apply(null,pf):null,detalhes:det,fonte:'importado',conferir:0,arquivo:arq};}
-function assinatura(rows){return rows.map(function(r){return r.grupo+':'+((r.detalhes||{}).ativa||[]).join(',');}).sort().join('|');}
+function assinatura(rows){return rows.map(function(r){var d=r.detalhes||{};if(typeof d==='string'){try{d=JSON.parse(d);}catch(e){d={};}}return r.grupo+':'+KEYS.map(function(k){return k+'='+(d[k]||[]).map(String).sort().join(',');}).join(';');}).sort().join('|');}   /* GPT28_10: compara sorteio e lances, não só o sorteio */
 
 /* ---------------- tela ---------------- */
 var CSS='\

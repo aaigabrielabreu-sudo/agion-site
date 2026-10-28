@@ -1161,11 +1161,12 @@ function bindNeg(g){
  var m=$('#negm');if(m)m.onclick=function(){S.modoNeg=!S.modoNeg;m.classList.toggle('on',S.modoNeg);toast(S.modoNeg?'Toque nas cotas livres do mapa para pôr ou tirar da negociação':'Toque no mapa volta a só mostrar o detalhe');};}
 async function posicionarVarias(g,cotas,nome,obs){var rows=cotas.map(function(c){return {administradora:g.adm,tipo:g.tipo,grupo:String(g.grupo),cota:c,marca:'posicao',cliente_nome:nome,obs:obs||'cota por proximidade · negociação'};}),ok=0;
  function guarda(x){((S.M[g.k]=S.M[g.k]||{})[+x.cota]=S.M[g.k][+x.cota]||{}).posicao=x;}
- var r=await S.sb.from('cotas_marcas').insert(rows).select('*');
- if(r.error){for(var i=0;i<rows.length;i++){var r1=await S.sb.from('cotas_marcas').insert(rows[i]).select('*');if(!r1.error&&r1.data&&r1.data[0]){ok++;guarda(r1.data[0]);}}}
- else{(r.data||[]).forEach(function(x){ok++;guarda(x);});}
- NEG[g.k]=negDe(g).filter(function(c){return cotas.indexOf(c)<0;});negSalva();pintar();
- toast(ok===cotas.length?(ok+' cota'+(ok>1?'s':'')+' guardada'+(ok>1?'s':'')+' para '+prim(nome)+' · a equipe toda vê'):(ok+' de '+cotas.length+' guardadas para '+prim(nome)+' · as outras já estavam marcadas'));}
+ var r=await S.sb.from('cotas_marcas').insert(rows).select('*'),gr=[],dup=0,errMsg='';   /* GPT28_12: só sai da negociação a cota que foi gravada; o aviso diz o motivo real */
+ if(r.error){for(var i=0;i<rows.length;i++){var r1=await S.sb.from('cotas_marcas').insert(rows[i]).select('*');if(!r1.error&&r1.data&&r1.data[0]){ok++;guarda(r1.data[0]);gr.push(rows[i].cota);}else if(r1.error&&(r1.error.code==='23505'||/duplicate|unique/i.test(r1.error.message||''))){dup++;gr.push(rows[i].cota);}else if(r1.error)errMsg=r1.error.message||'erro';}}
+ else{(r.data||[]).forEach(function(x){ok++;guarda(x);gr.push(x.cota);});}
+ NEG[g.k]=negDe(g).filter(function(c){return gr.map(String).indexOf(String(c))<0;});negSalva();pintar();
+ var fal=cotas.length-ok-dup;
+ toast(ok===cotas.length?(ok+' cota'+(ok>1?'s':'')+' guardada'+(ok>1?'s':'')+' para '+prim(nome)+' · a equipe toda vê'):(ok+' de '+cotas.length+' guardadas para '+prim(nome)+(dup?' · '+dup+' já estava'+(dup>1?'m':'')+' marcada'+(dup>1?'s':''):'')+(fal>0?' · '+fal+' não gravou'+(fal>1?'ram':'')+(errMsg?' ('+errMsg+')':'')+' e continua'+(fal>1?'m':'')+' na negociação':'')));}
 
 function abaGrupo(v){
  var gs=gruposDaCat();if(!gs.length){v.innerHTML=cabecalho(null)+'<div class="panel empty">'+IC.grid+'<p>Nenhum grupo de '+CATS[S.cat]+' com assembleia importada ainda.</p></div>';bindCab();negBarra(null);return;}

@@ -8,7 +8,7 @@
   function ymLb(k){ var p=k.split('-'); return MES[+p[1]-1]+'/'+p[0]; }
   function ymAdd(k,n){ var p=k.split('-'), d=new Date(+p[0],+p[1]-1+n,1); return ym(d.getTime()); }
   function pct(a,b){ return b?Math.round(a/b*100):0; }
-  function t(x){ return x?new Date(x).getTime():0; }
+  function t(x){ if(!x) return 0; var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(x)); if(m) return new Date(+m[1],+m[2]-1,+m[3]).getTime(); return new Date(x).getTime(); }   /* GPT28_7: data sem hora é do dia local (a venda do dia 1 não cai no mês anterior) */
 
   async function cartas(){
     if(_cartas) return _cartas;
