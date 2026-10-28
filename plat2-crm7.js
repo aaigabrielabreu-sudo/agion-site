@@ -332,14 +332,23 @@ function compoe(d,tipo,op){op=op||{};var fechou=false,L=[];
   '<p class="c7s c7via" id="c7via">'+e4(viaTxt(EU)||'Sai em e-mail no seu nome, com a sua assinatura e a proposta anexada.')+'</p>'+
   '<div class="fi"><label>E-mail do cliente</label><input type="email" id="c7pa" placeholder="nome@email.com" value="'+e4(d.email||xl(d).email||'')+'"></div>'+
   '<div class="fi"><label>Proposta</label><select id="c7dc"><option value="">Procurando as propostas do card…</option></select></div>'+
-  '<div class="fi c7fr"><label>Simulações das ferramentas <small style="font-weight:500;color:var(--mut)">· marque as que vão em PDF anexado</small></label><div id="c7fr"></div></div>'+   /* FERR_CLIENTE_28OUT */
+  '<div class="fi c7fr"><label>Anexar simulações das ferramentas <small style="font-weight:500;color:var(--mut)">· marque as que vão junto com a proposta, em PDF</small></label><div id="c7fr"></div>'+   /* FERR_CLIENTE_28OUT · FERR_ANEXA_28OUT */
+  '<div style="margin-top:10px;padding:10px 12px;border-radius:14px;background:var(--bg);border:1px dashed var(--line)"><small style="display:block;color:var(--mut);font-size:12px;line-height:1.45;margin-bottom:8px">Fazer uma simulação agora: a ferramenta abre já com '+e4(nm(d))+'. Toque em Salvar lá e volte aqui: ela aparece marcada para ir no e-mail.</small>'+
+  '<div style="display:flex;gap:6px;flex-wrap:wrap">'+FERR_NOVA.map(function(f){return '<button type="button" class="btn sm ol" data-nf="'+f[0]+'">'+e4(f[1])+'</button>';}).join('')+'</div></div></div>'+
   '<div class="fi"><label>Assunto</label><input id="c7as" value="'+e4(tipo==='completa'?'Sua proposta · Agion Consórcios':'Sua simulação · Agion Consórcios')+'"></div>'+
   '<div class="fi"><label>Mensagem</label><textarea id="c7ms" rows="7">'+e4(msgPadrao(d,tipo))+'</textarea></div>'+
   '<div class="c7x" id="c7er"></div>'+
   '<div class="c7f"><button class="btn ol" data-c7="x">'+(op.agoraNao?'Agora não':'Cancelar')+'</button><span class="sp"></span>'+(tipo==='resumida'?'<button class="btn ol" data-c7="wa">'+ic('wa')+'No meu WhatsApp</button>':'')+'<button class="btn gd" data-c7="ok">'+ic('send')+'Enviar e-mail</button></div>',560);
  s.classList.add('c7');
  var FRS=[];   /* FERR_CLIENTE_28OUT: simulações salvas nas ferramentas para este cliente */
- if(W.AgFerrCli){W.AgFerrCli.lista($('#c7fr',s),{lead_id:d.uid,selecionar:true,onSel:function(ids){FRS=ids;},vazio:'Nenhuma simulação salva para '+nm(d)+'. Na ferramenta, escolha o cliente em "Cliente da simulação" e toque em Salvar.'});}else{var _fr=$('.c7fr',s);if(_fr)_fr.remove();}
+ if(W.AgFerrCli){var LST=null,ANT=null,FVI=null;   /* FERR_ANEXA_28OUT: ao voltar da ferramenta, a lista atualiza e a simulação nova já vem marcada */
+  LST=W.AgFerrCli.lista($('#c7fr',s),{lead_id:d.uid,selecionar:true,onSel:function(ids){FRS=ids;},onCarregou:function(L){if(ANT===null)ANT=L.map(function(x){return x.id;});},vazio:'Nenhuma simulação salva para '+nm(d)+' ainda. Faça uma agora pelos botões abaixo.'});
+  $$('.c7fr [data-nf]',s).forEach(function(b){b.onclick=function(){var u='/'+b.dataset.nf+'?ag_lead='+encodeURIComponent(d.uid);var w=null;try{w=W.open(u,'_blank');}catch(e){}if(!w)location.href=u;};});
+  FVI=function(){if(!s.isConnected){document.removeEventListener('visibilitychange',FVI);W.removeEventListener('focus',FVI);return;}if(document.hidden)return;
+   LST.recarregar(true).then(function(L){var ids=(L||[]).map(function(x){return x.id;});if(ANT){var nv=(L||[]).filter(function(x){return ANT.indexOf(x.id)<0&&x.tem_pdf;}).map(function(x){return x.id;});
+    if(nv.length){LST.marcar(nv);toast(nv.length>1?nv.length+' simulações novas marcadas para ir no e-mail':'Simulação nova marcada para ir no e-mail','ok');}}ANT=ids;});};
+  document.addEventListener('visibilitychange',FVI);W.addEventListener('focus',FVI);}
+ else{var _fr=$('.c7fr',s);if(_fr)_fr.remove();}
  var sai=function(cancelou){if(fechou)return;fechou=true;W.closeSheet();if(cancelou&&op.cancela)op.cancela();};
  $('[data-c7="x"]',s).onclick=function(){sai(true);};var xb=$('.x',s);if(xb)xb.onclick=function(){sai(true);};var ov=$('#ov');if(ov)ov._close=function(){sai(true);};
  quemEnvia().then(function(e){var v=$('#c7via',s);if(v&&e)v.textContent=viaTxt(e);});

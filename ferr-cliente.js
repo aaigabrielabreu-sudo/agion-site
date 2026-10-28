@@ -133,12 +133,13 @@
       else if(a==='exs'){b.disabled=true;req('/api/ferr/excluir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})})
         .then(function(){conf=null;L=L.filter(function(y){return y.id!==id;});delete sel[id];pinta();avisa();toast('Simulação excluída.');try{op.onExcluiu&&op.onExcluiu(x,L);}catch(e){}})
         .catch(function(e){b.disabled=false;toast(e.message,1);});}};});});}
-  function carrega(){if(!qs()){L=[];pinta();return Promise.resolve(L);}
-   root.innerHTML='<div class="agfl-vz">Carregando as simulações…</div>';
+  function carrega(silencioso){if(!qs()){L=[];pinta();return Promise.resolve(L);}
+   if(!silencioso)root.innerHTML='<div class="agfl-vz">Carregando as simulações…</div>';
    return req('/api/ferr/salvas?'+qs()).then(function(j){L=(j&&j.salvas)||[];erro='';pinta();try{op.onCarregou&&op.onCarregou(L);}catch(e){}return L;})
     .catch(function(e){L=[];erro=e.message||'Não consegui carregar.';pinta();return L;});}
   carrega();
-  return {recarregar:carrega,itens:function(){return L;},selecionados:function(){return L.filter(function(x){return sel[x.id];});}};}
+  return {recarregar:carrega,itens:function(){return L;},selecionados:function(){return L.filter(function(x){return sel[x.id];});},
+   marcar:function(ids){(ids||[]).forEach(function(i){sel[i]=1;});pinta();avisa();}};}
  function abreNaFerr(x){var u='/'+x.ferramenta+'?ag_ferr='+encodeURIComponent(x.id);var w=null;try{w=W.open(u,'_blank');}catch(e){}if(!w)location.href=u;}
 
  W.AgFerrCli={lista:lista,abrePDF:abrePDF,FERR:FERR,ORDEM:ORDEM,req:req,toast:toast};
