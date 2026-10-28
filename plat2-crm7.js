@@ -261,10 +261,10 @@ function painel(d){var x=xl(d),k=W.AG7.colDe(d),bt=[],tx='',sub='';
  if(d.perdido){tx='Perdido'+(x.motivo_nao_conversao?' · '+x.motivo_nao_conversao:'');if(!x.motivo_nao_conversao)bt.push(['mot','Informar motivo']);}
  else if(k==='1'){tx=x.contato_respondeu===true?'✅ Respondeu':x.contato_respondeu===false?'🤖 Não respondeu: Alice chamando':'⏳ Aguardando resposta';
   if(x.contato_respondeu==null)sub=prazoTxt(prazoContato(x));if(x.contato_respondeu===true)bt.push(['parou','Cliente parou de responder']);else{bt.push(['sim','Respondeu']);bt.push(['nao','Não respondeu']);}}
- else if(k==='2'){tx='Estudo/Simulação';bt.push(['res','Anexar proposta resumida']);bt.push(['envr','Enviar ao cliente']);}
+ else if(k==='2'){tx='Estudo/Simulação';bt.push(['res','Anexar proposta resumida']);bt.push(['envr','Enviar ao cliente']);bt.push(['sim','Simulações']);}   /* FERR_CLIENTE_28OUT */
  else if(k==='agd'){tx=x.reuniao_em?'📅 '+dtBR(x.reuniao_em)+(x.reuniao_tipo==='R2'?' · 2ª reunião':''):'falta: data da reunião';if(x.compareceu===false)tx='Faltou · '+tx;bt.push(['reu',x.reuniao_em?'Mudar data':'Informar data da reunião']);if(x.reuniao_em)bt.push(['conv','Enviar convite']);}
  else if(k==='dia'){tx=x.compareceu==null?'falta: compareceu':'✅ Compareceu';if(x.compareceu==null)bt.push(['comp','Compareceu?']);else bt.push(['dg','Fazer o diagnóstico no Gerador']);}   /* DIAG_PROP_27OUT */
- else if(k==='3'){tx='Proposta enviada'+(x.data_decisao?' · decide até '+String(x.data_decisao).slice(0,10).split('-').reverse().join('/'):'');bt.push(['anx','Anexar proposta']);bt.push(['envp','Enviar por e-mail']);bt.push(['env','Registrar envio / data de decisão']);}
+ else if(k==='3'){tx='Proposta enviada'+(x.data_decisao?' · decide até '+String(x.data_decisao).slice(0,10).split('-').reverse().join('/'):'');bt.push(['anx','Anexar proposta']);bt.push(['envp','Enviar por e-mail']);bt.push(['sim','Simulações']);bt.push(['env','Registrar envio / data de decisão']);}
  else if(k==='4'&&d.st!==4){tx='falta: ganho ou perdido';bt.push(['fch','Marcar ganho ou perdido']);}
  else return '';
  return '<div class="c7p"><span class="c7pt"><small>'+e4(NOME[k]||'Etapa')+'</small><b>'+e4(tx)+'</b>'+(sub?'<small style="margin-top:2px">'+e4(sub)+'</small>':'')+'</span><span class="sp"></span>'+bt.map(function(b){return '<button class="ob c7pb" data-c7p="'+b[0]+'">'+e4(b[1])+'</button>';}).join('')+'</div>';}
@@ -283,7 +283,8 @@ function acaoPainel(d,a,m){var fechaM=function(cb){var xb=m&&$('.x',m);if(xb)xb.
   else if(a==='mot'){motivoFill(d);}
   else if(a==='envr'){compoe(d,'resumida',{});}
   else if(a==='envp'){compoe(d,'completa',{});}
-  else if(a==='conv'){conviteSheet(d);}});}
+  else if(a==='conv'){conviteSheet(d);}
+  else if(a==='sim'){simSheet(d);}});}
 function popDiagFill(f){var d=f.d,s=folha(f,e4(nm(d))+' compareceu à reunião?','','<div class="c7o">'+opc('sim','✅','Compareceu','')+opc('nao','📅','Faltou','O card volta para Reunião agendada.')+'</div>');
  $('[data-o="sim"]',s).onclick=function(){f.fecha();aplica(f,{compareceu:true},['Compareceu à reunião (diagnóstico)']);setTimeout(function(){popFazDiag(d);},360);};
  $('[data-o="nao"]',s).onclick=function(){f.fecha();var g={d:d,k:'agd',from:'dia'};aplica(g,{compareceu:false},['Faltou à reunião']);};}
@@ -314,6 +315,15 @@ function telDig(d){var t=String(d&&d.tel||'').replace(/\D/g,'');if(t&&t.length<=
 function msgPadrao(d,tipo){var n=nm(d);n=n.charAt(0).toUpperCase()+n.slice(1).toLowerCase();
  return tipo==='completa'?'Oi, '+n+', tudo bem?\n\nObrigado pela nossa conversa. Segue a proposta completa que montamos, com a estrutura das cartas e a estratégia que combinamos.\n\nQualquer dúvida, é só responder este e-mail ou me chamar no WhatsApp.'
   :'Oi, '+n+', tudo bem?\n\nConforme conversamos, segue a simulação que preparei para você, com o crédito, a parcela e o prazo.\n\nDá uma olhada com calma e me diga o que achou. Se fizer sentido, marcamos uma conversa rápida para eu te mostrar a estratégia de contemplação.';}
+/* FERR_CLIENTE_28OUT: simulações das ferramentas salvas para o cliente do card (ver e abrir; criar e excluir só na ferramenta) */
+var FERR_NOVA=[['escada-financeira','Escada financeira'],['escada-patrimonial','Escada patrimonial'],['calc-alavancagem','Alavancagem'],['calc-financiamento','Financiamento × Consórcio'],['calc-avista','Consórcio × À vista'],['calc-lance','Lance livre']];
+function simSheet(d){var s=W.sheet('<div class="lbl c7lb">Simulações das ferramentas</div><h2 class="c7h">Salvas para '+e4(nm(d))+'</h2>'+
+  '<p class="c7s">Para criar ou excluir, use a própria ferramenta. Para mandar ao cliente, use “Enviar por e-mail”: lá você marca quais vão anexadas.</p><div id="c7sl"></div>'+
+  '<div class="lbl" style="margin:14px 0 6px">Nova simulação para '+e4(nm(d))+'</div><div class="c7nf" style="display:flex;gap:6px;flex-wrap:wrap">'+FERR_NOVA.map(function(f){return '<button class="btn sm ol" data-nf="'+f[0]+'">'+e4(f[1])+'</button>';}).join('')+'</div>'+
+  '<div class="c7f"><span class="sp"></span><button class="btn ol" data-c7="x">Fechar</button></div>',600);
+ s.classList.add('c7');$('[data-c7="x"]',s).onclick=function(){W.closeSheet();};
+ $$('[data-nf]',s).forEach(function(b){b.onclick=function(){var u='/'+b.dataset.nf+'?ag_lead='+encodeURIComponent(d.uid);var w=null;try{w=W.open(u,'_blank');}catch(e){}if(!w)location.href=u;};});
+ if(W.AgFerrCli)W.AgFerrCli.lista($('#c7sl',s),{lead_id:d.uid,abrir:true,vazio:'Nenhuma simulação salva para '+nm(d)+' ainda.'});else $('#c7sl',s).innerHTML='<div class="c7w">Recarregue a página para ver as simulações.</div>';}
 function regEnvio(d,txt){try{W.leadAtv(d,txt);W.leadExtra(d,{atividades:d.raw.atividades});}catch(e){}}
 
 /* folha "Enviar a proposta": para, qual proposta, assunto e mensagem */
@@ -322,32 +332,36 @@ function compoe(d,tipo,op){op=op||{};var fechou=false,L=[];
   '<p class="c7s c7via" id="c7via">'+e4(viaTxt(EU)||'Sai em e-mail no seu nome, com a sua assinatura e a proposta anexada.')+'</p>'+
   '<div class="fi"><label>E-mail do cliente</label><input type="email" id="c7pa" placeholder="nome@email.com" value="'+e4(d.email||xl(d).email||'')+'"></div>'+
   '<div class="fi"><label>Proposta</label><select id="c7dc"><option value="">Procurando as propostas do card…</option></select></div>'+
+  '<div class="fi c7fr"><label>Simulações das ferramentas <small style="font-weight:500;color:var(--mut)">· marque as que vão em PDF anexado</small></label><div id="c7fr"></div></div>'+   /* FERR_CLIENTE_28OUT */
   '<div class="fi"><label>Assunto</label><input id="c7as" value="'+e4(tipo==='completa'?'Sua proposta · Agion Consórcios':'Sua simulação · Agion Consórcios')+'"></div>'+
   '<div class="fi"><label>Mensagem</label><textarea id="c7ms" rows="7">'+e4(msgPadrao(d,tipo))+'</textarea></div>'+
   '<div class="c7x" id="c7er"></div>'+
   '<div class="c7f"><button class="btn ol" data-c7="x">'+(op.agoraNao?'Agora não':'Cancelar')+'</button><span class="sp"></span>'+(tipo==='resumida'?'<button class="btn ol" data-c7="wa">'+ic('wa')+'No meu WhatsApp</button>':'')+'<button class="btn gd" data-c7="ok">'+ic('send')+'Enviar e-mail</button></div>',560);
  s.classList.add('c7');
+ var FRS=[];   /* FERR_CLIENTE_28OUT: simulações salvas nas ferramentas para este cliente */
+ if(W.AgFerrCli){W.AgFerrCli.lista($('#c7fr',s),{lead_id:d.uid,selecionar:true,onSel:function(ids){FRS=ids;},vazio:'Nenhuma simulação salva para '+nm(d)+'. Na ferramenta, escolha o cliente em "Cliente da simulação" e toque em Salvar.'});}else{var _fr=$('.c7fr',s);if(_fr)_fr.remove();}
  var sai=function(cancelou){if(fechou)return;fechou=true;W.closeSheet();if(cancelou&&op.cancela)op.cancela();};
  $('[data-c7="x"]',s).onclick=function(){sai(true);};var xb=$('.x',s);if(xb)xb.onclick=function(){sai(true);};var ov=$('#ov');if(ov)ov._close=function(){sai(true);};
  quemEnvia().then(function(e){var v=$('#c7via',s);if(v&&e)v.textContent=viaTxt(e);});
  jaEnviadas(d).then(function(l){L=l.filter(function(o){return o.fonte==='arq'||(o.x&&(o.x.arquivo_path||o.x.url||o.x.texto)&&!/^Enviada/.test(o.x.titulo||''));});
   var sel=$('#c7dc',s);if(!sel)return;
-  if(!L.length){sel.innerHTML='<option value="">Este card ainda não tem proposta anexada</option>';$('#c7er',s).innerHTML='<div class="c7w">Anexe a '+(tipo==='completa'?'completa':'resumida')+' no card antes de enviar.</div>';return;}
+  if(!L.length){sel.innerHTML='<option value="">Este card ainda não tem proposta anexada</option>';$('#c7er',s).innerHTML='<div class="c7w">Este card ainda não tem proposta anexada. Anexe a '+(tipo==='completa'?'completa':'resumida')+' no card ou mande só as simulações marcadas acima.</div>';return;}
   var pref=-1;if(op.pref)L.forEach(function(o,i){if(pref<0&&chProp(o)===op.pref)pref=i;});   /* GPT_27OUT: a confirmada vem selecionada */
   if(pref<0)L.forEach(function(o,i){var t=o.x?o.x.tipo:(/completo/.test(o.path)?'completa':'resumida');if(pref<0&&t===tipo)pref=i;});if(pref<0)pref=0;
-  sel.innerHTML=L.map(function(o,i){return '<option value="'+i+'"'+(i===pref?' selected':'')+'>'+e4(o.t)+(o.q?' · '+new Date(o.q).toLocaleDateString('pt-BR'):'')+'</option>';}).join('');});
+  sel.innerHTML=L.map(function(o,i){return '<option value="'+i+'"'+(i===pref?' selected':'')+'>'+e4(o.t)+(o.q?' · '+new Date(o.q).toLocaleDateString('pt-BR'):'')+'</option>';}).join('')+'<option value="-1">Sem proposta (só as simulações marcadas)</option>';});
  var doc=function(){var o=L[+($('#c7dc',s).value||-1)];return o||null;};
  $('[data-c7="ok"]',s).onclick=function(){var b=this,para=$('#c7pa',s).value.trim(),o=doc(),er=$('#c7er',s);
   if(!emailOk(para)){er.innerHTML='<div class="c7w er">Informe um e-mail válido do cliente.</div>';$('#c7pa',s).focus();return;}
-  if(!o){er.innerHTML='<div class="c7w er">Escolha a proposta que vai no e-mail.</div>';return;}
+  if(!o&&!FRS.length){er.innerHTML='<div class="c7w er">Escolha a proposta ou marque uma simulação para ir no e-mail.</div>';return;}
   var corpo={lead_id:d.uid,para:para,tipo:tipo,assunto:$('#c7as',s).value.trim(),mensagem:$('#c7ms',s).value.trim()};
-  if(o.fonte==='arq'){corpo.arquivo_path=o.path;corpo.titulo=o.t;}else corpo.doc_id=o.x.id;
+  if(o){if(o.fonte==='arq'){corpo.arquivo_path=o.path;corpo.titulo=o.t;}else corpo.doc_id=o.x.id;}if(FRS.length)corpo.ferr_ids=FRS.slice(0,10);
   b.disabled=true;b.innerHTML=ic('send')+'Enviando…';er.innerHTML='';
   api('/api/proposta/enviar',corpo).then(function(r){var j=(r&&r.data)||{};
    if(!r||!r.ok||!j.ok){b.disabled=false;b.innerHTML=ic('send')+'Enviar e-mail';er.innerHTML='<div class="c7w er">'+e4(j.erro||j.error||'Não consegui enviar agora.')+'</div>';return;}
    if(!d.email){d.email=para;W.XL[d.uid]=Object.assign(W.XL[d.uid]||{},{email:para});}
-   regEnvio(d,'Proposta '+(tipo==='completa'?'completa':'resumida')+' enviada por e-mail para '+para+((j.cc&&j.cc.length)?' (cópia: '+j.cc.join(', ')+')':'')+' · '+(j.nome||eu())+' · '+agora());
-   fechou=true;W.closeSheet();toast('E-mail enviado para '+para,'send');if(op.depois)op.depois({para:para,via:j.via,doc:o.t});});};
+   var _ns=FRS.length,_st=_ns?_ns+' simulaç'+(_ns>1?'ões':'ão'):'';
+   regEnvio(d,(o?'Proposta '+(tipo==='completa'?'completa':'resumida')+(_ns?' + '+_st:'')+' enviada':_st+' enviada'+(_ns>1?'s':''))+' por e-mail para '+para+((j.cc&&j.cc.length)?' (cópia: '+j.cc.join(', ')+')':'')+' · '+(j.nome||eu())+' · '+agora());
+   fechou=true;W.closeSheet();toast('E-mail enviado para '+para,'send');if(op.depois)op.depois({para:para,via:j.via,doc:o?o.t:'Simulações das ferramentas'});});};
  var wb=$('[data-c7="wa"]',s);if(wb)wb.onclick=async function(){var o=doc(),t=telDig(d),er=$('#c7er',s);
   if(!t){er.innerHTML='<div class="c7w er">O card não tem o WhatsApp do cliente.</div>';return;}
   var link='',temArq=false,corpoTx='';try{if(o){var p=o.fonte==='arq'?o.path:o.x.arquivo_path;if(p){temArq=true;var c=sb(),r=await c.storage.from('propostas').createSignedUrl(p,60*60*24*30);link=(r&&r.data&&r.data.signedUrl)||'';}else if(o.x&&o.x.url)link=o.x.url;else if(o.x&&o.x.texto)corpoTx=String(o.x.texto).trim();}}catch(e){}
