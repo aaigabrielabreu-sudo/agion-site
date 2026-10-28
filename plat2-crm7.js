@@ -261,13 +261,13 @@ function painel(d){var x=xl(d),k=W.AG7.colDe(d),bt=[],tx='',sub='';
  if(d.perdido){tx='Perdido'+(x.motivo_nao_conversao?' · '+x.motivo_nao_conversao:'');if(!x.motivo_nao_conversao)bt.push(['mot','Informar motivo']);}
  else if(k==='1'){tx=x.contato_respondeu===true?'✅ Respondeu':x.contato_respondeu===false?'🤖 Não respondeu: Alice chamando':'⏳ Aguardando resposta';
   if(x.contato_respondeu==null)sub=prazoTxt(prazoContato(x));if(x.contato_respondeu===true)bt.push(['parou','Cliente parou de responder']);else{bt.push(['sim','Respondeu']);bt.push(['nao','Não respondeu']);}}
- else if(k==='2'){tx='Estudo/Simulação';bt.push(['res','Anexar proposta resumida']);bt.push(['envr','Enviar ao cliente']);bt.push(['sim','Simulações']);}   /* FERR_CLIENTE_28OUT */
+ else if(k==='2'){tx='Estudo/Simulação';bt.push(['res','Anexar proposta resumida']);bt.push(['envr','Enviar ao cliente']);bt.push(['sims','Simulações']);}   /* FERR_CLIENTE_28OUT */
  else if(k==='agd'){tx=x.reuniao_em?'📅 '+dtBR(x.reuniao_em)+(x.reuniao_tipo==='R2'?' · 2ª reunião':''):'falta: data da reunião';if(x.compareceu===false)tx='Faltou · '+tx;bt.push(['reu',x.reuniao_em?'Mudar data':'Informar data da reunião']);if(x.reuniao_em)bt.push(['conv','Enviar convite']);}
  else if(k==='dia'){tx=x.compareceu==null?'falta: compareceu':'✅ Compareceu';if(x.compareceu==null)bt.push(['comp','Compareceu?']);else bt.push(['dg','Fazer o diagnóstico no Gerador']);}   /* DIAG_PROP_27OUT */
- else if(k==='3'){tx='Proposta enviada'+(x.data_decisao?' · decide até '+String(x.data_decisao).slice(0,10).split('-').reverse().join('/'):'');bt.push(['anx','Anexar proposta']);bt.push(['envp','Enviar por e-mail']);bt.push(['sim','Simulações']);bt.push(['env','Registrar envio / data de decisão']);}
+ else if(k==='3'){tx='Proposta enviada'+(x.data_decisao?' · decide até '+String(x.data_decisao).slice(0,10).split('-').reverse().join('/'):'');bt.push(['anx','Anexar proposta']);bt.push(['envp','Enviar por e-mail']);bt.push(['sims','Simulações']);bt.push(['env','Registrar envio / data de decisão']);}
  else if(k==='4'&&d.st!==4){tx='falta: ganho ou perdido';bt.push(['fch','Marcar ganho ou perdido']);}
  else return '';
- return '<div class="c7p"><span class="c7pt"><small>'+e4(NOME[k]||'Etapa')+'</small><b>'+e4(tx)+'</b>'+(sub?'<small style="margin-top:2px">'+e4(sub)+'</small>':'')+'</span><span class="sp"></span>'+bt.map(function(b){return '<button class="ob c7pb" data-c7p="'+b[0]+'">'+e4(b[1])+'</button>';}).join('')+'</div>';}
+ return '<div class="c7p"><span class="c7pt"><small>'+e4(String(tx).indexOf(NOME[k]||'~')===0?'Etapa no CRM':(NOME[k]||'Etapa'))+'</small><b>'+e4(tx)+'</b>'+(sub?'<small style="margin-top:2px">'+e4(sub)+'</small>':'')+'</span><span class="sp"></span>'+bt.map(function(b){return '<button class="ob c7pb" data-c7p="'+b[0]+'">'+e4(b[1])+'</button>';}).join('')+'</div>';}
 function acaoPainel(d,a,m){var fechaM=function(cb){var xb=m&&$('.x',m);if(xb)xb.click();setTimeout(cb,620);};var now=new Date().toISOString(),f={d:d,fill:true};
  if(!W.roOk())return;
  if(a==='sim'||a==='nao'||a==='parou'){f.k='1';var v=a==='sim';aplica(f,{contato_respondeu:v,contato_resp_em:now},[(a==='parou'?'Cliente parou de responder':'Contato feito: '+(v?'Respondeu':'Não respondeu'))+' · '+eu()+' · '+agora()]);setTimeout(function(){pinta(d,m);},60);return;}
@@ -284,7 +284,7 @@ function acaoPainel(d,a,m){var fechaM=function(cb){var xb=m&&$('.x',m);if(xb)xb.
   else if(a==='envr'){compoe(d,'resumida',{});}
   else if(a==='envp'){compoe(d,'completa',{});}
   else if(a==='conv'){conviteSheet(d);}
-  else if(a==='sim'){simSheet(d);}});}
+  else if(a==='sims'){simSheet(d);}});}   /* PAINEL_GRID_28OUT: 'sim' era o Respondeu do Contato feito */
 function popDiagFill(f){var d=f.d,s=folha(f,e4(nm(d))+' compareceu à reunião?','','<div class="c7o">'+opc('sim','✅','Compareceu','')+opc('nao','📅','Faltou','O card volta para Reunião agendada.')+'</div>');
  $('[data-o="sim"]',s).onclick=function(){f.fecha();aplica(f,{compareceu:true},['Compareceu à reunião (diagnóstico)']);setTimeout(function(){popFazDiag(d);},360);};
  $('[data-o="nao"]',s).onclick=function(){f.fecha();var g={d:d,k:'agd',from:'dia'};aplica(g,{compareceu:false},['Faltou à reunião']);};}
@@ -442,7 +442,12 @@ function css(){if(document.getElementById('c7css'))return;var s=document.createE
  '.dm .c7p{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 4px;padding:10px 12px;border-radius:16px;background:color-mix(in srgb,currentColor 9%,transparent);border:1px solid color-mix(in srgb,currentColor 16%,transparent)}'+
  '.dm .c7p .sp{flex:1}.dm .c7pt{display:flex;flex-direction:column}.dm .c7pt small{opacity:.7;font-size:11px}.dm .c7pt b{font-size:13.5px}.dm .c7pb{padding:7px 12px!important;font-size:12.5px!important}'+
  '.c7ck{display:flex;align-items:flex-start;gap:10px;margin:2px 0 14px;font-size:13px;color:var(--ink);cursor:pointer;line-height:1.4}.c7ck input{width:18px;height:18px;margin-top:1px;accent-color:var(--gold);flex:none}.sheet.c7 .c7via{font-size:12.5px;margin:0 0 12px}'+
- '@media (max-width:860px){.c7f .btn{flex:1 1 auto}.c7f .sp{display:none}.dm .c7p .c7pb{flex:1 1 auto}}';
+ '@media (max-width:860px){.c7f .btn{flex:1 1 auto}.c7f .sp{display:none}.dm .c7p .c7pb{flex:1 1 auto}}'+
+ /* PAINEL_GRID_28OUT: título em cima e os botões numa grade do mesmo tamanho (nada sobra sozinho numa linha torta) */
+ '.dm .c7p{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));align-items:stretch;gap:8px;padding:12px 12px 12px}'+
+ '.dm .c7p .c7pt{grid-column:1/-1;margin:0 2px 2px}.dm .c7p .sp{display:none}'+
+ '.dm .c7p .c7pb{width:100%;min-height:42px;margin:0;display:flex;align-items:center;justify-content:center;text-align:center;white-space:normal;line-height:1.25}'+
+ '@media (max-width:640px){.dm .c7p{grid-template-columns:1fr 1fr}}';
  document.head.appendChild(s);}
 
 /* ---------- tutorial: 1 passo por pop-up ---------- */
