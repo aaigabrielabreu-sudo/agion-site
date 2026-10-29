@@ -5934,6 +5934,11 @@ vcMontar();
    Os cartões usam o mesmo desenho dos cartões de ferramenta (.tc): as regras do .tc são copiadas para .fxb-card
    na hora de desenhar, então qualquer ajuste futuro no .tc vale aqui também. */
 .fxb-card .ft2 .pill{max-width:62%;overflow:hidden;text-overflow:ellipsis}
+/* FX_BETA_SEP_29OUT: separa as ferramentas que já têm a análise matemática */
+.fxb-sec{margin-top:6px}.fxb-sec+.fxb-sec{margin-top:30px}
+.fxb-h{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 10px;margin:0 2px 14px}
+.fxb-h b{font-size:17px;font-weight:700;color:var(--ink)}.fxb-h .n{font-size:12px;font-weight:700;color:var(--mut);background:var(--bg2);border-radius:999px;padding:2px 9px}
+.fxb-h small{flex-basis:100%;font-size:12.5px;color:var(--mut)}
 </style>
 <script id="fx-beta-29out">/* FX_BETA_29OUT — aba "Beta" logo abaixo de Ferramentas (pedido do Gabriel, 28/out): 31 ferramentas novas em teste,
    liberadas para toda a equipe (master, líder e especialista) e separadas das ferramentas já validadas.
@@ -5951,8 +5956,10 @@ vcMontar();
    else if(r.type===4&&r.cssRules){(function(m){walk(r.cssRules,function(t){return wrap('@media '+m+'{'+t+'}');});})(r.media.mediaText);}}}
   [].forEach.call(document.styleSheets,function(ss){try{walk(ss.cssRules,function(t){return t;});}catch(x){}});
   var st=document.createElement('style');st.id='fx-tc-clone';st.textContent=out.join('\n');document.head.appendChild(st);}
+ /* FX_BETA_SEP_29OUT: ferramentas que já ganharam a Análise matemática (lote 1, 29/out) */
+ var REV={'fx-raio-x-do-cliente':1,'fx-reajuste-da-carta':1,'fx-aprovacao-na-contemplacao':1,'fx-comparar-grupos':1,'fx-mapa-dos-grupos':1,'fx-simulador-de-assembleia':1,'fx-custo-efetivo':1};
  function card(x){var seta=typeof I==='function'?I('arrow',15):'→';
-  return '<div class="fxb-card" data-fx="'+e(x[0])+'" data-fxcat="'+e(x[2])+'" role="button" tabindex="0"><div class="cov" style="--tcb:'+x[6]+'"><svg class="tline" viewBox="0 0 420 160" preserveAspectRatio="none">'+x[7]+'</svg><span class="em">'+(typeof I==='function'?I(x[4],22):'')+'</span></div>'+
+  return '<div class="fxb-card" data-fx="'+e(x[0])+'" data-fxcat="'+e(x[2])+'"'+(REV[x[0]]?' data-rev="1"':'')+' role="button" tabindex="0"><div class="cov" style="--tcb:'+x[6]+'"><svg class="tline" viewBox="0 0 420 160" preserveAspectRatio="none">'+x[7]+'</svg><span class="em">'+(typeof I==='function'?I(x[4],22):'')+'</span></div>'+
    '<div class="bd2"><h3>'+e(x[1])+'</h3><p>'+e(x[3])+'</p><div class="ft2"><span class="pill au">'+e(x[5])+'</span><span class="open">Abrir '+seta+'</span></div></div></div>';}
  /* 1) item "Beta" no menu, logo abaixo de Ferramentas, para todos os papéis da equipe (vale para a barra lateral, a barra de baixo do celular, o "Mais" e a busca) */
  if(typeof navGrupos==='function'){
@@ -5968,11 +5975,16 @@ vcMontar();
  R.beta=function(v){
   clonaTc();
   var cats=CAT.filter(function(c){return L.some(function(x){return x[2]===c[0];});});
+  var LA=L.filter(function(x){return REV[x[0]];}),LB=L.filter(function(x){return !REV[x[0]];});
+  function sec(k,t,sub,arr){return arr.length?'<div class="fxb-sec" data-sec="'+k+'"><div class="fxb-h"><b>'+t+'</b><span class="n">'+arr.length+'</span><small>'+sub+'</small></div><div class="tg2 rv">'+arr.map(card).join('')+'</div></div>':'';}
   v.innerHTML='<div class="hx rv"><div><h1 class="h1"><em>Beta</em> · ferramentas em teste</h1><div class="sub">Ferramentas novas, ainda em validação · abrem em nova aba · as já validadas ficam em Ferramentas</div></div></div>'+
-   sn('fsnb',[['t','Todas',L.length]].concat(cats.map(function(c){return [c[0],c[1]];})),'t')+'<div class="tg2 rv" id="tgb">'+L.map(card).join('')+'</div>';
+   sn('fsnb',[['t','Todas',L.length],['rev','Com análise matemática',LA.length]].concat(cats.map(function(c){return [c[0],c[1]];})),'t')+
+   '<div id="tgb">'+sec('rev','Com análise matemática','Indicadores, cenários, sensibilidade, tabela completa e memória de cálculo',LA)+sec('out','Em revisão','Ainda sem a análise matemática · chegam nos próximos lotes',LB)+'</div>';
   var cs=[].slice.call(v.querySelectorAll('.fxb-card'));
   setTimeout(function(){cs.forEach(function(c,i){setTimeout(function(){c.classList.add('in2');},Math.min(i,12)*70);});},300);
-  bindSeg('fsnb',function(k){cs.forEach(function(c){c.style.display=(k==='t'||c.getAttribute('data-fxcat')===k)?'':'none';});
+  var secs=[].slice.call(v.querySelectorAll('.fxb-sec'));
+  bindSeg('fsnb',function(k){cs.forEach(function(c){c.style.display=(k==='t'||(k==='rev'?c.hasAttribute('data-rev'):c.getAttribute('data-fxcat')===k))?'':'none';});
+   secs.forEach(function(sc){sc.style.display=[].some.call(sc.querySelectorAll('.fxb-card'),function(c){return c.style.display!=='none';})?'':'none';});
    if(typeof stagger==='function')stagger(cs.filter(function(c){return c.style.display!=='none';}),0);});
   /* o clique fica na grade (recriada a cada visita), não no #view (que é o mesmo sempre): assim cada clique abre uma aba só */
   var grade=v.querySelector('#tgb');
