@@ -5974,8 +5974,10 @@ vcMontar();
   setTimeout(function(){cs.forEach(function(c,i){setTimeout(function(){c.classList.add('in2');},Math.min(i,12)*70);});},300);
   bindSeg('fsnb',function(k){cs.forEach(function(c){c.style.display=(k==='t'||c.getAttribute('data-fxcat')===k)?'':'none';});
    if(typeof stagger==='function')stagger(cs.filter(function(c){return c.style.display!=='none';}),0);});
-  v.addEventListener('click',function(ev){var b=ev.target.closest('[data-fx]');if(b)abre(b.getAttribute('data-fx'));});
-  v.addEventListener('keydown',function(ev){if(ev.key!=='Enter'&&ev.key!==' ')return;var b=ev.target.closest('[data-fx]');if(b){ev.preventDefault();abre(b.getAttribute('data-fx'));}});
+  /* o clique fica na grade (recriada a cada visita), não no #view (que é o mesmo sempre): assim cada clique abre uma aba só */
+  var grade=v.querySelector('#tgb');
+  grade.onclick=function(ev){var b=ev.target.closest('[data-fx]');if(!b)return;ev.preventDefault();ev.stopPropagation();var agora=Date.now();if(b.__fxt&&agora-b.__fxt<1200)return;b.__fxt=agora;abre(b.getAttribute('data-fx'));};
+  grade.onkeydown=function(ev){if(ev.key!=='Enter'&&ev.key!==' ')return;var b=ev.target.closest('[data-fx]');if(b){ev.preventDefault();grade.onclick({target:b,preventDefault:function(){},stopPropagation:function(){}});}};
  };
  /* 4) celular: a barra de baixo é montada cedo, antes de o menu ficar completo; remonta quando faltar o Beta */
  function garanteTab(){try{var t=document.getElementById('mtab');if(t&&t.querySelector('button')&&!t.querySelector('button[data-k="beta"]')&&typeof buildTab==='function'&&navList().some(function(x){return x[0]==='beta';})){buildTab();if(typeof tabOn==='function')tabOn();}}catch(x){}}
