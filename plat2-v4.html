@@ -5929,4 +5929,51 @@ vcMontar();
  try{document.fonts&&document.fonts.ready.then(function(){fitT();fadeAll();});}catch(e){}
  setTimeout(function(){fitT();fadeAll();},300);
 })();</script>
+<style id="fx-beta-29out-css">
+/* FX_BETA_29OUT — seção "Novas ferramentas · beta" na aba Ferramentas (só master) */
+.fxb{margin-top:34px}
+.fxb .fxh{display:flex;align-items:flex-end;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-bottom:4px}
+.fxb .fxh h2{font:600 24px Lora;color:var(--ink);line-height:1.2}
+.fxb .fxh h2 em{color:var(--goldd)}
+.dark .fxb .fxh h2 em{color:var(--gold)}
+.fxb .fxh .sub{font-size:13px;color:var(--mut);margin-top:4px;line-height:1.45}
+.fxb .fxcat{font:700 11.5px "DM Sans";letter-spacing:.14em;text-transform:uppercase;color:var(--goldd);margin:22px 0 10px;display:flex;align-items:center;gap:8px}
+.dark .fxb .fxcat{color:var(--gold)}
+.fxb .fxcat i{font-style:normal;letter-spacing:0;font-weight:600;color:var(--mut2)}
+.fxb .fxg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.fxb .fxc{display:flex;flex-direction:column;gap:6px;padding:16px 18px;border-radius:20px;background:var(--card);box-shadow:var(--shadow);cursor:pointer;text-align:left;border:0;color:var(--ink);font:inherit;min-width:0;transition:transform .4s var(--ez),box-shadow .4s var(--ez)}
+.fxb .fxc:hover{transform:translateY(-3px);box-shadow:var(--shadow2)}
+.fxb .fxc b{font:600 16.5px Lora;line-height:1.25;color:var(--ink)}
+.fxb .fxc .d{font-size:12.8px;color:var(--mut);line-height:1.45;flex:1}
+.fxb .fxc .o{margin-top:6px;font-weight:800;font-size:12.5px;color:var(--goldd);display:inline-flex;align-items:center;gap:6px}
+.dark .fxb .fxc .o{color:var(--gold)}
+@media (max-width:1100px){.fxb .fxg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:860px){.fxb{margin-top:26px}.fxb .fxg{grid-template-columns:1fr;gap:10px}.fxb .fxh h2{font-size:21px}.fxb .fxc{padding:14px 16px;border-radius:18px}}
+</style>
+<script id="fx-beta-29out">/* FX_BETA_29OUT — 31 ferramentas novas em beta, só para o master (pedido do Gabriel, 28/out).
+   Aparecem embaixo dos cartões da aba Ferramentas quando isM(); cada uma abre /fx-<nome> em nova aba.
+   As páginas /fx-* têm trava própria: só abrem para quem está logado com papel master (tabela profiles). */
+(function(){
+ var L=[["fx-aluguel-x-consorcio","Aluguel × Consórcio","Estratégia","Seguir no aluguel, consórcio ou financiamento: quando vira dono e o patrimônio de cada caminho."],["fx-raio-x-do-cliente","Raio-x do cliente","Calculadora","Renda, gastos e lance: quanto de carta cabe no bolso, em três opções."],["fx-consorcio-para-empresas","Consórcio para empresas","Empresas","Consórcio × financiamento × leasing × à vista, pelo custo real e com o benefício fiscal."],["fx-reajuste-da-carta","Reajuste da carta","Calculadora","Crédito e parcela ano a ano pelo INCC ou IPCA, comparados ao preço do bem."],["fx-juntar-dinheiro","Juntar dinheiro × Consórcio","Estratégia","Em quantos meses cada caminho chega ao bem, com o preço subindo."],["fx-card-stories","Card para stories e WhatsApp","Vendas","A simulação vira imagem vertical com a marca, com o texto da mensagem."],["fx-vender-carta-contemplada","Vender minha carta contemplada","Investimento","Faixa de preço da carta: do que foi pago ao teto que o comprador aceita."],["fx-aprovacao-na-contemplacao","Aprovação na contemplação","Calculadora","Confere renda, garantia e cadastro antes da análise e mostra como destravar."],["fx-planejador-de-conquistas","Planejador de conquistas","Estratégia","Vários bens ao longo dos anos num plano só, com as parcelas mês a mês."],["fx-energia-solar","Energia solar com consórcio","Estratégia","A economia na conta de luz pagando a parcela das placas."],["fx-imovel-na-planta","Imóvel na planta","Estratégia","Consórcio desde já para o saldo das chaves × financiar na entrega."],["fx-troca-do-carro","Troca do carro","Estratégia","Usado como lance no consórcio × financiamento × carro por assinatura."],["fx-comparar-grupos","Comparar grupos lado a lado","Dados da HS","Até 4 grupos reais da HS com o vencedor de cada quesito."],["fx-mapa-dos-grupos","Mapa dos grupos da HS","Dados da HS","Todos os grupos num gráfico: onde o lance do cliente já ganha."],["fx-simulador-de-assembleia","Simulador de assembleia","Dados da HS","Encena a assembleia do grupo e roda mil assembleias para estimar a chance."],["fx-custo-efetivo","Custo efetivo do consórcio","Calculadora","A taxa ao ano comparável à do banco, conforme o mês da contemplação."],["fx-custo-de-adiar","Custo de adiar a decisão","Vendas","Quanto custa cada mês de espera, para o lead que diz “vou pensar”."],["fx-troca-de-imovel","Troca de imóvel (upgrade)","Estratégia","Vender antes e alugar, consórcio agora ou financiar a diferença."],["fx-temporada-x-aluguel","Temporada × aluguel tradicional","Investimento","Receita mês a mês do imóvel e quanto cobre da parcela."],["fx-casal-quem-paga","Casal: quem paga quanto","Estratégia","Divide a parcela pela renda, composição para a aprovação e regime de bens."],["fx-plano-para-os-filhos","Plano para os filhos","Estratégia","Faculdade, carro ou imóvel na idade certa: aplicar ou consórcio."],["fx-planejamento-sucessorio","Planejamento sucessório","Investimento","Inventário × holding familiar, com cartas crescendo o patrimônio."],["fx-sede-propria","Sede própria × aluguel comercial","Empresas","Seguir alugando ou comprar a sede pelo consórcio, em 10 a 20 anos."],["fx-renovacao-de-frota","Renovação de frota em ciclos","Empresas","Cotas escalonadas × à vista × financiamento × locação de frota."],["fx-caminhao-que-se-paga","Caminhão que se paga","Empresas","Frete menos custos e parcela: quanto sobra e em quanto tempo se paga."],["fx-produtor-rural","Produtor rural: safra no caixa","Empresas","Máquina pelo consórcio × crédito rural × FINAME, com o caixa da safra."],["fx-entenda-o-contrato","Entenda o contrato","Pós-venda","Glossário com os números da carta do cliente e teste rápido."],["fx-banco-de-objecoes","Banco de objeções","Vendas","14 objeções com resposta curta, completa e o número que convence."],["fx-mensagens-por-etapa","Mensagens prontas por etapa","Vendas","WhatsApp para cada momento do funil e do pós-venda, no tom escolhido."],["fx-funil-reverso","Funil reverso do consultor","Gestão","Da meta de comissão até leads, contatos e propostas por dia."],["fx-radar-da-carteira","Radar da carteira","Gestão","A carteira priorizada: assembleias, cartas paradas, atrasos e 2ª cota."]];
+ var CAT=[['Calculadora','Calculadoras'],['Estratégia','Estratégias'],['Empresas','Empresas'],['Investimento','Investimento'],['Dados da HS','Dados da HS'],['Vendas','Vendas'],['Pós-venda','Pós-venda'],['Gestão','Gestão']];
+ function e(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+ function abre(slug){var u='/'+slug;var w=null;try{w=window.open(u,'_blank');}catch(x){}if(!w)location.href=u;}
+ function monta(v){
+  if(typeof isM!=='function'||!isM())return;
+  var tg=v&&v.querySelector?v.querySelector('#tg'):document.getElementById('tg');if(!tg||document.getElementById('fxBeta'))return;
+  var h='<div class="fxh"><div><h2>Novas ferramentas <em>· beta</em></h2><div class="sub">'+L.length+' ferramentas em teste · só você vê esta seção · abrem em nova aba</div></div><span class="pill au">Beta · só master</span></div>';
+  CAT.forEach(function(c){var it=L.filter(function(x){return x[2]===c[0];});if(!it.length)return;
+   h+='<div class="fxcat">'+e(c[1])+' <i>· '+it.length+'</i></div><div class="fxg">'+it.map(function(x){
+    return '<button type="button" class="fxc" data-fx="'+e(x[0])+'"><b>'+e(x[1])+'</b><span class="d">'+e(x[3])+'</span><span class="o">Abrir '+(typeof I==='function'?I('arrow',14):'→')+'</span></button>';}).join('')+'</div>';});
+  var s=document.createElement('section');s.className='fxb';s.id='fxBeta';s.innerHTML=h;
+  tg.parentNode.insertBefore(s,tg.nextSibling);
+  s.addEventListener('click',function(ev){var b=ev.target.closest('[data-fx]');if(b)abre(b.getAttribute('data-fx'));});
+  var nav=v&&v.querySelector?v.querySelector('#fsn2'):null;
+  if(nav)nav.addEventListener('click',function(ev){var b=ev.target.closest('button[data-k]');if(b)s.style.display=b.getAttribute('data-k')==='t'?'':'none';});
+ }
+ if(typeof R==='object'&&R&&typeof R.ferramentas==='function'){
+  var _rf=R.ferramentas;
+  R.ferramentas=function(v){var r=_rf.apply(this,arguments);try{monta(v);}catch(x){try{console.warn('fx-beta',x);}catch(_){}}return r;};
+ }
+})();</script>
 </body></html>

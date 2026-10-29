@@ -1,0 +1,292 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><script>/* FX_BETA_29OUT · trava: só abre para quem está logado na plataforma com papel master (tabela profiles) */
+(function(){var H=document.documentElement;try{H.style.visibility='hidden';}catch(e){}
+ var SU='https://sfekirqoflozylghwlbe.supabase.co',SK='sb_publishable_Ds4PlQmsvnny5GdALHvVYQ_RHgtFXw2';
+ function deny(){try{location.replace('/plataforma');}catch(e){location.href='/plataforma';}}
+ function local(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('sb-')===0&&k.indexOf('auth-token')>-1){var v=JSON.parse(localStorage.getItem(k));return v&&(v.currentSession||v);}}}catch(e){}return null;}
+ function papel(at,uid){return fetch(SU+'/rest/v1/profiles?select=role&id=eq.'+encodeURIComponent(uid),{headers:{apikey:SK,Authorization:'Bearer '+at}}).then(function(r){if(!r.ok)throw 'http'+r.status;return r.json();}).then(function(j){if(j&&j[0]&&j[0].role==='master')return at;throw 'papel';});}
+ function viaLib(){return new Promise(function(ok,no){var sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  sc.onload=function(){try{window.supabase.createClient(SU,SK).auth.getSession().then(function(r){var ss=r&&r.data&&r.data.session;if(!ss||!ss.user)return no('sessão');papel(ss.access_token,ss.user.id).then(ok,no);},no);}catch(e){no(e);}};
+  sc.onerror=function(){no('lib');};(document.head||H).appendChild(sc);});}
+ var s=local();if(!s||!(s.access_token||s.refresh_token)){window.__agOk=Promise.reject('sem sessão');window.__agOk.catch(function(){});deny();return;}
+ var uid=s.user&&s.user.id,fresca=s.access_token&&uid&&(!s.expires_at||s.expires_at*1000>Date.now()+60000);
+ window.__agOk=(fresca?papel(s.access_token,uid).catch(function(e){if(e==='papel')throw e;return viaLib();}):viaLib())
+  .then(function(at){try{H.style.visibility='';}catch(e){}return at;},function(e){deny();throw e;});
+ window.__agOk.catch(function(){});
+})();
+</script><meta name="robots" content="noindex"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Consórcio para empresas · Agion</title><style>@font-face{font-family:"DM Sans";src:url(/plat2-v4/DM-Sans-Variable.ttf) format("truetype");font-weight:100 1000}@font-face{font-family:Lora;src:url(/plat2-v4/Lora-Variable.ttf) format("truetype");font-weight:400 700}@font-face{font-family:Lora;font-style:italic;src:url(/plat2-v4/Lora-Italic-Variable.ttf) format("truetype");font-weight:400 700}.proto.beta{background:var(--gold3);color:var(--aut)}@media (max-width:640px),(pointer:coarse){input,select,textarea{font-size:16px!important}}@media (max-width:640px){.tabs{flex-wrap:wrap;width:100%!important;border-radius:18px!important;overflow:visible!important}.tabs button{flex:1 1 auto;border-radius:14px!important}}:root{--bg:#F4EFE4;--bg2:#ECE4D3;--bg3:#E4DAC5;--card:#FFFDF8;--line:#E6DCC8;--line2:#EFE7D6;--ink:#0B2A26;--ink2:#2B3D38;--mut:#6E7A75;--mut2:#98A09B;
+ --gold:#C5A059;--gold2:#E8CC8B;--gold3:#F4E6C0;--goldd:#A3833F;--gg:linear-gradient(115deg,#A8853E,#E8CC8B 52%,#C5A059 92%);
+ --av:#2E6A8A;--avb:#DCE9F1;--ok:#3F8F6A;--okb:#DCEFE2;--okt:#2E6B3E;--bad:#C2463B;--badb:#F7DDD8;--badt:#9A2F25;--au:#F3E7C8;--aut:#7A5A1A;
+ --shadow:0 1px 2px rgba(11,42,38,.06),0 12px 32px -14px rgba(11,42,38,.24);--ez:cubic-bezier(.22,1,.36,1);
+ --serif:'Lora',Georgia,serif;--sans:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans)}
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:18px;padding:14px 28px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line2)}
+.logo{display:flex;flex-direction:column;line-height:1}.logo b{font:600 19px var(--serif);letter-spacing:.14em;color:var(--ink)}.logo small{font:700 9px var(--sans);letter-spacing:.2em;color:var(--goldd);margin-top:4px}
+.crumb{font:700 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mut)}.crumb span{color:var(--goldd)}.crumb em{font-style:normal;color:var(--goldd)}
+.sp{flex:1}
+.proto{font:700 11.5px var(--sans);padding:7px 13px;border-radius:999px;background:var(--badb);color:var(--badt);white-space:nowrap}
+.wrap{max-width:1320px;margin:0 auto;padding:26px 28px 120px}
+.hero .k{font:700 11px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--goldd)}
+.hero h1{font:600 42px/1.12 var(--serif);margin:8px 0 8px;letter-spacing:-.01em}.hero h1 em{color:var(--gold);font-style:italic}
+.hero .lead{max-width:820px;color:var(--ink2);margin:0 0 22px;font-size:15.5px}
+.g2{display:grid;grid-template-columns:400px minmax(0,1fr);gap:22px;align-items:start}
+.side{position:sticky;top:78px;display:flex;flex-direction:column;gap:16px;max-height:calc(100vh - 92px);overflow:auto;padding:2px 6px 24px;margin:-2px -6px 0;scrollbar-width:thin}
+.res{display:flex;flex-direction:column;gap:18px;min-width:0}
+.panel{background:var(--card);border-radius:26px;box-shadow:var(--shadow);padding:20px 22px;min-width:0}
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}.ph h3{margin:0;font:600 16px/1.25 var(--sans)}
+.ph .ic{width:28px;height:28px;border-radius:9px;background:var(--gold3);color:var(--goldd);display:flex;align-items:center;justify-content:center;font-size:14px}
+.phs{margin:0 0 10px;color:var(--mut);font-size:12.8px;line-height:1.5}.phs b{color:var(--ink)}
+.fld{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px 12px;padding:11px 0;border-bottom:1px solid var(--line2)}
+.fld:last-child{border-bottom:0;padding-bottom:2px}
+.fld>label{font:600 13.4px/1.3 var(--sans);color:var(--ink)}.fld>label small{display:block;font-weight:500;font-size:11.5px;color:var(--mut);margin-top:2px}
+.ib{display:flex;align-items:center;height:42px;width:156px;border-radius:14px;background:var(--bg);box-shadow:inset 0 0 0 1px var(--line);padding:0 12px;gap:6px;transition:box-shadow .25s,background .25s}
+.ib:focus-within{background:#fff;box-shadow:inset 0 0 0 1.5px var(--gold)}
+.ib input{flex:1;min-width:0;width:100%;border:0;background:none;outline:0;padding:0;font:700 15px/1 var(--sans);color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+.ib .u{font:700 11px var(--sans);color:var(--mut);white-space:nowrap}
+.seg{display:inline-flex;padding:3px;border-radius:999px;background:var(--bg2);gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:none;padding:7px 12px;border-radius:999px;font:700 12px/1.2 var(--sans);color:var(--mut);cursor:pointer;transition:all .25s}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 2px 8px rgba(11,42,38,.12)}
+.fld.full{grid-template-columns:1fr}.fld.full .seg{justify-self:start}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.kpi{background:var(--card);border-radius:22px;box-shadow:var(--shadow);padding:16px 18px}
+.kpi small{display:block;font:700 10px var(--sans);letter-spacing:.13em;text-transform:uppercase;color:var(--mut)}
+.kpi b{display:block;font:700 26px/1.15 var(--sans);margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.kpi span{font-size:12.5px;color:var(--ink2)}.kpi.gd{background:var(--gg)}.kpi.gd small,.kpi.gd span{color:#3B2E10}
+.verdict{border-radius:26px;padding:22px 24px;background:linear-gradient(165deg,#144238,#0B2A26);color:#F4EFE4;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.verdict .k{font:700 11px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--gold2)}
+.verdict h2{font:600 26px/1.25 var(--serif);margin:8px 0 6px;color:#fff}.verdict h2 em{color:var(--gold2);font-style:normal}
+.verdict p{margin:0;color:#C9D5D1;font-size:14px;max-width:880px}.verdict p b{color:#fff}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font:700 11px/1.3 var(--sans);background:var(--bg2);color:var(--ink2);white-space:nowrap}
+.pill.ok{background:var(--okb);color:var(--okt)}.pill.au{background:var(--au);color:var(--aut)}.pill.bad{background:var(--badb);color:var(--badt)}.pill.gd{background:var(--gg);color:#0B2A26}
+.tbl{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+th{text-align:left;font:700 10.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--mut);padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 10px;border-bottom:1px solid var(--line2);white-space:nowrap}tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+.hint{font-size:12.5px;line-height:1.55;color:var(--ink2);background:var(--bg);border-radius:14px;padding:11px 13px;margin-top:10px}.hint b{color:var(--ink)}
+.chart{width:100%;height:auto;display:block}
+.lg{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:12px;color:var(--ink2)}.lg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.foot{font-size:12px;color:var(--mut);line-height:1.6}
+#mbar{display:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:999px;padding:12px 18px;font:700 13.5px/1.2 var(--sans);cursor:pointer;background:var(--card);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn.gd{background:var(--gg);color:#0B2A26;box-shadow:0 10px 24px -12px rgba(163,131,63,.8)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:var(--gold2);font:700 13px var(--sans);padding:11px 16px;border-radius:999px;z-index:99;box-shadow:0 14px 34px -12px rgba(0,0,0,.45)}
+@media (max-width:980px){.g2{grid-template-columns:1fr}.side{position:static;max-height:none;overflow:visible;margin:0;padding:0}}
+@media (max-width:640px){
+ .top{padding:12px 16px;gap:10px}.crumb{display:none}.wrap{padding:18px 14px 120px}
+ .hero h1{font-size:30px}.panel{padding:16px;border-radius:22px}.verdict{padding:18px;border-radius:22px}.verdict h2{font-size:21px}
+ .ib{width:138px}.ib input,input,select{font-size:16px!important}
+ .kpis{grid-template-columns:1fr 1fr;gap:10px}.kpi{padding:13px 14px;border-radius:18px}.kpi b{font-size:20px}
+ #mbar{display:flex;position:fixed;left:12px;right:12px;bottom:12px;z-index:30;background:var(--ink);color:#fff;border-radius:18px;padding:11px 16px;flex-direction:column;box-shadow:0 18px 40px -12px rgba(0,0,0,.45)}
+ #mbar small{font:700 9.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--gold2)}#mbar b{font:700 15px var(--sans)}
+}
+/* ===== comuns dos protótipos 6–30 ===== */
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.opt{border-radius:20px;background:var(--bg);padding:16px;min-width:0}.opt.win{background:linear-gradient(165deg,#FFF8E6,#F7EBCB);box-shadow:inset 0 0 0 1.5px var(--gold)}
+.opt h4{margin:0 0 6px;font:700 14px var(--sans);display:flex;align-items:center;gap:8px;flex-wrap:wrap}.opt .big{font:700 22px/1.15 var(--sans);font-variant-numeric:tabular-nums}.opt .s{font-size:12px;color:var(--mut)}
+.opt dl{display:grid;grid-template-columns:auto 1fr;gap:6px 8px;margin:12px 0 0;font-size:12.8px}.opt dt{color:var(--mut)}.opt dd{margin:0;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.rws .rw{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line2);font-size:13.5px}.rws .rw:first-child{border-top:0}.rws .rw b{font-variant-numeric:tabular-nums;text-align:right}
+.stk{display:flex;height:34px;border-radius:12px;overflow:hidden;background:var(--bg2)}.stk i{display:flex;align-items:center;justify-content:center;font:700 11px var(--sans);color:#fff;white-space:nowrap;overflow:hidden;min-width:0}
+.chk{display:flex;flex-direction:column;gap:8px}.chk div{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;padding:10px 12px;border-radius:14px;background:var(--bg)}
+.chk .ok::before,.chk .no::before,.chk .at::before{flex:none;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 12px var(--sans)}
+.chk .ok::before{content:'✓';background:var(--okb);color:var(--okt)}.chk .no::before{content:'✕';background:var(--badb);color:var(--badt)}.chk .at::before{content:'!';background:var(--au);color:var(--aut)}
+.tl{display:flex;flex-direction:column;gap:0}.tl .st{display:grid;grid-template-columns:22px 1fr auto;gap:12px;align-items:start;padding:10px 0;position:relative}
+.tl .st::before{content:'';width:12px;height:12px;border-radius:50%;background:var(--gold);margin:4px 0 0 5px}.tl .st:not(:last-child)::after{content:'';position:absolute;left:10px;top:24px;bottom:-6px;width:2px;background:var(--line)}
+.tl .st b{display:block;font-size:13.5px}.tl .st span{font-size:12.5px;color:var(--mut)}.tl .st em{font-style:normal;font-weight:700;font-size:13.5px;white-space:nowrap}
+.ib.tx{width:180px}.ib.tx input{text-align:left;font-weight:600}
+.sw{display:flex;gap:8px;flex-wrap:wrap}.sw button{border:0;border-radius:14px;padding:10px 14px;background:var(--bg2);font:700 12.5px var(--sans);color:var(--ink2);cursor:pointer}.sw button.on{background:var(--ink);color:var(--gold2)}
+.acts{display:flex;gap:10px;flex-wrap:wrap}
+@media (max-width:640px){.opt .big{font-size:19px}.ib.tx{width:150px}}
+/* ===== comuns dos protótipos 31–60 ===== */
+.tabs{display:flex;gap:4px;padding:4px;border-radius:999px;background:var(--bg2);width:max-content;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.tabs button{border:0;background:none;border-radius:999px;padding:9px 16px;font:700 12.5px var(--sans);color:var(--mut);cursor:pointer;white-space:nowrap}
+.tabs button.on{background:var(--card);color:var(--ink);box-shadow:0 2px 8px rgba(11,42,38,.12)}
+.tp{display:none;flex-direction:column;gap:18px}.tp.on{display:flex}
+.rg{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line2)}
+.rg label{font:600 13.4px/1.3 var(--sans)}.rg output{font:700 14px var(--sans);font-variant-numeric:tabular-nums;color:var(--goldd)}
+.rg input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--gold);height:22px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chips button{border:0;border-radius:999px;padding:8px 14px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);font:700 12.5px var(--sans);color:var(--ink2);cursor:pointer}.chips button.on{background:var(--ink);color:var(--gold2);box-shadow:none}
+.rank{display:flex;flex-direction:column;gap:6px}.rank .it{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:9px 12px;border-radius:14px;background:var(--bg);font-size:13.5px}
+.rank .it.me{background:linear-gradient(165deg,#FFF8E6,#F7EBCB);box-shadow:inset 0 0 0 1.5px var(--gold)}.rank .it.win .n{background:var(--ok);color:#fff}
+.rank .n{width:28px;height:28px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font:700 12px var(--sans)}
+.note{border-left:0;border-radius:16px;background:var(--avb);color:#1F4C63;padding:12px 14px;font-size:13px;line-height:1.55}.note b{color:#123649}
+.big2{font:700 34px/1.1 var(--sans);font-variant-numeric:tabular-nums}
+.scr{max-height:420px;overflow:auto}
+textarea.tx{width:100%;min-height:90px;border-radius:14px;border:0;background:var(--bg);box-shadow:inset 0 0 0 1px var(--line);padding:10px 12px;font:500 14px/1.45 var(--sans);color:var(--ink);resize:vertical}
+.msg{background:#E9E3D6;border-radius:18px;padding:12px}.msg .bb{background:#fff;border-radius:14px;padding:10px 12px;white-space:pre-wrap;font-size:13.5px;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+@media (max-width:980px){.split{grid-template-columns:1fr}}
+
+.backidx{font:700 12px var(--sans);color:var(--ink2);text-decoration:none;padding:7px 12px;border-radius:999px;background:var(--bg2);white-space:nowrap}
+@media (max-width:640px){.proto{display:none}.backidx{padding:6px 10px;font-size:11px}.logo small{display:none}}
+.mods{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.md{border-radius:20px;background:var(--bg);padding:16px}.md.win{background:linear-gradient(165deg,#FFF8E6,#F7EBCB);box-shadow:inset 0 0 0 1.5px var(--gold)}
+.md h4{margin:0 0 6px;font:700 14px var(--sans)}.md .big{font:700 22px/1.1 var(--sans)}.md .s{font-size:12px;color:var(--mut)}
+.md dl{display:grid;grid-template-columns:auto 1fr;gap:6px 8px;margin:12px 0 0;font-size:12.5px}.md dt{color:var(--mut)}.md dd{margin:0;text-align:right;font-weight:700}
+@media (max-width:1200px){.mods{grid-template-columns:1fr 1fr}}@media (max-width:640px){.mods{grid-template-columns:1fr}}</style></head><body><header class="top"><div class="logo"><b>AGION</b><small>WEALTH · PLATAFORMA</small></div><nav class="crumb">Ferramentas › <span>Estratégias</span> › <em>Consórcio para empresas</em></nav><span class="sp"></span><a class="backidx" href="/plataforma" onclick="return agVoltar()">← Plataforma</a><span class="proto beta">Beta · só master</span></header>
+<main class="wrap">
+<div class="hero"><div class="k">Ferramentas · Estratégia</div><h1>Consórcio para <em>empresas</em></h1>
+<p class="lead">Frota, máquinas ou imóvel comercial: compare consórcio, financiamento (CDC/FINAME), leasing e compra à vista pelo custo real para o caixa da empresa — trazendo tudo a valor presente pelo CDI e, no Lucro Real, descontando o benefício fiscal.</p></div>
+<div class="g2"><aside class="side">
+ <div class="panel"><div class="ph"><span class="ic">▣</span><h3>A compra</h3></div>
+  <div class="fld full"><label>O que a empresa vai comprar</label><span class="seg" id="sBem"><button data-v="frota" class="on">Frota</button><button data-v="maq">Máquinas</button><button data-v="imo">Imóvel comercial</button></span></div>
+  <div class="fld"><label for="val">Valor total</label><div class="ib"><span class="u">R$</span><input id="val" value="1.500.000" inputmode="decimal" data-f="brl"></div></div>
+  <div class="fld"><label for="cx">Caixa disponível hoje</label><div class="ib"><span class="u">R$</span><input id="cx" value="600.000" inputmode="decimal" data-f="brl"></div></div>
+  <div class="fld"><label for="cdi">Rendimento do caixa<small>CDI, por ano</small></label><div class="ib"><input id="cdi" value="11" inputmode="decimal"><span class="u">% a.a.</span></div></div>
+  <div class="fld full"><label>Regime tributário</label><span class="seg" id="sReg"><button data-v="real" class="on">Lucro Real</button><button data-v="pres">Presumido</button><button data-v="simp">Simples</button></span></div>
+ </div>
+ <div class="panel"><div class="ph"><span class="ic">◇</span><h3>Consórcio</h3></div>
+  <div class="fld"><label for="cpz">Prazo</label><div class="ib"><input id="cpz" value="100" inputmode="numeric"><span class="u">meses</span></div></div>
+  <div class="fld"><label for="ctx">Taxa total</label><div class="ib"><input id="ctx" value="16" inputmode="decimal"><span class="u">%</span></div></div>
+  <div class="fld"><label for="cct">Contemplação<small>com lance</small></label><div class="ib"><input id="cct" value="3" inputmode="numeric"><span class="u">mês</span></div></div>
+  <div class="fld"><label for="clan">Lance com caixa</label><div class="ib"><span class="u">R$</span><input id="clan" value="350.000" inputmode="decimal" data-f="brl"></div></div>
+ </div>
+ <div class="panel"><div class="ph"><span class="ic">%</span><h3>Financiamento e leasing</h3></div>
+  <div class="fld"><label for="fen">Entrada do financiamento</label><div class="ib"><input id="fen" value="20" inputmode="decimal"><span class="u">%</span></div></div>
+  <div class="fld"><label for="fju">Juros do financiamento<small>por ano</small></label><div class="ib"><input id="fju" value="17" inputmode="decimal"><span class="u">% a.a.</span></div></div>
+  <div class="fld"><label for="fpz">Prazo do financiamento</label><div class="ib"><input id="fpz" value="60" inputmode="numeric"><span class="u">meses</span></div></div>
+  <div class="fld"><label for="lju">Taxa do leasing<small>por ano</small></label><div class="ib"><input id="lju" value="15" inputmode="decimal"><span class="u">% a.a.</span></div></div>
+  <div class="fld"><label for="lpz">Prazo do leasing</label><div class="ib"><input id="lpz" value="48" inputmode="numeric"><span class="u">meses</span></div></div>
+ </div>
+</aside>
+<section class="res">
+ <div class="verdict" id="ver"></div>
+ <div class="mods" id="mods"></div>
+ <div class="panel"><div class="ph"><h3>Custo líquido a valor presente</h3></div><p class="phs">Tudo o que sai do caixa, trazido a hoje pelo CDI, menos o benefício fiscal (só no Lucro Real). Quanto menor, melhor.</p><div id="ch"></div></div>
+ <div class="panel"><div class="ph"><h3>Detalhe das quatro opções</h3></div><div class="tbl" id="tab"></div>
+  <div class="hint"><b>Leitura para o empresário:</b> no consórcio a empresa não paga juros — paga a taxa de administração diluída — e preserva o caixa, que segue rendendo. O ponto de atenção é o prazo até a contemplação: com lance, a carta sai em poucos meses. No Lucro Real, a taxa do consórcio, os juros do financiamento e as parcelas do leasing reduzem o IR e a CSLL (34%).</div></div>
+ <p class="foot">Versão beta, com números ilustrativos: depreciação de 20% ao ano para frota, 10% para máquinas e 4% para imóvel; financiamento em tabela Price; leasing sem valor residual. Para a decisão final da empresa, confirmar com o contador.</p>
+</section></div></main>
+<div id="mbar"><small id="mb_k"></small><b id="mb_v"></b></div>
+<script>/* Agion · protótipos de ferramentas — helpers comuns */
+var $=function(s){return document.querySelector(s);},$$=function(s){return [].slice.call(document.querySelectorAll(s));};
+function num(id){var el=document.getElementById(id);if(!el)return 0;var v=String(el.value||'').trim().replace(/^R\$\s?/,'');
+ if(/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(v))v=v.replace(/\./g,'').replace(',','.');else v=v.replace(',','.');var n=parseFloat(v);return isNaN(n)?0:n;}
+function brl(v,d){d=d||0;return 'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function brlK(v){var a=Math.abs(+v||0),s=v<0?'−':'';if(a>=1e6)return s+'R$ '+(a/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+' mi';if(a>=1e3)return s+'R$ '+(a/1e3).toLocaleString('pt-BR',{maximumFractionDigits:a>=1e5?0:1})+' mil';return s+'R$ '+Math.round(a);}
+function pct(v,d){return (+v||0).toLocaleString('pt-BR',{maximumFractionDigits:d==null?1:d})+'%';}
+function nf(v,d){return (+v||0).toLocaleString('pt-BR',{maximumFractionDigits:d||0});}
+function seg(id){var b=document.querySelector('#'+id+' button.on');return b?b.getAttribute('data-v'):null;}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function mbar(k,v){var a=document.getElementById('mb_k'),b=document.getElementById('mb_v');if(a)a.textContent=k;if(b)b.textContent=v;}
+function toast(t){var e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(function(){e.remove();},2600);}
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.seg button');if(!b)return;[].forEach.call(b.parentNode.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b);});if(window.calc)calc();});
+document.addEventListener('input',function(e){if(e.target.matches&&e.target.matches('.ib input')&&window.calc)calc();});
+document.addEventListener('blur',function(e){var t=e.target;if(t.matches&&t.matches('input[data-f=brl]')){var v=num(t.id);if(v)t.value=v.toLocaleString('pt-BR');}},true);
+
+/* gráfico de linhas em SVG: series=[{n,c,d:[...],dash}], labels=[...] */
+function linhas(el,series,labels,op){op=op||{};var W=760,H=op.h||300,L=64,R=16,T=16,B=34,iw=W-L-R,ih=H-T-B;
+ var all=[];series.forEach(function(s){s.d.forEach(function(v){if(v!=null&&isFinite(v))all.push(v);});});
+ var mn=op.min!=null?op.min:Math.min(0,Math.min.apply(0,all)),mx=Math.max.apply(0,all);if(mx===mn)mx=mn+1;var pad=(mx-mn)*0.08;mx+=pad;if(mn<0)mn-=pad;
+ var n=labels.length,X=function(i){return L+(n<=1?0:i*iw/(n-1));},Y=function(v){return T+ih-(v-mn)/(mx-mn)*ih;};
+ var g='';for(var k=0;k<=4;k++){var v=mn+(mx-mn)*k/4,y=Y(v);g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="#EFE7D6"/><text x="'+(L-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#6E7A75">'+(op.fy?op.fy(v):brlK(v))+'</text>';}
+ if(mn<0)g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" stroke="#C9BFA9"/>';
+ var step=Math.max(1,Math.ceil(n/8));labels.forEach(function(lb,i){if(i%step===0||i===n-1)g+='<text x="'+X(i)+'" y="'+(H-10)+'" text-anchor="middle" font-size="11" fill="#6E7A75">'+lb+'</text>';});
+ series.forEach(function(s){var p='';s.d.forEach(function(v,i){if(v==null||!isFinite(v))return;p+=(p?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1);});
+  if(s.area){g+='<path d="'+p+'L'+X(s.d.length-1)+' '+Y(Math.max(mn,0))+'L'+X(0)+' '+Y(Math.max(mn,0))+'Z" fill="'+s.c+'" opacity=".1"/>';}
+  g+='<path d="'+p+'" fill="none" stroke="'+s.c+'" stroke-width="'+(s.w||2.6)+'" stroke-linejoin="round" stroke-linecap="round"'+(s.dash?' stroke-dasharray="6 5"':'')+'/>';
+  var li=s.d.length-1;if(s.d[li]!=null)g+='<circle cx="'+X(li)+'" cy="'+Y(s.d[li])+'" r="4" fill="'+s.c+'"/>';});
+ (op.marks||[]).forEach(function(m){var x=X(m.i);g+='<line x1="'+x+'" x2="'+x+'" y1="'+T+'" y2="'+(T+ih)+'" stroke="'+(m.c||'#C5A059')+'" stroke-dasharray="3 4"/><text x="'+(x+5)+'" y="'+(T+12)+'" font-size="11" font-weight="700" fill="'+(m.c||'#A3833F')+'">'+m.t+'</text>';});
+ el.innerHTML='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img">'+g+'</svg><div class="lg">'+series.map(function(s){return '<span><i style="background:'+s.c+'"></i>'+s.n+'</span>';}).join('')+'</div>';}
+
+/* barras simples: itens=[{n,v,c}] */
+function barras(el,itens,op){op=op||{};var W=760,H=op.h||240,L=64,R=16,T=18,B=40,iw=W-L-R,ih=H-T-B;var mx=Math.max.apply(0,itens.map(function(i){return i.v;}).concat([1]))*1.12;
+ var n=itens.length,bw=Math.min(90,iw/n*0.62),g='';for(var k=0;k<=4;k++){var v=mx*k/4,y=T+ih-v/mx*ih;g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="#EFE7D6"/><text x="'+(L-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="#6E7A75">'+(op.fy?op.fy(v):brlK(v))+'</text>';}
+ itens.forEach(function(it,i){var cx=L+iw*(i+.5)/n,h=Math.max(2,it.v/mx*ih),y=T+ih-h;g+='<rect x="'+(cx-bw/2)+'" y="'+y+'" width="'+bw+'" height="'+h+'" rx="8" fill="'+(it.c||'#C5A059')+'"/><text x="'+cx+'" y="'+(y-6)+'" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0B2A26">'+(op.fv?op.fv(it.v):brlK(it.v))+'</text><text x="'+cx+'" y="'+(H-14)+'" text-anchor="middle" font-size="11.5" fill="#2B3D38">'+it.n+'</text>';});
+ el.innerHTML='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img">'+g+'</svg>';}
+
+/* ===== comuns dos protótipos 6–30 ===== */
+function am(a){return Math.pow(1+a,1/12)-1;}            /* taxa anual -> mensal */
+function aa(m){return Math.pow(1+m,12)-1;}              /* taxa mensal -> anual */
+function pmt(P,i,n){return i?P*i/(1-Math.pow(1+i,-n)):P/n;}
+function irr(fl){var n=fl.length,f=function(r){var s=0,d=1,q=1/(1+r);for(var t=0;t<n;t++){s+=fl[t]*d;d*=q;}return s;};
+ var R=[-0.3,-0.15,-0.08,-0.04,-0.02,-0.01,-0.005,-0.002,0,0.002,0.004,0.006,0.008,0.01,0.0125,0.015,0.02,0.03,0.045,0.07,0.1,0.15,0.25,0.4,0.7,1],lo=null,hi=null,flo,fhi,a=f(R[0]);
+ for(var i=1;i<R.length;i++){var b=f(R[i]);if(isFinite(a)&&isFinite(b)&&a*b<=0){lo=R[i-1];hi=R[i];flo=a;break;}a=b;}
+ if(lo==null)return null;for(var k=0;k<70;k++){var m=(lo+hi)/2,fm=f(m);if(fm*flo>0){lo=m;flo=fm;}else hi=m;}return (lo+hi)/2;}
+/* valor presente de n parcelas p, reajustadas por ix ao ano, à taxa mensal rf */
+function pvParc(p,n,ix,rf){var s=0,d=1,q=1/(1+rf);for(var m=1;m<=n;m++){d*=q;s+=p*Math.pow(1+ix,Math.floor((m-1)/12))*d;}return s;}
+function kpi(k,v,s,gd){return '<div class="kpi'+(gd?' gd':'')+'"><small>'+k+'</small><b>'+v+'</b><span>'+(s||'')+'</span></div>';}
+function opt(o){return '<div class="opt'+(o.win?' win':'')+'"><h4>'+o.t+(o.win?' <span class="pill gd">'+(o.wt||'melhor')+'</span>':'')+(o.tag||'')+'</h4><div class="big">'+o.v+'</div><div class="s">'+(o.s||'')+'</div>'+
+ (o.r?'<dl>'+o.r.map(function(x){return '<dt>'+x[0]+'</dt><dd>'+x[1]+'</dd>';}).join('')+'</dl>':'')+'</div>';}
+function verd(k,h,p){var e=document.getElementById('ver');if(e)e.innerHTML='<div class="k">'+k+'</div><h2>'+h+'</h2><p>'+p+'</p>';}
+function tab(cab,linhas,hl){return '<table><tr>'+cab.map(function(c){var r=c.charAt(0)==='>';return '<th'+(r?' class="r"':'')+'>'+(r?c.slice(1):c)+'</th>';}).join('')+'</tr>'+
+ linhas.map(function(l,i){return '<tr'+(hl&&hl(i)?' style="background:#FFF8E6"':'')+'>'+l.map(function(v,j){return '<td'+(cab[j]&&cab[j].charAt(0)==='>'?' class="r"':'')+'>'+v+'</td>';}).join('')+'</tr>';}).join('')+'</table>';}
+function rows(r){return '<div class="rws">'+r.map(function(x){return '<div class="rw"><span>'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join('')+'</div>';}
+function chk(it){return '<div class="chk">'+it.map(function(x){return '<div class="'+x[0]+'">'+x[1]+'</div>';}).join('')+'</div>';}
+function H(id,h){var e=document.getElementById(id);if(e)e.innerHTML=h;}
+function clamp(v,a,b){return Math.min(b,Math.max(a,v));}
+function sw(id){var b=document.querySelector('#'+id+' button.on');return b?b.getAttribute('data-v'):null;}
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.sw button');if(!b)return;[].forEach.call(b.parentNode.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b);});if(window.calc)calc();});
+document.addEventListener('input',function(e){if(e.target.matches&&e.target.matches('textarea')&&window.calc)calc();});
+/* troca de botão que muda os valores padrão: pre('sTipo',{imo:{cred:'300.000'},auto:{...}}) */
+var _dv={};function pre(id,map){var v=seg(id)||sw(id);if(_dv[id]!==undefined&&_dv[id]!==v&&map[v]){for(var k in map[v]){var e=document.getElementById(k);if(e)e.value=map[v][k];}}_dv[id]=v;return v;}
+/* chance por assembleia de uma cota com lance de lparc parcelas no grupo g (lance livre dos últimos 6 meses, em parcelas) */
+function pLance(lparc,g){if(g.lmed==null||!g.n6)return 0.03;var cm=g.cont/g.n6,f=clamp(.75+.08*cm,.75,1.15),p;
+ if(lparc>=g.lmed)p=.38+.32*Math.min(1,(lparc-g.lmed)/Math.max(1,g.lmed*.15));
+ else if(lparc>=g.lmin)p=.06+.32*(lparc-g.lmin)/Math.max(1,g.lmed-g.lmin);
+ else p=.01*Math.max(0,lparc/Math.max(1,g.lmin));return clamp(p*f,0,.8);}
+/* carta mais perto do valor pedido dentro do grupo; devolve {c,valor,parcela,td,pp,d} */
+function cartaPerto(g,v){var b=null;(g.cs||[]).forEach(function(c){var d=Math.abs(c[0]-v)/v;if(!b||d<b.d)b={c:c,d:d};});if(!b)return null;
+ var po=g.po||g.pr||100,tdOk=b.c[3]!=null||g.td!=null,td=b.c[3]!=null?b.c[3]:(g.td!=null?g.td:(b.c[1]?clamp(Math.round((b.c[1]*(/meia/.test(b.c[2])?2:1)*po/b.c[0]-1)*100),5,40):15));return {valor:b.c[0],parcela:b.c[1],mod:b.c[2],td:td,tdOk:tdOk,po:po,pp:(100+td)/po,d:b.d};}
+/* ===== comuns dos protótipos 31–60 ===== */
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.tabs button');if(!b)return;var box=b.closest('[data-tabs]')||document;[].forEach.call(b.parentNode.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b);});
+ [].forEach.call(box.querySelectorAll('.tp'),function(p){p.classList.toggle('on',p.getAttribute('data-tp')===b.getAttribute('data-tp'));});if(window.calc)calc();});
+document.addEventListener('input',function(e){var t=e.target;if(t.matches&&t.matches('input[type=range]')){var o=document.querySelector('output[for='+t.id+']');if(o&&t.getAttribute('data-fmt'))o.textContent=window[t.getAttribute('data-fmt')](+t.value);if(window.calc)calc();}});
+function rng(id){var e=document.getElementById(id);return e?+e.value:0;}
+function chip(id){var b=document.querySelector('#'+id+' button.on');return b?b.getAttribute('data-v'):null;}
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.chips button');if(!b||b.closest('[data-multi]'))return;[].forEach.call(b.parentNode.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b);});if(window.calc)calc();});
+function rand(seed){var a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+/* barras horizontais: itens=[{n,v,c,s}] */
+function barrasH(el,itens,op){op=op||{};var mx=Math.max.apply(0,itens.map(function(i){return Math.abs(i.v);}).concat([1]));
+ el.innerHTML='<div style="display:flex;flex-direction:column;gap:9px">'+itens.map(function(i){return '<div><div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:4px"><span>'+i.n+(i.s?' <small style="color:var(--mut)">'+i.s+'</small>':'')+'</span><b>'+(op.fv?op.fv(i.v):brlK(i.v))+'</b></div><div style="height:12px;border-radius:999px;background:var(--bg2);overflow:hidden"><i style="display:block;height:100%;width:'+Math.max(1,Math.abs(i.v)/mx*100)+'%;background:'+(i.c||'#C5A059')+';border-radius:999px"></i></div></div>';}).join('')+'</div>';}
+/* rosca: itens=[{n,v,c}] */
+function rosca(el,itens,op){op=op||{};var t=itens.reduce(function(a,i){return a+Math.max(0,i.v);},0)||1,a0=-Math.PI/2,g='',R=70,r=44,cx=90,cy=90;
+ itens.forEach(function(i){var a1=a0+Math.max(0,i.v)/t*Math.PI*2;if(a1-a0>0.0001){var lg=a1-a0>Math.PI?1:0,p=function(a,rr){return (cx+rr*Math.cos(a)).toFixed(2)+' '+(cy+rr*Math.sin(a)).toFixed(2);};
+  if(a1-a0>=Math.PI*2-0.0001){g+='<circle cx="90" cy="90" r="57" fill="none" stroke="'+i.c+'" stroke-width="26"/>';}else g+='<path d="M'+p(a0,R)+' A'+R+' '+R+' 0 '+lg+' 1 '+p(a1,R)+' L'+p(a1,r)+' A'+r+' '+r+' 0 '+lg+' 0 '+p(a0,r)+' Z" fill="'+i.c+'"/>';}a0=a1;});
+ el.innerHTML='<div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap"><svg viewBox="0 0 180 180" style="width:170px;flex:none">'+g+'<text x="90" y="88" text-anchor="middle" font-size="17" font-weight="700" fill="#0B2A26">'+(op.c||'')+'</text><text x="90" y="106" text-anchor="middle" font-size="10" fill="#6E7A75">'+(op.s||'')+'</text></svg><div class="lg" style="flex-direction:column;gap:6px;flex:1;min-width:160px">'+itens.map(function(i){return '<span><i style="background:'+i.c+'"></i>'+i.n+': <b>'+(op.fv?op.fv(i.v):brl(i.v))+'</b> · '+pct(Math.max(0,i.v)/t*100,0)+'</span>';}).join('')+'</div></div>';}
+/* dispersão: pts=[{x,y,r,c,t,hi}] */
+function dispersao(el,pts,op){op=op||{};var W=760,H=op.h||380,L=60,R=18,T=18,B=40,iw=W-L-R,ih=H-T-B;if(!pts.length){el.innerHTML='';return;}
+ var xs=pts.map(function(p){return p.x;}),ys=pts.map(function(p){return p.y;}),x0=op.x0!=null?op.x0:Math.min.apply(0,xs),x1=Math.max.apply(0,xs),y0=op.y0!=null?op.y0:Math.min.apply(0,ys),y1=Math.max.apply(0,ys);
+ if(x1===x0)x1=x0+1;if(y1===y0)y1=y0+1;var px=(x1-x0)*.06,py=(y1-y0)*.08;x0-=px;x1+=px;y0-=py;y1+=py;var X=function(v){return L+(v-x0)/(x1-x0)*iw;},Y=function(v){return T+ih-(v-y0)/(y1-y0)*ih;},g='';
+ for(var k=0;k<=4;k++){var vy=y0+(y1-y0)*k/4,vx=x0+(x1-x0)*k/4;g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(vy)+'" y2="'+Y(vy)+'" stroke="#EFE7D6"/><text x="'+(L-8)+'" y="'+(Y(vy)+4)+'" text-anchor="end" font-size="11" fill="#6E7A75">'+(op.fy?op.fy(vy):nf(vy,0))+'</text><text x="'+X(vx)+'" y="'+(H-18)+'" text-anchor="middle" font-size="11" fill="#6E7A75">'+(op.fx?op.fx(vx):nf(vx,0))+'</text>';}
+ g+='<text x="'+(L+iw/2)+'" y="'+(H-2)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#2B3D38">'+(op.lx||'')+'</text><text x="12" y="'+(T+ih/2)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#2B3D38" transform="rotate(-90 12 '+(T+ih/2)+')">'+(op.ly||'')+'</text>';
+ (op.vx||[]).forEach(function(v){g+='<line x1="'+X(v.v)+'" x2="'+X(v.v)+'" y1="'+T+'" y2="'+(T+ih)+'" stroke="'+(v.c||'#C5A059')+'" stroke-dasharray="4 4"/><text x="'+(X(v.v)+4)+'" y="'+(T+12)+'" font-size="11" font-weight="700" fill="'+(v.c||'#A3833F')+'">'+v.t+'</text>';});
+ pts.slice().sort(function(a,b){return (a.hi?1:0)-(b.hi?1:0);}).forEach(function(p){g+='<circle cx="'+X(p.x).toFixed(1)+'" cy="'+Y(p.y).toFixed(1)+'" r="'+(p.r||5)+'" fill="'+(p.c||'#2E6A8A')+'" fill-opacity="'+(p.hi?1:.55)+'" stroke="'+(p.hi?'#0B2A26':'#fff')+'" stroke-width="'+(p.hi?2:1)+'"><title>'+(p.t||'')+'</title></circle>'+(p.hi&&p.t?'<text x="'+(X(p.x)+9).toFixed(1)+'" y="'+(Y(p.y)-8).toFixed(1)+'" font-size="11.5" font-weight="700" fill="#0B2A26">'+p.lb+'</text>':'');});
+ el.innerHTML='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img">'+g+'</svg>'+(op.lg?'<div class="lg">'+op.lg.map(function(s){return '<span><i style="background:'+s[1]+'"></i>'+s[0]+'</span>';}).join('')+'</div>':'');}
+
+</script>
+<script>
+var DEP={frota:.20,maq:.10,imo:.04},COR={C:'#C5A059',F:'#2E6A8A',L:'#6C9682',V:'#C2724A'};
+function calc(){
+ var bem=seg('sBem'),V=num('val'),cx=num('cx'),cdi=num('cdi')/100,reg=seg('sReg'),
+  pz=Math.min(240,Math.max(6,Math.round(num('cpz')))),tx=num('ctx')/100,m=Math.min(pz,Math.max(1,Math.round(num('cct')))),lan=num('clan'),
+  ent=num('fen')/100,fj=num('fju')/100,fpz=Math.min(240,Math.max(6,Math.round(num('fpz')))),lj=num('lju')/100,lpz=Math.min(120,Math.max(6,Math.round(num('lpz'))));
+ var d=Math.pow(1+cdi,1/12)-1,IR=reg==='real'?.34:0,dep=DEP[bem]*V/12,H=Math.max(pz,fpz,lpz,120);
+ function vp(fl){var s=0;fl.forEach(function(v,t){s+=v/Math.pow(1+d,t);});return s;}
+ function novo(){var a=[];for(var i=0;i<=H;i++)a.push(0);return a;}
+ /* À vista */
+ var fV=novo(),eV=novo();fV[0]=V;for(var t=1;t<=H;t++)eV[t]=t<=Math.round(1/DEP[bem]*12)?dep:0;
+ /* Financiamento (Price) */
+ var fF=novo(),eF=novo(),P=V*(1-ent),i=Math.pow(1+fj,1/12)-1,pmt=P*i/(1-Math.pow(1+i,-fpz)),s=P,jT=0;fF[0]=V*ent;
+ for(t=1;t<=fpz;t++){var j=s*i;s-=pmt-j;jT+=j;fF[t]=pmt;eF[t]=j;}for(t=1;t<=H;t++)eF[t]+=t<=Math.round(1/DEP[bem]*12)?dep:0;
+ /* Leasing */
+ var fL=novo(),eL=novo(),il=Math.pow(1+lj,1/12)-1,pl=V*il/(1-Math.pow(1+il,-lpz));for(t=1;t<=lpz;t++){fL[t]=pl;eL[t]=pl;}
+ /* Consórcio: parcela cheia até contemplar; lance abate saldo; taxa dilui no prazo */
+ var fC=novo(),eC=novo(),plano=V*(1+tx),pc=plano/pz,pago=0;
+ for(t=1;t<=pz;t++){if(t===m){var L=Math.min(lan,plano-pago);fC[t]+=L;pago+=L;}var rest=plano-pago,n=pz-t+1,p=t<m?pc:rest/n;fC[t]+=p;pago+=p;eC[t]=V*tx/pz;}
+ for(t=m;t<=H;t++)eC[t]+=(t-m)<Math.round(1/DEP[bem]*12)?dep:0;
+ var M={C:{n:'Consórcio',f:fC,e:eC},F:{n:'Financiamento',f:fF,e:eF},L:{n:'Leasing',f:fL,e:eL},V:{n:'À vista',f:fV,e:eV}};
+ Object.keys(M).forEach(function(k){var o=M[k];o.tot=o.f.reduce(function(a,b){return a+b;},0);o.vp=vp(o.f);o.fis=IR?vp(o.e.map(function(x){return x*IR;})):0;o.liq=o.vp-o.fis;
+  o.p1=k==='C'?pc:k==='F'?pmt:k==='L'?pl:0;o.d0=k==='V'?V:k==='F'?V*ent:k==='C'?Math.min(lan,plano):0;o.cx=cx-(k==='V'?V:k==='F'?V*ent:k==='C'?Math.min(lan,plano):0);});
+ var ks=['C','F','L','V'],best=ks.slice().sort(function(a,b){return M[a].liq-M[b].liq;})[0],B=M[best];
+ $('#ver').innerHTML='<div class="k">Melhor para o caixa da empresa</div><h2><em>'+B.n+'</em> tem o menor custo real</h2><p>Custo líquido a valor presente de <b>'+brl(B.liq)+'</b> para um bem de '+brl(V)+'. '+ks.filter(function(k){return k!==best;}).map(function(k){return M[k].n+': <b>+'+brl(M[k].liq-B.liq)+'</b>';}).join(' · ')+'.'+(best==='C'?' A carta sai no <b>mês '+m+'</b> com o lance de '+brl(Math.min(lan,plano))+', e o restante do caixa continua rendendo.':'')+(reg!=='real'?' No '+(reg==='pres'?'Lucro Presumido':'Simples')+' não há benefício fiscal na conta.':'')+'</p>';
+ $('#mods').innerHTML=ks.map(function(k){var o=M[k];return '<div class="md'+(k===best?' win':'')+'"><h4>'+o.n+(k===best?' <span class="pill gd">melhor</span>':'')+'</h4><div class="big">'+brlK(o.liq)+'</div><div class="s">custo líquido a valor presente</div><dl><dt>Entrada ou lance</dt><dd>'+brlK(o.d0)+'</dd><dt>Parcela</dt><dd>'+(o.p1?brl(o.p1):'—')+'</dd><dt>Total pago</dt><dd>'+brlK(o.tot)+'</dd><dt>Benefício fiscal</dt><dd>'+(o.fis?brlK(o.fis):'—')+'</dd><dt>Caixa que sobra</dt><dd>'+(o.cx<0?'<span class="pill bad">falta '+brlK(-o.cx)+'</span>':brlK(o.cx))+'</dd></dl></div>';}).join('');
+ barras($('#ch'),ks.map(function(k){return {n:M[k].n,v:M[k].liq,c:COR[k]};}));
+ $('#tab').innerHTML='<table><tr><th>Opção</th><th class="r">Início</th><th class="r">Parcela</th><th class="r">Prazo</th><th class="r">Total pago</th><th class="r">A valor presente</th><th class="r">Benefício fiscal</th><th class="r">Custo líquido</th></tr>'+
+  ks.map(function(k){var o=M[k];return '<tr><td><b>'+o.n+'</b></td><td class="r">'+brl(o.d0)+'</td><td class="r">'+(o.p1?brl(o.p1):'—')+'</td><td class="r">'+(k==='C'?pz:k==='F'?fpz:k==='L'?lpz:0)+' m</td><td class="r">'+brl(o.tot)+'</td><td class="r">'+brl(o.vp)+'</td><td class="r">'+(o.fis?'− '+brl(o.fis):'—')+'</td><td class="r"><b>'+brl(o.liq)+'</b></td></tr>';}).join('')+'</table>';
+ mbar('Menor custo real',B.n+' · '+brlK(B.liq));
+}
+calc();
+</script>
+<script>function agVoltar(){try{if(window.opener){window.close();return false;}}catch(e){}return true;}</script></body></html>
