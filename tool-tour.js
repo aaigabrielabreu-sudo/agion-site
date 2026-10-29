@@ -142,7 +142,7 @@ var TOURS={
    {t:up('#preview'),title:'Prévia',text:'Aqui aparece a proposta exatamente como vai sair. Se algo estiver errado, ajuste os campos e gere de novo.'}
   ]},
  /* MCARTAS_20261021 */
- 'melhores-cartas':{id:'t-mcartas',v:5,/* v5 LANCE_LIVRE_CALC_26OUT *//* v4 RESERVA_CLIENTE_26OUT *//* MAPA_PROPOSTA_25OUT *//* TOURS_LV_23OUT */title:'Melhores cartas disponíveis',
+ 'melhores-cartas':{id:'t-mcartas',v:6,/* v6 DADOS_ESTATISTICOS_29OUT *//* v5 LANCE_LIVRE_CALC_26OUT *//* v4 RESERVA_CLIENTE_26OUT *//* MAPA_PROPOSTA_25OUT *//* TOURS_LV_23OUT */title:'Melhores cartas disponíveis',
   steps:[
    {t:null,title:'Onde posicionar o cliente',text:'A ferramenta usa o Resultado de Assembleia Final da HS, mês a mês desde jun/2019, para mostrar em cada grupo as cotas que já saíram e as livres mais bem posicionadas perto delas.'},
    {t:up('#cats','.fld'),title:'Categoria',text:'Imóvel ou Automóvel. Cada categoria tem os próprios grupos.'},
@@ -160,7 +160,7 @@ var TOURS={
    {t:up('#pop'),title:'Melhores oportunidades',text:'As livres onde mais números do sorteio caem primeiro, com quantos em cada uma; o + põe a cota na negociação. Na HS a busca anda em gangorra (item 54-A): se o número sorteado já saiu, vai para a cota de cima, depois a de baixo, alternando, até achar uma apta. Por isso cada número vai para a cota livre mais perto dele; no empate, a de cima.'},
    {t:up('#det'),title:'Detalhe e ações',text:'Na cota escolhida: o bloco colado, a posição dela na gangorra, os números do sorteio, posicionar cliente (a equipe toda vê), pôr na negociação, marcar como reservada ou indisponível quando o portal da HS mostrar que não dá, e desfazer depois.'},
    {t:up('#dprop'),title:'Levar para a proposta',text:'Com a cota escolhida, este botão leva os dados da cota, do grupo e um print do mapa em volta dela para o Gerador de propostas, que abre na página “A sua cota no grupo”.',optional:true},
-   {t:up('#tabs'),title:'Melhores grupos, grade global e lance livre',text:'“Melhores grupos” ordena os grupos pelas contemplações do último mês: quanto mais o grupo anda, mais ele contempla. “Grade global” mostra a carteira de 1 a 3.000, em todos os grupos, e sugere números para espalhar os clientes. “Lance livre” é a calculadora: quanto o cliente tem de lance e o crédito que ele quer, e ela acha o grupo onde o lance contempla (tem o tutorial próprio).'},
+   {t:up('#tabs'),title:'Dados estatísticos, melhores grupos, grade global e lance livre',text:'“Dados estatísticos” mostra o histórico do grupo em números: onde a Loteria caiu, o fluxo, o lance livre que contemplou e as cotas com mais chance agora (tem o tutorial próprio). “Melhores grupos” ordena os grupos pelas contemplações do último mês: quanto mais o grupo anda, mais ele contempla. “Grade global” mostra a carteira de 1 a 3.000, em todos os grupos, e sugere números para espalhar os clientes. “Lance livre” é a calculadora: quanto o cliente tem de lance e o crédito que ele quer, e ela acha o grupo onde o lance contempla (tem o tutorial próprio).'},
    {t:null,title:'Sempre confirme na HS',text:'A ferramenta sugere; a reserva de verdade é no portal da HS. Se a cota já estiver reservada por outro corretor, marque aqui como reservada para a equipe não perder tempo.'}
   ]},
  /* LANCE_LIVRE_CALC_26OUT · aba "Lance livre" da Melhores cartas (também abre por Ferramentas › Estratégias) */
@@ -180,6 +180,21 @@ var TOURS={
    {t:up('.lcc.hero [data-abre]'),title:'Abrir o grupo',text:'Leva ao mapa do grupo já com essa carta escolhida para a reserva: gere as cotas por proximidade e reserve no portal para o cliente.',optional:true},
    {t:up('.lcinfo'),title:'Como a conta é feita',text:'O passo a passo da conta, com um exemplo. Toque para abrir.',optional:true},
    {t:null,title:'Sempre confirme na HS',text:'A calculadora sugere com os dados do portal e do resultado das assembleias. Antes de ofertar, confirme o lance e o embutido no portal da HS.'}
+  ]},
+ /* DADOS_ESTATISTICOS_29OUT · aba "Dados estatísticos" da Melhores cartas */
+ 'melhores-cartas-stats':{id:'t-mcstats',v:1,title:'Dados estatísticos',
+  steps:[
+   {t:null,title:'O histórico do grupo, em números',text:'Esta aba lê o resultado final de cada assembleia do grupo escolhido e mostra onde a Loteria caiu, quanto o grupo anda, o lance livre que contemplou e quais cotas têm mais chance agora. Nada é gravado.'},
+   {t:up('.st-ctl'),title:'Período e filtros',text:'Escolha o período (6, 12 ou 24 meses, ou todo o período), em quantos trechos dividir o grupo (10 ou 20) e quais modalidades entram na conta: sorteio, lance fixo, limitado e fidelidade, e lance livre. Tudo se ajusta na hora.'},
+   {t:up('.st-hero'),title:'Raio-x do grupo',text:'O resumo do período: quantas contemplações houve, quantas pela Loteria, o trecho onde mais caiu, o último lance livre que contemplou, quanto do grupo já foi contemplado e quantas cotas estão à venda.'},
+   {t:function(){ var e=$$('[data-vis]').filter(vis)[0]; return e?e.closest('.panel'):null; },title:'Onde o grupo contemplou',text:'No mapa de calor, cada quadrado é um mês num trecho do grupo: quanto mais escuro, mais contemplações. Embaixo, em quantos meses a Loteria caiu em cada trecho. Toque num quadrado para listar as cotas daquele mês e trecho. Em “Linha do tempo”, cada ponto é uma cota contemplada na posição dela.'},
+   {t:up('.st-best'),title:'Cota com mais chance agora',text:'A cota livre (ou à venda) com mais chance: quantos números do sorteio vão primeiro para ela pela regra 54-A, com o peso do histórico do trecho, comparada com uma cota livre média do grupo. “Ver no mapa” leva para a cota na aba Por grupo e mostra onde ela está.',optional:true},
+   {t:up('.st-cfw','.panel'),title:'Contempladas × fluxo de agora',text:'A linha mostra o quanto cada faixa do grupo já foi contemplada em todo o histórico; as barras, onde o grupo contemplou nos últimos meses. Cota livre em faixa muito contemplada recebe mais números do sorteio.',optional:true},
+   {t:up('.st-fw','.panel'),title:'Fluxo do grupo',text:'Contemplações em cada assembleia, por modalidade, com a média dos últimos 3 meses.',optional:true},
+   {t:up('.st-llw','.panel'),title:'Lance livre que contemplou',text:'Em parcelas, a faixa entre o menor e o maior lance livre que contemplou em cada mês do período escolhido; o número é a mediana.',optional:true},
+   {t:up('.st-rk','.panel'),title:'Ranking das cotas',text:'As 10 cotas com mais chance, com os números que vão primeiro para cada uma, o trecho e a situação. Toque no título de uma coluna para reordenar; “Ver” leva para a cota no mapa.',optional:true},
+   {t:up('.st-trw','.panel'),title:'Os trechos do grupo',text:'Cada trecho com os meses em que a Loteria caiu nele, as contemplações no período e nos últimos meses, quanto já foi contemplado e quantas cotas estão à venda.',optional:true},
+   {t:null,title:'O histórico não garante o próximo sorteio',text:'A Loteria muda todo mês: os dados mostram onde já caiu, não onde vai cair. O que mais pesa é quantos números do sorteio vão primeiro para a cota. Antes de ofertar, confirme a cota no portal da HS.'}
   ]},
  /* LANCE_FERRAMENTA_26OUT · /calc-lance (ferramenta independente, com link e Baixar) */
  'calc-lance':{id:'t-calclance',v:1,title:'Calculadora de lance livre',
@@ -229,7 +244,7 @@ var TOURS={
 var path=(location.pathname||'').replace(/\.html$/,'').replace(/\/+$/,'').split('/').pop();
 var T0=TOURS[path]; if(!T0) return;
 /* LANCE_LIVRE_CALC_26OUT: na aba Lance livre da Melhores cartas o guia é o da calculadora */
-function qualT(){ var L=TOURS[path+'-lance']; if(!L) return T0; try{ if(W.AgionMC&&W.AgionMC.S) return W.AgionMC.S.aba==='lance'?L:T0; }catch(e){} return /[?&]aba=lance/.test(location.search)?L:T0; }
+function qualT(){ var a=null; try{ if(W.AgionMC&&W.AgionMC.S) a=W.AgionMC.S.aba; }catch(e){} if(a==null){ var q=/[?&]aba=(\w+)/.exec(location.search); a=q?q[1]:null; } /* DADOS_ESTATISTICOS_29OUT: aba Dados estatísticos tem o guia próprio */ var L=(a==='lance'||a==='stats')?TOURS[path+'-'+a]:null; return L||T0; }
 var T=qualT();
 try{ if(W.top!==W.self) return; }catch(e){ return; } /* dentro da plataforma (iframe do CRM) não mostra o guia */
 
