@@ -8,9 +8,9 @@
 (function(W,D){
  if(W.AgFerrCli)return;
  var API='https://bot.agionconsorcios.com.br',SUPA='https://sfekirqoflozylghwlbe.supabase.co',SKEY='sb_publishable_Ds4PlQmsvnny5GdALHvVYQ_RHgtFXw2';
- var ORDEM=['escada-financeira','escada-patrimonial','calc-alavancagem','calc-financiamento','calc-avista','calc-lance'];
+ var ORDEM=['escada-financeira','escada-patrimonial','calc-alavancagem','calc-financiamento','calc-avista','calc-lance','calc-reajuste'];/* REAJUSTE_29OUT */
  var FERR={'escada-financeira':'Escada financeira','escada-patrimonial':'Escada patrimonial','calc-alavancagem':'Alavancagem',
-  'calc-financiamento':'Financiamento × Consórcio','calc-avista':'Consórcio × À vista','calc-lance':'Lance livre'};
+  'calc-financiamento':'Financiamento × Consórcio','calc-avista':'Consórcio × À vista','calc-lance':'Lance livre','calc-reajuste':'Reajuste da carta'};
  var PAG=location.pathname.replace(/^\/+|\/+$/g,'').replace(/\.html$/,'');
  var NA_FERR=!!FERR[PAG],SK='agfc_pessoa';
  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}

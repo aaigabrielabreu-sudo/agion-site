@@ -203,6 +203,26 @@ var TOURS={
    {t:up('#pdfbtn'),title:'Baixar',text:'PDF ou imagem PNG do estudo, pronta para mandar no WhatsApp.',optional:true},
    {t:null,title:'Sempre confirme na HS',text:'A calculadora usa o resultado das assembleias e as cartas do portal. Antes de ofertar, confirme o lance e o embutido no portal da HS.'}
   ]},
+ 'calc-reajuste':{id:'t-calcreaj',v:1,title:'Reajuste da carta',/* REAJUSTE_29OUT */
+  save:function(){ var a=$('#segTipo button.on'),b=$('#sMeia button.on'); return (a?a.getAttribute('data-v'):'imo')+'|'+(b?b.getAttribute('data-v'):'0'); },
+  restore:function(s){ s=String(s||'imo|0').split('|'); clickSeg('#segTipo button[data-v="'+(s[0]||'imo')+'"]'); clickSeg('#sMeia button[data-v="'+(s[1]||'0')+'"]'); },
+  steps:[
+   {t:null,title:'A parcela acompanha a carta',text:'Para o cliente que pergunta “a parcela vai aumentar?”. A carta é corrigida uma vez por ano, no aniversário do grupo (INCC no imóvel, IPCA no automóvel), e a parcela sobe na mesma proporção: ela sobe porque a carta sobe. Tudo recalcula na hora; nada é gravado.'},
+   {t:up('#segTipo'),title:'Imóvel ou automóvel',text:'Troca o índice (INCC ou IPCA) e os valores padrão de prazo, taxa, valorização e contemplação.',go:function(){ clickSeg('#segTipo button[data-v="imo"]'); }},
+   {t:up('#cred','.panel'),title:'A carta',text:'O crédito de hoje, o prazo do plano e a taxa total (administração + fundo de reserva). A parcela cheia da tabela é (100% + taxa) ÷ prazo, sobre o valor da carta.'},
+   {t:up('#idx','.panel'),title:'O reajuste e o bem',text:'O índice que corrige a carta por ano e quanto o bem valoriza no mercado. O preço do bem pode ser diferente do crédito (em branco, fica igual): os dois andam separados e o veredito mostra se sobra ou falta.'},
+   {t:up('#ct','.fld'),title:'Mês da contemplação',text:'O mês previsto para contemplar. Até ali a carta vai sendo reajustada; depois, o valor de referência continua subindo e corrigindo a parcela até o fim do plano.'},
+   {t:up('#sMeia','.fld'),title:'Cheia ou meia',text:'Meia: até contemplar o cliente paga metade da parcela cheia da tabela, já com os reajustes. Depois de contemplar, a parcela fica cheia com o saldo redistribuído nos meses que faltam.',go:function(){ clickSeg('#sMeia button[data-v="1"]'); }},
+   {t:up('#verd'),title:'Veredito',text:'A carta na contemplação ao lado do preço do bem naquele mês: se compra o bem e sobra, se cobre só uma parte (e quanto falta para completar com lance, embutido ou recurso próprio) ou se acompanha o preço.'},
+   {t:up('.kpis'),title:'Os números',text:'A parcela de hoje, a parcela na contemplação já com os reajustes, o total pago em dinheiro de hoje (sem o efeito do índice) e o custo acima do índice, pela taxa interna de retorno.'},
+   {t:up('#p_rj'),title:'Cada reajuste, na ponta do lápis',text:'Em cada aniversário: quanto a carta ganha, quanto a parcela sobe por mês e no ano, e quantos reais de crédito o cliente ganha para cada real pago a mais. Ex.: carta de R$ 200 mil com reajuste de 5% ganha R$ 10 mil, e a parcela sobe uns R$ 30 por mês.'},
+   {t:up('#p_tl'),title:'Os aniversários do grupo',text:'Toque num ano para ver a carta, o bem e a parcela se a contemplação for nele. O anel mostra quanto do bem a carta cobre.'},
+   {t:up('#p_ch'),title:'Gráficos',text:'A carta e o preço do bem ano a ano, e a parcela no boleto ao lado da mesma parcela em dinheiro de hoje.'},
+   {t:up('#p_sc'),title:'Se a inflação for outra',text:'O mesmo plano com inflação mais baixa e mais alta: a parcela muda em reais, mas a cobertura do bem fica, porque carta e bem andam juntos.'},
+   {t:up('#agLinkBtn'),title:'Link para o cliente',text:'Gera um link temporário com os valores da tela: o cliente abre sem login e vê o mesmo estudo. Fica no Histórico de ferramentas, ligado ao cliente.',optional:true},
+   {t:up('#pdfbtn'),title:'Baixar',text:'PDF ou imagem PNG do estudo, pronta para mandar no WhatsApp.',optional:true},
+   {t:null,title:'Os índices são estimativas',text:'O reajuste real segue o índice previsto no contrato do grupo. Use a ferramenta para mostrar o mecanismo e a ordem de grandeza ao cliente.'}
+  ]},
 };
 
 /* ---------------------------------------------------------------- QUAL PÁGINA */
