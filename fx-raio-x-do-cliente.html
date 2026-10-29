@@ -1,9 +1,9 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><script>/* FX_BETA_29OUT · trava: só abre para quem está logado na plataforma com papel master (tabela profiles) */
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><script>/* FX_BETA_29OUT · trava: só abre para quem está logado na plataforma e é da equipe (master, líder ou especialista na tabela profiles); cliente e visitante voltam para /plataforma */
 (function(){var H=document.documentElement;try{H.style.visibility='hidden';}catch(e){}
- var SU='https://sfekirqoflozylghwlbe.supabase.co',SK='sb_publishable_Ds4PlQmsvnny5GdALHvVYQ_RHgtFXw2';
+ var EQUIPE=['master','lider','especialista'],SU='https://sfekirqoflozylghwlbe.supabase.co',SK='sb_publishable_Ds4PlQmsvnny5GdALHvVYQ_RHgtFXw2';
  function deny(){try{location.replace('/plataforma');}catch(e){location.href='/plataforma';}}
  function local(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('sb-')===0&&k.indexOf('auth-token')>-1){var v=JSON.parse(localStorage.getItem(k));return v&&(v.currentSession||v);}}}catch(e){}return null;}
- function papel(at,uid){return fetch(SU+'/rest/v1/profiles?select=role&id=eq.'+encodeURIComponent(uid),{headers:{apikey:SK,Authorization:'Bearer '+at}}).then(function(r){if(!r.ok)throw 'http'+r.status;return r.json();}).then(function(j){if(j&&j[0]&&j[0].role==='master')return at;throw 'papel';});}
+ function papel(at,uid){return fetch(SU+'/rest/v1/profiles?select=role&id=eq.'+encodeURIComponent(uid),{headers:{apikey:SK,Authorization:'Bearer '+at}}).then(function(r){if(!r.ok)throw 'http'+r.status;return r.json();}).then(function(j){if(j&&j[0]&&EQUIPE.indexOf(j[0].role)>=0)return at;throw 'papel';});}
  function viaLib(){return new Promise(function(ok,no){var sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
   sc.onload=function(){try{window.supabase.createClient(SU,SK).auth.getSession().then(function(r){var ss=r&&r.data&&r.data.session;if(!ss||!ss.user)return no('sessão');papel(ss.access_token,ss.user.id).then(ok,no);},no);}catch(e){no(e);}};
   sc.onerror=function(){no('lib');};(document.head||H).appendChild(sc);});}
@@ -127,7 +127,7 @@ textarea.tx{width:100%;min-height:90px;border-radius:14px;border:0;background:va
 .oc .k2{font:700 10.5px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--goldd)}.oc h4{margin:6px 0 2px;font:600 22px/1.15 var(--serif)}.oc .s{font-size:12.5px;color:var(--mut)}
 .oc dl{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;margin:12px 0 0;font-size:13px}.oc dt{color:var(--mut)}.oc dd{margin:0;text-align:right;font-weight:700}
 .steps{margin:0;padding-left:18px;font-size:14px;line-height:1.7}.steps b{color:var(--ink)}
-@media (max-width:1000px){.opc{grid-template-columns:1fr}}</style></head><body><header class="top"><div class="logo"><b>AGION</b><small>WEALTH · PLATAFORMA</small></div><nav class="crumb">Ferramentas › <span>Calculadoras</span> › <em>Raio-x do cliente</em></nav><span class="sp"></span><a class="backidx" href="/plataforma" onclick="return agVoltar()">← Plataforma</a><span class="proto beta">Beta · só master</span></header>
+@media (max-width:1000px){.opc{grid-template-columns:1fr}}</style></head><body><header class="top"><div class="logo"><b>AGION</b><small>WEALTH · PLATAFORMA</small></div><nav class="crumb">Ferramentas › <span>Calculadoras</span> › <em>Raio-x do cliente</em></nav><span class="sp"></span><a class="backidx" href="/plataforma" onclick="return agVoltar()">← Plataforma</a><span class="proto beta">Beta</span></header>
 <main class="wrap">
 <div class="hero"><div class="k">Ferramentas · Calculadora</div><h1>Raio-x: quanto <em>cabe no bolso</em></h1>
 <p class="lead">Para a primeira conversa: com a renda, os gastos e o dinheiro para lance, a ferramenta diz a parcela que cabe com folga, a carta certa e a chance de contemplar logo — e já sugere três caminhos para levar ao Gerador de propostas.</p></div>

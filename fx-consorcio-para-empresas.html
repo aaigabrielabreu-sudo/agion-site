@@ -1,9 +1,9 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><script>/* FX_BETA_29OUT · trava: só abre para quem está logado na plataforma com papel master (tabela profiles) */
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><script>/* FX_BETA_29OUT · trava: só abre para quem está logado na plataforma e é da equipe (master, líder ou especialista na tabela profiles); cliente e visitante voltam para /plataforma */
 (function(){var H=document.documentElement;try{H.style.visibility='hidden';}catch(e){}
- var SU='https://sfekirqoflozylghwlbe.supabase.co',SK='sb_publishable_Ds4PlQmsvnny5GdALHvVYQ_RHgtFXw2';
+ var EQUIPE=['master','lider','especialista'],SU='https://sfekirqoflozylghwlbe.supabase.co',SK='sb_publishable_Ds4PlQmsvnny5GdALHvVYQ_RHgtFXw2';
  function deny(){try{location.replace('/plataforma');}catch(e){location.href='/plataforma';}}
  function local(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('sb-')===0&&k.indexOf('auth-token')>-1){var v=JSON.parse(localStorage.getItem(k));return v&&(v.currentSession||v);}}}catch(e){}return null;}
- function papel(at,uid){return fetch(SU+'/rest/v1/profiles?select=role&id=eq.'+encodeURIComponent(uid),{headers:{apikey:SK,Authorization:'Bearer '+at}}).then(function(r){if(!r.ok)throw 'http'+r.status;return r.json();}).then(function(j){if(j&&j[0]&&j[0].role==='master')return at;throw 'papel';});}
+ function papel(at,uid){return fetch(SU+'/rest/v1/profiles?select=role&id=eq.'+encodeURIComponent(uid),{headers:{apikey:SK,Authorization:'Bearer '+at}}).then(function(r){if(!r.ok)throw 'http'+r.status;return r.json();}).then(function(j){if(j&&j[0]&&EQUIPE.indexOf(j[0].role)>=0)return at;throw 'papel';});}
  function viaLib(){return new Promise(function(ok,no){var sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
   sc.onload=function(){try{window.supabase.createClient(SU,SK).auth.getSession().then(function(r){var ss=r&&r.data&&r.data.session;if(!ss||!ss.user)return no('sessão');papel(ss.access_token,ss.user.id).then(ok,no);},no);}catch(e){no(e);}};
   sc.onerror=function(){no('lib');};(document.head||H).appendChild(sc);});}
@@ -124,7 +124,7 @@ textarea.tx{width:100%;min-height:90px;border-radius:14px;border:0;background:va
 .md{border-radius:20px;background:var(--bg);padding:16px}.md.win{background:linear-gradient(165deg,#FFF8E6,#F7EBCB);box-shadow:inset 0 0 0 1.5px var(--gold)}
 .md h4{margin:0 0 6px;font:700 14px var(--sans)}.md .big{font:700 22px/1.1 var(--sans)}.md .s{font-size:12px;color:var(--mut)}
 .md dl{display:grid;grid-template-columns:auto 1fr;gap:6px 8px;margin:12px 0 0;font-size:12.5px}.md dt{color:var(--mut)}.md dd{margin:0;text-align:right;font-weight:700}
-@media (max-width:1200px){.mods{grid-template-columns:1fr 1fr}}@media (max-width:640px){.mods{grid-template-columns:1fr}}</style></head><body><header class="top"><div class="logo"><b>AGION</b><small>WEALTH · PLATAFORMA</small></div><nav class="crumb">Ferramentas › <span>Estratégias</span> › <em>Consórcio para empresas</em></nav><span class="sp"></span><a class="backidx" href="/plataforma" onclick="return agVoltar()">← Plataforma</a><span class="proto beta">Beta · só master</span></header>
+@media (max-width:1200px){.mods{grid-template-columns:1fr 1fr}}@media (max-width:640px){.mods{grid-template-columns:1fr}}</style></head><body><header class="top"><div class="logo"><b>AGION</b><small>WEALTH · PLATAFORMA</small></div><nav class="crumb">Ferramentas › <span>Estratégias</span> › <em>Consórcio para empresas</em></nav><span class="sp"></span><a class="backidx" href="/plataforma" onclick="return agVoltar()">← Plataforma</a><span class="proto beta">Beta</span></header>
 <main class="wrap">
 <div class="hero"><div class="k">Ferramentas · Estratégia</div><h1>Consórcio para <em>empresas</em></h1>
 <p class="lead">Frota, máquinas ou imóvel comercial: compare consórcio, financiamento (CDC/FINAME), leasing e compra à vista pelo custo real para o caixa da empresa — trazendo tudo a valor presente pelo CDI e, no Lucro Real, descontando o benefício fiscal.</p></div>
