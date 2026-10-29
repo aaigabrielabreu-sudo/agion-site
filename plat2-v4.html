@@ -5962,6 +5962,8 @@ vcMontar();
     if(i<0||its.some(function(t){return t[0]==='beta';}))return gr;var n=its.slice();n.splice(i+1,0,['beta','Beta','spark']);return [gr[0],n];});}catch(x){}
    return g;};
  }
+ /* a aba Beta abre no visual novo (sem isto o roteador manda para o visual antigo) */
+ try{if(typeof V4OK==='object'&&V4OK)V4OK.beta=1;}catch(x){}
  /* 2) a página Beta, no mesmo modelo da página Ferramentas */
  R.beta=function(v){
   clonaTc();
