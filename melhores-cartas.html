@@ -2101,12 +2101,14 @@ function stMarca(c,inf){var M=$('#mapa'),el=M&&M.querySelector('.cel[data-c="'+c
  var tg=document.createElement('span');tg.className='st-tag';
  tg.innerHTML='<span class="st-tg1"><b>Cota '+c+'</b>'+(inf.t?'<em>'+esc(inf.t)+'</em>':'')+'</span>'+(inf.s?'<small>'+esc(inf.s)+'</small>':'')+(np?'<small class="st-tgp"><i></i>'+(np===1?'O número marcado também vai':'Os '+np+' números marcados também vão')+' primeiro para ela no sorteio</small>':'')+(mob?'<small class="st-tgh">Toque na cota para ver os detalhes</small>':'');
  var ajusta=function(){if(!tg.parentNode)return;tg.style.marginLeft='0px';tg.style.setProperty('--dx','0px');
-  var R=M.getBoundingClientRect(),sc=(el.getBoundingClientRect().width/(el.offsetWidth||1))||1;tg.style.maxWidth=Math.floor(Math.min(300,(R.width-6)/sc))+'px';var q=tg.getBoundingClientRect(),dx=0;if(q.left<R.left+2)dx=(R.left+2-q.left)/sc;else if(q.right>R.right-2)dx=(R.right-2-q.right)/sc;
+  /* conta pelo tamanho de layout (não pelo retângulo da animação de entrada): a etiqueta fica sempre dentro do mapa */
+  var R=M.getBoundingClientRect(),c=el.getBoundingClientRect(),sc=(c.width/(el.offsetWidth||1))||1;tg.style.maxWidth=Math.floor(Math.min(300,(R.width-6)/sc))+'px';
+  var w=tg.offsetWidth*sc,cx=c.left+c.width/2,lo=(R.left+3-(cx-w/2))/sc,hi=(R.right-3-(cx+w/2))/sc,dx=lo>0?lo:(hi<0?hi:0);
   tg.style.marginLeft=dx+'px';tg.style.setProperty('--dx',dx+'px');
-  if(!tg.classList.contains('bx')&&tg.getBoundingClientRect().top<stickPx()+4)tg.classList.add('bx');};
+  if(!tg.classList.contains('bx')&&c.top-tg.offsetHeight*sc-14<stickPx()+4)tg.classList.add('bx');};
  /* espera a rolagem chegar na cota para mostrar a etiqueta e o destaque */
  var y0=-1,k=0;stMarca._w=setInterval(function(){var y=window.scrollY;if(y===y0||++k>30){clearInterval(stMarca._w);if(!el.isConnected||!el.classList.contains('st-alvo'))return;
-  var pu=document.createElement('span');pu.className='st-pulso';el.appendChild(pu);el.appendChild(tg);ajusta();
+  var pu=document.createElement('span');pu.className='st-pulso';el.appendChild(pu);el.appendChild(tg);ajusta();tg.addEventListener('animationend',ajusta);setTimeout(ajusta,650);
   M.classList.add('st-foco');stMarca._f=setTimeout(function(){M.classList.remove('st-foco');},2400);
   stMarca._t=setTimeout(function(){tg.classList.add('sai');stMarca._t=setTimeout(stLimpa,420);},12000);}y0=y;},130);
  if(!M._stl){M._stl=1;M.addEventListener('click',function(){stLimpa();},true);var bs=$('#busca');if(bs)bs.addEventListener('keydown',function(e){if(e.key==='Enter')stLimpa();});}}
