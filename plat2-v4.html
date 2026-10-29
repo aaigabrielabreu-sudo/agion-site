@@ -5952,7 +5952,7 @@ vcMontar();
   [].forEach.call(document.styleSheets,function(ss){try{walk(ss.cssRules,function(t){return t;});}catch(x){}});
   var st=document.createElement('style');st.id='fx-tc-clone';st.textContent=out.join('\n');document.head.appendChild(st);}
  function card(x){var seta=typeof I==='function'?I('arrow',15):'→';
-  return '<div class="fxb-card" data-fx="'+e(x[0])+'" data-c="'+e(x[2])+'" role="button" tabindex="0"><div class="cov" style="--tcb:'+x[6]+'"><svg class="tline" viewBox="0 0 420 160" preserveAspectRatio="none">'+x[7]+'</svg><span class="em">'+(typeof I==='function'?I(x[4],22):'')+'</span></div>'+
+  return '<div class="fxb-card" data-fx="'+e(x[0])+'" data-fxcat="'+e(x[2])+'" role="button" tabindex="0"><div class="cov" style="--tcb:'+x[6]+'"><svg class="tline" viewBox="0 0 420 160" preserveAspectRatio="none">'+x[7]+'</svg><span class="em">'+(typeof I==='function'?I(x[4],22):'')+'</span></div>'+
    '<div class="bd2"><h3>'+e(x[1])+'</h3><p>'+e(x[3])+'</p><div class="ft2"><span class="pill au">'+e(x[5])+'</span><span class="open">Abrir '+seta+'</span></div></div></div>';}
  /* 1) item "Beta" no menu, logo abaixo de Ferramentas, para todos os papéis da equipe (vale para a barra lateral, a barra de baixo do celular, o "Mais" e a busca) */
  if(typeof navGrupos==='function'){
@@ -5972,7 +5972,7 @@ vcMontar();
    sn('fsnb',[['t','Todas',L.length]].concat(cats.map(function(c){return [c[0],c[1]];})),'t')+'<div class="tg2 rv" id="tgb">'+L.map(card).join('')+'</div>';
   var cs=[].slice.call(v.querySelectorAll('.fxb-card'));
   setTimeout(function(){cs.forEach(function(c,i){setTimeout(function(){c.classList.add('in2');},Math.min(i,12)*70);});},300);
-  bindSeg('fsnb',function(k){cs.forEach(function(c){c.style.display=(k==='t'||c.getAttribute('data-c')===k)?'':'none';});
+  bindSeg('fsnb',function(k){cs.forEach(function(c){c.style.display=(k==='t'||c.getAttribute('data-fxcat')===k)?'':'none';});
    if(typeof stagger==='function')stagger(cs.filter(function(c){return c.style.display!=='none';}),0);});
   v.addEventListener('click',function(ev){var b=ev.target.closest('[data-fx]');if(b)abre(b.getAttribute('data-fx'));});
   v.addEventListener('keydown',function(ev){if(ev.key!=='Enter'&&ev.key!==' ')return;var b=ev.target.closest('[data-fx]');if(b){ev.preventDefault();abre(b.getAttribute('data-fx'));}});
