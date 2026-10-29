@@ -136,41 +136,89 @@ table.sens td.cur{box-shadow:inset 0 0 0 2px #0B2A26;font-weight:800}
 
 .backidx{font:700 12px var(--sans);color:var(--ink2);text-decoration:none;padding:7px 12px;border-radius:999px;background:var(--bg2);white-space:nowrap}
 @media (max-width:640px){.proto{display:none}.backidx{padding:6px 10px;font-size:11px}.logo small{display:none}}
-.cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.cb{border-radius:20px;background:var(--bg);padding:16px}.cb h4{margin:0 0 8px;font:700 13px var(--sans);color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
-.cb .row{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid #EFE7D6;font-size:13.5px}.cb .row:first-of-type{border-top:0}.cb .row b{font-weight:700}
-@media (max-width:760px){.cmp{grid-template-columns:1fr}}</style></head><body><header class="top"><div class="logo"><b>AGION</b><small>WEALTH · PLATAFORMA</small></div><nav class="crumb">Ferramentas › <span>Calculadoras</span> › <em>Reajuste da carta</em></nav><span class="sp"></span><a class="backidx" href="/plataforma" onclick="return agVoltar()">← Plataforma</a><span class="proto beta">Beta</span></header>
-<main class="wrap">
-<div class="hero"><div class="k">Ferramentas · Calculadora</div><h1>Reajuste da <em>carta</em></h1>
-<p class="lead">Mostra ao cliente, ano a ano, como a carta de crédito acompanha o índice (INCC no imóvel, IPCA no auto) e por que a parcela sobe junto. Responde à objeção “a parcela vai aumentar?” provando que o poder de compra fica protegido.</p></div>
-<div class="g2"><aside class="side">
- <div class="panel"><div class="ph"><span class="ic">◇</span><h3>A carta</h3></div>
-  <div class="fld full"><label>Tipo</label><span class="seg" id="sTipo"><button data-v="imo" class="on">Imóvel</button><button data-v="auto">Auto</button></span></div>
-  <div class="fld"><label for="cred">Crédito hoje</label><div class="ib"><span class="u">R$</span><input id="cred" value="500.000" inputmode="decimal" data-f="brl"></div></div>
-  <div class="fld"><label for="pz">Prazo</label><div class="ib"><input id="pz" value="200" inputmode="numeric"><span class="u">meses</span></div></div>
-  <div class="fld"><label for="tx">Taxa total</label><div class="ib"><input id="tx" value="25" inputmode="decimal"><span class="u">%</span></div></div>
-  <div class="fld full"><label>Parcela até contemplar</label><span class="seg" id="sMeia"><button data-v="0" class="on">Cheia</button><button data-v="1">Meia parcela</button></span></div>
- </div>
- <div class="panel"><div class="ph"><span class="ic">%</span><h3>Índices</h3></div>
-  <div class="fld"><label for="idx">Reajuste da carta<small id="idxN">INCC por ano</small></label><div class="ib"><input id="idx" value="6" inputmode="decimal"><span class="u">% a.a.</span></div></div>
-  <div class="fld"><label for="val">Valorização do bem<small>preço de mercado, por ano</small></label><div class="ib"><input id="val" value="6" inputmode="decimal"><span class="u">% a.a.</span></div></div>
-  <div class="fld"><label for="ct">Contemplação</label><div class="ib"><input id="ct" value="36" inputmode="numeric"><span class="u">mês</span></div></div>
- </div>
-</aside>
-<section class="res">
- <div class="verdict" id="ver"></div>
- <div class="kpis" id="kp"></div>
- <div class="panel"><div class="ph"><h3>A carta acompanha o preço do bem</h3></div><p class="phs">Linha dourada: crédito reajustado. Tracejada: preço do bem no mercado. Linha verde (escala da parcela ×100): a parcela mensal.</p><div id="ch"></div></div>
- <div class="cmp">
-  <div class="cb"><h4>Sem consórcio (guardando o dinheiro parado)</h4><div id="cmpA"></div></div>
-  <div class="cb"><h4>Com a carta reajustada</h4><div id="cmpB"></div></div>
- </div>
- <div class="panel"><div class="ph"><h3>Ano a ano</h3></div><div class="tbl" id="tab"></div>
-  <div class="hint"><b>Por que a parcela sobe:</b> o cliente compra um percentual do plano por mês, não um valor fixo. Quando a carta é reajustada, o mesmo percentual passa a valer mais em reais — a parcela sobe na mesma proporção que o crédito. Depois da contemplação, o saldo devedor continua sendo corrigido pelo índice até a quitação.</div></div>
- <div id="mat"></div>
- <p class="foot">Versão beta. Reajuste aplicado uma vez por ano, no aniversário do grupo. Os índices são estimativas editáveis; o reajuste real segue o índice previsto no contrato do grupo.</p>
-</section></div></main>
-<div id="mbar"><small id="mb_k"></small><b id="mb_v"></b></div>
+body{background:#F6F1E6}
+.rj-top{display:flex;align-items:center;gap:14px;padding:16px clamp(16px,4vw,48px);border-bottom:1px solid #E6DCC6;background:#F6F1E6;position:sticky;top:0;z-index:30}
+.rj-top .logo b{font:700 17px var(--serif);letter-spacing:.16em;color:#0B2A26}.rj-top .logo small{display:block;font:700 9px var(--sans);letter-spacing:.2em;color:#A3833F}
+.rj-top .backidx{font:700 12.5px var(--sans);color:#0B2A26;text-decoration:none;border:1.5px solid #0B2A26;border-radius:999px;padding:7px 14px}
+.rj{max-width:1180px;margin:0 auto;padding:clamp(18px,4vw,44px) clamp(16px,4vw,48px) 60px}
+.rj-kick{font:700 11px var(--sans);letter-spacing:.2em;text-transform:uppercase;color:#A3833F}
+.rj h1{font:500 clamp(34px,5.4vw,64px)/1.02 var(--serif);color:#0B2A26;margin:10px 0 18px;letter-spacing:-.01em}.rj h1 em{color:#B5883A;font-style:italic}
+.rj-frase{font:400 clamp(17px,1.9vw,22px)/1.85 var(--serif);color:#2B3D38;max-width:980px;margin:0}
+.rj-in{display:inline-flex;align-items:center;border-bottom:2px solid #C5A059;background:#FFF9EC;border-radius:8px 8px 0 0;padding:0 6px;margin:0 2px;vertical-align:baseline}
+.rj-in input{border:0;background:transparent;font:700 clamp(16px,1.8vw,21px) var(--sans);color:#0B2A26;width:100%;text-align:center;outline:none;padding:2px 0}
+.rj-in.w9{width:8.6em}.rj-in.w4{width:3.6em}.rj-in.w3{width:2.9em}
+.rj-tg{display:inline-flex;gap:2px;background:#EFE5CF;border-radius:999px;padding:3px;vertical-align:middle}
+.rj-tg button{border:0;background:none;border-radius:999px;padding:4px 12px;font:600 clamp(13px,1.4vw,16px) var(--sans);color:#6E7A75;cursor:pointer}.rj-tg button.on{background:#0B2A26;color:#F4E6C0}
+.rj-sec{margin-top:clamp(30px,5vw,56px)}.rj-sec>h2{font:500 clamp(22px,2.6vw,30px)/1.15 var(--serif);color:#0B2A26;margin:0 0 6px}.rj-sec>h2 em{color:#B5883A}.rj-sec>p.d{margin:0 0 18px;color:#5E6B66;font-size:14px;max-width:760px;line-height:1.55}
+.rj-palco{display:grid;grid-template-columns:1.25fr .75fr;gap:22px;align-items:stretch}
+.rj-bal{background:#FFFCF4;border:1px solid #E6DCC6;border-radius:28px;padding:18px 18px 8px;position:relative;overflow:hidden}
+.rj-bal svg{width:100%;height:auto;display:block}
+.rj-bal .beam{transition:transform .9s cubic-bezier(.3,1.4,.5,1);transform-origin:260px 80px}
+.rj-bal .pan{transition:transform .9s cubic-bezier(.3,1.4,.5,1)}
+.rj-veredito{text-align:center;font:500 clamp(18px,2vw,24px)/1.35 var(--serif);color:#0B2A26;margin:4px 6px 14px}.rj-veredito b{color:#B5883A}
+.rj-ano{background:#0B2A26;color:#F4EFE4;border-radius:28px;padding:22px 22px 18px;display:flex;flex-direction:column;gap:14px}
+.rj-ano .t{font:700 11px var(--sans);letter-spacing:.18em;text-transform:uppercase;color:#C5A059}
+.rj-ano .big{font:600 44px/1 var(--serif)}.rj-ano .big small{font:600 14px var(--sans);color:#A9B8B1;margin-left:6px}
+.rj-ano input[type=range]{width:100%;accent-color:#C5A059}
+.rj-ano .rws{display:flex;flex-direction:column}.rj-ano .rw{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid rgba(244,239,228,.12);font-size:13.5px}.rj-ano .rw b{font-variant-numeric:tabular-nums;color:#fff}
+.rj-ano .rw span{color:#A9B8B1}.rj-ano .hint2{font-size:12px;color:#A9B8B1;line-height:1.45}
+.rj-graf{background:#FFFCF4;border:1px solid #E6DCC6;border-radius:28px;padding:18px}
+.rj-graf svg{width:100%;height:auto;display:block}.rj-lg{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:#5E6B66;margin-top:8px}.rj-lg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.rj-cap{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+.rj-cap .c{display:grid;grid-template-columns:200px 1fr auto;gap:12px;align-items:center;font-size:14px}
+.rj-cap .bar{height:30px;border-radius:999px;background:#EFE5CF;overflow:hidden}.rj-cap .bar i{display:block;height:100%;border-radius:999px;transition:width .8s}
+.rj-cap b{font-variant-numeric:tabular-nums;font-size:15px}
+.rj-strip{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 14px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.rj-ca{flex:0 0 172px;scroll-snap-align:start;border-radius:22px;background:#FFFCF4;border:1px solid #E6DCC6;padding:14px 14px 12px;cursor:pointer;transition:transform .2s}
+.rj-ca:hover{transform:translateY(-3px)}.rj-ca.ct{background:#0B2A26;color:#F4EFE4;border-color:#0B2A26}.rj-ca.sel{box-shadow:0 0 0 2.5px #C5A059}
+.rj-ca .a{font:600 26px var(--serif)}.rj-ca .ix{display:inline-block;font:700 11px var(--sans);background:#F3E7C8;color:#7A5A1A;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:5px}.rj-ca.ct .ix{background:#C5A059;color:#0B2A26}
+.rj-ca dl{display:grid;grid-template-columns:auto 1fr;gap:4px 8px;margin:10px 0 0;font-size:12px}.rj-ca dt{color:#7C8783}.rj-ca.ct dt{color:#A9B8B1}.rj-ca dd{margin:0;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.rj-fut{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.rj-f{border-radius:26px;padding:20px;background:#FFFCF4;border:1px solid #E6DCC6}.rj-f.me{background:linear-gradient(170deg,#FFF6DF,#F5E7C3);border-color:#C5A059}
+.rj-f h3{margin:0;font:600 13px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:#A3833F}.rj-f .v{font:600 30px var(--serif);color:#0B2A26;margin:8px 0 2px}
+.rj-f .m{height:10px;border-radius:999px;background:#EFE5CF;margin:12px 0 4px;position:relative}.rj-f .m i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:#3F8F6A}
+.rj-f dl{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;margin:12px 0 0;font-size:13px}.rj-f dt{color:#7C8783}.rj-f dd{margin:0;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.rj-mapa{display:grid;gap:8px;background:#FFFCF4;border:1px solid #E6DCC6;border-radius:28px;padding:18px;overflow-x:auto}
+.rj-mapa .row{display:grid;grid-template-columns:90px repeat(5,minmax(56px,1fr));gap:8px;align-items:center}
+.rj-mapa .h{font:700 11px var(--sans);color:#7C8783;text-align:center;letter-spacing:.06em}.rj-mapa .h.l{text-align:left}
+.rj-dot{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 13px var(--sans);color:#0B2A26;margin:auto;max-width:74px;width:100%;transition:transform .2s}
+.rj-dot.cur{outline:3px solid #0B2A26;outline-offset:3px}
+.rj-cupom{max-width:560px;margin:0 auto;background:#FFFEF9;border-radius:6px;padding:26px 26px 30px;box-shadow:0 14px 40px rgba(11,42,38,.12);font:500 13.5px/1.75 ui-monospace,SFMono-Regular,Menlo,monospace;color:#1E2B27;position:relative}
+.rj-cupom::before,.rj-cupom::after{content:'';position:absolute;left:0;right:0;height:10px;background:radial-gradient(circle at 6px 0,transparent 6px,#FFFEF9 6.5px) 0 0/12px 10px repeat-x}.rj-cupom::before{top:-10px;transform:rotate(180deg)}.rj-cupom::after{bottom:-10px}
+.rj-cupom .tt{text-align:center;font-weight:800;letter-spacing:.12em}.rj-cupom .sep{border-top:1.5px dashed #9AA39F;margin:10px 0}
+.rj-cupom .l{display:flex;gap:8px}.rj-cupom .l span{flex:1;overflow:hidden;white-space:nowrap}.rj-cupom .l span::after{content:' ..............................................................'}
+.rj-cupom .l b{white-space:nowrap}.rj-cupom .f{color:#5E6B66;font-size:12px;padding-left:14px}.rj-cupom .tot{font-weight:800;font-size:15px}
+.rj .foot{margin-top:40px}
+@media (max-width:900px){.rj-palco{grid-template-columns:1fr}.rj-fut{grid-template-columns:1fr}.rj-cap .c{grid-template-columns:1fr auto}.rj-cap .bar{grid-column:1/-1;order:3}}
+@media (max-width:640px){.rj-in.w9{width:7.4em}.rj-cupom{padding:22px 16px 26px;font-size:12px}.rj-mapa .row{grid-template-columns:66px repeat(5,minmax(44px,1fr))}.rj-dot{font-size:11px}.rj-top .logo small{display:none}}</style></head><body><header class="rj-top"><div class="logo"><b>AGION</b><small>WEALTH · PLATAFORMA</small></div><span class="sp"></span><a class="backidx" href="/plataforma" onclick="return agVoltar()">← Plataforma</a><span class="proto beta">Beta</span></header>
+<main class="rj">
+<div class="rj-kick">Ferramentas · Reajuste da carta</div>
+<h1>A parcela sobe.<br><em>O seu poder de compra, não.</em></h1>
+<p class="rj-frase">Uma carta de <label class="rj-in w9"><input id="cred" value="500.000" inputmode="decimal" data-f="brl" aria-label="Crédito"></label> para
+<span class="rj-tg" id="sTipo"><button data-v="imo" class="on">imóvel</button><button data-v="auto">automóvel</button></span>,
+em <label class="rj-in w4"><input id="pz" value="200" inputmode="numeric" aria-label="Prazo em meses"></label> meses, com taxa total de <label class="rj-in w3"><input id="tx" value="25" inputmode="decimal" aria-label="Taxa total"></label>%.
+A carta é corrigida pelo <b id="idxN">INCC</b> de <label class="rj-in w3"><input id="idx" value="6" inputmode="decimal" aria-label="Reajuste anual"></label>% ao ano e o <span id="bemN">imóvel</span> valoriza <label class="rj-in w3"><input id="val" value="6" inputmode="decimal" aria-label="Valorização do bem"></label>% ao ano.
+O cliente paga <span class="rj-tg" id="sMeia"><button data-v="0" class="on">parcela cheia</button><button data-v="1">meia parcela</button></span> e é contemplado no mês <label class="rj-in w3"><input id="ct" value="36" inputmode="numeric" aria-label="Mês da contemplação"></label>.</p>
+
+<section class="rj-sec"><div class="rj-palco">
+ <div class="rj-bal"><div id="bal"></div><div class="rj-veredito" id="ver"></div></div>
+ <div class="rj-ano"><div class="t">Se for contemplado no</div><div class="big" id="yrB"></div><input type="range" id="yr" min="1" max="17" step="1" value="3" aria-label="Ano da contemplação"><div class="rws" id="yrR"></div><div class="hint2">Arraste para ver a balança em outro ano. O reajuste acontece no aniversário do grupo: 13º, 25º, 37º mês…</div></div>
+</div></section>
+
+<section class="rj-sec"><h2>Em reais a parcela sobe. <em>Em dinheiro de hoje, ela fica no lugar.</em></h2><p class="d">Barras douradas: a parcela que chega no boleto, ano a ano. Linha escura: a mesma parcela tirando o reajuste, ou seja, quanto ela pesa em dinheiro de hoje.</p>
+ <div class="rj-graf"><div id="gp"></div><div class="rj-lg"><span><i style="background:#C5A059"></i>Parcela no boleto</span><span><i style="background:#0B2A26"></i>Em dinheiro de hoje</span><span><i style="background:#C2724A"></i>Contemplação</span></div>
+ <div class="rj-cap" id="cap"></div></div></section>
+
+<section class="rj-sec"><h2>Os aniversários do grupo</h2><p class="d">Cada cartão é um ano do plano. Toque para levar a balança àquele ano.</p><div class="rj-strip" id="strip"></div></section>
+
+<section class="rj-sec"><h2>Três futuros para a inflação</h2><p class="d">Se o índice e o preço do bem andam juntos, a carta cobre o bem em qualquer um deles. Muda o tamanho da parcela em reais, não o que ela compra.</p><div class="rj-fut" id="fut"></div></section>
+
+<section class="rj-sec"><h2>Mapa de proteção</h2><p class="d">Quanto a carta cobre do bem no mês da contemplação, cruzando o índice da carta (linhas) com a valorização do bem (colunas). Verde: cobre tudo. O círculo marcado é o cenário de agora.</p><div class="rj-mapa" id="mapa"></div></section>
+
+<section class="rj-sec"><h2>A conta, linha por linha</h2><p class="d">O mesmo cálculo da tela, como num cupom: cada número com a operação que gerou ele.</p><div class="rj-cupom" id="cupom"></div></section>
+
+<p class="foot">Versão beta. Reajuste aplicado uma vez por ano, no aniversário do grupo. Os índices são estimativas editáveis; o reajuste real segue o índice previsto no contrato do grupo. Custo efetivo pela taxa interna de retorno do fluxo do cliente.</p>
+</main>
 <script>/* Agion · protótipos de ferramentas — helpers comuns */
 var $=function(s){return document.querySelector(s);},$$=function(s){return [].slice.call(document.querySelectorAll(s));};
 function num(id){var el=document.getElementById(id);if(!el)return 0;var v=String(el.value||'').trim().replace(/^R\$\s?/,'');
@@ -303,58 +351,59 @@ function n2(v,d){return (+v||0).toLocaleString('pt-BR',{minimumFractionDigits:d,
 
 </script>
 <script>
-var _tp=null;
-function sim(C,pz,tx,ix,vl,ct,meia){var pctMes=(1+tx)/pz,pago=0,pctPago=0,cred=C,preco=C,M=[],rows=[],o={p0:0,pCont:0,credCont:C,pagoAteCont:0,saldoCont:0,precoCont:C,pagoReal:0,fl:[0]};
- for(var m=1;m<=pz;m++){if(m>1&&(m-1)%12===0){cred*=1+ix;preco*=1+vl;}var antes=m<ct,pp;
-  if(meia&&antes)pp=pctMes/2;else if(meia&&!antes)pp=((1+tx)-pctPago)/(pz-m+1);else pp=pctMes;
+var _tp=null,_yr=null;
+function tg(id){var b=document.querySelector('#'+id+' button.on');return b?b.getAttribute('data-v'):null;}
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.rj-tg button');if(!b)return;[].forEach.call(b.parentNode.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b);});calc();});
+document.addEventListener('input',function(e){var t=e.target;if(!t.closest||!t.closest('.rj'))return;if(t.id==='yr'){_yr=+t.value;}else if(t.id==='ct'){_yr=null;}calc();});
+function sim(C,pz,tx,ix,vl,ct,meia){var pctMes=(1+tx)/pz,pago=0,pctPago=0,cred=C,preco=C,M=[],o={p0:0,pCont:0,credCont:C,pagoAteCont:0,precoCont:C,pagoReal:0,fl:[0]};
+ for(var m=1;m<=pz;m++){if(m>1&&(m-1)%12===0){cred*=1+ix;preco*=1+vl;}var pp;
+  if(meia&&m<ct)pp=pctMes/2;else if(meia)pp=((1+tx)-pctPago)/(pz-m+1);else pp=pctMes;
   var parc=pp*cred;if(m===1)o.p0=parc;if(m===ct){o.pCont=parc;o.credCont=cred;o.precoCont=preco;}
-  pago+=parc;pctPago+=pp;o.pagoReal+=parc/Math.pow(1+ix,Math.floor((m-1)/12));if(m<ct)o.pagoAteCont=pago;if(m===ct)o.saldoCont=((1+tx)-pctPago)*cred;
-  o.fl.push(-parc+(m===ct?cred:0));
-  var sd=Math.max(0,((1+tx)-pctPago)*cred);M.push({m:m,cred:cred,preco:preco,pp:pp,parc:parc,pago:pago,sdp:Math.max(0,(1+tx)-pctPago),sd:sd});
-  if(m%12===0||m===pz)rows.push({a:Math.ceil(m/12),cred:cred,preco:preco,parc:parc,pago:pago,saldo:sd});}
- o.M=M;o.rows=rows;o.pago=pago;o.pFim=M[M.length-1].parc;var r=irr(o.fl);o.cet=r==null?null:aa(r);if(o.cet!=null&&o.cet<-.05)o.cet=null;o.cobre=o.credCont/o.precoCont;return o;}
+  pago+=parc;pctPago+=pp;o.pagoReal+=parc/Math.pow(1+ix,Math.floor((m-1)/12));if(m<ct)o.pagoAteCont=pago;o.fl.push(-parc+(m===ct?cred:0));
+  M.push({m:m,cred:cred,preco:preco,pp:pp,parc:parc,real:parc/Math.pow(1+ix,Math.floor((m-1)/12)),pago:pago,sdp:Math.max(0,(1+tx)-pctPago),sd:Math.max(0,((1+tx)-pctPago)*cred)});}
+ o.M=M;o.pago=pago;o.pFim=M[M.length-1].parc;var r=irr(o.fl);o.cet=r==null?null:aa(r);if(o.cet!=null&&o.cet<-.05)o.cet=null;o.cobre=o.credCont/o.precoCont;return o;}
+function balanca(cobre,carta,bem,nomeBem){var th=clamp((cobre-1)*140,-13,13),r=th*Math.PI/180,L=150,dyL=L*Math.sin(r),dyR=-L*Math.sin(r),dxL=L*(1-Math.cos(r)),dxR=-dxL;
+ var pan=function(x,lab,val,cor){return '<line x1="'+x+'" y1="80" x2="'+(x-86)+'" y2="198" stroke="#8C7A55" stroke-width="2"/><line x1="'+x+'" y1="80" x2="'+(x+86)+'" y2="198" stroke="#8C7A55" stroke-width="2"/><path d="M'+(x-96)+' 198 Q'+x+' 246 '+(x+96)+' 198 Z" fill="'+cor+'"/><text x="'+x+'" y="154" text-anchor="middle" font-size="12" font-weight="700" fill="#7C8783" letter-spacing="2">'+lab+'</text><text x="'+x+'" y="182" text-anchor="middle" font-size="21" font-weight="800" fill="#0B2A26">'+val+'</text>';};
+ return '<svg viewBox="0 0 520 300" role="img" aria-label="Balança: carta × preço do bem"><path d="M200 290 L320 290 L296 264 L224 264 Z" fill="#0B2A26"/><rect x="254" y="82" width="12" height="184" rx="6" fill="#0B2A26"/>'+
+  '<g class="beam" style="transform:rotate('+(-th)+'deg)"><rect x="104" y="74" width="312" height="12" rx="6" fill="#C5A059"/></g><circle cx="260" cy="80" r="13" fill="#0B2A26" stroke="#C5A059" stroke-width="4"/>'+
+  '<g class="pan" style="transform:translate('+dxL.toFixed(1)+'px,'+dyL.toFixed(1)+'px)">'+pan(110,'CARTA',brlK(carta),'#B5883A')+'</g>'+
+  '<g class="pan" style="transform:translate('+dxR.toFixed(1)+'px,'+dyR.toFixed(1)+'px)">'+pan(410,nomeBem.toUpperCase(),brlK(bem),'#C2724A')+'</g></svg>';}
 function calc(){
- var tp=seg('sTipo');if(tp!==_tp){if(_tp!==null){$('#idx').value=tp==='imo'?'6':'4,5';$('#pz').value=tp==='imo'?'200':'80';$('#tx').value=tp==='imo'?'25':'16';$('#val').value=tp==='imo'?'6':'3';$('#ct').value=tp==='imo'?'36':'12';}_tp=tp;}
- var IX=tp==='imo'?'INCC':'IPCA';$('#idxN').textContent=IX+' por ano';
- var C=num('cred'),pz=Math.min(240,Math.max(12,Math.round(num('pz')))),tx=num('tx')/100,ix=num('idx')/100,vl=num('val')/100,ct=Math.min(pz,Math.max(1,Math.round(num('ct')))),meia=seg('sMeia')==='1';
- var S=sim(C,pz,tx,ix,vl,ct,meia),rows=S.rows,p0=S.p0,pCont=S.pCont,credCont=S.credCont,pago=S.pago,pagoAteCont=S.pagoAteCont,precoCt=S.precoCont,poder=S.cobre;
- var Lc=['hoje'],Sc=[C],Sp=[C];rows.forEach(function(r){Lc.push('a'+r.a);Sc.push(r.cred);Sp.push(r.preco);});
- $('#ver').innerHTML='<div class="k">Poder de compra</div><h2>Na contemplação, a carta vale <em>'+brl(credCont)+'</em></h2><p>São <b>'+pct((credCont/Math.max(1,C)-1)*100)+'</b> a mais que hoje. O bem que custa '+brl(C)+' hoje deve custar <b>'+brl(precoCt)+'</b> no mês '+ct+' — a carta cobre <b>'+pct(poder*100,0)+'</b> do preço. '+(poder>=0.995?'O poder de compra está protegido.':'A diferença de '+brl(precoCt-credCont)+' vem da valorização acima do índice; dá para cobrir com lance ou recurso próprio.')+'</p>';
- $('#kp').innerHTML='<div class="kpi"><small>Parcela hoje</small><b>'+brl(p0)+'</b><span>'+(meia?'meia parcela até contemplar':'parcela cheia')+'</span></div><div class="kpi"><small>Parcela na contemplação</small><b>'+brl(pCont)+'</b><span>mês '+ct+'</span></div><div class="kpi gd"><small>Crédito na contemplação</small><b>'+brlK(credCont)+'</b><span>reajustado pelo '+IX+'</span></div><div class="kpi"><small>Total pago no plano</small><b>'+brlK(pago)+'</b><span>'+pct((pago/Math.max(1,C)-1)*100,0)+' acima do crédito inicial</span></div>';
- var serP=[p0*100];rows.forEach(function(r){serP.push(r.parc*100);});
- linhas($('#ch'),[{n:'Crédito da carta',c:'#C5A059',d:Sc,area:1,w:5},{n:'Preço do bem',c:'#0B2A26',d:Sp,dash:1,w:2},{n:'Parcela (×100)',c:'#6C9682',d:serP,w:2}],Lc,{marks:[{i:Math.min(Lc.length-1,Math.ceil(ct/12)),t:'contemplação'}]});
- $('#cmpA').innerHTML='<div class="row"><span>Dinheiro guardado no mês '+ct+'</span><b>'+brl(pagoAteCont)+'</b></div><div class="row"><span>Preço do bem no mês '+ct+'</span><b>'+brl(precoCt)+'</b></div><div class="row"><span>Quanto cobre do bem</span><b>'+pct(pagoAteCont/Math.max(1,precoCt)*100,0)+'</b></div>';
- $('#cmpB').innerHTML='<div class="row"><span>Carta liberada no mês '+ct+'</span><b>'+brl(credCont)+'</b></div><div class="row"><span>Pago até ali</span><b>'+brl(pagoAteCont)+'</b></div><div class="row"><span>Quanto cobre do bem</span><b>'+pct(poder*100,0)+'</b></div>';
- $('#tab').innerHTML='<table><tr><th>Ano</th><th class="r">Crédito</th><th class="r">Preço do bem</th><th class="r">Parcela</th><th class="r">Total pago</th><th class="r">Saldo devedor</th></tr>'+rows.map(function(r){return '<tr'+(Math.ceil(ct/12)===r.a?' style="background:#FFF8E6"':'')+'><td>'+r.a+'º'+(Math.ceil(ct/12)===r.a?' <span class="pill gd">contempla</span>':'')+'</td><td class="r">'+brl(r.cred)+'</td><td class="r">'+brl(r.preco)+'</td><td class="r">'+brl(r.parc)+'</td><td class="r">'+brl(r.pago)+'</td><td class="r">'+brl(r.saldo)+'</td></tr>';}).join('')+'</table>';
- matR(C,pz,tx,ix,vl,ct,meia,S,IX);
- mbar('Carta na contemplação',brlK(credCont)+' · parcela '+brl(pCont));
-}
-function matR(C,pz,tx,ix,vl,ct,meia,S,IX){matUI();
- var k=Math.floor((ct-1)/12),real=(1+ix)/(1+vl)-1,cr=S.cet==null?null:(1+S.cet)/(1+ix)-1,pctMes=(1+tx)/pz;
- ind('mInd',[['Crédito na contemplação',brl(S.credCont),'C × (1 + '+IX+')^'+k],['Preço do bem na contemplação',brl(S.precoCont),'C × (1 + valorização)^'+k],['Cobertura do bem',pct(S.cobre*100,1),S.cobre>=.995?'poder de compra protegido':'falta '+brl(S.precoCont-S.credCont)],
-  ['Ganho real da carta ao ano',pct(real*100,2),'(1 + índice) ÷ (1 + valorização) − 1'],['Total pago (nominal)',brl(S.pago),'soma das parcelas reajustadas'],['Total pago em dinheiro de hoje',brl(S.pagoReal),'cada parcela dividida pelo reajuste acumulado: '+pct(S.pagoReal/Math.max(1,C)*100,1)+' do crédito'],
-  ['Custo efetivo ao ano',S.cet==null?'—':pct(S.cet*100,2),'TIR do fluxo, com a carta saindo no '+ct+'º mês'],['Custo efetivo real',cr==null?'—':pct(cr*100,2),'descontando o '+IX+': (1 + custo) ÷ (1 + índice) − 1'],
-  ['Parcela inicial → final',brl(S.p0,2)+' → '+brl(S.pFim,2),'cresce '+pct((S.pFim/Math.max(.01,S.p0)-1)*100,0)+' no plano'],['Parcela em % do plano',pct(pctMes*100,3),'(1 + taxa) ÷ prazo, todo mês']]);
- var cs=[['Índice baixo',Math.max(0,ix-.02),Math.max(0,vl-.02)],['Cenário escolhido',ix,vl],['Índice alto',ix+.03,vl+.03]];
- H('mCen','<div class="opts">'+cs.map(function(c,i){var X=sim(C,pz,tx,c[1],c[2],ct,meia);return opt({t:c[0],v:brl(X.credCont),s:IX+' '+pct(c[1]*100,1)+' · bem '+pct(c[2]*100,1)+' ao ano',win:i===1,wt:'atual',r:[['Parcela hoje',brl(X.p0,2)],['Parcela na contemplação',brl(X.pCont,2)],['Parcela final',brl(X.pFim,2)],['Total pago',brl(X.pago)],['Em dinheiro de hoje',brl(X.pagoReal)],['Cobre do bem',pct(X.cobre*100,0)]]});}).join('')+'</div><p class="sens-cap">Quando o índice e o preço do bem andam juntos, a carta cobre o bem em qualquer cenário: a parcela sobe em reais, mas o total pago em dinheiro de hoje fica igual. É isso que responde “a parcela vai subir?”.</p>');
- var ixs=[.03,.045,.06,.075,.09],vls=[.03,.045,.06,.075,.09],mss=[12,24,36,60,96,144].filter(function(x){return x<=pz;});
- H('mSen',sensH({t:'Cobertura do bem na contemplação · índice da carta × valorização do bem',tl:IX+' ao ano',lin:ixs,col:vls,fl:function(x){return pct(x*100,1);},fc:function(x){return 'bem '+pct(x*100,1);},f:function(a,b){return Math.pow((1+a)/(1+b),Math.floor((ct-1)/12));},fmt:function(v){return pct(v*100,0);},cor:function(v){return v>=.995?'#DCEFE2':v>=.95?'#EEF6E5':v>=.88?'#F3E7C8':'#F7DDD8';},cur:[perto(ixs,ix),perto(vls,vl)],cap:'Cobertura = crédito reajustado ÷ preço do bem no mês '+ct+' = ((1 + índice) ÷ (1 + valorização))^'+Math.floor((ct-1)/12)+'. Verde: a carta paga o bem inteiro.'})+
-  sensH({t:'Parcela no mês da contemplação · índice × mês da contemplação',tl:IX+' ao ano',lin:ixs,col:mss,fl:function(x){return pct(x*100,1);},fc:function(m){return m+'º mês';},f:function(a,m){return sim(C,pz,tx,a,vl,m,meia).pCont;},fmt:function(v){return brl(v);},cur:[perto(ixs,ix),perto(mss,ct)],cap:meia?'Com meia parcela, a parcela dobra (ou mais) na contemplação: o saldo que faltou é dividido pelos meses restantes.':'Com parcela cheia, a parcela só muda pelo reajuste anual.'}));
- var mo=seg('sTb')==='m',L2=[],cab;
- if(mo){cab=['Mês','>Crédito','>Preço do bem','>% do plano no mês','>Parcela','>Total pago','>Saldo (% do plano)','>Saldo devedor'];S.M.forEach(function(r){L2.push([r.m+'º',brl(r.cred),brl(r.preco),pct(r.pp*100,3),brl(r.parc,2),brl(r.pago),pct(r.sdp*100,2),brl(r.sd)]);});}
- else{cab=['Ano','>Crédito','>Preço do bem','>Cobertura','>Parcela','>Pago no ano','>Pago em dinheiro de hoje','>Saldo devedor'];for(var y=0;y*12<pz;y++){var g=S.M.slice(y*12,y*12+12),u=g[g.length-1],pa=g.reduce(function(a,r){return a+r.parc;},0);L2.push([(y+1)+'º',brl(u.cred),brl(u.preco),pct(u.cred/u.preco*100,0),brl(u.parc,2),brl(pa),brl(pa/Math.pow(1+ix,y)),brl(u.sd)]);}}
- tabx('mTab',cab,L2,{nome:'reajuste-da-carta',ctrl:segH('sTb',[['a','Ano a ano'],['m','Mês a mês']],'a'),hl:function(i){return mo?i===ct-1:i===Math.floor((ct-1)/12);},cap:'Reajuste aplicado no início de cada ano do grupo (13º, 25º, 37º mês…). O saldo devedor é o percentual do plano que falta pagar vezes o crédito reajustado.'});
- var pc=S.M[ct-1];
- mc('mMc',[['Percentual do plano por mês','(1 + taxa total) ÷ prazo','(1 + '+pct(tx*100,1)+') ÷ '+pz,pct(pctMes*100,4)+' do crédito'+(meia?' · meia: '+pct(pctMes*50,4):'')],
-  ['Parcela do mês','% do plano no mês × crédito reajustado do ano',pct(pc.pp*100,4)+' × '+brl(pc.cred),brl(pc.parc,2)+' no '+ct+'º mês'],
-  ['Crédito reajustado','C × (1 + índice)^anos completos',brl(C)+' × (1 + '+pct(ix*100,1)+')^'+k,brl(S.credCont)],
-  ['Preço do bem','preço hoje × (1 + valorização)^anos',brl(C)+' × (1 + '+pct(vl*100,1)+')^'+k,brl(S.precoCont)],
-  ['Cobertura','crédito ÷ preço do bem',brl(S.credCont)+' ÷ '+brl(S.precoCont),pct(S.cobre*100,2)],
-  meia?['Meia parcela: saldo redistribuído','(100% + taxa − % já pago) ÷ meses restantes','('+pct((1+tx)*100,1)+' − '+pct(((1+tx)-pc.sdp-pc.pp)*100,2)+') ÷ '+(pz-ct+1),pct(pc.pp*100,4)+' ao mês']:null,
-  ['Saldo devedor','(100% + taxa − % pago) × crédito reajustado',pct(pc.sdp*100,2)+' × '+brl(pc.cred),brl(pc.sd)],
-  ['Total pago em dinheiro de hoje','Σ parcelaₘ ÷ (1 + índice)^anos','tira o reajuste de cada parcela',brl(S.pagoReal)+' ≈ (1 + taxa) × C = '+brl((1+tx)*C)],
-  ['Custo efetivo','TIR r: Σ fluxoₘ ÷ (1 + r)ᵐ = 0 (parcelas negativas, crédito positivo no '+ct+'º mês); anual = (1 + r)¹² − 1','',S.cet==null?'sem solução neste cenário':pct(S.cet*100,2)+' ao ano'],
-  ['Custo efetivo real','(1 + custo efetivo) ÷ (1 + índice) − 1',S.cet==null?'—':'(1 + '+pct(S.cet*100,2)+') ÷ (1 + '+pct(ix*100,1)+') − 1',cr==null?'—':pct(cr*100,2)+' ao ano acima da inflação do índice']]);
+ var tp=tg('sTipo');if(tp!==_tp){if(_tp!==null){$('#idx').value=tp==='imo'?'6':'4,5';$('#pz').value=tp==='imo'?'200':'80';$('#tx').value=tp==='imo'?'25':'16';$('#val').value=tp==='imo'?'6':'3';$('#ct').value=tp==='imo'?'36':'12';_yr=null;}_tp=tp;}
+ var IX=tp==='imo'?'INCC':'IPCA',BEM=tp==='imo'?'imóvel':'carro';$('#idxN').textContent=IX;$('#bemN').textContent=tp==='imo'?'imóvel':'carro';
+ var C=num('cred')||1,pz=clamp(Math.round(num('pz')),12,240),tx=num('tx')/100,ix=num('idx')/100,vl=num('val')/100,ct=clamp(Math.round(num('ct')),1,pz),meia=tg('sMeia')==='1';
+ var S=sim(C,pz,tx,ix,vl,ct,meia),anos=Math.ceil(pz/12),yCt=Math.ceil(ct/12),y=_yr!=null?clamp(_yr,1,anos):yCt,sl=$('#yr');sl.max=anos;sl.value=y;
+ var mY=y===yCt?ct:(y-1)*12+1,Y=sim(C,pz,tx,ix,vl,mY,meia),k=y-1;
+ H('bal',balanca(Y.cobre,Y.credCont,Y.precoCont,BEM));
+ H('ver',Y.cobre>=.995?'No '+mY+'º mês, a carta de <b>'+brl(Y.credCont)+'</b> compra o '+BEM+' inteiro.':'No '+mY+'º mês, a carta cobre <b>'+pct(Y.cobre*100,0)+'</b> do '+BEM+'. Faltam '+brl(Y.precoCont-Y.credCont)+'.');
+ $('#yrB').innerHTML=y+'º ano<small>mês '+mY+(y===yCt?' · o informado':'')+'</small>';
+ H('yrR',[['Carta reajustada',brl(Y.credCont)],['Preço do '+BEM,brl(Y.precoCont)],['Cobertura',pct(Y.cobre*100,1)],['Parcela no mês',brl(Y.pCont,2)],['Em dinheiro de hoje',brl(Y.pCont/Math.pow(1+ix,k),2)],['Pago até ali',brl(Y.pagoAteCont)]].map(function(r){return '<div class="rw"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>';}).join(''));
+ /* gráfico de degraus: parcela no boleto × em dinheiro de hoje */
+ var P=[],R=[];for(var a=0;a<anos;a++){var g=S.M.slice(a*12,a*12+12),u=g[g.length-1];P.push(u.parc);R.push(u.real);}
+ var W=760,Hh=270,Lm=58,Tm=16,Bm=34,iw=W-Lm-14,ih=Hh-Tm-Bm,mx=Math.max.apply(0,P)*1.12||1,bw=iw/anos,sv='';
+ for(var q=0;q<=4;q++){var vv=mx*q/4,yy=Tm+ih-vv/mx*ih;sv+='<line x1="'+Lm+'" x2="'+(W-14)+'" y1="'+yy+'" y2="'+yy+'" stroke="#EFE7D6"/><text x="'+(Lm-8)+'" y="'+(yy+4)+'" text-anchor="end" font-size="11" fill="#7C8783">'+brlK(vv)+'</text>';}
+ P.forEach(function(v,i){var h=v/mx*ih,x=Lm+i*bw+bw*.14,isC=i===yCt-1;sv+='<rect x="'+x.toFixed(1)+'" y="'+(Tm+ih-h).toFixed(1)+'" width="'+(bw*.72).toFixed(1)+'" height="'+h.toFixed(1)+'" rx="'+Math.min(6,bw*.2).toFixed(1)+'" fill="'+(isC?'#C2724A':'#C5A059')+'" opacity="'+(i===y-1?1:.82)+'"/>';if(i%Math.max(1,Math.ceil(anos/12))===0||i===anos-1)sv+='<text x="'+(Lm+i*bw+bw/2).toFixed(1)+'" y="'+(Hh-12)+'" text-anchor="middle" font-size="11" fill="#7C8783">'+(i+1)+'º</text>';});
+ var pth='';R.forEach(function(v,i){pth+=(i?'L':'M')+(Lm+i*bw+bw/2).toFixed(1)+' '+(Tm+ih-v/mx*ih).toFixed(1);});sv+='<path d="'+pth+'" fill="none" stroke="#0B2A26" stroke-width="3" stroke-linejoin="round"/>';
+ H('gp','<svg viewBox="0 0 '+W+' '+Hh+'" role="img" aria-label="Parcela ano a ano">'+sv+'</svg>');
+ var mxc=Math.max(S.pago,S.pagoReal,C);H('cap',[['Total no boleto (nominal)',S.pago,'#C5A059'],['Total em dinheiro de hoje',S.pagoReal,'#0B2A26'],['Crédito de hoje',C,'#C2724A']].map(function(c){return '<div class="c"><span>'+c[0]+'</span><div class="bar"><i style="width:'+(c[1]/mxc*100).toFixed(1)+'%;background:'+c[2]+'"></i></div><b>'+brl(c[1])+'</b></div>';}).join('')+'<p class="d" style="margin:4px 0 0;font-size:13px;color:#5E6B66">Em dinheiro de hoje o cliente paga '+pct(S.pagoReal/C*100,1)+' do crédito, ou seja, o crédito mais a taxa de '+pct(tx*100,0)+'. A diferença para o total no boleto é só o reajuste, que também fez a carta crescer.</p>');
+ /* aniversários */
+ var st='';for(var a2=1;a2<=anos;a2++){var g2=S.M[Math.min(pz-1,(a2-1)*12)],cob=g2.cred/g2.preco;st+='<div class="rj-ca'+(a2===yCt?' ct':'')+(a2===y?' sel':'')+'" data-y="'+a2+'"><div class="a">'+a2+'º<span class="ix">'+(a2===1?'início':'+'+pct(ix*100,1))+'</span></div><dl><dt>Carta</dt><dd>'+brlK(g2.cred)+'</dd><dt>'+(tp==='imo'?'Imóvel':'Carro')+'</dt><dd>'+brlK(g2.preco)+'</dd><dt>Parcela</dt><dd>'+brl(g2.parc)+'</dd><dt>Cobre</dt><dd>'+pct(cob*100,0)+'</dd></dl></div>';}
+ H('strip',st);[].forEach.call(document.querySelectorAll('.rj-ca'),function(c){c.onclick=function(){_yr=+c.getAttribute('data-y');calc();};});
+ /* três futuros */
+ H('fut',[['Inflação baixa',Math.max(0,ix-.02),Math.max(0,vl-.02)],['O seu cenário',ix,vl],['Inflação alta',ix+.03,vl+.03]].map(function(f,i){var X=sim(C,pz,tx,f[1],f[2],ct,meia);return '<div class="rj-f'+(i===1?' me':'')+'"><h3>'+f[0]+'</h3><div class="v">'+brl(X.credCont)+'</div><div style="font-size:12.5px;color:#7C8783">carta no mês '+ct+' · '+IX+' '+pct(f[1]*100,1)+' · bem '+pct(f[2]*100,1)+'</div><div class="m"><i style="width:'+Math.min(100,X.cobre*100).toFixed(0)+'%"></i></div><div style="font-size:12px;font-weight:700;color:#3F8F6A">cobre '+pct(X.cobre*100,0)+' do '+BEM+'</div><dl><dt>Parcela no 1º mês</dt><dd>'+brl(X.p0,2)+'</dd><dt>Parcela final</dt><dd>'+brl(X.pFim,2)+'</dd><dt>Total no boleto</dt><dd>'+brlK(X.pago)+'</dd><dt>Em dinheiro de hoje</dt><dd>'+brlK(X.pagoReal)+'</dd></dl></div>';}).join(''));
+ /* mapa de proteção */
+ var ixs=[.03,.045,.06,.075,.09],vls=[.03,.045,.06,.075,.09],ci=perto(ixs,ix),cj=perto(vls,vl),kk=Math.floor((ct-1)/12),mp='<div class="row"><div class="h l">'+IX+' ↓ · bem →</div>'+vls.map(function(v){return '<div class="h">'+pct(v*100,1)+'</div>';}).join('')+'</div>';
+ ixs.forEach(function(a,i){mp+='<div class="row"><div class="h l">'+pct(a*100,1)+'</div>'+vls.map(function(b,j){var c=Math.pow((1+a)/(1+b),kk),bg=c>=.995?'#BFE3CC':c>=.95?'#E2F0D9':c>=.88?'#F3E1B5':'#F2C9C0',sz=clamp(.62+(c-.8)*1.4,.55,1);return '<div class="rj-dot'+(i===ci&&j===cj?' cur':'')+'" style="background:'+bg+';transform:scale('+sz.toFixed(2)+')">'+pct(c*100,0)+'</div>';}).join('')+'</div>';});
+ H('mapa',mp);
+ /* cupom */
+ var pc=S.M[ct-1],cr=S.cet==null?null:(1+S.cet)/(1+ix)-1,ln=function(a,b,f){return '<div class="l"><span>'+a+'</span><b>'+b+'</b></div>'+(f?'<div class="f">'+f+'</div>':'');};
+ H('cupom','<div class="tt">AGION · REAJUSTE DA CARTA</div><div style="text-align:center;font-size:11.5px;color:#7C8783">'+(tp==='imo'?'imóvel':'automóvel')+' · '+pz+' meses · '+(meia?'meia parcela':'parcela cheia')+'</div><div class="sep"></div>'+
+  ln('Crédito hoje',brl(C))+ln('Taxa total',pct(tx*100,1))+ln('% do plano por mês',pct((1+tx)/pz*100,4),'(100% + '+pct(tx*100,1)+') ÷ '+pz)+'<div class="sep"></div>'+
+  ln('Anos completos até o mês '+ct,String(kk))+ln('Fator do '+IX,'×'+n2(Math.pow(1+ix,kk),4),'(1 + '+pct(ix*100,1)+')^'+kk)+ln('Carta no mês '+ct,brl(S.credCont),brl(C)+' × '+n2(Math.pow(1+ix,kk),4))+
+  ln('Preço do '+BEM,brl(S.precoCont),brl(C)+' × (1 + '+pct(vl*100,1)+')^'+kk)+ln('Cobertura',pct(S.cobre*100,2),'carta ÷ preço')+'<div class="sep"></div>'+
+  ln('Parcela no mês '+ct,brl(pc.parc,2),pct(pc.pp*100,4)+' × '+brl(pc.cred))+ln('Saldo devedor',brl(pc.sd),pct(pc.sdp*100,2)+' do plano × '+brl(pc.cred))+'<div class="sep"></div>'+
+  ln('Total no boleto',brl(S.pago),'soma das '+pz+' parcelas reajustadas')+ln('Em dinheiro de hoje',brl(S.pagoReal),'cada parcela ÷ (1 + '+IX+')^anos')+ln('Custo efetivo',S.cet==null?'—':pct(S.cet*100,2)+' a.a.','taxa interna de retorno do fluxo')+ln('Custo acima do '+IX,cr==null?'—':pct(cr*100,2)+' a.a.','(1 + custo) ÷ (1 + '+pct(ix*100,1)+') − 1')+
+  '<div class="sep"></div><div class="l tot"><span>A carta cobre</span><b>'+pct(S.cobre*100,0)+'</b></div>');
 }
 calc();
 </script>

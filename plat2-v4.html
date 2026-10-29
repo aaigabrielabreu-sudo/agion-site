@@ -5957,7 +5957,7 @@ vcMontar();
   [].forEach.call(document.styleSheets,function(ss){try{walk(ss.cssRules,function(t){return t;});}catch(x){}});
   var st=document.createElement('style');st.id='fx-tc-clone';st.textContent=out.join('\n');document.head.appendChild(st);}
  /* FX_BETA_SEP_29OUT: ferramentas que já ganharam a Análise matemática (lote 1, 29/out) */
- var REV={'fx-raio-x-do-cliente':1,'fx-reajuste-da-carta':1,'fx-aprovacao-na-contemplacao':1,'fx-comparar-grupos':1,'fx-mapa-dos-grupos':1,'fx-simulador-de-assembleia':1,'fx-custo-efetivo':1};
+ var REV={'fx-reajuste-da-carta':1,'fx-simulador-de-assembleia':1};  /* FX_PILOTO_29OUT: piloto do novo estilo (cada ferramenta com identidade própria) */
  function card(x){var seta=typeof I==='function'?I('arrow',15):'→';
   return '<div class="fxb-card" data-fx="'+e(x[0])+'" data-fxcat="'+e(x[2])+'"'+(REV[x[0]]?' data-rev="1"':'')+' role="button" tabindex="0"><div class="cov" style="--tcb:'+x[6]+'"><svg class="tline" viewBox="0 0 420 160" preserveAspectRatio="none">'+x[7]+'</svg><span class="em">'+(typeof I==='function'?I(x[4],22):'')+'</span></div>'+
    '<div class="bd2"><h3>'+e(x[1])+'</h3><p>'+e(x[3])+'</p><div class="ft2"><span class="pill au">'+e(x[5])+'</span><span class="open">Abrir '+seta+'</span></div></div></div>';}
@@ -5978,8 +5978,8 @@ vcMontar();
   var LA=L.filter(function(x){return REV[x[0]];}),LB=L.filter(function(x){return !REV[x[0]];});
   function sec(k,t,sub,arr){return arr.length?'<div class="fxb-sec" data-sec="'+k+'"><div class="fxb-h"><b>'+t+'</b><span class="n">'+arr.length+'</span><small>'+sub+'</small></div><div class="tg2 rv">'+arr.map(card).join('')+'</div></div>':'';}
   v.innerHTML='<div class="hx rv"><div><h1 class="h1"><em>Beta</em> · ferramentas em teste</h1><div class="sub">Ferramentas novas, ainda em validação · abrem em nova aba · as já validadas ficam em Ferramentas</div></div></div>'+
-   sn('fsnb',[['t','Todas',L.length],['rev','Com análise matemática',LA.length]].concat(cats.map(function(c){return [c[0],c[1]];})),'t')+
-   '<div id="tgb">'+sec('rev','Com análise matemática','Indicadores, cenários, sensibilidade, tabela completa e memória de cálculo',LA)+sec('out','Em revisão','Ainda sem a análise matemática · chegam nos próximos lotes',LB)+'</div>';
+   sn('fsnb',[['t','Todas',L.length],['rev','Novo estilo',LA.length]].concat(cats.map(function(c){return [c[0],c[1]];})),'t')+
+   '<div id="tgb">'+sec('rev','Piloto do novo estilo','Cada uma com identidade própria: moldura, gráficos e jeito de calcular só dela',LA)+sec('out','Em revisão','Vão ganhar o novo estilo depois que o piloto for aprovado',LB)+'</div>';
   var cs=[].slice.call(v.querySelectorAll('.fxb-card'));
   setTimeout(function(){cs.forEach(function(c,i){setTimeout(function(){c.classList.add('in2');},Math.min(i,12)*70);});},300);
   var secs=[].slice.call(v.querySelectorAll('.fxb-sec'));
