@@ -117,6 +117,22 @@ td.r,th.r{text-align:right}
 textarea.tx{width:100%;min-height:90px;border-radius:14px;border:0;background:var(--bg);box-shadow:inset 0 0 0 1px var(--line);padding:10px 12px;font:500 14px/1.45 var(--sans);color:var(--ink);resize:vertical}
 .msg{background:#E9E3D6;border-radius:18px;padding:12px}.msg .bb{background:#fff;border-radius:14px;padding:10px 12px;white-space:pre-wrap;font-size:13.5px;box-shadow:0 1px 1px rgba(0,0,0,.08)}
 @media (max-width:980px){.split{grid-template-columns:1fr}}
+/* ===== FX_MAT: análise matemática (indicadores, cenários, sensibilidade, tabela, memória de cálculo) ===== */
+.mat .ph h3{flex:1}.mat .tabs{margin-bottom:2px}
+.mc ol{margin:0;padding:0;list-style:none;counter-reset:mc;display:flex;flex-direction:column;gap:8px}
+.mc li{counter-increment:mc;background:var(--bg);border-radius:14px;padding:11px 13px;font-size:13px;line-height:1.5}
+.mc li>b{display:block;font-weight:700;margin-bottom:4px}.mc li>b::before{content:counter(mc)'. ';color:var(--goldd)}
+.mc code{display:block;font:600 12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#1F4C63;white-space:normal;word-break:break-word}
+.mc .sb{display:block;color:var(--ink2);font-variant-numeric:tabular-nums;word-break:break-word}.mc .rs{display:block;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+table.sens th,table.sens td{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}table.sens th.rh{text-align:left}
+table.sens td.cur{box-shadow:inset 0 0 0 2px #0B2A26;font-weight:800}
+.sens-t{font:700 13px var(--sans);margin:4px 0 8px}.sens-cap{font-size:12px;color:var(--mut);margin:8px 0 18px;line-height:1.5}
+.tbx{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.ind{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px}
+.ind .i{background:var(--bg);border-radius:16px;padding:12px 14px;min-width:0}.ind .i small{display:block;font-size:11.5px;color:var(--mut);line-height:1.35}
+.ind .i b{display:block;font:700 18px/1.25 var(--sans);font-variant-numeric:tabular-nums;margin:3px 0 2px;word-break:break-word}.ind .i span{font-size:11.5px;color:var(--ink2);line-height:1.4}
+.mt-t{font:700 13px var(--sans);margin:18px 0 8px}
+@media (max-width:640px){.ind{grid-template-columns:1fr 1fr}.ind .i b{font-size:16px}}
 
 .backidx{font:700 12px var(--sans);color:var(--ink2);text-decoration:none;padding:7px 12px;border-radius:999px;background:var(--bg2);white-space:nowrap}
 @media (max-width:640px){.proto{display:none}.backidx{padding:6px 10px;font-size:11px}.logo small{display:none}}
@@ -139,12 +155,13 @@ textarea.tx{width:100%;min-height:90px;border-radius:14px;border:0;background:va
  <div class="tp" data-tp="b" style="margin-top:14px"><div class="panel"><p class="phs">Custo efetivo ao ano por mês de contemplação (linhas) e taxa de administração (colunas). Verde: abaixo do financiamento.</p><div class="tbl" id="hm"></div></div></div>
  <div class="tp" data-tp="c" style="margin-top:14px"><div class="panel"><p class="phs">O que sai e o que entra no bolso, ano a ano, no cenário escolhido.</p><div id="ch2"></div><div class="tbl" id="tab" style="margin-top:10px"></div></div></div>
 </div>
+<div id="mat"></div>
 <div class="hint"><b>Como explicar:</b> antes da contemplação o cliente forma a poupança; depois, recebe o crédito e termina de pagar. Quanto antes a carta sai, mais o consórcio se parece com um crédito barato. Se sai muito tarde, ele funcionou como uma poupança programada — e o custo efetivo perde sentido de comparação.</div>
 <p class="foot">Versão beta. Custo efetivo = taxa interna de retorno do fluxo do cliente. Seguro não incluído. Crédito e parcelas reajustados uma vez por ano.</p></section></div></main><div id="mbar"><small id="mb_k"></small><b id="mb_v"></b></div><script>/* Agion · protótipos de ferramentas — helpers comuns */
 var $=function(s){return document.querySelector(s);},$$=function(s){return [].slice.call(document.querySelectorAll(s));};
 function num(id){var el=document.getElementById(id);if(!el)return 0;var v=String(el.value||'').trim().replace(/^R\$\s?/,'');
  if(/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(v))v=v.replace(/\./g,'').replace(',','.');else v=v.replace(',','.');var n=parseFloat(v);return isNaN(n)?0:n;}
-function brl(v,d){d=d||0;return 'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function brl(v,d){d=d||0;var n=+v||0,t=Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});return (n<0&&/[1-9]/.test(t)?'−':'')+'R$ '+t;}
 function brlK(v){var a=Math.abs(+v||0),s=v<0?'−':'';if(a>=1e6)return s+'R$ '+(a/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+' mi';if(a>=1e3)return s+'R$ '+(a/1e3).toLocaleString('pt-BR',{maximumFractionDigits:a>=1e5?0:1})+' mil';return s+'R$ '+Math.round(a);}
 function pct(v,d){return (+v||0).toLocaleString('pt-BR',{maximumFractionDigits:d==null?1:d})+'%';}
 function nf(v,d){return (+v||0).toLocaleString('pt-BR',{maximumFractionDigits:d||0});}
@@ -235,10 +252,80 @@ function dispersao(el,pts,op){op=op||{};var W=760,H=op.h||380,L=60,R=18,T=18,B=4
  (op.vx||[]).forEach(function(v){g+='<line x1="'+X(v.v)+'" x2="'+X(v.v)+'" y1="'+T+'" y2="'+(T+ih)+'" stroke="'+(v.c||'#C5A059')+'" stroke-dasharray="4 4"/><text x="'+(X(v.v)+4)+'" y="'+(T+12)+'" font-size="11" font-weight="700" fill="'+(v.c||'#A3833F')+'">'+v.t+'</text>';});
  pts.slice().sort(function(a,b){return (a.hi?1:0)-(b.hi?1:0);}).forEach(function(p){g+='<circle cx="'+X(p.x).toFixed(1)+'" cy="'+Y(p.y).toFixed(1)+'" r="'+(p.r||5)+'" fill="'+(p.c||'#2E6A8A')+'" fill-opacity="'+(p.hi?1:.55)+'" stroke="'+(p.hi?'#0B2A26':'#fff')+'" stroke-width="'+(p.hi?2:1)+'"><title>'+(p.t||'')+'</title></circle>'+(p.hi&&p.t?'<text x="'+(X(p.x)+9).toFixed(1)+'" y="'+(Y(p.y)-8).toFixed(1)+'" font-size="11.5" font-weight="700" fill="#0B2A26">'+p.lb+'</text>':'');});
  el.innerHTML='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img">'+g+'</svg>'+(op.lg?'<div class="lg">'+op.lg.map(function(s){return '<span><i style="background:'+s[1]+'"></i>'+s[0]+'</span>';}).join('')+'</div>':'');}
+/* ===== FX_MAT: análise matemática — indicadores, cenários, sensibilidade, tabela completa e memória de cálculo ===== */
+function matUI(id){var e=document.getElementById(id||'mat');if(!e||e._ok)return;e._ok=1;e.className='panel mat';
+ e.innerHTML='<div class="ph"><span class="ic">∑</span><h3>Análise matemática</h3></div><div data-tabs><div class="tabs"><button class="on" data-tp="m1">Indicadores</button><button data-tp="m2">Cenários</button><button data-tp="m3">Sensibilidade</button><button data-tp="m4">Tabela completa</button><button data-tp="m5">Memória de cálculo</button></div>'+
+ ['mInd','mCen','mSen','mTab','mMc'].map(function(x,i){return '<div class="tp'+(i?'':' on')+'" data-tp="m'+(i+1)+'" style="margin-top:14px"><div id="'+x+'"></div></div>';}).join('')+'</div>';}
+/* indicadores: [[rótulo, valor, explicação]] */
+function ind(id,it){H(id,'<div class="ind">'+it.filter(Boolean).map(function(x){return '<div class="i"><small>'+x[0]+'</small><b>'+x[1]+'</b><span>'+(x[2]||'')+'</span></div>';}).join('')+'</div>');}
+/* memória de cálculo: [[passo, fórmula, valores substituídos, resultado]] */
+function mc(id,it){H(id,'<div class="mc"><ol>'+it.filter(Boolean).map(function(x){return '<li><b>'+x[0]+'</b>'+(x[1]?'<code>'+x[1]+'</code>':'')+(x[2]?'<span class="sb">= '+x[2]+'</span>':'')+(x[3]!=null&&x[3]!==''?'<span class="rs">= '+x[3]+'</span>':'')+'</li>';}).join('')+'</ol></div>');}
+/* tabela de sensibilidade: o={t,lin,col,fl,fc,f,fmt,cor,cur:[i,j],cap,tl} → devolve HTML */
+function sensH(o){var h='<div class="sens-t">'+(o.t||'')+'</div><div class="tbl"><table class="sens"><tr><th class="rh">'+(o.tl||'')+'</th>'+o.col.map(function(c){return '<th>'+o.fc(c)+'</th>';}).join('')+'</tr>';
+ o.lin.forEach(function(a,i){h+='<tr><th class="rh">'+o.fl(a)+'</th>';o.col.forEach(function(b,j){var v=o.f(a,b),ok=v!=null&&isFinite(v),bg=ok&&o.cor?o.cor(v):(ok?'':'#ECE4D3');h+='<td'+(o.cur&&o.cur[0]===i&&o.cur[1]===j?' class="cur"':'')+(bg?' style="background:'+bg+'"':'')+'>'+(ok?o.fmt(v):'—')+'</td>';});h+='</tr>';});
+ return h+'</table></div>'+(o.cap?'<p class="sens-cap">'+o.cap+'</p>':'');}
+function perto(arr,v){var b=0;arr.forEach(function(x,i){if(Math.abs(x-v)<Math.abs(arr[b]-v))b=i;});return b;}
+function semC(v,bom,ok,at,inv){if(inv){v=-v;bom=-bom;ok=-ok;at=-at;}return v<=bom?'#DCEFE2':v<=ok?'#EEF6E5':v<=at?'#F3E7C8':'#F7DDD8';}
+/* seletor que mantém a escolha entre um cálculo e outro */
+function segH(id,ops,def){var v=seg(id)||def;return '<span class="seg" id="'+id+'">'+ops.map(function(o){return '<button data-v="'+o[0]+'"'+(o[0]===v?' class="on"':'')+'>'+o[1]+'</button>';}).join('')+'</span>';}
+/* tabela com botão de baixar planilha */
+var _CSV={};
+function tabx(id,cab,linhas,o){o=o||{};_CSV[id]={cab:cab,l:linhas,n:o.nome||id};
+ H(id,'<div class="tbx">'+(o.ctrl||'')+'<span class="sp"></span><button class="btn" type="button" onclick="baixaCSV(\''+id+'\')">Baixar planilha</button></div><div class="tbl scr">'+tab(cab,linhas,o.hl)+'</div>'+(o.cap?'<p class="sens-cap">'+o.cap+'</p>':''));}
+function baixaCSV(id){var d=_CSV[id];if(!d)return;var tx=function(s){return String(s==null?'':s).replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/"/g,'""');};
+ var c=[d.cab.map(function(x){return '"'+tx(x.charAt(0)==='>'?x.slice(1):x)+'"';}).join(';')].concat(d.l.map(function(l){return l.map(function(v){return '"'+tx(v)+'"';}).join(';');})).join('\r\n');
+ try{var b=new Blob(['﻿'+c],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(d.n||'tabela')+'.csv';document.body.appendChild(a);a.click();setTimeout(function(){try{URL.revokeObjectURL(a.href);}catch(e){}a.remove();},800);}catch(e){toast('Não consegui gerar a planilha aqui');}}
+/* finanças */
+function vpl(r,fl){var s=0,d=1,q=1/(1+r);for(var t=0;t<fl.length;t++){s+=fl[t]*d;d*=q;}return s;}
+function acum(p,n){return 1-Math.pow(1-clamp(p,0,1),n);}
+function mesesPara(p,alvo){p=clamp(p,0,1);if(p<=0)return null;if(p>=1)return 1;return Math.ceil(Math.log(1-alvo)/Math.log(1-p));}
+function irReg(m){return m<=6?.225:m<=12?.20:m<=24?.175:.15;}
+function quantil(a,q){if(!a.length)return null;var s=a.slice().sort(function(x,y){return x-y;}),p=(s.length-1)*q,i=Math.floor(p),f=p-i;return s[i]+(s[Math.min(i+1,s.length-1)]-s[i])*f;}
+function media(a){return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:null;}
+function desvio(a){var m=media(a);return a.length>1?Math.sqrt(a.reduce(function(x,y){return x+(y-m)*(y-m);},0)/(a.length-1)):0;}
+function pearson(x,y){var n=Math.min(x.length,y.length);if(n<3)return null;var mx=media(x),my=media(y),a=0,b=0,c=0;for(var i=0;i<n;i++){a+=(x[i]-mx)*(y[i]-my);b+=(x[i]-mx)*(x[i]-mx);c+=(y[i]-my)*(y[i]-my);}return b&&c?a/Math.sqrt(b*c):null;}
+function wilson(k,n){if(!n)return [0,0];var z=1.96,p=k/n,d=1+z*z/n,c=p+z*z/(2*n),e=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n));return [Math.max(0,(c-e)/d),Math.min(1,(c+e)/d)];}
+function n2(v,d){return (+v||0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});}
 
 var LM={"IMOVEL": 57.7, "AUTOMOVEL": 45.6};
 </script>
 <script>
+function det(C,pz,T,ix,meia,L,ct){var pc=T/pz,pago=0,R=[],tp=0;for(var m=1;m<=pz;m++){var f=Math.pow(1+ix,Math.floor((m-1)/12)),p,ln=0,cr=0;
+ if(m<ct)p=meia?pc/2:pc;else{if(m===ct){pago+=L/f;ln=L;cr=C*f;}p=(T-pago)/(pz-m+1);}pago+=p;tp+=p*f+ln;
+ R.push({m:m,f:f,parc:p*f,lan:ln,cr:cr,fl:-p*f+cr-ln,saldo:Math.max(0,(T-pago)*f)});}return {R:R,tp:tp};}
+function flDe(d){return [0].concat(d.R.map(function(r){return r.fl;}));}
+function matCET(C,pz,T,ta,fr,ix,meia,L,ct,fj,c0){matUI();
+ var jm=am(fj),D=det(C,pz,T,ix,meia,L,ct),R=D.R,fl=flDe(D),rm=c0==null?null:am(c0),vp=vpl(jm,fl),fct=Math.pow(1+ix,Math.floor((ct-1)/12)),Cct=C*fct,
+  pf=pmt(C,jm,pz),tf=pf*pz,pA=R[0].parc,pD=R[ct-1].parc,custo=D.tp-Cct,pc=T/pz,ate=null;
+ ind('mInd',[['Custo efetivo ao mês',rm==null?'—':pct(rm*100,3),'taxa interna de retorno do fluxo do cliente'],['Custo efetivo ao ano',c0==null?'—':pct(c0*100,2),'(1 + taxa ao mês)¹² − 1'],
+  ['Financiamento ao mês',pct(jm*100,3),'equivale a '+pct(fj*100,1)+' ao ano'],['Vantagem a valor presente',brl(vp),vp>=0?'a favor do consórcio, descontando tudo pela taxa do banco':'a favor do financiamento, pela taxa do banco'],
+  ['Total pago no consórcio',brl(D.tp),'parcelas reajustadas + lance'],['Crédito recebido',brl(Cct),'reajustado até o '+ct+'º mês'],['Custo nominal do consórcio',brl(custo),pct(custo/Math.max(1,Cct)*100,1)+' do crédito recebido'],
+  ['Parcela antes → depois',brl(pA,2)+' → '+brl(pD,2),'antes e logo depois da contemplação'],['Financiamento: parcela',brl(pf,2),'tabela Price em '+pz+' meses'],['Financiamento: total pago',brl(tf),'juros de '+brl(tf-C)]]);
+ var cs=[['Contemplação cedo',Math.min(6,pz)],['Cenário escolhido',ct],['Contemplação tarde',Math.max(1,Math.round(pz*.5))]];
+ H('mCen','<div class="opts">'+cs.map(function(c,i){var m=c[1],v=cetDe(C,pz,T,ix,meia,L,m),d=det(C,pz,T,ix,meia,L,m),v2=vpl(jm,flDe(d));
+  return opt({t:c[0],v:v==null?'indefinido':pct(v*100,1)+' a.a.',s:'contemplação no '+m+'º mês',win:i===1,wt:'atual',r:[['Total pago',brl(d.tp)],['Crédito recebido',brl(C*Math.pow(1+ix,Math.floor((m-1)/12)))],['Vantagem a valor presente',brl(v2)],['Abaixo do banco',v!=null&&v<fj?'sim':'não']]});}).join('')+'</div>'+
+  '<p class="sens-cap">Mesmo plano, só muda o mês em que a carta sai. A vantagem a valor presente traz todo o fluxo para hoje pela taxa do financiamento ('+pct(fj*100,1)+' a.a.): positiva, o consórcio custa menos que o banco nesse cenário.</p>');
+ var meses=[3,6,12,24,36,60,90,120,160].filter(function(x){return x<=pz;}),ixs=[.03,.05,.07,.09],lns=[0,.1,.2,.3],cor=function(v){return semC(v,fj*.8,fj,fj*1.2);},fp=function(v){return pct(v*100,1);};
+ H('mSen',sensH({t:'Custo efetivo ao ano · mês da contemplação × reajuste anual',tl:'Contemplação',lin:meses,col:ixs,fl:function(m){return m+'º mês';},fc:function(x){return 'reajuste '+pct(x*100,0);},f:function(m,x){return cetDe(C,pz,T,x,meia,L,m);},fmt:fp,cor:cor,cur:[perto(meses,ct),perto(ixs,ix)],cap:'Verde: abaixo do financiamento de '+pct(fj*100,1)+' a.a. Amarelo: até 20% acima. Vermelho: bem acima. Em cinza, o fluxo não forma taxa (funcionou como poupança).'})+
+  sensH({t:'Custo efetivo ao ano · mês da contemplação × lance próprio',tl:'Contemplação',lin:meses,col:lns,fl:function(m){return m+'º mês';},fc:function(x){return 'lance '+pct(x*100,0);},f:function(m,x){return cetDe(C,pz,T,ix,meia,Math.min(C*x,C*.9),m);},fmt:fp,cor:cor,cur:[perto(meses,ct),perto(lns,L/Math.max(1,C))],cap:'Lance em % do crédito. O lance antecipa parte do pagamento, por isso muda o custo efetivo mesmo com a carta saindo no mesmo mês.'}));
+ var mo=seg('sTb')==='m',L2=[],cab;
+ if(mo){cab=['Mês','>Reajuste','>Parcela','>Lance','>Crédito','>Fluxo do cliente','>Valor presente','>Saldo devedor'];R.forEach(function(r){L2.push([r.m+'º',n2(r.f,4),brl(r.parc,2),r.lan?brl(r.lan):'—',r.cr?brl(r.cr):'—',brl(r.fl,2),brl(r.fl/Math.pow(1+jm,r.m),2),brl(r.saldo)]);});}
+ else{cab=['Ano','>Parcelas pagas','>Lance','>Crédito','>Fluxo líquido','>Valor presente','>Saldo no fim do ano'];for(var y=0;y*12<pz;y++){var a=0,ln=0,cr=0,fx=0,vx=0,sd=0;R.slice(y*12,y*12+12).forEach(function(r){a+=r.parc;ln+=r.lan;cr+=r.cr;fx+=r.fl;vx+=r.fl/Math.pow(1+jm,r.m);sd=r.saldo;});L2.push([(y+1)+'º',brl(a),ln?brl(ln):'—',cr?brl(cr):'—',brl(fx),brl(vx),brl(sd)]);}}
+ tabx('mTab',cab,L2,{nome:'custo-efetivo-fluxo',ctrl:segH('sTb',[['a','Ano a ano'],['m','Mês a mês']],'a'),hl:function(i){return mo?i===ct-1:i===Math.floor((ct-1)/12);},cap:'Fluxo do cliente: negativo quando sai do bolso, positivo quando recebe o crédito. Valor presente: o fluxo dividido por (1 + '+pct(jm*100,3)+')ᵐ, a taxa mensal do financiamento.'});
+ for(var m=1;m<=pz;m+=1){var v=cetDe(C,pz,T,ix,meia,L,m);if(v!=null&&v<fj)ate=m;else if(m>1)break;}
+ mc('mMc',[['Total do plano','T = crédito × (1 + taxa de administração + fundo de reserva)',brl(C)+' × (1 + '+pct(ta*100,1)+' + '+pct(fr*100,1)+')',brl(T)],
+  ['Parcela base (sem reajuste)','T ÷ prazo',brl(T)+' ÷ '+pz,brl(pc,2)+(meia?' · meia parcela até contemplar: '+brl(pc/2,2):'')],
+  ['Reajuste','fator do mês m = (1 + reajuste)^⌊(m − 1) ÷ 12⌋','no '+ct+'º mês: (1 + '+pct(ix*100,1)+')^'+Math.floor((ct-1)/12),n2(fct,4)],
+  ['Saldo redistribuído na contemplação','parcela = (T − já pago − lance ÷ fator) ÷ meses restantes','('+brl(T)+' − pago − '+brl(L)+' ÷ '+n2(fct,4)+') ÷ '+(pz-ct+1),brl(R[ct-1].parc/fct,2)+' sem reajuste · '+brl(R[ct-1].parc,2)+' com o reajuste do ano'],
+  ['Fluxo no mês da contemplação','crédito × fator − lance − parcela × fator',brl(Cct)+' − '+brl(L)+' − '+brl(R[ct-1].parc,2),brl(R[ct-1].fl,2)],
+  ['Custo efetivo (TIR)','r tal que Σ fluxoₘ ÷ (1 + r)ᵐ = 0, para m = 0 … '+pz,'busca numérica sobre os '+pz+' fluxos',rm==null?'sem solução (poupança)':pct(rm*100,4)+' ao mês'],
+  ['Custo efetivo ao ano','(1 + r)¹² − 1',rm==null?'—':'(1 + '+pct(rm*100,4)+')¹² − 1',c0==null?'—':pct(c0*100,2)],
+  ['Taxa do financiamento ao mês','(1 + taxa anual)^(1/12) − 1','(1 + '+pct(fj*100,2)+')^(1/12) − 1',pct(jm*100,4)],
+  ['Vantagem a valor presente','VP = Σ fluxoₘ ÷ (1 + taxa do banco)ᵐ','desconta cada mês por '+pct(jm*100,4),brl(vp)],
+  ['Financiamento de comparação (Price)','PMT = crédito × i ÷ (1 − (1 + i)^−n)',brl(C)+' × '+pct(jm*100,4)+' ÷ (1 − (1 + '+pct(jm*100,4)+')^−'+pz+')',brl(pf,2)+' por mês · total '+brl(tf)],
+  ['Taxa de administração ao ano (linear)','taxa ÷ prazo × 12',pct(ta*100,1)+' ÷ '+pz+' × 12',pct(ta*100/pz*12,2)+' do crédito por ano'],
+  ['Até quando vale a pena','último mês de contemplação com custo efetivo abaixo do banco','varre mês a mês do 1º ao '+pz+'º',ate?ate+'º mês':'nenhum mês']]);
+}
 function fluxo(C,pz,T,ix,meia,L,ct){var pc=T/pz,pago=0,fl=[0];for(var m=1;m<=pz;m++){var f=Math.pow(1+ix,Math.floor((m-1)/12)),p;
  if(m<ct)p=meia?pc/2:pc;else{if(m===ct)pago+=L/f;p=(T-pago)/(pz-m+1);}pago+=p;var v=-p*f;if(m===ct)v+=C*f-L;fl.push(v);}return fl;}
 function cetDe(C,pz,T,ix,meia,L,ct){var r=irr(fluxo(C,pz,T,ix,meia,L,ct));if(r==null)return null;var v=aa(r);return v<-0.05?null:v;}
@@ -257,6 +344,7 @@ function calc(){
   if(ct>y*12&&ct<=y*12+12){var pc_=fl[ct];}an.push([(y+1)+'º ano',brl(s_),ct>y*12&&ct<=y*12+12?'<b>crédito de '+brl(C*Math.pow(1+ix,Math.floor((ct-1)/12)))+'</b>':'—']);sai.push(s_);lb2.push('a'+(y+1));}
  linhas($('#ch2'),[{n:'Pago no ano',c:'#C2724A',d:sai,w:2.6}],lb2,{min:0,marks:[{i:Math.floor((ct-1)/12),t:'recebe o crédito',c:'#3F8F6A'}]});
  H('tab',tab(['Ano','>Pago no ano','>Recebe'],an,function(i){return i===Math.floor((ct-1)/12);}));
+ matCET(C,pz,T,ta,fr,ix,meia,L,ct,fj,c0);
  mbar('Custo efetivo',c0==null?'—':pct(c0*100,1)+' a.a. × banco '+pct(fj*100,1));
 }
 
