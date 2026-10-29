@@ -285,9 +285,11 @@ calc();
  var API='https://bot.agionconsorcios.com.br';
  function tipo(t){t=String(t||'').toUpperCase();return /AUTO|VEIC/.test(t)?'AUTOMOVEL':'IMOVEL';}
  function grp(x){var d=String(x||'').split('[')[0].split('-')[0].replace(/\D/g,'');return d?String(parseInt(d,10)):'';}
+ /* em: horário da base (número em segundos ou texto ISO) → dd/mm hh:mm no horário do aparelho */
+ function fEm(x){var d=typeof x==='number'||/^\d+(\.\d+)?$/.test(String(x))?new Date(+x*1000):new Date(x);if(isNaN(d))return '';function z(n){return (n<10?'0':'')+n;}return z(d.getDate())+'/'+z(d.getMonth()+1)+' '+z(d.getHours())+':'+z(d.getMinutes());}
  function info(t){var e=document.getElementById('agDadosInfo');if(e)e.textContent=t;}
  function monta(j){var Gm={},liv={};
-  (j.vg||[]).forEach(function(v){var t=tipo(v.segmento),g=grp(v.grupo);if(!g)return;var k=t+'|'+g;
+  (j.vg||[]).forEach(function(v){if(v.disponivel===false)return;/* grupo 100% alocado fica fora (regra 22/out) */var t=tipo(v.segmento),g=grp(v.grupo);if(!g)return;var k=t+'|'+g;
    var x=Gm[k]||(Gm[k]={t:t,g:g,po:+v.prazo_original||null,pr:+v.prazo_restante||null,lm:v.lance_medio_pct!=null?+v.lance_medio_pct:null,as:v.dt_assembleia?String(v.dt_assembleia).slice(0,10):null,cs:[],_s:{}});
    (v.cartas||[]).forEach(function(c){var a=[Math.round(+c.valor),Math.round(+c.parcela*100)/100,c.modalidade||null,c.td!=null?+c.td:null,c.fr!=null?+c.fr:null],s=a.join('|');if(!x._s[s]&&a[0]>0){x._s[s]=1;x.cs.push(a);}});});
   function add(r){var k=tipo(r.tipo)+'|'+grp(r.grupo),L=r.livre;if(typeof L==='string'){try{L=JSON.parse(L);}catch(e){L=[];}}
@@ -304,7 +306,7 @@ calc();
   .then(function(j){if(!j||!j.ok)throw new Error('sem dados');var d=monta(j);if(!d.G.length)throw new Error('sem grupos');
    if(window.G&&window.G.push){window.G.length=0;d.G.forEach(function(x){window.G.push(x);});}
    if(window.LM){if(d.LM.IMOVEL)window.LM.IMOVEL=d.LM.IMOVEL;if(d.LM.AUTOMOVEL)window.LM.AUTOMOVEL=d.LM.AUTOMOVEL;}
-   var q=d.G.length;info('Dados da HS ao vivo: '+q+' grupos, lance livre das últimas assembleias'+(d.em?' · atualizado em '+String(d.em).slice(8,10)+'/'+String(d.em).slice(5,7)+' '+String(d.em).slice(11,16):'')+'.');
+   var q=d.G.length;info('Dados da HS ao vivo: '+q+' grupos, lance livre das últimas assembleias'+(d.em?' · atualizado em '+fEm(d.em):'')+'.');
    try{if(window.calc)window.calc();}catch(e){}})
   .catch(function(e){info('Sem conexão com a base da HS agora ('+(e&&e.message||e)+') — usando os dados salvos em 28/10.');});
 })();
