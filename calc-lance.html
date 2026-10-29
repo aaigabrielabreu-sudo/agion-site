@@ -632,7 +632,7 @@ html.agcap .kpi .ic:after,html.agcap .verdict:after{content:none!important;displ
    <div class="panel rv" style="animation-delay:.05s">
     <div class="ph"><h3><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.8"/><path d="M4.5 20.5c1.4-3.8 4.2-5.7 7.5-5.7s6.1 1.9 7.5 5.7"/></svg>O cliente</h3></div>
     <div class="fld"><label for="lc_L">Lance livre<small>quanto ele tem em dinheiro para o lance</small></label><div class="ctl"><div class="ib w"><span class="u pre">R$</span><input id="lc_L" value="" placeholder="280.000" inputmode="decimal" data-f="brl"></div></div></div>
-    <div class="fld"><label for="lc_C">Crédito que ele quer<small>o total que ele precisa receber</small></label><div class="ctl"><div class="ib w"><span class="u pre">R$</span><input id="lc_C" value="" placeholder="500.000" inputmode="decimal" data-f="brl"></div></div></div>
+    <div class="fld"><label for="lc_C">Crédito que ele quer<small>o crédito líquido que ele precisa receber</small></label><div class="ctl"><div class="ib w"><span class="u pre">R$</span><input id="lc_C" value="" placeholder="500.000" inputmode="decimal" data-f="brl"></div></div></div>
     <div class="fld"><label>Cotas<small id="qt_h">uma carta só</small></label><div class="ctl"><span class="seg xs" id="segQt"><button type="button" data-m="1" class="on">1 cota</button><button type="button" data-m="2">2 cotas</button></span></div></div>
    </div>
 
@@ -780,7 +780,7 @@ function taxa(c,P){var f=function(x){return x!=null&&x!==''&&isFinite(+x);};
 
 /* POS_CONT_27OUT · parcela depois da contemplação, por cota: (plano inteiro − meia parcela paga − lance) ÷ meses que faltam.
    Considera a contemplação na próxima assembleia (1 meia parcela paga). O lance (livre + embutido) abate do saldo. Sem o seguro, que entra na contemplação. */
-function posCont(r){if(!r||(r.tipo!=='livre'&&r.tipo!=='emb'))return null;var x=r.x,n=(+r.R||0)-1;if(n<1)return null;
+function posCont(r){if(!r||(r.tipo!=='livre'&&r.tipo!=='emb'&&r.tipo!=='falta'))return null;   /* LIQ_29OUT: quando ainda falta, mostra a parcela se ele completar o lance */var x=r.x,n=(+r.R||0)-1;if(n<1)return null;
  var lance=r.tipo==='emb'?Math.max(x.need,(r.usa||0)+(r.E||0)):x.need,plano=x.K*(1+x.tx.t),meia=x.pl/2,v=(plano-meia-lance)/n;   /* GPT28_9: com embutido o lance é sempre os 30% (mais o livre que faltar), mesmo passando do alvo */return v>0?{v:v,n:n}:null;}
 /* ---------- a conta ----------
    COTAS_26OUT (Gabriel): até 2 cotas no MESMO grupo. Ex.: em vez de 1 carta de R$ 1 mi, 2 de R$ 500 mil; o lance livre se divide
@@ -800,7 +800,10 @@ function calcular(){var q=QT===2?2:1,Lt=num('lc_L'),Ct=num('lc_C'),L=Lt/q,C=Ct/q
   if(A){out.lista.push(Object.assign(b,{tipo:'livre',x:A,usa:A.need,sobra:Math.max(0,L-A.need),E:0,liq:A.K}));return;}
   if(e>0)for(var j=0;j<ge.length;j++){var x=ge[j],E=e*x.K;if(L+E>=x.need-0.5&&x.K-E>=C-0.5){var us=Math.max(0,x.need-E);out.lista.push(Object.assign(b,{tipo:'emb',x:x,usa:us,sobra:Math.max(0,L-us),E:E,liq:x.K-E}));return;}}
   /* EMBFALTA_27OUT (Gabriel): com o embutido ligado, mesmo quando não alcança, o lance total conta os 30% da carta — mostra o lance que ele daria e o que falta de fato */
-  var best=null;ge.forEach(function(x){var Ex=e>0?e*x.K:0,f=x.need-L-Ex;if(!best||f<best.f)best={x:x,f:f,Emax:Ex};});
+  /* LIQ_29OUT (Gabriel): o crédito que ele quer é o crédito LÍQUIDO. Quando nenhum grupo fecha, o mais perto também tem que entregar esse líquido:
+     sem embutido, carta ≥ pedido; com o embutido de 30%, carta − 30% ≥ pedido. Nunca oferece carta com líquido abaixo do pedido. */
+  var best=null;ge.forEach(function(x){var f0=x.need-L;if(!best||f0<best.f)best={x:x,f:f0,Emax:0};
+   if(e>0){var Ex=e*x.K;if(x.K-Ex>=C-0.5){var f1=x.need-L-Ex;if(f1<best.f)best={x:x,f:f1,Emax:Ex};}}});
   out.lista.push(Object.assign(b,{tipo:'falta',x:best.x,usa:L,E:best.Emax,falta:best.f,faltaN:best.f/best.x.pl,liq:best.x.K-best.Emax,embBaixo:best.Emax>0&&best.x.K-best.Emax<C-0.5}));});
  /* totais das cotas (com 2 cotas, tudo × 2; a carta e as parcelas continuam por cota) */
  out.lista.forEach(function(r){r.q=q;r.Kt=r.x.K*q;r.needT=r.x.need*q;r.usaT=(r.usa||0)*q;r.ET=(r.E||0)*q;r.liqT=(r.liq||0)*q;r.faltaT=(r.falta||0)*q;r.sobraT=(r.sobra||0)*q;});
@@ -861,7 +864,7 @@ function pintaHero(r,o){var x=r.x,c=x.c,t=TAG[r.tipo],q=r.q||1,dois=q>1;
  setK('k_alvo',r.Na+' parcelas',pct(r.Na/r.P)+' do plano'+(dois?' · em cada cota':'')+(r.folga?' · +'+r.folga+' de folga':''));
  setK('k_need',R$(r.needT),r.Na+' × '+R2(x.pl)+(dois?' por cota':''));
  setK('k_liq',r.tipo==='peq'?'—':R$(r.liqT),r.tipo==='livre'?'crédito cheio':(r.tipo==='emb'?'carta − 30% de embutido':(r.tipo==='falta'?'se fechasse o lance':'—')));
- var po=posCont(r);setK('k_pos',po?R2(po.v):'—',po?('por '+po.n+' meses'+(dois?' · por cota':'')+' · sem seguro'):'quando o lance chega ao alvo');var kp=$('k_pos');if(kp)kp.parentNode.title=po?'Plano inteiro − meia parcela paga − lance, dividido pelos '+po.n+' meses que faltam, contemplando na próxima assembleia. O seguro entra à parte.':'';}
+ var po=posCont(r);setK('k_pos',po?R2(po.v):'—',po?((r.tipo==='falta'?'se completar o lance · ':'')+'por '+po.n+' meses'+(dois?' · por cota':'')+' · sem seguro'):'quando o lance chega ao alvo');var kp=$('k_pos');if(kp)kp.parentNode.title=po?'Plano inteiro − meia parcela paga − lance, dividido pelos '+po.n+' meses que faltam, contemplando na próxima assembleia. O seguro entra à parte.':'';}
 function linha(r){var x=r.x,t=TAG[r.tipo];
  return '<tr data-k="'+esc(r.G.k)+'"'+(SEL===r.G.k?' class="on"':'')+'><td><b>Grupo '+esc(r.G.grupo)+'</b><span class="tg '+t[1]+'">'+(r.tipo==='livre'?'só lance livre':(r.tipo==='emb'?'+ embutido':(r.tipo==='falta'?(r.faltaT>0.5?'falta '+R$(r.faltaT):'crédito abaixo do pedido'):'carta menor')))+'</span><small>prazo '+r.R+'/'+r.P+' · andou '+pct(r.and)+'</small></td>'+
   '<td class="r" data-l="Carta"><b>'+cartaTxt(r)+'</b><small>parcela '+R2(x.c.parcela)+(r.q>1?' cada':'')+'</small></td>'+
@@ -1207,7 +1210,7 @@ if(ios()){ W.baixarPDF=W.agPdfImagem; W.addEventListener('load',function(){ W.ba
 })();
 </script>
 <script src="/ferr-cliente.js?v=1" defer></script>
-<script src="/tool-tour.js?v=15" defer></script>
+<script src="/tool-tour.js?v=18" defer></script>
 <style id="ag-sem-zoom">/* SEM_ZOOM_24OUT: no celular o campo precisa de 16px, senão o iPhone dá zoom ao digitar */
 @media (max-width:600px),(pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}}
 

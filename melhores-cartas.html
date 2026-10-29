@@ -1804,7 +1804,10 @@ function lcCalc(){var L=lcNum(LC.L),C=lcNum(LC.C),e=LC.usaEmb?0.30:0   /* EMB30_
   if(A){R.lista.push(Object.assign({},base,{tipo:'livre',x:A,usa:A.need,sobra:Math.max(0,L-A.need),E:0,liq:A.K}));return;}
   if(e>0){for(var j=0;j<ge.length;j++){var x=ge[j],E=e*x.K;if(L+E>=x.need-0.5&&x.K-E>=C-0.5){var us=Math.max(0,x.need-E);R.lista.push(Object.assign({},base,{tipo:'emb',x:x,usa:us,sobra:Math.max(0,L-us),E:E,liq:x.K-E}));return;}}}
   /* EMBFALTA_27OUT: com o embutido ligado, mesmo sem alcançar, o lance total conta os 30% da carta */
-  var best=null;ge.forEach(function(x){var Ex=e>0?e*x.K:0,f=x.need-L-Ex;if(!best||f<best.f)best={x:x,f:f,E:Ex};});
+  /* LIQ_29OUT (Gabriel): o crédito que ele quer é o crédito LÍQUIDO. Quando nenhum grupo fecha, o mais perto também tem que entregar esse líquido:
+     sem embutido, carta ≥ pedido; com o embutido de 30%, carta − 30% ≥ pedido. Nunca oferece carta com líquido abaixo do pedido. */
+  var best=null;ge.forEach(function(x){var f0=x.need-L;if(!best||f0<best.f)best={x:x,f:f0,E:0};
+   if(e>0){var Ex=e*x.K;if(x.K-Ex>=C-0.5){var f1=x.need-L-Ex;if(f1<best.f)best={x:x,f:f1,E:Ex};}}});
   R.lista.push(Object.assign({},base,{tipo:'falta',x:best.x,falta:best.f,faltaN:best.f/best.x.pl,usa:L,E:best.E,liq:best.x.K-best.E,embBaixo:best.E>0&&best.x.K-best.E<C-0.5}));});
  var ord={livre:0,emb:1,falta:2,peq:3};
  R.lista.sort(function(a,b){if(ord[a.tipo]!==ord[b.tipo])return ord[a.tipo]-ord[b.tipo];
@@ -1819,7 +1822,7 @@ function lcFonte(r){var f=r.ref;if(f.fonte==='ultimo')return 'menor lance da úl
  return 'lance médio dos últimos 6 meses: '+lcD1(f.N)+' parc. ('+f.qt+' lance'+(f.qt>1?'s':'')+')';}
 function lcCovTxt(r){if(r.cov==null)return 'sem lances contemplados no período para comparar';return 'cobre '+r.cov+' de '+r.nIt+' lance'+(r.nIt>1?'s':'')+' livre'+(r.nIt>1?'s':'')+' que contemplaram nos últimos 6 meses';}
 /* POS_CONT_27OUT · parcela depois da contemplação: (plano inteiro − meia parcela − lance) ÷ meses que faltam, contemplando na próxima assembleia */
-function lcPos(r){if(!r||(r.tipo!=='livre'&&r.tipo!=='emb'))return null;var x=r.x,n=(+r.R||0)-1;if(n<1)return null;var v=(x.K*(1+x.tx.t)-x.pl/2-x.need)/n;return v>0?{v:v,n:n}:null;}
+function lcPos(r){if(!r||(r.tipo!=='livre'&&r.tipo!=='emb'&&r.tipo!=='falta'))return null;   /* LIQ_29OUT */var x=r.x,n=(+r.R||0)-1;if(n<1)return null;var v=(x.K*(1+x.tx.t)-x.pl/2-x.need)/n;return v>0?{v:v,n:n}:null;}
 function lcCard(r,hero){var x=r.x,g=r.g,c=x.c,tag={livre:'Só lance livre',emb:'Lance livre + embutido',falta:'Ainda não alcança',peq:'Carta menor que o pedido'}[r.tipo];
  var pz='prazo '+r.R+'/'+r.P+' · andou '+lcPct(r.and),as=r.v.dt_assembleia?('assembleia '+dtBR(r.v.dt_assembleia+'T12:00:00')):'';
  var cel=function(l,v,s,cls){return '<div'+(cls?' class="'+cls+'"':'')+'><small>'+l+'</small><b>'+v+'</b>'+(s?'<em>'+s+'</em>':'')+'</div>';};
@@ -1829,7 +1832,7 @@ function lcCard(r,hero){var x=r.x,g=r.g,c=x.c,tag={livre:'Só lance livre',emb:'
  else if(r.tipo==='falta'&&r.falta<=0.5)cells+=cel('Crédito líquido',lcR(r.liq),'abaixo do pedido, por causa do embutido','bad')+cel('Lance livre',lcR(lcNum(LC.L)),'o que o cliente tem')+cel('Embutido',lcR(r.E),'30% da carta','au')+cel('Lance total',lcR(lcNum(LC.L)+r.E),'já chega à referência','hl');   /* GPT_27OUT */
  else if(r.tipo==='falta')cells+=cel('Faltam',lcR(r.falta),'≈ '+Math.ceil(r.faltaN)+' parcela'+(Math.ceil(r.faltaN)>1?'s':'')+(r.E>0?' (já com o embutido)':''),'bad')+cel('Lance livre',lcR(lcNum(LC.L)),'o que o cliente tem')+cel('Embutido',r.E>0?lcR(r.E):'—',r.E>0?(r.embBaixo?'30% · crédito líquido '+lcR(r.liq):'30% da carta'):'desligado',r.E>0?'au':'')+(r.E>0?cel('Lance total',lcR(lcNum(LC.L)+r.E),'livre + embutido','hl'):'');
  else cells+=cel('Maior carta do grupo',lcR(x.K),'menor que o crédito pedido','bad');
- var po=lcPos(r);if(po)cells+=cel('Parcela depois',brl2(po.v),'nos '+po.n+' meses que faltam, sem o seguro');
+ var po=lcPos(r);if(po)cells+=cel('Parcela depois',brl2(po.v),(r.tipo==='falta'?'se completar o lance · ':'')+'nos '+po.n+' meses que faltam, sem o seguro');
  var covp=r.cov==null?0:Math.round(r.cov/r.nIt*100);
  var frase='';if(hero){if(r.tipo==='livre')frase='Com '+lcR(r.usa)+' de lance livre o cliente chega a '+r.Na+' parcelas na carta de '+lcR(x.K)+', a referência dos lances que contemplaram no grupo. Se contemplar, recebe o crédito cheio; a contemplação depende do resultado da assembleia.'+(r.Amax&&r.Amax.K>x.K?' Só com o lance livre dá até a carta de '+lcR(r.Amax.K)+' neste grupo.':'');
   else if(r.tipo==='emb')frase='Só o lance livre não chega às '+r.Na+' parcelas. Com o lance embutido de 30% da carta de '+lcR(x.K)+' ('+lcR(r.E)+'), o cliente completa com '+lcR(r.usa)+' de lance livre e chega ao alvo. Se contemplar, ele recebe '+lcR(r.liq)+' de crédito líquido; a contemplação depende do resultado da assembleia.';
@@ -1868,7 +1871,7 @@ function abaLance(v){
   '<div class="lcf">'+
    '<div class="fld"><label>Categoria</label><div class="seg" id="lccat">'+Object.keys(CATS).map(function(k){return '<button class="chip'+(S.cat===k?' on':'')+'" data-k="'+k+'">'+CATS[k]+'</button>';}).join('')+'</div></div>'+
    '<div class="fld lcfl"><label for="lcL">Lance livre do cliente</label><input class="inp lcin" id="lcL" inputmode="decimal" autocomplete="off" placeholder="ex.: 280.000" value="'+esc(LC.L?lcR(lcNum(LC.L)):'')+'"></div>'+
-   '<div class="fld lcfl"><label for="lcC">Crédito que ele quer</label><input class="inp lcin" id="lcC" inputmode="decimal" autocomplete="off" placeholder="ex.: 500.000" value="'+esc(LC.C?lcR(lcNum(LC.C)):'')+'"></div>'+
+   '<div class="fld lcfl"><label for="lcC">Crédito líquido que ele quer</label><input class="inp lcin" id="lcC" inputmode="decimal" autocomplete="off" placeholder="ex.: 500.000" value="'+esc(LC.C?lcR(lcNum(LC.C)):'')+'"></div>'+
    '<div class="fld"><label>Base do lance</label><div class="seg" id="lcbase"><button class="chip'+(LC.base!=='ultimo'?' on':'')+'" data-k="media">Médio 6 meses</button><button class="chip'+(LC.base==='ultimo'?' on':'')+'" data-k="ultimo">Último lance</button></div></div>'+
   '</div>'+
   '<div class="lcf2">'+
@@ -1896,7 +1899,7 @@ window.AgionMC={S:S,pintar:pintar,captura:captura,ranking:ranking,recarregar:rec
 carregar().then(function(d){preparar(d);pintar();ligaImport();}).catch(function(e){$('#view').innerHTML='<div class="panel empty">Não consegui carregar os dados agora. Recarregue a página.<br><small>'+esc(e&&e.message||e)+'</small></div>';});
 })();
 </script>
-<script src="/tool-tour.js?v=16" defer></script>
+<script src="/tool-tour.js?v=18" defer></script>
 
 <style id="ag-sem-zoom">/* SEM_ZOOM_24OUT: no celular o campo precisa de 16px, senão o iPhone dá zoom ao digitar */
 @media (max-width:600px),(pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}#busca::placeholder{font-size:13px}}
