@@ -1000,7 +1000,7 @@ function cabecalho(gs){
   '<div class="fld"><label>Período</label><select class="sel" id="psel">'+PER.map(function(p){return '<option value="'+p[0]+'"'+(S.per===p[0]?' selected':'')+'>'+p[1]+'</option>';}).join('')+'</select></div>'+
   (gs?'<div class="fld"><label>Janela</label><div class="rng"><input type="range" min="1" max="30" value="'+S.janela+'" id="jan"><b id="janv">±'+S.janela+'</b></div></div>':'')+
  '</div>';}
-function bindCab(){
+function bindCab(){setTimeout(gtzAjusta,0);
  $$('#cats .chip').forEach(function(b){b.onclick=function(){S.cat=b.dataset.k;S.grupo=null;S.sel=null;pintar();};});
  bindGsel(gruposDaCat());
  var ps=$('#psel');if(ps)ps.onchange=function(){S.per=ps.value;pintar();};
@@ -1215,7 +1215,7 @@ function abaGrupo(v){
   kpiH('<i class="cel mini ct"></i>','Contempladas',nf(nCt),(S.per==='all'?(mesesG.length?'desde '+mesLb(mesesG[0])+' · '+mesesG.length+' assembleias':'sem resultado'):perLb().toLowerCase()))+
   kpiH('<i class="cel mini ns"></i>','Clientes Agion',(S.oculta?'—':nf(Object.keys(g.nossas).length+nPos)),(S.oculta?'ocultos na tela':'cotas da carteira'+(nRsv?' + '+nRsv+' reservada'+(nRsv>1?'s':'')+' no portal para clientes':'')+(nPos-nRsv?' + '+(nPos-nRsv)+((nPos-nRsv)>1?' posições':' posição'):'')))+
   kpiH('<i class="cel mini oa"></i>','Alta oportunidade',(ind?'—':nf(alta)),(ind?'grupo indisponível na HS':(soV&&rob?'à venda':'livres')+' para onde 5 ou mais nº do sorteio vão primeiro (gangorra)'+(nMk?' · '+nMk+' reservada'+(nMk>1?'s':''):'')))+
- '</div>'+(ind?'<div class="indisp">'+IC.info+'<span><b>Grupo '+g.grupo+' indisponível</b>100% alocado: não aparece na oferta de venda da HS. Fica fora das classificações e das sugestões de cotas.</span></div>':'')+'<div class="g2"><div class="panel" id="pmapa"><div class="ph"><h3>'+IC.grid+'Mapa de cotas</h3><span class="pill">Grupo '+g.grupo+' · '+admLb+'</span><span class="sp"></span><label class="search" title="Ir direto para uma cota">'+IC.search+'<input id="busca" placeholder="Nº da cota" inputmode="numeric" autocomplete="off"></label></div>'+
+ '</div>'+(ind?'<div class="indisp">'+IC.info+'<span><b>Grupo '+g.grupo+' indisponível</b>100% alocado: não aparece na oferta de venda da HS. Fica fora das classificações e das sugestões de cotas.</span></div>':'')+'<div class="g2"><div class="panel" id="pmapa"><div class="ph"><h3>'+IC.grid+'Mapa de cotas</h3><span class="pill">Grupo '+g.grupo+' · '+admLb+'</span><span class="sp"></span><label class="search" title="Ir direto para uma cota">'+IC.search+'<input id="busca" placeholder="Nº da cota" inputmode="numeric" autocomplete="off"></label>'+stBtnBaixar('mapa')+'</div>'+
  '<details class="lgdet" data-dk="lg"'+(window.innerWidth>560?' open':'')+'><summary>Legenda'+IC.chev+'</summary><div class="legend lg2">'+
   '<span class="lgg"><span class="lgh">Contemplada</span><span><i class="cel mini ct"></i>Já saiu <em>'+nf(nCt)+'</em></span>'+(prel.length?'<span><i class="cel mini ct prl"></i>Resultado do mês ('+prel.map(mesLb).join(', ')+')</span>':'')+'</span>'+
   '<span class="lgg"><span class="lgh">Oportunidade</span><span><i class="cel mini oa"></i>Alta · 5+ nº vão primeiro para ela</span><span><i class="cel mini om"></i>Média · 3 a 4</span><span><i class="cel mini ob"></i>Baixa · 2 nº, 2ª opção ou no bolo (±'+S.janela+')</span></span>'+
@@ -1427,7 +1427,7 @@ function lvMini(g){var lv=lvG(g);if(!lv&&g.adm!=='HS')return '';var vz=!lv||lv.v
  a.push('<span>Lance livre <em>6m</em> '+(vz?'<b class="z">'+(semDad?'sem dados do portal':'sem lance livre no período')+'</b>':'<b>'+lvFaixa(lv)+'</b>'+(lv.soQuit?' quitação':''))+'</span>');if(lv&&lv.med>0)a.push('<span>Médio HS <b>'+pctBR(lv.med)+'</b></span>');return '<span class="lvml">'+a.join('<i class="lvsep"></i>')+'</span>'+(vz&&!(lv&&lv.med>0)?'':'<span class="lvmb">'+lvBar(lv||{vazio:1,med:0})+'</span>');}
 function gselHtml(gs){var g=S.GR[S.grupo]||gs[0],i=gInfo(g),ad=admNm(g);
  return '<div class="fld gfld"><button class="gtrig" id="gtrig" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Escolher o grupo"><span class="gadm'+(ad.length>3?' lg':'')+'">'+ad+'</span><span class="gtx"><span class="gl1"><span class="gpre">Grupo</span><b>'+g.grupo+'</b>'+(i.pz?'<span class="gpz"><i>prazo</i> '+i.pz+' meses</span>':'')+(i.ind?'<span class="gind">indisponível</span>':'')+'</span>'+
-  '<small>'+(i.fx?'<span class="gcr">'+i.fx+'</span>':'')+(i.pc?'<span class="gpc">parcela '+i.pc+'</span>':'')+(i.fx||i.pc?'':'<span class="gpz0">'+(i.ind?'fora da oferta da HS':'sem cartas da HS')+'</span>')+(lvMini(g)?'<span class="glvm">'+lvMini(g)+'</span>':'')+'</small></span>'+lvBig(g)+IC.chev+'</button><div class="gpop" id="gpop" role="listbox" aria-label="Escolher grupo"></div></div>';}
+  '<small>'+(i.fx?'<span class="gcr">'+i.fx+'</span>':'')+(i.pc?'<span class="gpc">parcela '+i.pc+'</span>':'')+(i.fx||i.pc?'':'<span class="gpz0">'+(i.ind?'fora da oferta da HS':'sem cartas da HS')+'</span>')+gavMini(g)+(lvMini(g)?'<span class="glvm">'+lvMini(g)+'</span>':'')+'</small></span>'+gavBig(g)+lvBig(g)+IC.chev+'</button><div class="gpop" id="gpop" role="listbox" aria-label="Escolher grupo"></div></div>';}
 /* busca do seletor: número do grupo, valor da carta (300k, 300 mil, 300.000) ou parcela (1.000, 838,50, "parcela 900") */
 function numBR(t){t=String(t).replace(/r\$|\s/g,'');if(/,\d{1,2}$/.test(t))t=t.replace(/\./g,'').replace(',','.');else t=t.replace(/[.,](?=\d{3}(\D|$))/g,'').replace(',','.');var n=parseFloat(t);return isNaN(n)?null:n;}
 function lerBusca(q){var s=String(q||'').toLowerCase().trim();if(!s)return null;
@@ -1443,7 +1443,7 @@ function lerBusca(q){var s=String(q||'').toLowerCase().trim();if(!s)return null;
 function cartasVG(g){var v=S.VG&&S.VG[g.k];return v&&v.cartas?v.cartas.filter(function(c){return +c.valor;}):[];}
 function gRow(g,i,extra){var sub=[i.u?i.u.n+' contemplaç'+(i.u.n===1?'ão':'ões')+' em '+mesLb(i.u.mes):(g.w||g.soMensal?'sem assembleia em '+mesLb(ultimoTipo(g.tipo)):'sem resultado'),i.enc?'encerrado':''].filter(Boolean).join(' · ');
  return '<button type="button" role="option" class="go'+(g.k===S.grupo?' on':'')+(i.ind?' off':'')+'" data-k="'+g.k+'" aria-selected="'+(g.k===S.grupo)+'"><span class="gmid"><span class="gl1"><b>'+g.grupo+'</b>'+(i.pz?'<span class="gpz"><i>prazo</i> '+i.pz+'</span>':'')+(function(){var lv=lvG(g);if(!lv)return '';return '<span class="gpz glvp" title="'+esc(lvTit(lv))+'"><i>livre 6m</i> '+(lv.vazio?'—':lvFaixa(lv))+(lv.soQuit?' <i>quit.</i>':'')+(lv.med>0?' <i>· HS</i> '+pctBR(lv.med):'')+'</span>';})()+'</span>'+
-  (extra?'<span class="gmt">'+extra+'</span>':'<span class="gfx">'+(i.fx?i.fx+(i.pc?'<span class="gpc">parcela '+i.pc+'</span>':''):'<span class="mut">'+(i.ind?'fora da oferta da HS':'sem cartas da HS')+'</span>')+'</span>')+'<small>'+sub+'</small></span>'+(i.n&&!S.oculta?'<span class="gns">'+i.n+' nossa'+(i.n>1?'s':'')+'</span>':'')+'</button>';}
+  (extra?'<span class="gmt">'+extra+'</span>':'<span class="gfx">'+(i.fx?i.fx+(i.pc?'<span class="gpc">parcela '+i.pc+'</span>':''):'<span class="mut">'+(i.ind?'fora da oferta da HS':'sem cartas da HS')+'</span>')+'</span>')+'<small class="gsb"><span>'+sub+'</span>'+gavPill(g)+'</small></span>'+(i.n&&!S.oculta?'<span class="gns">'+i.n+' nossa'+(i.n>1?'s':'')+'</span>':'')+'</button>';}
 function cartaTx(c){return '<b>carta R$ '+kfmt(c.valor)+'</b><span>parcela '+brl2(c.parcela)+'</span>'+(c.modalidade==='meia_taxa_antecipada'?'<em>taxa antecipada</em>':'');}
 function gItens(gs,f){var B=lerBusca(f),h='';
  function ord(g){return g.adm==='HS'?0:1;}
@@ -1937,7 +1937,7 @@ function stDados(g,h){
 function stCtl(E){var o=STO,seg=function(grp,ops){return '<div class="st-seg" role="group">'+ops.map(function(x){return '<button type="button" data-grp="'+grp+'" data-v="'+x[0]+'" class="'+(String(o[grp])===String(x[0])?'on':'')+'">'+x[1]+'</button>';}).join('')+'</div>';};
  return '<div class="st-ctl"><div class="st-cf2"><span class="st-cl">Janela</span>'+seg('n',[[6,'6 meses'],[12,'12 meses'],[24,'24 meses'],[0,'Todo o período']])+'</div>'+
   '<div class="st-cf2"><span class="st-cl">Trechos</span>'+seg('t',[[10,'10'],[20,'20']])+'</div>'+
-  '<div class="st-cf2 st-cfm"><span class="st-cl">Nos gráficos</span><div class="st-mks">'+STKS.map(function(k){return '<button type="button" class="st-mk'+(o.m[k]?' on':'')+'" data-mk="'+k+'" aria-pressed="'+(!!o.m[k])+'"><i style="background:'+STMOD[k].c+'"></i>'+STMOD[k].lb+'<em>'+nf(E.kc[k])+'</em></button>';}).join('')+'</div></div></div>';}
+  '<div class="st-cf2 st-cfm"><span class="st-cl">Nos gráficos</span><div class="st-mks">'+STKS.map(function(k){return '<button type="button" class="st-mk'+(o.m[k]?' on':'')+'" data-mk="'+k+'" aria-pressed="'+(!!o.m[k])+'"><i style="background:'+STMOD[k].c+'"></i>'+STMOD[k].lb+'<em>'+nf(E.kc[k])+'</em></button>';}).join('')+'</div></div><div class="st-cf2 st-cfdl">'+stBtnBaixar('stats')+'</div></div>';}
 function stMiniBars(vals,hi,cor,corHi,tips){var mx=Math.max.apply(null,vals.concat([1]));return '<div class="st-mb">'+vals.map(function(v,i){return '<i class="'+(i===hi?'on':'')+'" style="height:'+Math.max(6,v/mx*100).toFixed(0)+'%;background:'+(i===hi?corHi:cor)+';animation-delay:'+(i*35)+'ms"'+(tips?' data-tip="'+esc(tips[i])+'"':'')+'></i>';}).join('')+'</div>';}
 function stBadge(x,tipo){if(x==null)return '';return '<span class="st-bd '+tipo+'">'+x+'</span>';}
 function stHero(E,g){var J=E.J,s=[],tot=E.tot||1,vg=E.vg,ind=indisp(g);
@@ -2133,6 +2133,237 @@ function stLiga(b,g,h){
   if((x=e.target.closest('.st-hc'))){STO.sel={j:+x.getAttribute('data-j'),t:+x.getAttribute('data-tr')};$$('#stbody .st-hc.sel').forEach(function(y){y.classList.remove('sel');});x.classList.add('sel');var d2=$('#stdet');if(d2)d2.innerHTML=stDet(b._E);if(!toque)return;}
   if(toque&&(x=e.target.closest('[data-tip]'))){var r=x.getBoundingClientRect();mostra(x,r.left+r.width/2-8,r.bottom-8);clearTimeout(tip._t);tip._t=setTimeout(function(){tip.classList.remove('on');},2600);}
  });}
+
+/* ==========================================================================
+   AV_CAB_30OUT (Gabriel, 29/out): no vão do cabeçalho do grupo (Por grupo e Dados estatísticos), quantas cotas estão
+   disponíveis à venda na HS agora: a lista do robô do portal, sem as contempladas e sem as reservadas pela Agion
+   (a mesma conta do card "À venda na HS" dos Dados estatísticos). No celular vira uma linha embaixo da parcela.
+   ========================================================================== */
+function gavDados(g){if(!g)return null;var h=S.H[g.k];
+ if(indisp(g))return {n:0,ind:1};
+ var v=vd(g);
+ if(v){if(!h)return {load:1};var n=0,sai=0;(v.cotas||[]).forEach(function(c){c=+c;if(h.cont[c])sai++;else if(roboAv(g,c))n++;});return {n:n,N:total(g,h),ra:(v.reservadas_agion||[]).length,sai:sai,rob:1};}
+ if(S.VG&&S.VG[g.k]&&!h)return {load:1};
+ var a=avInfo(g);if(a.n>0)return {n:a.n,N:h?total(g,h):0,dt:a.dt,lista:1};
+ return null;}
+function gavPct(d){if(!d||!d.N||!d.n)return '';var p=d.n/d.N;return stPct(p,p<0.1?1:0);}
+function gavTxt(d){if(d.load)return 'conferindo o portal da HS…';if(d.ind)return 'grupo 100% alocado';
+ var p=[];if(d.N)p.push(gavPct(d)?gavPct(d)+' das '+nf(d.N)+' cotas':'nenhuma das '+nf(d.N)+' cotas');if(d.ra)p.push(d.ra+' reservada'+(d.ra>1?'s':'')+' pela Agion');if(d.sai)p.push(d.sai+' da lista já saí'+(d.sai>1?'ram':'u'));if(d.lista&&d.dt)p.push('lista de '+ddmm(d.dt));return p.join(' · ');}
+function gavUn(n){return 'cota'+(n===1?'':'s')+' disponíve'+(n===1?'l':'is');}
+function gavBig(g){var d=gavDados(g);if(!d)return '';var pct=d.N&&d.n?Math.min(1,d.n/d.N):0;
+ return '<span class="gav'+(d.n||d.load?'':' z')+'" title="'+esc('Cotas que a HS mostra à venda no portal agora, sem as contempladas e sem as reservadas pela Agion. É a mesma conta do card “À venda na HS” dos Dados estatísticos.')+'">'+
+  '<span class="gavh">À venda na HS</span>'+
+  '<span class="gavr"><b>'+(d.load?'…':nf(d.n))+'</b><em>'+(d.load?'':gavUn(d.n))+'</em></span>'+
+  '<span class="gavb"><i style="width:'+(pct*100).toFixed(1)+'%"></i></span>'+
+  '<span class="gavf">'+gavTxt(d)+'</span></span>';}
+/* na lista de escolha do grupo: cotas à venda de cada grupo. Grupo já aberto: a mesma conta do cabeçalho;
+   grupo ainda não aberto: o número de cotas na lista do portal da HS (ao abrir, tira as que já saíram e as reservadas). */
+function gavQtd(g){if(indisp(g))return {n:0,ind:1};var d=S.H[g.k]?gavDados(g):null;if(d&&!d.load)return d;
+ var v=S.VG&&S.VG[g.k];if(v&&v.qt_vagas!=null)return {n:+v.qt_vagas||0,lista:1};var a=avInfo(g);return a.n>0?{n:a.n,lista:1}:null;}
+function gavPill(g){var d=gavQtd(g);if(!d)return '';
+ var t=d.ind?'Grupo 100% alocado: nenhuma cota à venda na HS':(d.lista?'Cotas na lista do portal da HS. Ao abrir o grupo, a conta tira as que já saíram e as reservadas pela Agion.':'Cotas disponíveis à venda na HS, sem as contempladas e sem as reservadas pela Agion');
+ return '<span class="gpz gavp'+(d.n?'':' z')+'" title="'+esc(t)+'"><i>à venda</i> '+nf(d.n)+'</span>';}
+function gavMini(g){var d=gavDados(g);if(!d)return '';
+ return '<span class="gavm"><i></i><span>'+(d.load?'<em>Conferindo as cotas à venda na HS…</em>':(d.ind?'<b>0</b> à venda na HS <em>· grupo 100% alocado</em>':'<b>'+nf(d.n)+'</b> '+gavUn(d.n)+' à venda na HS'+(gavPct(d)?'<em> · '+gavPct(d)+' do grupo</em>':'')))+'</span></span>';}
+
+/* ==========================================================================
+   IMPRIMIR_30OUT (Gabriel, 29/out: "o melhores cartas pode imprimir PDF ou PNG: o mapa e os dados estatísticos; outras
+   subabas não" · "não tem link"). Botão Baixar no Mapa de cotas (aba Por grupo) e na aba Dados estatísticos.
+   PDF em folhas A4 deitadas (corta entre blocos e entre linhas do mapa, nunca no meio de um card) ou uma imagem PNG só.
+   O mapa é desenhado do zero (as mesmas cores da tela, as listras das contempladas); os dados estatísticos são
+   fotografados da tela no tamanho de computador, também no celular. Nada é gravado e não gera link.
+   ========================================================================== */
+var STDL='<svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5"/><path d="M5 19.5h14"/></svg>';
+var STDL_PDF='<svg class="i" viewBox="0 0 24 24"><path d="M14 3.5H7.5a2 2 0 00-2 2v13a2 2 0 002 2h9a2 2 0 002-2V8z"/><path d="M14 3.5V8h4.5M9 13h6M9 16.5h4"/></svg>';
+var STDL_PNG='<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M20.5 16l-5-5-8.5 8.5"/></svg>';
+function stBtnBaixar(k){return '<button type="button" class="btn gd sm st-bx" data-baixar="'+k+'" title="Baixar em PDF (para imprimir) ou em imagem PNG" aria-haspopup="menu">'+STDL+'<span>Baixar</span></button>';}
+var _stGer=false;
+function stLib(src,ok){return new Promise(function(res,rej){if(ok())return res();var s=document.createElement('script');s.src=src;s.onload=function(){ok()?res():rej(new Error('o gerador não carregou'));};s.onerror=function(){rej(new Error('sem conexão para gerar o arquivo'));};document.head.appendChild(s);});}
+function stIos(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
+function stBaixa(blob,nome){var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=nome;a.rel='noopener';a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){try{URL.revokeObjectURL(u);a.remove();}catch(e){}},60000);return 1;}
+function stEntrega(blob,nome){
+ if(stIos()&&navigator.canShare){try{var f=new File([blob],nome,{type:blob.type});if(navigator.canShare({files:[f]}))return navigator.share({files:[f],title:nome}).then(function(){return 1;},function(e){if(e&&e.name==='AbortError')return 1;return stBaixa(blob,nome);});}catch(e){}}
+ return Promise.resolve(stBaixa(blob,nome));}
+function stNomeArq(g,k){var t='Agion - '+(k==='mapa'?'Mapa de cotas':'Dados estatísticos')+' - Grupo '+g.grupo+' ('+(CATS[g.tipo]||'')+')'+(k==='stats'?' - '+(STO.n?STO.n+' meses':'todo o período'):'')+' - '+hoje().replace(/\//g,'-');
+ return t.replace(/[\\/:*?"<>|]+/g,'-');}
+function stFechaMenu(){var m=$('#stBxMenu');if(m)m.remove();document.removeEventListener('click',stFora,true);window.removeEventListener('scroll',stFechaMenu,true);}
+function stFora(e){var m=$('#stBxMenu');if(m&&!m.contains(e.target)&&!e.target.closest('[data-baixar]'))stFechaMenu();}
+function stMenuBaixar(btn){if($('#stBxMenu')){stFechaMenu();return;}var k=btn.getAttribute('data-baixar'),g=S.GR[S.grupo];if(!g)return;
+ var r=btn.getBoundingClientRect(),m=document.createElement('div');m.id='stBxMenu';m.className='st-bxmenu';m.setAttribute('role','menu');
+ m.innerHTML='<div class="st-bxt">'+(k==='mapa'?'Mapa de cotas · grupo '+esc(String(g.grupo)):'Dados estatísticos · grupo '+esc(String(g.grupo)))+'</div>'+
+  '<button type="button" role="menuitem" data-f="pdf"><span class="ii">'+STDL_PDF+'</span><span><b>PDF</b><small>Folhas A4 deitadas, para imprimir ou mandar como documento</small></span></button>'+
+  '<button type="button" role="menuitem" data-f="png"><span class="ii">'+STDL_PNG+'</span><span><b>Imagem PNG</b><small>Uma imagem só, pronta para o WhatsApp</small></span></button>';
+ document.body.appendChild(m);
+ var w=m.offsetWidth,L=Math.min(window.innerWidth-w-10,Math.max(10,r.right-w));m.style.left=L+'px';m.style.top=Math.round(r.bottom+8)+'px';
+ [].forEach.call(m.querySelectorAll('[data-f]'),function(b){b.onclick=function(){var f=b.getAttribute('data-f');stFechaMenu();stBaixar(k,f,g);};});
+ setTimeout(function(){document.addEventListener('click',stFora,true);window.addEventListener('scroll',stFechaMenu,true);},0);}
+function stBaixar(k,f,g){if(_stGer)return;_stGer=true;toast(f==='pdf'?'Gerando o PDF…':'Gerando a imagem…');
+ var titulo=(k==='mapa'?'Mapa de cotas':'Dados estatísticos')+' · Grupo '+g.grupo;
+ (k==='mapa'?stCapMapa(g):stCapStats(g)).then(function(r){
+  if(f==='png')return new Promise(function(ok){r.cv.toBlob(function(b){ok(b);},'image/png');}).then(function(b){if(!b)throw new Error('a imagem ficou grande demais para este aparelho');return stEntrega(b,stNomeArq(g,k)+'.png');});
+  return stPdf(r.cv,r.cortes,titulo).then(function(b){return stEntrega(b,stNomeArq(g,k)+'.pdf');});
+ }).then(function(){toast(f==='pdf'?'PDF pronto ✓':'Imagem pronta ✓');},function(e){console.error(e);toast('Não consegui gerar o arquivo: '+((e&&e.message)||e));})
+ .then(function(){_stGer=false;});}
+/* PDF: folhas A4 deitadas; junta blocos inteiros em cada folha (só corta um bloco se ele sozinho for maior que a folha) */
+function stPaginas(cortes,hmax,altura){var B=cortes.slice().sort(function(a,b){return a[0]-b[0];}),P=[],y0=0,fim=0;
+ B.forEach(function(b){var a=b[0],z=b[1];if(z-y0<=hmax){fim=Math.max(fim,z);return;}
+  if(fim>y0){P.push([y0,fim]);y0=a;}
+  while(z-y0>hmax){P.push([y0,y0+hmax]);y0+=hmax;}fim=z;});
+ if(fim>y0)P.push([y0,Math.min(fim,altura)]);return P.length?P:[[0,altura]];}
+function stPdf(cv,cortes,titulo){return stLib('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',function(){return !!(window.jspdf&&window.jspdf.jsPDF);}).then(function(){
+ var J=window.jspdf.jsPDF,pw=841.89,ph=595.28,m=20,rod=16,cw=pw-2*m,ch=ph-2*m-rod,e=cw/cv.width,hmax=Math.floor(ch/e);
+ var P=stPaginas(cortes,Math.round(hmax*1.2),cv.height),pdf=new J({unit:'pt',format:'a4',orientation:'landscape',compress:true});/* folga de 20%: a folha que passar um pouco encolhe para caber (sem folha com um bloco só) */
+ P.forEach(function(p,i){if(i)pdf.addPage('a4','landscape');
+  pdf.setFillColor(244,239,228);pdf.rect(0,0,pw,ph,'F');
+  var h=Math.max(1,Math.round(p[1]-p[0])),c=document.createElement('canvas');c.width=cv.width;c.height=h;var x=c.getContext('2d');x.fillStyle='#F4EFE4';x.fillRect(0,0,c.width,h);x.drawImage(cv,0,p[0],cv.width,h,0,0,cv.width,h);
+  var f=h*e>ch?ch/(h*e):1;pdf.addImage(c.toDataURL('image/jpeg',0.9),'JPEG',m+(cw-cw*f)/2,m,cw*f,h*e*f,undefined,'FAST');
+  pdf.setFont('helvetica','normal');pdf.setFontSize(7.5);pdf.setTextColor(120,128,124);
+  pdf.text('Agion · '+titulo+' · gerado em '+hoje(),m,ph-m+4);pdf.text('página '+(i+1)+' de '+P.length,pw-m,ph-m+4,{align:'right'});});
+ return pdf.output('blob');});}
+
+/* ---------- Dados estatísticos: foto da aba no tamanho de computador ---------- */
+var STPNGCSS='.st-pngx *,.st-pngx *:before,.st-pngx *:after{animation:none!important;transition:none!important}'+
+ '.st-pngx #stbody{padding:22px 24px 26px!important;margin:0!important;background:#F4EFE4!important}'+
+ '.st-pngx #stbody>.st-ctl,.st-pngx .st-vis,.st-pngx #stdet,.st-pngx .st-best>.btn,.st-pngx .st-rk th:last-child,.st-pngx .st-rk td:last-child,.st-pngx .dob,.st-pngx .st-tip,.st-pngx #sttip{display:none!important}'+
+ '.st-pngx .st-trk{background:#EFE7D6!important}'+
+ '.st-pngx .st-vc.ct{background:#C44848!important}'+
+ '.st-pngx .st-vc.av{box-shadow:none!important;border:1.5px solid rgba(63,143,106,.9)!important}'+
+ '.st-pngx .st-lld{box-shadow:none!important;border:2.5px solid var(--m-livre)!important}'+
+ '.st-pngx .st-lld.sm{border-width:2px!important}'+
+ '.st-pngx .st-cfc.best{box-shadow:none!important;outline:1.5px solid rgba(110,63,207,.5)}'+
+ '.st-pngx .st-hmf b.hot{box-shadow:none!important;border:2px solid var(--goldd)}'+
+ '.st-pngx .st-tb tr.hot td:first-child{box-shadow:none!important;border-left:3px solid var(--gold)}'+
+ '.st-pngx .st-band{box-shadow:none!important;border:1px solid rgba(163,131,63,.5)}'+
+ '.st-pngx .st-pdfh{display:flex!important}';
+function stCabPdf(g,E,k){var i=gInfo(g),d=gavDados(g),J=E?E.J:0;
+ var lin=[admNm(g)+' · '+(CATS[g.tipo]||''),i.pz?'prazo '+i.pz+' meses':'',i.fx?'cartas '+i.fx:'',i.pc?'parcela '+i.pc:'',d&&!d.load?(d.ind?'grupo 100% alocado':nf(d.n)+' '+gavUn(d.n)+' à venda na HS'):''].filter(Boolean).join(' · ');
+ var l2=k==='mapa'?('Período: '+perLb().toLowerCase()+' · janela ±'+S.janela+(S.filtro&&S.filtro!=='todos'?' · filtro: '+((FIL.filter(function(f){return f[0]===S.filtro;})[0]||[0,''])[1]).toLowerCase():'')):
+  ((STO.n?'Últimos '+J+' meses':'Todo o período')+' · '+mesLb(E.jan[0])+' a '+mesLb(E.jan[J-1])+' · trechos de '+nf(E.B)+' cotas · '+STKS.filter(function(x){return STO.m[x];}).map(function(x){return STMOD[x].lb.toLowerCase();}).join(', '));
+ return {t:(k==='mapa'?'Mapa de cotas':'Dados estatísticos')+' · Melhores cartas',h:'Grupo '+g.grupo,l1:lin,l2:l2};}
+function stCapStats(g){var b=$('#stbody');if(!b||!b._E)return Promise.reject(new Error('abra a aba Dados estatísticos'));
+ var E=b._E,W=window,sx=W.scrollX,sy=W.scrollY,mob=W.innerWidth<700,ESC=mob?1.25:1.75,cortes=[],C=stCabPdf(g,E,'stats'),lg=$('.top .logo img');
+ return stLib('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',function(){return !!W.html2canvas;}).then(function(){
+  W.scrollTo(0,0);
+  return W.html2canvas(b,{scale:ESC,backgroundColor:'#F4EFE4',windowWidth:1240,windowHeight:900,useCORS:true,logging:false,scrollX:0,scrollY:0,
+   onclone:function(doc){var cb=doc.getElementById('stbody');if(!cb)return null;doc.documentElement.classList.add('st-pngx');
+    var st=doc.createElement('style');st.textContent=STPNGCSS;doc.head.appendChild(st);
+    var hd=doc.createElement('div');hd.className='st-pdfh';
+    hd.innerHTML=(lg?'<img src="'+lg.getAttribute('src')+'" alt="Agion">':'')+'<div class="t"><small>'+esc(C.t)+'</small><h1>'+esc(C.h)+'</h1><p>'+esc(C.l1)+'</p><p>'+esc(C.l2)+'</p></div><div class="d">Gerado em '+hoje()+'<br>Agion Wealth</div>';
+    cb.insertBefore(hd,cb.firstChild);
+    /* gráficos em SVG: viram imagem já com as cores e traços por escrito, no tamanho e na posição certos
+       (o gerador de imagem não lê o CSS da página dentro do SVG e erra o tamanho dos que ocupam 100% do quadro) */
+    var esp=[],PR=['fill','stroke','stroke-width','opacity','fill-opacity','stroke-opacity','stroke-linecap','stroke-linejoin','stroke-dasharray','stroke-dashoffset','vector-effect'],dw=doc.defaultView;
+    /* o gerador copia para o SVG o tamanho que ele tinha na tela: volta ao tamanho do quadro na largura da foto */
+    [].forEach.call(cb.querySelectorAll('svg:not(.i)'),function(sv){if(dw.getComputedStyle(sv).position==='absolute'){sv.style.left='0';sv.style.top='0';sv.style.right='auto';sv.style.bottom='auto';sv.style.width='100%';sv.style.height='100%';}else sv.style.width='100%';});
+    [].forEach.call(cb.querySelectorAll('svg:not(.i)'),function(sv){var r=sv.getBoundingClientRect();if(!r.width||!r.height)return;
+     var cs=dw.getComputedStyle(sv),cl=sv.cloneNode(true),os=sv.querySelectorAll('*'),ns=cl.querySelectorAll('*');
+     cl.setAttribute('xmlns','http://www.w3.org/2000/svg');cl.setAttribute('width',r.width);cl.setAttribute('height',r.height);cl.removeAttribute('class');cl.setAttribute('style','overflow:visible');
+     /* desenho esticado (preserveAspectRatio none): passa os pontos para pixels, para a linha sair com a espessura certa */
+     var vb=(sv.getAttribute('viewBox')||'').split(/[\s,]+/).map(Number),ajusta=vb.length===4&&vb[2]&&vb[3],sx=ajusta?r.width/vb[2]:1,sy=ajusta?r.height/vb[3]:1;
+     if(ajusta){cl.setAttribute('viewBox','0 0 '+r.width+' '+r.height);cl.removeAttribute('preserveAspectRatio');}
+     for(var i=0;i<os.length;i++){var c2=dw.getComputedStyle(os[i]);ns[i].setAttribute('style',PR.map(function(p){if(p==='vector-effect')return '';var v=c2.getPropertyValue(p);if(p==='stroke-dasharray'&&/^3000/.test(v))return '';return v?p+':'+v:'';}).filter(Boolean).join(';'));ns[i].removeAttribute('class');ns[i].removeAttribute('vector-effect');
+      if(ajusta&&ns[i].getAttribute('d'))ns[i].setAttribute('d',ns[i].getAttribute('d').replace(/(-?\d*\.?\d+)\s*,\s*(-?\d*\.?\d+)/g,function(m,x,y){return ((+x-vb[0])*sx).toFixed(2)+','+((+y-vb[1])*sy).toFixed(2);}));}
+     var im=doc.createElement('img'),pa=sv.parentElement,pr=pa.getBoundingClientRect();
+     im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(cl));
+     if(cs.position==='absolute'||cs.position==='fixed'){if(dw.getComputedStyle(pa).position==='static')pa.style.position='relative';
+      im.style.cssText='position:absolute;left:'+(r.left-pr.left-pa.clientLeft)+'px;top:'+(r.top-pr.top-pa.clientTop)+'px;width:'+r.width+'px;height:'+r.height+'px;max-width:none;pointer-events:none;margin:0';}
+     else im.style.cssText='display:block;width:'+r.width+'px;height:'+r.height+'px;max-width:none;margin:'+cs.margin;
+     esp.push(new Promise(function(ok){im.onload=ok;im.onerror=ok;}));pa.replaceChild(im,sv);});
+    var t0=cb.getBoundingClientRect().top;
+    [].forEach.call(cb.children,function(el){var r=el.getBoundingClientRect();if(r.height>2)cortes.push([(r.top-t0)*ESC,(r.bottom-t0)*ESC]);});
+    if(!doc.fonts||!doc.fonts.load)return Promise.all(esp);
+    return Promise.all(esp.concat(['400 12px "DM Sans"','600 12px "DM Sans"','700 12px "DM Sans"','800 12px "DM Sans"','600 12px "Lora"','500 12px "Lora"'].map(function(f){return doc.fonts.load(f).catch(function(){});}))).then(function(){return doc.fonts.ready;});
+   }});
+ }).then(function(cv){W.scrollTo(sx,sy);return {cv:cv,cortes:cortes};},function(e){W.scrollTo(sx,sy);throw e;});}
+
+/* ---------- Mapa de cotas: desenhado do zero com as cores da tela ---------- */
+function stEstilo(cl){cl=' '+cl+' ';var E;
+ if(/ ct /.test(cl))E={st:['#CB4F4F','#B53E3E'],bd:'#A93A3A',tx:'#fff',k:'ct'};
+ else if(/ (ns|gi) /.test(cl))E={bg:'#26875C',bd:'#0E4A33',tx:'#fff',k:'ns'};
+ else if(/ ra /.test(cl))E={bg:'#E4F3EA',bd:'#1D7550',tx:'#14613D',k:'ra',dot:1,lw:2};
+ else if(/ pl /.test(cl))E={bg:'#EEF7F2',bd:'#1D7550',tx:'#16613F',ds:1,k:'pl'};
+ else if(/ rs /.test(cl))E=/ ix /.test(cl)?{st:['#D9D3C7','#ECE7DC'],bd:'#C9C0AE',tx:'#6A645A',k:'ix'}:{st:['#F3EFE6','#E2DBCC'],bd:'#D8D0BF',tx:'#857F73',k:'rs'};
+ else if(/ oc /.test(cl))E={bg:'#F3DE96',bd:'#DDBF5C',tx:'#7A6320',k:'oc'};
+ else if(/ oa /.test(cl))E={bg:'#7C47D9',bd:'#45208F',tx:'#fff',k:'oa',star:1};
+ else if(/ om /.test(cl))E={bg:'#CDB4F5',bd:'#9877DE',tx:'#2F1462',k:'om'};
+ else if(/ ob /.test(cl))E={bg:'#F3EDFE',bd:'#D9C9F7',tx:'#5A3D9C',k:'ob'};
+ else E={bg:'#FBF8F0',bd:'#E6DCC6',tx:'#78817C',k:'lv'};
+ E.av=/ av /.test(cl);E.ng=/ ng /.test(cl);E.dim=/ dim /.test(cl);E.sel=/ cs /.test(cl);return E;}
+function stCapMapa(g){
+ var cels=[],mx=0;$$('#mapa .cel[data-c]').forEach(function(e){var n=+e.dataset.c;if(n>0){cels[n]=e.className;if(n>mx)mx=n;}});
+ if(!mx)return Promise.reject(new Error('o mapa ainda não carregou'));
+ var rob=!!vd(g),C=stCabPdf(g,null,'mapa'),kp=[];$$('.kpis .kpi').forEach(function(k){var l=k.querySelector('small'),b=k.querySelector('b'),s=k.querySelector('.kt>span');if(l&&b)kp.push([l.textContent.trim(),b.textContent.trim(),s?s.textContent.replace(/\bajustar\b/,'').trim():'']);});
+ var COLS=25,cw=52,ch=34,gp=6,pad=34,BAND=500;
+ var Wd=pad*2+COLS*cw+(COLS-1)*gp,hdH=118,kpH=kp.length?86:0,lgH=58,bandH=34;
+ var nb=Math.ceil(mx/BAND),rowsTot=0;for(var bi=0;bi<nb;bi++){var a=bi*BAND+1,z=Math.min(mx,(bi+1)*BAND);rowsTot+=Math.ceil((z-a+1)/COLS);}
+ var Hd=pad+hdH+14+kpH+(kpH?14:0)+lgH+nb*bandH+rowsTot*(ch+gp)+nb*10+pad;
+ var mob=window.innerWidth<700,K=Math.max(1,Math.min(mob?1.4:2,Math.sqrt((mob?1.3e7:3e7)/(Wd*Hd))));
+ var cv=document.createElement('canvas');cv.width=Math.round(Wd*K);cv.height=Math.round(Hd*K);var x=cv.getContext('2d');x.scale(K,K);
+ var cortes=[],P=function(a,b){cortes.push([a*K,b*K]);},fam='"DM Sans",system-ui,sans-serif',ser='Lora,Georgia,serif';
+ x.fillStyle='#F4EFE4';x.fillRect(0,0,Wd,Hd);
+ function rr(x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath();}
+ function stripes(x0,y0,w,h,a,b,r){x.save();rr(x0,y0,w,h,r);x.clip();x.fillStyle=a;x.fillRect(x0,y0,w,h);x.strokeStyle=b;x.lineWidth=4;for(var k=-h;k<w+h;k+=9){x.beginPath();x.moveTo(x0+k,y0+h);x.lineTo(x0+k+h,y0);x.stroke();}x.restore();}
+ function star(cx,cy,s,cor){x.save();x.fillStyle=cor;x.beginPath();x.moveTo(cx,cy-s);x.quadraticCurveTo(cx+s*.12,cy-s*.12,cx+s,cy);x.quadraticCurveTo(cx+s*.12,cy+s*.12,cx,cy+s);x.quadraticCurveTo(cx-s*.12,cy+s*.12,cx-s,cy);x.quadraticCurveTo(cx-s*.12,cy-s*.12,cx,cy-s);x.fill();x.restore();}
+ function cel(x0,y0,w,h,E,txt,fs){x.save();if(E.dim)x.globalAlpha=.22;
+  if(E.st)stripes(x0,y0,w,h,E.st[0],E.st[1],8);else{rr(x0,y0,w,h,8);x.fillStyle=E.bg;x.fill();}
+  rr(x0+.5,y0+.5,w-1,h-1,8);x.strokeStyle=E.bd;x.lineWidth=E.ds?2:(E.lw||1.1);if(E.ds)x.setLineDash([4,3]);x.stroke();x.setLineDash([]);
+  if(E.av){x.fillStyle='#C79A3E';x.fillRect(x0+4,y0+h-4,w-8,3);}
+  if(E.star)star(x0+w-7,y0+7,4.5,'#fff');
+  if(E.dot){x.fillStyle='#1D7550';x.beginPath();x.arc(x0+w-7,y0+7,3,0,Math.PI*2);x.fill();}
+  if(txt){x.fillStyle=E.tx;x.font=(fs||'700 12.5px ')+fam;var tw=x.measureText(txt).width;x.fillText(txt,x0+(w-tw)/2,y0+h/2+4.5);}
+  x.restore();
+  if(E.ng){x.save();rr(x0-2.5,y0-2.5,w+5,h+5,10);x.lineWidth=2.5;x.strokeStyle='#0B2A26';x.stroke();x.fillStyle='#0B2A26';x.beginPath();x.arc(x0+1,y0+1,6.5,0,Math.PI*2);x.fill();x.strokeStyle='#fff';x.lineWidth=1.8;x.lineCap='round';x.beginPath();x.moveTo(x0-2,y0+1.2);x.lineTo(x0+.3,y0+3.4);x.lineTo(x0+4,y0-1.6);x.stroke();x.restore();}
+  if(E.sel){x.save();rr(x0-4,y0-4,w+8,h+8,11);x.lineWidth=3;x.strokeStyle='#0B2A26';x.stroke();rr(x0-7.5,y0-7.5,w+15,h+15,13);x.lineWidth=2.5;x.strokeStyle='#C5A059';x.stroke();x.restore();}}
+ var y=pad;
+ /* cabeçalho */
+ rr(pad,y,Wd-2*pad,hdH,18);x.fillStyle='#0B2A26';x.fill();
+ var lg=$('.top .logo img'),lx=pad+24;if(lg&&lg.complete&&lg.naturalWidth){var lh=58,lw=lg.naturalWidth*lh/lg.naturalHeight;try{x.drawImage(lg,lx,y+(hdH-lh)/2,lw,lh);lx+=lw+22;}catch(e){}}
+ x.fillStyle='#E8CC8B';x.font='700 11px '+fam;x.fillText(C.t.toUpperCase(),lx,y+30);
+ x.fillStyle='#fff';x.font='600 28px '+ser;x.fillText(C.h,lx,y+62);
+ x.fillStyle='rgba(255,255,255,.8)';x.font='500 13px '+fam;x.fillText(C.l1,lx,y+84);x.fillText(C.l2,lx,y+103);
+ x.fillStyle='rgba(255,255,255,.72)';x.font='600 12px '+fam;var gt='Gerado em '+hoje(),gw=x.measureText(gt).width;x.fillText(gt,Wd-pad-24-gw,y+30);var aw=x.measureText('Agion Wealth').width;x.fillText('Agion Wealth',Wd-pad-24-aw,y+48);
+ P(y,y+hdH);y+=hdH+14;
+ /* indicadores */
+ if(kp.length){var kw=(Wd-2*pad-(kp.length-1)*10)/kp.length;kp.forEach(function(q,i){var x0=pad+i*(kw+10);rr(x0,y,kw,kpH,14);x.fillStyle='#FFFDF8';x.fill();rr(x0+.5,y+.5,kw-1,kpH-1,14);x.strokeStyle='#E6DCC8';x.lineWidth=1;x.stroke();
+   x.fillStyle='#6E7A75';x.font='700 10px '+fam;x.fillText(q[0].toUpperCase(),x0+16,y+24);x.fillStyle='#0B2A26';x.font='600 24px '+ser;x.fillText(q[1],x0+16,y+54);
+   if(q[2]){x.fillStyle='#98A09B';x.font='500 11px '+fam;var s=q[2];while(s.length>4&&x.measureText(s).width>kw-30)s=s.slice(0,-2);if(s!==q[2])s=s.replace(/\s+\S*$/,'')+'…';x.fillText(s,x0+16,y+73);}});
+  P(y,y+kpH);y+=kpH+14;}
+ /* legenda (só o que aparece no mapa) */
+ var vistos={},temAv=false,temNg=false,temDim=false;cels.forEach(function(cl){if(!cl)return;var E=stEstilo(cl);vistos[E.k]=1;if(E.av)temAv=true;if(E.ng)temNg=true;if(E.dim)temDim=true;});
+ var LG=[['ct','Contemplada'],['oa','Oportunidade alta'],['om','Média'],['ob','Baixa'],['ns','Cliente Agion'],['pl','Posição de cliente'],['ra','Reservada pela Agion'],['rs','Reservada'],['ix','Indisponível'],['oc','Já vendida'],['lv',rob?'À venda':'Livre']].filter(function(l){return vistos[l[0]];});
+ var LGE={ct:'ct',oa:'oa',om:'om',ob:'ob',ns:'ns',pl:'pl',ra:'ra',rs:'rs',ix:'rs ix',oc:'oc',lv:''};
+ rr(pad,y,Wd-2*pad,lgH-10,14);x.fillStyle='#FFFDF8';x.fill();
+ var lx2=pad+18,ly=y+(lgH-10)/2-10;x.font='600 12px '+fam;
+ LG.forEach(function(l){cel(lx2,ly,24,20,stEstilo(' '+LGE[l[0]]+' '),'',null);x.fillStyle='#4B5A55';x.font='600 12px '+fam;x.fillText(l[1],lx2+31,ly+14.5);lx2+=31+x.measureText(l[1]).width+20;});
+ if(temAv&&!rob){var E=stEstilo(' av ');cel(lx2,ly,24,20,E,'',null);x.fillStyle='#4B5A55';x.fillText('À venda na HS',lx2+31,ly+14.5);lx2+=31+x.measureText('À venda na HS').width+20;}
+ if(temNg){cel(lx2,ly,24,20,stEstilo(' ng '),'',null);x.fillStyle='#4B5A55';x.fillText('Na negociação',lx2+31,ly+14.5);lx2+=31+x.measureText('Na negociação').width+20;}
+ if(S.sel&&cels[S.sel]){x.save();rr(lx2,ly-2,24,24,7);x.lineWidth=2.5;x.strokeStyle='#C5A059';x.stroke();x.restore();x.fillStyle='#0B2A26';x.font='700 12px '+fam;x.fillText('Cota escolhida: '+S.sel,lx2+32,ly+14.5);}
+ P(y,y+lgH-10);y+=lgH;
+ /* faixas de 500 cotas */
+ for(bi=0;bi<nb;bi++){var ini=bi*BAND+1,fim=Math.min(mx,(bi+1)*BAND);
+  x.fillStyle='#6E7A75';x.font='700 11px '+fam;var bt='COTAS '+nf(ini)+' A '+nf(fim);x.fillText(bt,pad,y+20);var bw=x.measureText(bt).width;x.fillStyle='#E6DCC8';x.fillRect(pad+bw+12,y+16,Wd-2*pad-bw-12,1);
+  var yb=y;y+=bandH;var nR=Math.ceil((fim-ini+1)/COLS);
+  for(var r=0;r<nR;r++){for(var k=0;k<COLS;k++){var n=ini+r*COLS+k;if(n>fim)break;var E2=stEstilo(cels[n]||'');cel(pad+k*(cw+gp),y,cw,ch,E2,String(n),n===S.sel?'800 13.5px ':null);}
+   P(r===0?yb:y-4,y+ch+4);y+=ch+gp;}
+  y+=10;}
+ return Promise.resolve({cv:cv,cortes:cortes});}
+/* um ouvinte só para os botões Baixar (mapa e dados estatísticos) */
+if(!window.__stBx){window.__stBx=1;document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-baixar]');if(!b)return;e.preventDefault();e.stopPropagation();stMenuBaixar(b);},true);}
+
+/* CAB_CEL_30OUT (Gabriel, 29/out): no celular (do Android pequeno até o iPhone Pro Max) o cabeçalho do grupo fica sempre no
+   mesmo formato do Pro Max: grupo e prazo · cartas e parcela · cotas à venda · lance livre, cada um numa linha só. A letra
+   diminui na medida certa para caber (conta feita na hora, com o texto de cada grupo). Tablet e computador não mudam. */
+function gtzAjusta(){var x=$('#gtrig .gtx');if(!x)return;x.style.zoom='';x.classList.remove('gz');if(window.innerWidth>560)return;
+ var mede=function(el,css){if(!el)return 0;var o=el.getAttribute('style');el.setAttribute('style',(o||'')+';'+css);var v=el.scrollWidth;if(o==null)el.removeAttribute('style');else el.setAttribute('style',o);return v;};
+ var gcr=x.querySelector('small .gcr'),gpc=x.querySelector('small .gpc');
+ var w=Math.max(mede(x.querySelector('.gl1'),'flex-wrap:nowrap;width:max-content'),
+  (gcr?gcr.getBoundingClientRect().width:0)+(gpc?gpc.getBoundingClientRect().width+12:0),
+  mede(x.querySelector('small .gavm'),'white-space:nowrap;flex-wrap:nowrap;width:max-content'),
+  mede(x.querySelector('.glvm .lvml'),'flex-wrap:nowrap;width:max-content'));
+ var W=x.getBoundingClientRect().width;if(!w||!W)return;x.classList.add('gz');
+ var s=Math.min(1,(W-3)/w);if(s<0.998)x.style.zoom=String(Math.floor(s*1000)/1000);}
+if(!window.__gtz){window.__gtz=1;var _gtzT;window.addEventListener('resize',function(){clearTimeout(_gtzT);_gtzT=setTimeout(gtzAjusta,120);});
+ try{document.fonts&&document.fonts.ready.then(function(){gtzAjusta();});}catch(e){}}
 
 function abaLance(v){
  var mods=[['meia_seguro_contemplacao','Seguro na contemplação'],['meia_taxa_antecipada','Taxa antecipada']];
@@ -2528,8 +2759,71 @@ body.st-aba .ctl .fld:has(#psel),body.st-aba .ctl .fld:has(#jan){display:none}
 /* SEM_ARRASTAR_30OUT: em telas de 320–360 px nada passa da largura da tela (cabeçalho "Cotas por proximidade" com cota na negociação e topo do master) */
 @media (max-width:360px){#neg>.ph{flex-wrap:wrap;row-gap:6px}}
 @media (max-width:340px){.top .topi{gap:6px!important;padding-left:12px!important;padding-right:12px!important}}
+
+/* AV_CAB_30OUT · cotas à venda na HS no vão do cabeçalho do grupo (computador) e numa linha embaixo da parcela (celular) */
+.gtrig .gav{display:none;flex:0 1 230px;min-width:170px;flex-direction:column;justify-content:center;gap:4px;align-self:stretch;margin-left:12px;padding:2px 16px 2px 18px;border-left:1.5px solid var(--line);text-align:left}
+.gav .gavh{font:700 9.5px/1.2 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--mut);white-space:nowrap}
+.gav .gavr{display:flex;align-items:baseline;gap:7px;white-space:nowrap}
+.gav .gavr b{font:600 22px/1 var(--serif);color:var(--okt);font-variant-numeric:tabular-nums}
+.gav .gavr em{font:600 11.5px/1.2 var(--sans);font-style:normal;color:var(--ink2)}
+.gav .gavb{display:block;height:4px;border-radius:4px;background:var(--bg2);overflow:hidden}
+.gav .gavb i{display:block;height:100%;min-width:3px;border-radius:4px;background:linear-gradient(90deg,#7FB99B,#3F8F6A)}
+.gav .gavf{font:600 10px/1.25 var(--sans);color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gav.z .gavr b{color:var(--mut2)}
+.gtrig .gtx small .gavm{display:flex!important;flex-basis:100%;width:100%;align-items:center;gap:7px;margin:6px 0 0!important;font:600 11px/1.35 var(--sans);color:var(--ink2);white-space:normal}
+.gtrig .gtx small .gavm>i{flex:none;width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(63,143,106,.16)}
+.gtrig .gtx small .gavm b{font:800 12px/1.3 var(--sans);color:var(--okt)}
+.gtrig .gtx small .gavm em{font-style:normal;color:var(--mut);font-weight:600}
+@container gtc (min-width:700px){.gtrig .gav{display:flex}.gtrig .gtx small .gavm{display:none!important}}
+/* IMPRIMIR_30OUT · botão Baixar (mapa e dados estatísticos) e o menu PDF / PNG */
+.st-ctl .st-cfdl{margin-left:auto}
+.st-bx{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.st-bx .i{width:16px;height:16px}
+#pmapa>.ph .st-bx{margin-left:8px;height:40px}
+@media (max-width:560px){#pmapa>.ph{flex-wrap:nowrap;gap:8px}#pmapa>.ph h3{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#pmapa>.ph .search{flex:0 1 132px;min-width:92px;padding:0 12px}#pmapa>.ph .search input{width:100%;min-width:0}#pmapa>.ph .st-bx{flex:none;width:40px;padding:0;justify-content:center;margin-left:0}#pmapa>.ph .st-bx span{display:none}.st-ctl .st-cfdl{margin-left:0;width:100%}.st-ctl .st-cfdl .st-bx{width:100%;justify-content:center}}
+.st-bxmenu{position:fixed;z-index:2147482500;width:300px;max-width:calc(100vw - 20px);padding:8px;border-radius:18px;background:var(--card);box-shadow:0 1px 2px rgba(11,42,38,.08),0 24px 50px -16px rgba(11,42,38,.45);border:1px solid var(--line);animation:stBxIn .22s var(--ez) both}
+@keyframes stBxIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.st-bxmenu .st-bxt{padding:8px 10px 6px;font:700 10px/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.st-bxmenu button{display:flex;align-items:center;gap:12px;width:100%;padding:10px;border:0;border-radius:12px;background:none;text-align:left;cursor:pointer;font:inherit;color:var(--ink)}
+.st-bxmenu button:hover,.st-bxmenu button:focus-visible{background:var(--bg);outline:none}
+.st-bxmenu .ii{flex:none;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--au);color:var(--aut)}
+.st-bxmenu .ii .i{width:18px;height:18px}
+.st-bxmenu b{display:block;font:700 13.5px/1.2 var(--sans)}
+.st-bxmenu small{display:block;margin-top:2px;font:500 11.5px/1.35 var(--sans);color:var(--mut)}
+/* cabeçalho que só aparece no arquivo dos dados estatísticos */
+.st-pdfh{display:none;align-items:center;gap:20px;margin:0 0 16px;padding:20px 24px;border-radius:20px;background:var(--ink);color:#fff}
+.st-pdfh img{height:56px;width:auto;flex:none}
+.st-pdfh .t{flex:1;min-width:0}
+.st-pdfh small{display:block;font:700 11px/1.2 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--gold2)}
+.st-pdfh h1{margin:6px 0 4px;font:600 28px/1.1 var(--serif);color:#fff}
+.st-pdfh p{margin:2px 0 0;font:500 13px/1.45 var(--sans);color:rgba(255,255,255,.8)}
+.st-pdfh .d{text-align:right;font:600 12px/1.5 var(--sans);color:rgba(255,255,255,.72);white-space:nowrap}
+@media (max-width:360px){#pmapa>.ph h3 svg.i{display:none}#pmapa>.ph .search{flex-basis:100px;min-width:84px;padding:0 10px;gap:6px}}
+@media (max-width:340px){#pmapa>.ph{gap:5px}}
+
+/* AV_LISTA_30OUT · "à venda" em cada grupo da lista de escolha */
+.gpz.gavp{background:rgba(63,143,106,.12);color:var(--okt)}
+.gpz.gavp i{color:#4F7F66}
+.gpz.gavp.z{background:var(--bg);color:var(--mut)}
+#gpop .go .gl1{flex-wrap:wrap;row-gap:4px}
+/* CAB_CEL_30OUT · celular: cada linha do cabeçalho do grupo numa linha só (a letra diminui para caber) */
+.gtrig .gtx.gz .gl1{flex-wrap:nowrap}
+.gtrig .gtx.gz small .gavm,.gtrig .gtx.gz small .gavm>span{white-space:nowrap}
+.gtrig .gtx.gz .glvm .lvml{flex-wrap:nowrap}
+@media (max-width:380px){.gtrig .gadm{min-width:44px!important;padding:0 8px 0 10px!important;margin-right:9px!important;font-size:15px!important}}
+
+/* AV_LISTA_30OUT v2 · na lista de grupos o "à venda" fica sempre no canto de baixo, à direita */
+#gpop .go .gmid small.gsb{display:flex;align-items:center;justify-content:space-between;gap:10px;white-space:normal}
+#gpop .go .gmid small.gsb>span{min-width:0}
+#gpop .go .gsb .gavp{flex:none;margin-left:auto;padding:2px 9px;font-size:10.5px;line-height:1.3}
+/* AV_CAB_30OUT v2 · o bloco "À venda na HS" aparece também no Por grupo do computador e no tablet (cabeçalho a partir de 600 px);
+   com o cabeçalho mais estreito, "cartas" e "parcela" ficam uma em cada linha, sem o ponto solto no começo */
+@container gtc (min-width:600px){.gtrig .gav{display:flex}.gtrig .gtx small .gavm{display:none!important}}
+@container gtc (min-width:600px) and (max-width:860px){.gtrig .gtx small .gpc{flex-basis:100%}.gtrig .gtx small .gpc:before{display:none!important;content:none!important}.gtrig .gav{min-width:150px;padding-left:14px;padding-right:12px}}
+/* AV_CAB_30OUT v3: linha de baixo do bloco à venda quebra em 2 linhas em vez de cortar */
+.gav .gavf{white-space:normal;overflow:visible;text-overflow:clip;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 </style>
-<script src="/tool-tour.js?v=19" defer></script>
+<script src="/tool-tour.js?v=20" defer></script>
 
 <style id="ag-sem-zoom">/* SEM_ZOOM_24OUT: no celular o campo precisa de 16px, senão o iPhone dá zoom ao digitar */
 @media (max-width:600px),(pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}#busca::placeholder{font-size:13px}}
