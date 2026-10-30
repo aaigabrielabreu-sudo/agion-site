@@ -569,7 +569,7 @@ th[aria-sort]{color:#fff}
 .tc-ent{font-weight:600}
 .tc-pct{color:var(--tc-sec)}
 .tc-parc{line-height:1.35}
-.tc-parc em{display:block;font-style:normal;font-size:12px;color:var(--tc-mute)}
+.tc-parc em{display:block;font-style:normal;font-size:12px;color:var(--tc-mute);white-space:normal;max-width:170px;margin-left:auto;line-height:1.3}
 .tc-acts{display:inline-flex;align-items:center;gap:6px}
 
 .tc-who{display:flex;align-items:center;gap:12px}
@@ -827,6 +827,10 @@ button.tc-code:hover{color:var(--petro);text-decoration:underline}
 .tc-card-line .tot{text-align:right}
 .tc-sheet:focus{outline:none}
 body.tc-cmp-on .tc-cat{padding-bottom:120px}
+/* cartas reais: valores de 8 dígitos e parcelas em etapas cabem sem cortar a coluna de ações */
+.tc-table td{padding-left:9px;padding-right:9px}
+.tc-th{padding-left:9px;padding-right:9px}
+.tc-table .tc-int{padding:0 12px}
 
 </style>
 </head>
@@ -1333,7 +1337,8 @@ window.TC_CONFIG = { API: "/api/contempladas", CHECK: "/api/contempladas" };
   function parcRest(c) {
     if (!c.completo) return 'no atendimento';
     if (c.etapas.length < 2) return '';
-    return 'depois ' + c.etapas.slice(1).map(function (e) { return e.quantidade + ' × ' + brl(e.valor); }).join(', ');
+    var e = c.etapas[1], mais = c.etapas.length - 2;   // a lista completa de etapas fica no detalhe da carta
+    return 'depois ' + e.quantidade + ' × ' + brl(e.valor) + (mais ? ' e mais ' + mais + ' ' + plural(mais, 'etapa', 'etapas') : '');
   }
   function vtName(c, i) { return (i < 40 && document.startViewTransition) ? ' style="view-transition-name:tc-' + c.codigo.replace(/[^A-Za-z0-9_-]/g, '') + '"' : ''; }
 
@@ -1654,11 +1659,13 @@ window.TC_CONFIG = { API: "/api/contempladas", CHECK: "/api/contempladas" };
     if (PREVIEW) { openSheet(msgHTML(msg, url), 'sm'); return; }
     if (!CFG.CHECK) { window.open(url, '_blank', 'noopener'); return; }
     var w = window.open('about:blank', '_blank');            // abre já, para o navegador não bloquear
+    var done = false, timer = setTimeout(go, 4000);         // reconsulta lenta: segue para a Alice, que confirma no atendimento
     fetch(CFG.CHECK + (CFG.CHECK.indexOf('?') < 0 ? '?' : '&') + 'codigo=' + encodeURIComponent(code), { cache: 'no-store' })
       .then(function (r) { if (!r.ok) throw r.status; return r.json(); })
       .then(function (j) {
         j = expand(j);
-        if (!j.cartas || !j.cartas.length) {
+        if (j && Array.isArray(j.cartas) && !j.cartas.length) {
+          if (done) return; done = true; clearTimeout(timer);
           if (w) w.close();
           removeCard(code);
           toast('Essa carta acabou de sair do catálogo. Veja as outras opções.');
@@ -1667,7 +1674,10 @@ window.TC_CONFIG = { API: "/api/contempladas", CHECK: "/api/contempladas" };
         go();
       })
       .catch(go);                                            // sem confirmação: segue para a Alice, que confirma no atendimento
-    function go() { if (w && !w.closed) w.location.href = url; else window.location.href = url; }
+    function go() {
+      if (done) return; done = true; clearTimeout(timer);
+      if (w && !w.closed) w.location.href = url; else window.location.href = url;
+    }
   }
   function sendCart() {
     var items = Array.from(S.cart).map(function (k) { return S.by[k]; }).filter(Boolean);
