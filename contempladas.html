@@ -1,0 +1,1902 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WKBZ2R04SM"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-WKBZ2R04SM');
+document.addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target:null;var a=t?t.closest('a[href*="wa.me"],a[href*="api.whatsapp.com"]'):null;if(a){gtag('event','clique_whatsapp',{link_url:a.href,page_path:location.pathname});}},true);
+document.addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target:null;var b=t?t.closest('#simBtn'):null;if(b){gtag('event','enviar_simulador',{page_path:location.pathname});}},true);
+</script>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script>/* ENQ28: celular mais estreito que 390 px mostra a mesma tela do iPhone (390 px) reenquadrada no tamanho da tela, sem cortar nada */
+(function(){try{if(window.top!==window)return;var M=390,mv=document.querySelector('meta[name="viewport"]'),H=document.documentElement;if(!mv)return;
+ function aj(){try{var so=screen.orientation&&screen.orientation.type,p=so?/portrait/.test(so):(typeof window.orientation==='number'?Math.abs(window.orientation)!==90:screen.height>=screen.width),
+  sw=screen.width||0,sh=screen.height||0,dw=p?Math.min(sw,sh):Math.max(sw,sh),c=mv.getAttribute('content')||'',fit=/viewport-fit=cover/.test(c)?', viewport-fit=cover':'';
+  if(dw>=240&&dw<M){var s=Math.ceil(dw/M*10000)/10000;mv.setAttribute('content','width='+M+', initial-scale='+s+', minimum-scale='+s+', maximum-scale='+s+fit);H.classList.add('vpEnq');}
+  else{var nc='width=device-width, initial-scale=1, maximum-scale=1'+fit;if(c!==nc)mv.setAttribute('content',nc);H.classList.remove('vpEnq');}}catch(e){}}   /* ZOOM28: em nenhum celular a tela aumenta sozinha ao tocar num campo para escrever */
+ aj();var t=0,re=function(){clearTimeout(t);t=setTimeout(aj,150);};window.addEventListener('orientationchange',re);if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',re);}catch(e){}})();</script>
+
+
+
+
+<meta name="theme-color" content="#0B2A26">
+
+
+
+
+
+
+
+
+
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png"><link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+
+
+<style>
+:root{
+ --petro:#0B2A26; --petro2:#103F38; --petro3:#155A50;
+ --gold:#C5A059; --gold2:#E8CC8B; --gold3:#F4E6C0;
+ --ink:#1C2B2E; --muted:#5E7173; --line:#E6EAE9; --bg:#fff; --bg2:#F3F6F5;
+ --gg:linear-gradient(115deg,#A8853E,#E8CC8B 50%,#C5A059 90%);
+ --gp:linear-gradient(155deg,#12473F,#0B2A26);
+ --serif:'Cinzel',serif; --lora:'Lora',serif; --sans:'DM Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+a{text-decoration:none;color:inherit}
+h1,h2,h3,h4{font-family:var(--lora)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border-radius:999px;font-weight:700;font-size:.95rem;padding:14px 28px;cursor:pointer;border:none;transition:.25s}
+.btn-gold{background:var(--gg);color:#2a2113;box-shadow:0 10px 26px rgba(197,160,89,.35)}
+.btn-gold:hover{filter:brightness(1.06);transform:translateY(-2px)}
+.btn-ghost{background:transparent;border:1.5px solid var(--gold);color:var(--petro)}
+.btn-ghost:hover{background:var(--gold);color:#2a2113}
+.svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sec{padding:74px 0}
+.sec-head{text-align:center;max-width:680px;margin:0 auto 44px}
+.sec-head .tag{display:inline-flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);background:rgba(197,160,89,.1);border:1px solid rgba(197,160,89,.3);border-radius:999px;padding:6px 15px;margin-bottom:16px}
+.sec-head h2{font-size:clamp(1.7rem,3.2vw,2.5rem);color:var(--petro);line-height:1.15}
+.sec-head h2 em{font-style:normal;color:var(--gold)}
+.sec-head p{color:var(--muted);margin-top:12px;font-size:1.02rem}
+
+/* topbar + nav */
+.topbar{background:var(--petro);color:#cfe0dd;font-size:.82rem}
+.topbar .wrap{display:flex;justify-content:space-between;align-items:center;height:40px}
+.topbar a{color:#cfe0dd;display:inline-flex;gap:7px;align-items:center}
+.topbar .gold{color:var(--gold2);font-weight:700}
+.nav{background:linear-gradient(180deg,#0B2A26,#12473F);border-bottom:1.5px solid rgba(232,204,139,.34);position:sticky;top:0;z-index:30}
+.nav .wrap{display:flex;align-items:center;gap:24px;height:76px}
+.brand{display:flex;flex-direction:row;align-items:center;gap:12px;margin-right:auto}
+.brand-mark{width:56px;height:56px;flex:0 0 auto;display:grid;place-items:center}
+.brand-mark img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 4px 12px rgba(0,0,0,.35))}
+.brand-txt{display:flex;flex-direction:column;line-height:1}
+.brand-txt b{font-family:var(--serif);font-size:1.4rem;color:#fff;letter-spacing:.5px;font-weight:800}
+.brand-txt small{font-size:.58rem;letter-spacing:.16em;color:var(--gold2);text-transform:uppercase;margin-top:4px;font-weight:600}
+.nav-links{display:flex;gap:18px;list-style:none}
+.nav-links a{font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#eef5f3;cursor:pointer;white-space:nowrap}
+.nav-links a:hover{color:var(--gold2)}
+.nav .btn-ghost{border-color:var(--gold);color:var(--gold2)}
+.nav .btn-ghost:hover{background:var(--gold);color:#2a2113}
+/* hambúrguer (mobile) */
+.nav-burger{display:none;flex-direction:column;gap:5px;width:44px;height:44px;border:1.5px solid rgba(232,204,139,.45);border-radius:11px;background:transparent;cursor:pointer;align-items:center;justify-content:center}
+.nav-burger span{display:block;width:20px;height:2px;background:var(--gold2);border-radius:2px}
+/* menu mobile (dropdown de abas) */
+.nav-mobile{display:none;flex-direction:column;background:#0B2A26;border-bottom:1.5px solid rgba(232,204,139,.3)}
+.nav-mobile a{padding:14px 22px;color:#eef5f3;font-weight:700;font-size:.84rem;text-transform:uppercase;letter-spacing:.05em;border-top:1px solid rgba(255,255,255,.06);cursor:pointer}
+.nav-mobile a:hover{color:var(--gold2);background:rgba(255,255,255,.04)}
+.nav-mobile.open{display:flex}
+.nav-mobile .nm-login{color:var(--gold2)}
+/* atalhos 3 colunas abaixo do navbar (mobile) */
+.quicknav{display:none;grid-template-columns:1fr 1fr 1fr;background:linear-gradient(180deg,#12473F,#0B2A26);border-bottom:1.5px solid rgba(232,204,139,.3)}
+.quicknav a{display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 6px;color:#eef5f3;font-weight:700;font-size:.74rem;letter-spacing:.02em;cursor:pointer;border-right:1px solid rgba(255,255,255,.10);text-align:center}
+.quicknav a:last-child{border-right:none}
+.quicknav a:active{background:rgba(197,160,89,.18)}
+.quicknav a .svg{width:16px;height:16px;color:var(--gold2);flex:0 0 auto}
+@media(max-width:980px){.nav-links,.nav .btn-ghost{display:none}.nav-burger{display:flex}.quicknav{display:grid}}
+
+/* HERO petróleo full-bleed, form branco à esquerda */
+.hero{background:url(/agion-wm.png) 0 0/240px repeat,var(--gp);position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,rgba(197,160,89,.22),transparent 62%);top:-260px;right:-150px;animation:float1 10s ease-in-out infinite;z-index:0;pointer-events:none}
+.hero::after{content:"";position:absolute;width:460px;height:460px;border-radius:50%;background:radial-gradient(circle,rgba(34,118,106,.55),transparent 60%);bottom:-200px;left:-120px;animation:float1 13s ease-in-out infinite reverse;z-index:0;pointer-events:none}
+@keyframes float1{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.05)}}
+.hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,440px) 1fr;align-items:center;gap:48px;padding:54px 22px 62px}
+.form-card{background:#fff;border-radius:20px;box-shadow:0 30px 70px rgba(0,0,0,.3);padding:34px 30px;width:100%;max-width:none;text-align:left}
+.form-card h1{font-family:var(--lora);font-size:1.7rem;color:var(--petro);line-height:1.18}
+.form-card h1 em{font-style:normal;color:var(--gold)}
+.form-card .sub{color:var(--muted);font-size:.92rem;margin:10px 0 20px}
+.f{margin-bottom:13px}
+.f label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--petro);margin-bottom:6px}
+.f select,.f input{width:100%;height:50px;border:1.5px solid var(--line);border-radius:11px;padding:0 15px;font-size:.98rem;font-family:inherit;color:var(--ink);background:#fff}
+.f select:focus,.f input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(197,160,89,.16)}
+.minv{font-size:.76rem;color:var(--muted);margin:-4px 0 14px}
+.form-card .btn-gold{width:100%;height:54px;font-size:1rem;text-transform:uppercase;letter-spacing:.04em}
+.hero-right{color:#fff}
+.hero-kicker{display:inline-block;font-family:var(--serif);font-size:.78rem;font-weight:800;letter-spacing:.22em;text-transform:uppercase;margin-bottom:16px;background:linear-gradient(100deg,#fff,#E8CC8B 50%,#C5A059 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:hueShift 5s ease-in-out infinite}
+@keyframes hueShift{0%,100%{background-position:0 0}50%{background-position:100% 0}}
+.hero-h1{font-family:var(--serif);font-size:clamp(1.7rem,3vw,2.6rem);line-height:1.12;text-transform:uppercase;color:#fff;margin-bottom:14px}
+.hero-h1 b{color:var(--gold2)}
+.hero-right p{color:#cfe0dd;max-width:500px;font-size:1.04rem}
+.hero-trust{display:flex;flex-direction:column;gap:13px;margin-top:28px}
+.hero-trust>span{display:flex;align-items:center;gap:15px;color:#fff;font-size:1.08rem;font-weight:700;line-height:1.3;background:rgba(255,255,255,.06);border:1.5px solid rgba(232,204,139,.38);border-left:4px solid var(--gold);border-radius:6px;padding:15px 18px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.hero-trust .tt{text-align:left}
+.hero-trust b{color:var(--gold2)}
+.hero-trust .ti{width:42px;height:42px;border-radius:6px;background:var(--gg);display:grid;place-items:center;flex:0 0 auto;box-shadow:0 6px 16px rgba(197,160,89,.42)}
+.hero-trust .ti svg{color:var(--petro);width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.seals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;max-width:640px;margin:32px auto 0}
+.seal{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:rgba(255,255,255,.06);border:1px solid rgba(197,160,89,.45);border-radius:16px;padding:20px 12px 18px;text-align:center}
+.seal .ring{width:48px;height:48px;border-radius:50%;border:2px solid var(--gold);display:grid;place-items:center;margin:0 auto 12px;color:var(--gold2)}
+.seal b{display:block;color:#fff;font-size:.82rem;font-family:var(--sans);line-height:1.2}
+.seal span{display:block;color:#9fb6b2;font-size:.68rem;margin-top:3px}
+@media(max-width:900px){.hero .wrap{grid-template-columns:1fr;gap:30px;text-align:center}.form-card{max-width:500px;margin:0 auto}.hero-trust{align-items:center}.hero-right p{margin:0 auto}}
+@media(max-width:560px){.hero .wrap{padding:34px 16px 40px;gap:26px}.hero-h1{font-size:1.55rem}}
+
+/* Consórcio imobiliário — 3 cards */
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px 22px;text-align:center;box-shadow:0 8px 24px rgba(12,34,40,.05);transition:.3s}
+.card:hover{transform:translateY(-5px);box-shadow:0 18px 40px rgba(12,34,40,.12);border-color:rgba(197,160,89,.4)}
+.card .ic{width:56px;height:56px;border-radius:15px;background:var(--gg);display:grid;place-items:center;margin:0 auto 14px;color:var(--petro)}
+.card h3{font-size:1.1rem;color:var(--petro);margin-bottom:7px}
+.card p{color:var(--muted);font-size:.86rem;margin-bottom:16px;line-height:1.5}
+@media(max-width:860px){.cards3{grid-template-columns:1fr 1fr;gap:12px}}
+@media(max-width:520px){.cards3{grid-template-columns:1fr}}
+
+/* O caminho certo (empresa) + pilares */
+.about{background:var(--bg2)}
+.about .wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center}
+.about h2{font-size:clamp(1.7rem,3vw,2.4rem);color:var(--petro);line-height:1.15}
+.about h2 em{font-style:normal;color:var(--gold)}
+.about p{color:var(--muted);margin-top:14px;line-height:1.7}
+.pillars{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.pill{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px 20px}
+.pill .ic{width:46px;height:46px;border-radius:12px;background:rgba(197,160,89,.12);display:grid;place-items:center;color:var(--gold);margin-bottom:12px}
+.pill h4{color:var(--petro);font-size:1.05rem;margin-bottom:6px}
+.pill p{color:var(--muted);font-size:.86rem;margin:0;line-height:1.55}
+@media(max-width:860px){.about .wrap{grid-template-columns:1fr;gap:28px}}
+
+/* Como funciona — 4 passos */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.step{background:#fff;border:1px solid var(--line);border-radius:18px;padding:32px 22px 26px;position:relative}
+.step .n{position:absolute;top:-15px;left:24px;width:34px;height:34px;border-radius:50%;background:var(--gg);color:var(--petro);display:grid;place-items:center;font-weight:800;font-family:var(--sans);box-shadow:0 8px 18px rgba(197,160,89,.4)}
+.step .ic{width:54px;height:54px;border-radius:15px;background:rgba(12,34,40,.05);display:grid;place-items:center;color:var(--petro2);margin:8px 0 14px}
+.step h4{color:var(--petro);font-size:1.08rem;margin-bottom:8px}
+.step p{color:var(--muted);font-size:.85rem;line-height:1.55}
+@media(max-width:860px){.steps{grid-template-columns:1fr 1fr;gap:26px 18px}}
+@media(max-width:520px){.steps{grid-template-columns:1fr}}
+
+/* FAQ (no lugar das cartas) */
+.faqwrap{max-width:840px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+details{background:#fff;border:1px solid var(--line);border-radius:14px;padding:2px 22px;transition:.2s}
+details[open]{border-color:rgba(197,160,89,.5);box-shadow:0 10px 26px rgba(12,34,40,.07)}
+summary{cursor:pointer;list-style:none;padding:18px 0;font-weight:700;color:var(--petro);font-size:1.02rem;display:flex;justify-content:space-between;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--gold);font-size:1.4rem;line-height:1}
+details[open] summary::after{content:"–"}
+details .a{color:var(--muted);padding:0 0 18px;line-height:1.65}
+.trust-chips{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:30px}
+.chip{display:inline-flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:11px 18px;font-size:.85rem;color:var(--petro);font-weight:600}
+.chip .svg{width:18px;height:18px;color:var(--gold)}
+
+/* Depoimentos */
+.depo{background:var(--bg2)}
+.depos{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.dcard{background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px 24px}
+.dcard .stars{color:var(--gold);letter-spacing:3px;margin-bottom:10px}
+.dcard p{color:var(--ink);font-style:italic;line-height:1.6}
+.dcard .who{margin-top:14px;font-weight:700;color:var(--petro);font-size:.92rem}
+.dcard .city{color:var(--muted);font-size:.8rem}
+@media(max-width:860px){.depos{grid-template-columns:1fr}}
+
+/* CTA + footer */
+.ctaband{background:url(/agion-wm.png) 0 0/240px repeat,var(--gp);color:#fff;text-align:center;position:relative;overflow:hidden}
+.ctaband::after{content:"";position:absolute;inset:0;background:radial-gradient(50% 70% at 50% 0%,rgba(197,160,89,.18),transparent 70%)}
+.ctaband .wrap{position:relative;z-index:1}
+.ctaband h2{font-family:var(--serif);font-size:clamp(1.6rem,3vw,2.3rem);text-transform:uppercase}
+.ctaband h2 em{color:var(--gold2);font-style:normal}
+.ctaband p{color:#cfe0dd;max-width:560px;margin:14px auto 26px}
+footer{background:url(/agion-wm.png) 0 0/240px repeat,var(--petro);color:#9fb6b2;padding:48px 0 26px;font-size:.88rem}
+footer .cols{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:32px;padding-bottom:26px;border-bottom:1px solid rgba(255,255,255,.08)}
+footer b.fb{font-family:var(--serif);color:#fff;font-size:1.3rem}
+footer h5{color:#fff;margin-bottom:12px;font-family:var(--sans);font-size:.95rem}
+footer a{display:block;color:#9fb6b2;padding:4px 0}footer a:hover{color:var(--gold2)}
+footer .base{padding-top:18px;text-align:center;color:#7c918e;font-size:.8rem}
+@media(max-width:860px){footer .cols{grid-template-columns:1fr 1fr}}
+/* carrossel administradoras (faixa única) */
+.adms{background:#fff;border-bottom:1px solid var(--line);padding:30px 0}
+.adms-l{text-align:center;color:var(--muted);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:18px}
+.adms .lp{background:#fff;border:1px solid var(--line);box-shadow:0 4px 12px rgba(12,34,40,.06)}
+.parceiras{width:100%;max-width:940px;text-align:center}
+.parceiras .pl{color:#9fb6b2;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px}
+.marquee{width:100%;max-width:1000px;overflow:hidden;-webkit-mask:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.marquee .track{display:flex;gap:18px;width:max-content;animation:mq 34s linear infinite}
+.marquee:hover .track{animation-play-state:paused}
+.lp{flex:0 0 auto;background:#fff;border-radius:12px;height:58px;width:124px;display:grid;place-items:center;padding:8px 14px;box-shadow:0 6px 16px rgba(0,0,0,.18)}
+.lp img{max-height:32px;max-width:96px;object-fit:contain}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+/* comparação especialista x vendedor */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:920px;margin:0 auto}
+.cmp{border-radius:18px;padding:30px 26px;border:1px solid var(--line)}
+.cmp.win{background:url(/agion-wm.png) 0 0/240px repeat,var(--gp);color:#fff;border-color:transparent;box-shadow:0 20px 44px rgba(12,34,40,.18)}
+.cmp.lose{background:#fff}
+.cmp h3{font-size:1.18rem;margin-bottom:16px}
+.cmp.win h3{color:#fff}.cmp.lose h3{color:var(--petro)}
+.cmp ul{list-style:none;display:flex;flex-direction:column;gap:12px}
+.cmp li{display:flex;gap:11px;align-items:flex-start;font-size:.92rem;line-height:1.45}
+.cmp.win li{color:#dfeae8}.cmp.lose li{color:var(--muted)}
+.cmp .mk{flex:0 0 auto;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.78rem;margin-top:1px}
+.cmp.win .mk{background:rgba(197,160,89,.22);color:var(--gold2)}
+.cmp.lose .mk{background:#F2E2E0;color:#C0584E}
+@media(max-width:860px){.compare{grid-template-columns:1fr}}
+.pv{background:#08231F;color:#cfe0dd;text-align:center;font-size:.82rem;padding:9px}.pv b{color:var(--gold2)}
+
+/* ===== Informações em VERDE-PETRÓLEO dinâmico ===== */
+.card,.pill,.step,.dcard,details,.chip{
+  position:relative;
+  background:linear-gradient(135deg,#0B2A26 0%,#12473F 52%,#16665B 100%)!important;
+  background-size:200% 200%!important;animation:petroShift 14s ease infinite;
+  -webkit-backdrop-filter:blur(10px) saturate(1.2);backdrop-filter:blur(10px) saturate(1.2);
+  border:1.5px solid rgba(232,204,139,.55)!important;
+  box-shadow:0 12px 34px rgba(8,24,28,.30),inset 0 1px 0 rgba(255,255,255,.12)!important;
+}
+@keyframes petroShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+/* faixa dourada superior — assinatura da marca (dinamismo) */
+.card,.pill,.dcard,details{overflow:hidden}
+.card::before,.pill::before,.dcard::before,details::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--gg);box-shadow:0 0 14px rgba(197,160,89,.45);z-index:2}
+/* texto claro dentro das informações */
+.card h3,.pill h4,.step h4,.dcard .who,summary{color:#fff!important}
+.chip{color:#eef5f3!important;animation:none!important;background-size:auto!important}
+.card p,.pill p,.step p,.dcard p,details .a{color:#cfe0dd!important}
+.dcard p{font-style:italic}
+.dcard .city{color:#9fb6b2!important}
+.chip .svg,summary::after{color:var(--gold2)!important}
+/* ícones com contraste sobre petróleo */
+.step .ic{background:rgba(255,255,255,.10)!important;color:var(--gold2)!important}
+.pill .ic{background:rgba(232,204,139,.18)!important;color:var(--gold2)!important}
+.card .ic{color:var(--petro)!important}
+/* botão "Consulte" dentro do card petróleo — texto branco, borda dourada */
+.card .btn-ghost{border-color:var(--gold)!important;color:#fff!important}
+.card .btn-ghost:hover{background:var(--gold)!important;color:#2a2113!important}
+/* ícones maiores — preenchendo o quadrado dourado */
+.card .ic{width:60px;height:60px}
+.card .ic .svg,.card .ic svg{width:34px!important;height:34px!important;stroke-width:1.9}
+.pill .ic .svg,.pill .ic svg{width:28px!important;height:28px!important;stroke-width:1.9}
+.step .ic .svg,.step .ic svg{width:32px!important;height:32px!important;stroke-width:1.9}
+.card:hover,.pill:hover,.step:hover,.dcard:hover{border-color:var(--gold)!important;transform:translateY(-6px);box-shadow:0 22px 50px rgba(8,24,28,.40),0 0 32px rgba(197,160,89,.20)!important}
+details[open]{border-color:var(--gold)!important}
+
+/* dinamismo do petróleo nas faixas grandes */
+.ctaband::after{animation:float1 11s ease-in-out infinite!important}
+.cmp.win{background:url(/agion-wm.png) 0 0/240px repeat,linear-gradient(135deg,#0B2A26,#12473F 55%,#16665B)!important;background-size:200% 200%!important;animation:petroShift 16s ease infinite;border:2px solid var(--gold)!important;position:relative;overflow:hidden;box-shadow:0 22px 50px rgba(8,24,28,.40),0 0 30px rgba(197,160,89,.22)!important}
+.cmp.win::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:var(--gg);box-shadow:0 0 18px rgba(197,160,89,.6);z-index:2}
+.cmp.win h3{color:var(--gold2)!important;font-size:1.3rem!important}
+.cmp.lose{border:1.5px solid rgba(16,52,60,.22)!important}
+
+/* faixa branca do carrossel — bordas com mais contraste */
+.adms{background:rgba(255,255,255,.6)!important;-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);border-top:1px solid rgba(16,52,60,.18);border-bottom:1.5px solid rgba(16,52,60,.30)!important}
+.lp{border:1.5px solid rgba(16,52,60,.18)!important}
+
+/* SIMULADOR: branco sólido — SEM glass, borda com contraste */
+.form-card{background:#fff!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:1.5px solid rgba(16,52,60,.20)!important;box-shadow:0 30px 70px rgba(0,0,0,.32)!important}
+.form-card .f input,.form-card .f select{border:1.5px solid rgba(16,52,60,.22)!important}
+
+/* textos dourados 'em' com gradiente animado */
+.sec-head h2 em,.ctaband h2 em,.about h2 em{background:linear-gradient(100deg,#E8CC8B,#C5A059 50%,#8FD9CC 100%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:hueShift 6s ease-in-out infinite}
+
+/* selos do hero permanecem vidro escuro c/ borda dourada */
+.seal{background:rgba(255,255,255,.08)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1.5px solid rgba(232,204,139,.5)!important}
+
+/* marca d'água repetida + mesh de luz (igual ao resto do site) */
+body{position:relative}
+body::before{content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;background:
+  radial-gradient(42% 36% at 10% 6%,rgba(34,118,106,.10),transparent 70%),
+  radial-gradient(38% 32% at 90% 14%,rgba(197,160,89,.08),transparent 70%),
+  radial-gradient(46% 40% at 82% 90%,rgba(34,118,106,.08),transparent 70%)}
+body::after{content:"";position:fixed;inset:-12%;z-index:-2;pointer-events:none;background-image:url('/agion-logo-circular.webp');background-repeat:repeat;background-size:clamp(180px,16vw,260px);filter:blur(.6px);opacity:.05;transform:rotate(-10deg)}
+
+/* WhatsApp flutuante */
+.wfloat{position:fixed;right:20px;bottom:20px;width:60px;height:60px;border-radius:50%;background:#25D366;display:grid;place-items:center;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:50}
+.wfloat svg{width:32px;height:32px;fill:#fff}
+@media(max-width:560px){.wfloat{width:54px;height:54px;right:16px;bottom:16px}}
+
+/* page-hero (páginas internas) */
+.page-hero{background:url(/agion-wm.png) 0 0/240px repeat,var(--gp);position:relative;overflow:hidden;text-align:center;padding:62px 0 56px}
+.page-hero::before{content:"";position:absolute;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(197,160,89,.20),transparent 62%);top:-240px;right:-140px;animation:float1 10s ease-in-out infinite;pointer-events:none}
+.page-hero::after{content:"";position:absolute;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(34,118,106,.5),transparent 60%);bottom:-180px;left:-110px;animation:float1 13s ease-in-out infinite reverse;pointer-events:none}
+.page-hero .wrap{position:relative;z-index:1}
+.page-hero .kick{display:inline-block;font-family:var(--serif);font-size:.78rem;font-weight:800;letter-spacing:.22em;text-transform:uppercase;margin-bottom:14px;background:linear-gradient(100deg,#fff,#E8CC8B 50%,#C5A059);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:hueShift 5s ease-in-out infinite}
+.page-hero h1{font-family:var(--serif);color:#fff;font-size:clamp(2rem,4vw,2.9rem);text-transform:uppercase;line-height:1.12}
+.page-hero h1 b{color:var(--gold2)}
+.page-hero p{color:#cfe0dd;max-width:660px;margin:16px auto 24px;font-size:1.05rem}
+.page-hero .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.page-hero .btn-ghost{border-color:var(--gold);color:var(--gold2)}
+.page-hero .btn-ghost:hover{background:var(--gold);color:#2a2113}
+/* cartas — detalhes */
+.ccards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.ccard{position:relative;overflow:hidden;background:linear-gradient(135deg,#0B2A26,#12473F 52%,#16665B)!important;background-size:200% 200%;animation:petroShift 14s ease infinite;border:1.5px solid rgba(232,204,139,.55);border-radius:16px;padding:28px 24px;box-shadow:0 12px 34px rgba(8,24,28,.30)}
+.ccard::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--gg);box-shadow:0 0 14px rgba(197,160,89,.45)}
+.ccard:hover{transform:translateY(-6px);border-color:var(--gold);box-shadow:0 22px 50px rgba(8,24,28,.40),0 0 32px rgba(197,160,89,.20);transition:.3s}
+.ccard .ic{width:58px;height:58px;border-radius:15px;background:var(--gg);display:grid;place-items:center;color:var(--petro);margin-bottom:14px}
+.ccard .ic svg{width:32px;height:32px}
+.ccard h3{color:#fff;font-size:1.18rem;margin-bottom:4px}
+.ccard .csub{color:var(--gold2);font-weight:700;font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;margin-bottom:10px}
+.ccard p{color:#cfe0dd;font-size:.9rem;line-height:1.55;margin-bottom:14px}
+.ccard .cval{display:inline-block;margin-bottom:16px;font-size:.82rem;font-weight:700;color:var(--gold2);background:rgba(197,160,89,.14);border:1px solid rgba(197,160,89,.34);border-radius:999px;padding:6px 13px}
+.ccard .btn{width:100%}
+@media(max-width:860px){.ccards{grid-template-columns:1fr}}
+</style>
+<style id="mobilefix">
+@media (max-width:640px){
+  .topbar .wrap{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:nowrap;overflow:hidden;padding:6px 10px}
+  .topbar a{white-space:nowrap;font-size:12px}
+  .cards3{grid-template-columns:1fr 1fr;gap:12px}
+  .cards3 .card{padding:16px 12px}
+  .cards3 .card .ic{width:44px;height:44px;margin-bottom:10px}
+  .cards3 .card h3{font-size:15px}
+  .cards3 .card p{font-size:12px;line-height:1.45}
+  .cards3 .card .btn{padding:9px 16px;font-size:13px}
+  footer .cols{grid-template-columns:1fr;gap:18px}
+  .sec{padding:36px 0}
+  .sec h2{font-size:24px}
+  .hero .wrap{padding:20px 16px 24px}
+  .hero h1{font-size:23px;margin-bottom:10px}
+  .form-card{padding:20px 18px}
+  .adms{padding:8px 0}
+  .adms img{height:38px}
+  .step{padding:20px 16px 18px}
+  .dcard{padding:18px 16px}
+  .ctaband{padding:42px 0}
+  .page-hero{padding:32px 0 28px}
+}
+</style>
+<style id="topbarfix">
+.topbar .wrap{display:flex;align-items:center;gap:16px}
+.topbar .tb-actions{margin-left:auto;display:flex;gap:10px;align-items:center}
+.topbar .tb-pill{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:6px 16px;font-weight:700;font-size:13px;line-height:1;white-space:nowrap}
+.topbar .tb-wa{background:linear-gradient(115deg,#A8853E,#E8CC8B 55%,#C5A059 95%);color:#0B2A26}
+.topbar .tb-wa .svg{stroke:#0B2A26}
+.topbar .tb-esp{border:1.5px solid rgba(232,204,139,.75);color:#E8CC8B}
+.topbar .tb-wa:hover{filter:brightness(1.06)}
+.topbar .tb-esp:hover{background:rgba(232,204,139,.12)}
+</style>
+<style id="tramofix">
+.form-card label{display:none}
+.form-card input,.form-card select{height:54px;font-size:16px}
+.form-card .f{margin:0 0 14px}
+@media (max-width:640px){
+  .topbar{display:none}
+  .form-card h2{font-size:26px}
+  .form-card input,.form-card select{height:52px}
+  .form-card .f{margin:0 0 12px}
+}
+</style>
+
+<!-- AGION DESIGN ATUAL: refinamento visual sem mudança de layout -->
+<link rel="stylesheet" href="/assets/fonts/fonts.css">
+<link rel="stylesheet" href="/assets/css/agion-reskin.css">
+<link rel="stylesheet" href="/assets/css/internas-reskin.css">
+<link rel="stylesheet" href="/assets/css/agion-motion.css">
+<script defer src="/assets/js/agion-motion.js"></script>
+<noscript><style>@media(max-width:980px){.nav{position:static}.nav-mobile{display:grid;grid-template-columns:1fr 1fr}.nav-burger{display:none}}</style></noscript>
+<!-- /AGION DESIGN ATUAL -->
+<!-- AGION SEO: metadados e dados estruturados coerentes -->
+<title>Cartas contempladas para imóveis e veículos | Agion</title>
+<meta name="description" content="Catálogo de cartas contempladas para imóveis e veículos. Compare crédito, entrada, parcela e prazo e fale com a Alice para confirmar a disponibilidade.">
+<meta name="keywords" content="carta contemplada carro, carta contemplada de imóveis, carta contemplada de imóvel, carta contemplada imovel, carta contemplada veículos, carta de credito contemplada imovel, carta de crédito contemplada veículos, carta de imovel contemplada, cartas contempladas de imóveis, cartas contempladas imóveis, cartas contempladas veiculos, cartas de credito contempladas para imoveis, cartas de imoveis contempladas, consorcio contemplado carro, consorcio contemplado de imoveis, consorcio contemplado veiculos, consórcio contemplada imóvel, consórcio contemplado imóveis, veiculos consorcio contemplado, credita consorcio, credita rodobens, grupo lume cartas contempladas, lume cartas contempladas, lume consorcios, toco consorcios, tramontana, tramontana consorcios, unicontemplados">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<link rel="canonical" href="https://www.agionconsorcios.com.br/contempladas">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Agion Consórcios">
+<meta property="og:title" content="Cartas contempladas para imóveis e veículos | Agion">
+<meta property="og:description" content="Catálogo de cartas contempladas para imóveis e veículos. Compare crédito, entrada, parcela e prazo e fale com a Alice para confirmar a disponibilidade.">
+<meta property="og:url" content="https://www.agionconsorcios.com.br/contempladas">
+<meta property="og:image" content="https://www.agionconsorcios.com.br/og-agion.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="Agion Consórcios — planejamento e consultoria">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cartas contempladas para imóveis e veículos | Agion">
+<meta name="twitter:description" content="Catálogo de cartas contempladas para imóveis e veículos. Compare crédito, entrada, parcela e prazo e fale com a Alice para confirmar a disponibilidade.">
+<meta name="twitter:image" content="https://www.agionconsorcios.com.br/og-agion.png">
+<meta name="twitter:image:alt" content="Agion Consórcios — planejamento e consultoria">
+<link rel="preload" href="/assets/fonts/lora-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/inter-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":["Organization","FinancialService","LocalBusiness"],"@id":"https://www.agionconsorcios.com.br/#org","name":"Agion Consórcios","url":"https://www.agionconsorcios.com.br/","logo":{"@type":"ImageObject","@id":"https://www.agionconsorcios.com.br/#logo","url":"https://www.agionconsorcios.com.br/agion-logo-circular.webp","contentUrl":"https://www.agionconsorcios.com.br/agion-logo-circular.webp","width":885,"height":885},"telephone":"+55-51-98203-4245","email":"contato@agionconsorcios.com.br","taxID":"62.777.516/0001-02","address":{"@type":"PostalAddress","addressLocality":"Porto Alegre","addressRegion":"RS","addressCountry":"BR"},"areaServed":["RS","BR"],"sameAs":["https://www.instagram.com/agionconsorcios","https://www.facebook.com/agionconsorcios","https://www.linkedin.com/company/agionconsorcios"],"image":"https://www.agionconsorcios.com.br/og-agion.png","description":"Consórcio sem juros com planejamento financeiro e consultoria de investimentos. Imóvel, auto, terreno, construção e mais. Simule e fale com um especialista Agion."},{"@type":"WebSite","@id":"https://www.agionconsorcios.com.br/#website","name":"Agion Consórcios","url":"https://www.agionconsorcios.com.br/","inLanguage":"pt-BR","publisher":{"@id":"https://www.agionconsorcios.com.br/#org"}},{"@type":"WebPage","@id":"https://www.agionconsorcios.com.br/contempladas#webpage","url":"https://www.agionconsorcios.com.br/contempladas","name":"Cartas contempladas para imóveis e veículos | Agion","description":"Catálogo de cartas contempladas para imóveis e veículos. Compare crédito, entrada, parcela e prazo e fale com a Alice para confirmar a disponibilidade.","inLanguage":"pt-BR","isPartOf":{"@id":"https://www.agionconsorcios.com.br/#website"},"publisher":{"@id":"https://www.agionconsorcios.com.br/#org"},"breadcrumb":{"@id":"https://www.agionconsorcios.com.br/contempladas#breadcrumb"}},{"@type":"BreadcrumbList","@id":"https://www.agionconsorcios.com.br/contempladas#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://www.agionconsorcios.com.br/"},{"@type":"ListItem","position":2,"name":"Cartas contempladas","item":"https://www.agionconsorcios.com.br/contempladas"}]},{"@type":"FAQPage","@id":"https://www.agionconsorcios.com.br/contempladas#faq","url":"https://www.agionconsorcios.com.br/contempladas","inLanguage":"pt-BR","isPartOf":{"@id":"https://www.agionconsorcios.com.br/contempladas#webpage"},"mainEntity":[{"@type":"Question","name":"As cartas da lista estão disponíveis agora?","acceptedAnswer":{"@type":"Answer","text":"A lista mostra as cartas da última coleta, sem as vendidas, reservadas ou bloqueadas, e é atualizada ao longo do dia. Como o mercado muda rápido, a disponibilidade e o preço final são confirmados no atendimento antes de qualquer proposta."}},{"@type":"Question","name":"O que significa a entrada?","acceptedAnswer":{"@type":"Answer","text":"É o valor pago para assumir a carta contemplada. O percentual mostra quanto essa entrada representa do crédito da carta."}},{"@type":"Question","name":"O valor total estimado inclui reajustes?","acceptedAnswer":{"@type":"Answer","text":"Não. Ele soma a entrada às parcelas informadas hoje, sem projetar reajustes futuros nem taxas que não foram informadas no anúncio."}},{"@type":"Question","name":"Como é feita a transferência da carta?","acceptedAnswer":{"@type":"Answer","text":"A cessão é feita por contrato e depende da análise e da anuência prévia da administradora. A equipe da Agion acompanha a documentação do início ao fim."}}]}]}</script>
+<!-- /AGION SEO -->
+<style id="tc-catalogo">
+/* ==========================================================
+   Catálogo de cartas contempladas — /contempladas
+   Escopo: tudo com prefixo .tc-  (não colide com o CSS do site)
+   Tokens: os mesmos do site publicado (agion-reskin.css)
+   ========================================================== */
+.tc{
+  --tc-surface:#F3F6F4; --tc-line:#E6EAE9; --tc-divider:#CBD5CE; --tc-field:#C9D3CE;
+  --tc-ink:#1C2B2E; --tc-sec:#52645B; --tc-mute:#7D938C;
+  --tc-gold-text:#806738; --tc-ok:#3F8F6A; --tc-warn:#B07A1F; --tc-heart:#B45647;
+  --tc-r-xl:22px; --tc-r-lg:18px; --tc-r:14px; --tc-r-sm:10px;
+  --tc-ease:cubic-bezier(.2,.8,.2,1);
+  --tc-nav:76px;
+  color:var(--tc-ink);
+}
+:where(.tc,.tc-layer) *{box-sizing:border-box}
+:where(.tc,.tc-layer) button:where(:not(.btn)){font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+:where(.tc,.tc-layer) :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.tc-num{font-variant-numeric:tabular-nums lining-nums}
+.tc-sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- HERO ---------- */
+.tc-hero{position:relative;overflow:hidden;color:#fff;
+  background:url(/agion-wm.png) 0 0/240px repeat,linear-gradient(155deg,#12473F,#0B2A26)}
+.tc-hero::before{content:"";position:absolute;width:640px;height:640px;border-radius:50%;
+  background:radial-gradient(circle,rgba(197,160,89,.20),transparent 62%);top:-300px;right:-180px;pointer-events:none}
+.tc-hero>.wrap{position:relative;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:56px;align-items:center;padding-top:58px;padding-bottom:70px}
+.tc-hero h1{color:#fff;font-size:clamp(2.1rem,4.1vw,3.3rem);line-height:1.04;font-weight:500;max-width:13em}
+.tc-hero .tc-lead{color:#C9D3CB;font-size:1.02rem;line-height:1.72;max-width:33em;margin-top:18px}
+.tc-hero .tc-ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.tc-hero .btn-ghost{color:#fff;border-color:rgba(255,255,255,.34)}
+.tc-hero .btn-ghost:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.6)}
+
+.tc-panel{position:relative;border-radius:var(--tc-r-xl);padding:30px 32px 26px;
+  background:linear-gradient(160deg,rgba(255,255,255,.085),rgba(255,255,255,.02));
+  border:1px solid rgba(232,204,139,.38);
+  box-shadow:inset 0 0 0 6px rgba(11,42,38,.30),inset 0 0 0 7px rgba(232,204,139,.16),0 30px 70px rgba(0,0,0,.28)}
+.tc-panel-k{font-size:13px;color:#C9D3CB}
+.tc-panel-big{font-family:var(--lora);font-weight:500;font-size:clamp(3.2rem,6vw,4.4rem);line-height:1;letter-spacing:-.04em;margin:8px 0 4px;color:#fff}
+.tc-panel-sub{font-size:14px;color:#E7EFEA}
+.tc-panel-row{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:0;margin-top:22px;padding-top:18px;border-top:1px solid rgba(232,204,139,.24)}
+.tc-panel-row>div{padding:0 22px;border-left:1px solid rgba(232,204,139,.20)}
+.tc-panel-row>div:first-child{padding-left:0;border-left:0}
+.tc-panel-row b{display:block;font-family:var(--lora);font-weight:500;font-size:1.45rem;color:var(--gold2);letter-spacing:-.02em;white-space:nowrap}
+.tc-panel-row span{display:block;font-size:12px;color:#AFC0B8;margin-top:2px}
+
+/* selo — o único movimento de abertura */
+.tc-seal{position:absolute;top:-38px;right:-30px;width:136px;height:136px;filter:drop-shadow(0 14px 26px rgba(0,0,0,.35));
+  animation:tcSealIn .9s var(--tc-ease) .25s both}
+.tc-seal svg{width:100%;height:100%;display:block;overflow:visible}
+.tc-seal .s-disc{fill:url(#tcGold)}
+.tc-seal .s-ring{fill:none;stroke:#08231F;stroke-opacity:.55;stroke-width:1}
+.tc-seal .s-txt{font:700 8.4px/1 var(--sans);letter-spacing:.06em;fill:#08231F}
+.tc-seal .s-spin{transform-origin:70px 70px;animation:tcSpin 90s linear infinite}
+.tc-seal img{position:absolute;inset:0;margin:auto;width:58%;height:58%;border-radius:50%;object-fit:cover;box-shadow:0 0 0 2px rgba(8,35,31,.55)}
+@keyframes tcSealIn{from{opacity:0;transform:scale(.55) rotate(-40deg)}to{opacity:1;transform:none}}
+@keyframes tcSpin{to{transform:rotate(360deg)}}
+
+/* ---------- STATUS ---------- */
+.tc-status{background:#fff;border-bottom:1px solid var(--tc-line)}
+.tc-status .wrap{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;column-gap:10px;row-gap:4px;min-height:50px;padding-top:10px;padding-bottom:10px;font-size:13px;color:var(--tc-sec)}
+.tc-live{width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:var(--tc-ok);box-shadow:0 0 0 0 rgba(63,143,106,.45);animation:tcPulse 2.6s ease-out infinite}
+.tc-status.is-stale .tc-live{background:var(--tc-warn);animation:none}
+.tc-status b{color:var(--tc-ink);font-weight:600}
+.tc-status .tc-link{justify-self:end;white-space:nowrap}
+@keyframes tcPulse{0%{box-shadow:0 0 0 0 rgba(63,143,106,.45)}70%{box-shadow:0 0 0 9px rgba(63,143,106,0)}100%{box-shadow:0 0 0 0 rgba(63,143,106,0)}}
+.tc-link{color:var(--tc-gold-text);font-weight:600;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.tc-link:hover{color:var(--petro)}
+
+/* ---------- CATÁLOGO ---------- */
+.tc-cat{background:#fff;padding:34px 0 72px;scroll-margin-top:84px}
+.tc-bar{scroll-margin-top:92px}
+
+/* categorias (controle segmentado com indicador deslizante) */
+.tc-segwrap{position:relative}
+.tc-seg{position:relative;display:inline-flex;gap:2px;padding:4px;border-radius:14px;background:var(--tc-surface);border:1px solid var(--tc-line);max-width:100%;overflow-x:auto;scrollbar-width:none;vertical-align:top}
+.tc-seg::-webkit-scrollbar{display:none}
+.tc-seg button{position:relative;z-index:1;display:inline-flex;align-items:center;gap:7px;padding:10px 15px;border-radius:10px;font-size:13.5px;font-weight:600;color:var(--tc-sec);white-space:nowrap;transition:color .25s}
+.tc-seg button .n{font-weight:500;font-size:12px;color:var(--tc-mute);transition:color .25s}
+.tc-seg button:hover{color:var(--petro)}
+.tc-seg button[aria-pressed="true"]{color:#fff}
+.tc-seg button[aria-pressed="true"] .n{color:var(--gold2)}
+.tc-seg-ind{position:absolute;z-index:0;top:4px;bottom:4px;left:0;width:0;border-radius:10px;background:var(--petro);box-shadow:0 6px 16px rgba(11,42,38,.22);transition:transform .38s var(--tc-ease),width .38s var(--tc-ease)}
+
+/* painel "Encontre dentro do seu plano" */
+.tc-plan{margin-top:18px;border:1px solid var(--tc-line);border-radius:var(--tc-r-lg);background:var(--tc-surface);padding:22px 24px 20px}
+.tc-plan-head{display:flex;align-items:flex-end;gap:16px;margin-bottom:18px}
+.tc-plan-head h2{font-size:1.5rem;line-height:1.15;color:var(--petro)}
+.tc-plan-head p{font-size:13.5px;color:var(--tc-sec);margin-top:5px}
+.tc-plan-head .tc-clear{margin-left:auto;font-size:13px}
+.tc-clear{color:var(--tc-gold-text);font-weight:600;text-decoration:underline;text-underline-offset:3px;visibility:hidden}
+.tc-clear.on{visibility:visible}
+.tc-plan-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px 18px}
+.tc-range-l{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:600;color:var(--tc-ink);margin-bottom:7px}
+.tc-range-l small{font-size:11.5px;font-weight:500;color:var(--tc-mute)}
+.tc-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tc-in,.tc-sel{width:100%;height:42px;border:1px solid var(--tc-field);border-radius:var(--tc-r-sm);background:#fff;padding:0 12px;font:500 14px var(--sans);color:var(--tc-ink);transition:border-color .15s,box-shadow .15s}
+.tc-in::placeholder{color:#93A49C;font-weight:400}
+.tc-in:focus,.tc-sel:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(197,160,89,.18)}
+.tc-in.has{border-color:#9DB2A8;background:#FCFDFC}
+.tc-sel{appearance:none;-webkit-appearance:none;padding-right:34px;cursor:pointer;
+  background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2352645B' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 13px center}
+.tc-plan-foot{display:flex;align-items:flex-end;gap:16px;margin-top:18px;flex-wrap:wrap}
+.tc-plan-foot .tc-adm{flex:0 1 320px}
+.tc-plan-foot .tc-help{flex:1 1 260px;font-size:12px;color:var(--tc-mute);line-height:1.5;padding-bottom:4px}
+.tc-go{display:inline-flex;align-items:center;justify-content:center;gap:0;height:44px;padding:0 22px;border-radius:999px;background:var(--petro);color:#fff;font-weight:700;font-size:14px;white-space:nowrap;transition:background .2s,transform .2s}
+.tc-go:hover{background:var(--petro-mid,#12473F)}
+.tc-go:active{transform:scale(.98)}
+.tc-go b{font-variant-numeric:tabular-nums}
+
+/* barra de resultados */
+.tc-bar{display:flex;align-items:center;gap:12px;margin:34px 0 16px;flex-wrap:wrap}
+.tc-count{display:flex;align-items:baseline;gap:9px;margin-right:6px}
+.tc-count b{font-family:var(--lora);font-weight:500;font-size:2.1rem;line-height:1;letter-spacing:-.03em;color:var(--petro)}
+.tc-count span{font-size:13px;color:var(--tc-sec);line-height:1.35}
+.tc-search{position:relative;flex:1 1 220px;max-width:360px;min-width:180px;margin-left:auto}
+.tc-search .tc-in{padding-left:38px}
+.tc-search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--tc-mute);pointer-events:none}
+.tc-sortw{flex:0 0 auto}
+.tc-sortw .tc-sel{width:auto;min-width:200px}
+.tc-toggle{display:inline-flex;padding:3px;border-radius:12px;background:var(--tc-surface);border:1px solid var(--tc-line)}
+.tc-toggle button{height:34px;padding:0 13px;border-radius:9px;font-size:13px;font-weight:600;color:var(--tc-sec)}
+.tc-toggle button[aria-pressed="true"]{background:#fff;color:var(--petro);box-shadow:0 1px 3px rgba(11,42,38,.14)}
+.tc-chip{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--tc-field);background:#fff;font-size:13.5px;font-weight:600;color:var(--tc-ink);transition:border-color .2s,background .2s}
+.tc-chip:hover{border-color:var(--gold)}
+.tc-chip svg{width:17px;height:17px}
+.tc-chip .n{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--tc-surface);font-size:11.5px;display:inline-grid;place-items:center;font-variant-numeric:tabular-nums}
+.tc-chip[aria-pressed="true"]{background:var(--petro);border-color:var(--petro);color:#fff}
+.tc-chip[aria-pressed="true"] .n{background:rgba(255,255,255,.16);color:#fff}
+.tc-chip.bump .n{animation:tcBump .45s var(--tc-ease)}
+@keyframes tcBump{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+
+.tc-note{display:flex;gap:10px;align-items:center;margin:-4px 0 14px;font-size:12.5px;color:var(--tc-sec);background:var(--tc-surface);border:1px dashed var(--tc-divider);border-radius:var(--tc-r-sm);padding:9px 13px}
+.tc-note[hidden]{display:none}
+.tc-filterpill{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;padding:7px 8px 7px 14px;border-radius:999px;background:#FBF3F1;color:#7A3A30;font-size:13px;font-weight:600}
+.tc-filterpill button{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:#7A3A30}
+.tc-filterpill button:hover{background:rgba(180,86,71,.12)}
+.tc-filterpill[hidden]{display:none}
+
+/* ---------- TABELA ---------- */
+.tc-tablewrap{border:1px solid var(--tc-line);border-radius:var(--tc-r-lg);background:#fff;overflow:clip}
+.tc-table{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}
+.tc-table thead th{position:sticky;top:var(--tc-nav);z-index:3;background:var(--petro);color:#DCE7E2;font-weight:600;font-size:12.5px;text-align:right;padding:0;white-space:nowrap}
+.tc-table thead th:first-child,.tc-table thead th:nth-child(2){text-align:left}
+.tc-th{display:inline-flex;align-items:center;gap:6px;padding:13px 10px;width:100%;justify-content:inherit;color:inherit}
+.tc-table thead th:not(:first-child):not(:nth-child(2)) .tc-th{justify-content:flex-end}
+button.tc-th:hover{color:#fff}
+.tc-th .ar{display:inline-block;width:9px;opacity:.45;font-size:10px}
+th[aria-sort] .ar{opacity:1;color:var(--gold2)}
+th[aria-sort]{color:#fff}
+.tc-table td{padding:13px 10px;border-top:1px solid var(--tc-line);text-align:right;vertical-align:middle;white-space:nowrap}
+.tc-table tbody tr:first-child td{border-top:0}
+.tc-table tbody tr{cursor:pointer;transition:background .15s}
+.tc-table tbody tr:hover{background:#F7F9F8}
+.tc-table tbody tr:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.tc-table td.c-cmp{width:34px;text-align:center;padding-right:0;padding-left:12px}
+.tc-table td.c-carta{text-align:left;white-space:normal;width:222px}
+.tc-table .tc-badge{width:34px;height:34px;flex-basis:34px;font-size:12px;border-radius:10px}
+.tc-cred{font-family:var(--lora);font-weight:500;font-size:16.5px;color:var(--petro);letter-spacing:-.01em;font-variant-numeric:lining-nums proportional-nums}
+.tc-ent{font-weight:600}
+.tc-pct{color:var(--tc-sec)}
+.tc-parc{line-height:1.35}
+.tc-parc em{display:block;font-style:normal;font-size:12px;color:var(--tc-mute)}
+.tc-acts{display:inline-flex;align-items:center;gap:6px}
+
+.tc-who{display:flex;align-items:center;gap:12px}
+.tc-badge{width:40px;height:40px;flex:0 0 40px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(150deg,#12473F,#0B2A26);color:var(--gold2);font:600 13px/1 var(--lora);letter-spacing:.02em}
+.tc-name{display:block;padding:0;text-align:left;font-weight:700;font-size:14.5px;color:var(--petro);line-height:1.25}
+.tc-name:hover{text-decoration:underline;text-underline-offset:3px}
+.tc-meta{display:flex;align-items:center;gap:7px;margin-top:4px;flex-wrap:wrap}
+.tc-tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:6px;background:var(--tc-surface);border:1px solid var(--tc-line);font-size:11.5px;font-weight:600;color:var(--tc-sec)}
+.tc-code{font-size:11.5px;color:var(--tc-mute);letter-spacing:.02em;font-variant-numeric:tabular-nums;white-space:nowrap;padding:0}
+button.tc-code:hover{color:var(--petro);text-decoration:underline}
+
+.tc-ico{width:36px;height:36px;flex:0 0 36px;border-radius:10px;border:1px solid var(--tc-field);background:#fff;display:grid;place-items:center;color:var(--tc-sec);transition:border-color .2s,color .2s,background .2s}
+.tc-ico:hover{border-color:var(--gold);color:var(--petro)}
+.tc-ico svg{width:17px;height:17px}
+.tc-ico[data-act="fav"][aria-pressed="true"]{color:var(--tc-heart);border-color:rgba(180,86,71,.45);background:#FBF3F1}
+.tc-ico[data-act="fav"][aria-pressed="true"] svg{fill:currentColor}
+.tc-ico[data-act="cart"][aria-pressed="true"]{color:#08231F;border-color:var(--gold);background:var(--gold3)}
+.tc-ico.pop svg{animation:tcPop .42s var(--tc-ease)}
+@keyframes tcPop{0%{transform:scale(1)}35%{transform:scale(1.32)}100%{transform:scale(1)}}
+.tc-txtbtn{height:36px;padding:0 10px;border-radius:9px;font-size:13px;font-weight:600;color:var(--tc-gold-text)}
+.tc-txtbtn:hover{background:var(--tc-surface);color:var(--petro)}
+.tc-int{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:38px;padding:0 14px;border-radius:999px;background:var(--gg);color:#08231F;font-weight:700;font-size:13.5px;white-space:nowrap;box-shadow:0 6px 16px rgba(197,160,89,.28);transition:filter .2s,transform .2s}
+.tc-int:hover{filter:brightness(1.05)}
+.tc-int:active{transform:scale(.98)}
+.tc-int svg{width:16px;height:16px}
+
+.tc-check{position:relative;display:inline-grid;place-items:center;width:20px;height:20px;cursor:pointer}
+.tc-check input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.tc-check span{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--tc-field);background:#fff;display:grid;place-items:center;transition:background .15s,border-color .15s}
+.tc-check input:checked+span{background:var(--petro);border-color:var(--petro)}
+.tc-check input:checked+span::after{content:"";width:9px;height:5px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.tc-check input:focus-visible+span{outline:2px solid var(--gold);outline-offset:2px}
+
+/* ---------- CARTÕES ---------- */
+.tc-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.tc-card{position:relative;display:flex;flex-direction:column;background:#fff;border:1px solid var(--tc-line);border-radius:var(--tc-r);padding:18px 18px 14px;cursor:pointer;transition:border-color .2s,box-shadow .2s}
+.tc-card:hover{border-color:#D3DCD7;box-shadow:0 12px 30px rgba(11,42,38,.07)}
+.tc-card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.tc-card .tc-who{padding-right:44px}
+.tc-card>.tc-ico[data-act="fav"]{position:absolute;top:14px;right:14px;border-radius:50%}
+.tc-card-cred{margin-top:16px}
+.tc-k{display:block;font-size:12.5px;color:var(--tc-sec)}
+.tc-card-cred .tc-cred{display:block;font-size:1.85rem;line-height:1.1;margin-top:3px}
+.tc-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:14px;padding-top:14px;border-top:1px solid var(--tc-line)}
+.tc-card-grid>div{padding-right:12px}
+.tc-card-grid>div+div{padding-left:14px;padding-right:0;border-left:1px solid var(--tc-line)}
+.tc-card-grid .v{display:block;font-weight:600;font-size:15px;margin-top:3px;font-variant-numeric:tabular-nums}
+.tc-card-grid .s{display:block;font-size:12px;color:var(--tc-mute);margin-top:2px}
+.tc-card-line{display:flex;justify-content:space-between;gap:10px;margin-top:12px;font-size:12.5px;color:var(--tc-sec)}
+.tc-card-line b{color:var(--tc-ink);font-weight:600}
+.tc-card-acts{display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--tc-line)}
+.tc-card-acts .tc-int{flex:1 1 auto;height:42px}
+.tc-cmp-l{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--tc-sec);cursor:pointer;padding:0 4px;height:42px;white-space:nowrap}
+
+/* mais / vazio / esqueleto */
+.tc-more{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:26px}
+.tc-more small{font-size:12.5px;color:var(--tc-mute)}
+.tc-morebtn{height:44px;padding:0 24px;border-radius:999px;border:1.5px solid var(--gold);color:var(--petro);font-weight:700;font-size:14px;transition:background .2s}
+.tc-morebtn:hover{background:var(--gold3)}
+.tc-empty{text-align:center;padding:56px 20px;border:1px dashed var(--tc-divider);border-radius:var(--tc-r-lg);background:#FCFDFC}
+.tc-empty h3{font-size:1.35rem;color:var(--petro)}
+.tc-empty p{color:var(--tc-sec);font-size:14px;margin:8px auto 18px;max-width:30em}
+.tc-skel{height:66px;border-radius:12px;margin-bottom:10px;background:linear-gradient(90deg,var(--tc-surface) 0%,#E9EFEC 40%,var(--tc-surface) 80%);background-size:200% 100%;animation:tcShimmer 1.3s linear infinite}
+@keyframes tcShimmer{to{background-position:-200% 0}}
+
+/* ---------- COMO FUNCIONA / FAQ ---------- */
+.tc-steps{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;counter-reset:tcs}
+.tc-steps li{background:#fff;border:1px solid var(--tc-line);border-radius:var(--tc-r-lg);padding:24px 24px 22px;counter-increment:tcs}
+.tc-steps li::before{content:counter(tcs);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--petro);color:var(--gold2);font:500 15px/1 var(--lora);margin-bottom:14px}
+.tc-steps h3{font-size:1.15rem;color:var(--petro);margin-bottom:6px}
+.tc-steps p{font-size:14px;color:var(--tc-sec);line-height:1.6}
+.tc-faq{max-width:820px;margin:0 auto}
+.tc-faq details{border-bottom:1px solid var(--tc-line)}
+.tc-faq summary{list-style:none;cursor:pointer;padding:18px 34px 18px 0;font-weight:600;font-size:15.5px;color:var(--petro);position:relative}
+.tc-faq summary::-webkit-details-marker{display:none}
+.tc-faq details p{padding:0 0 18px;color:var(--tc-sec);font-size:14.5px;line-height:1.7;max-width:62em}
+
+/* ---------- CAMADAS: detalhe, carrinho, comparar (modal no desktop, bottom sheet no celular) ---------- */
+.tc-layer{--tc-line:#E6EAE9;--tc-surface:#F3F6F4;--tc-field:#C9D3CE;--tc-sec:#52645B;--tc-mute:#7D938C;--tc-ink:#1C2B2E;--tc-gold-text:#806738;--tc-ok:#3F8F6A;--tc-heart:#B45647;--tc-ease:cubic-bezier(.2,.8,.2,1);color:var(--tc-ink);font-family:var(--sans)}
+.tc-scrim{position:fixed;inset:0;z-index:200;background:rgba(5,22,19,.52);opacity:0;pointer-events:none;transition:opacity .28s}
+.tc-scrim.on{opacity:1;pointer-events:auto}
+.tc-sheet{position:fixed;z-index:201;left:50%;top:50%;width:min(600px,calc(100vw - 40px));max-height:min(88vh,860px);display:flex;flex-direction:column;background:#fff;border-radius:22px;box-shadow:0 40px 90px rgba(5,22,19,.38);
+  opacity:0;pointer-events:none;transform:translate(-50%,-46%) scale(.98);transition:opacity .26s,transform .34s var(--tc-ease)}
+.tc-sheet.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+.tc-sheet.w-lg{width:min(980px,calc(100vw - 40px))}
+.tc-sheet.w-sm{width:min(480px,calc(100vw - 40px))}
+.tc-grab{display:none}
+.tc-sh-head{display:flex;align-items:flex-start;gap:14px;padding:22px 24px 16px;border-bottom:1px solid var(--tc-line)}
+.tc-sh-head h2{font-size:1.5rem;line-height:1.15;color:var(--petro)}
+.tc-sh-k{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--tc-sec);margin-bottom:6px;flex-wrap:wrap}
+.tc-x{margin-left:auto;width:38px;height:38px;flex:0 0 38px;border-radius:50%;display:grid;place-items:center;color:var(--tc-sec);background:var(--tc-surface)}
+.tc-x:hover{color:var(--petro);background:#E7EDEA}
+.tc-sh-body{overflow:auto;padding:18px 24px 22px;overscroll-behavior:contain}
+.tc-sh-foot{display:flex;gap:10px;align-items:center;padding:14px 24px;border-top:1px solid var(--tc-line);background:#fff;border-radius:0 0 22px 22px}
+.tc-sh-foot .tc-int{flex:1 1 auto;height:46px;font-size:14.5px}
+.tc-sh-foot .tc-ico{width:46px;height:46px;flex-basis:46px;border-radius:12px}
+
+.tc-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--tc-ok)}
+.tc-d-hero{display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--tc-surface);border:1px solid var(--tc-line);border-radius:16px;padding:18px 20px}
+.tc-d-hero>div+div{border-left:1px solid var(--tc-divider);padding-left:18px}
+.tc-d-hero .tc-cred{display:block;font-size:1.9rem;line-height:1.1;margin-top:4px}
+.tc-d-hero .ent{display:block;font-family:var(--lora);font-weight:500;font-size:1.45rem;color:var(--tc-ink);margin-top:6px;line-height:1.15}
+.tc-d-hero small{display:block;font-size:12.5px;color:var(--tc-sec);margin-top:3px}
+.tc-d-pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:16px 4px;border-bottom:1px solid var(--tc-line)}
+.tc-d-pair b{display:block;font-weight:600;font-size:15.5px;margin-top:3px;font-variant-numeric:tabular-nums}
+.tc-total{margin-top:16px;border-radius:16px;padding:18px 20px;background:linear-gradient(155deg,#12473F,#0B2A26);color:#fff}
+.tc-total .k{font-size:13px;color:#C9D3CB}
+.tc-total .v{font-family:var(--lora);font-weight:500;font-size:1.9rem;letter-spacing:-.02em;margin-top:4px;color:#fff}
+.tc-total .split{display:flex;gap:24px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(232,204,139,.25);flex-wrap:wrap}
+.tc-total .split span{display:block;font-size:12px;color:#AFC0B8}
+.tc-total .split b{font-weight:600;color:var(--gold2);font-variant-numeric:tabular-nums}
+.tc-total p{font-size:12px;color:#AFC0B8;margin-top:10px;line-height:1.5}
+.tc-et{margin-top:16px;border:1px solid var(--tc-line);border-radius:14px;overflow:hidden}
+.tc-et h3{font:600 14px var(--sans);letter-spacing:0;color:var(--tc-ink);padding:12px 16px;background:var(--tc-surface);border-bottom:1px solid var(--tc-line)}
+.tc-et table{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+.tc-et th{font-weight:600;font-size:12px;color:var(--tc-sec);text-align:left;padding:9px 16px}
+.tc-et td{padding:10px 16px;border-top:1px solid var(--tc-line)}
+.tc-et th:last-child,.tc-et td:last-child{text-align:right}
+.tc-fine{font-size:12px;color:var(--tc-mute);line-height:1.55;margin-top:14px}
+
+/* carrinho */
+.tc-cart-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--tc-line)}
+.tc-cart-item .bd{flex:1;min-width:0}
+.tc-cart-item b{display:block;font-weight:700;color:var(--petro);font-size:14px}
+.tc-cart-item .tc-cred{font-size:16px}
+.tc-cart-sum{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;padding:14px 16px;border-radius:14px;background:var(--tc-surface)}
+.tc-cart-sum b{display:block;font-family:var(--lora);font-weight:500;font-size:1.25rem;color:var(--petro);margin-top:2px}
+.tc-cart-sum span{font-size:12px;color:var(--tc-sec)}
+
+/* comparar */
+.tc-cmpwrap{overflow-x:auto;margin:0 -24px;padding:0 24px}
+.tc-cmp{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;font-variant-numeric:tabular-nums;min-width:560px}
+.tc-cmp th,.tc-cmp td{padding:12px 14px;border-bottom:1px solid var(--tc-line);text-align:left;vertical-align:top}
+.tc-cmp tbody th{font-weight:600;font-size:12.5px;color:var(--tc-sec);white-space:nowrap;width:150px;position:sticky;left:0;background:#fff}
+.tc-cmp thead th{border-bottom:2px solid var(--petro)}
+.tc-cmp thead th b{display:block;color:var(--petro);font-size:14.5px}
+.tc-cmp td.best{font-weight:700;color:var(--petro)}
+.tc-cmp td.best::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gold);margin-left:7px;vertical-align:middle}
+
+/* barra de comparação flutuante */
+.tc-cmpbar{position:fixed;z-index:150;left:50%;bottom:20px;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 18px;border-radius:16px;background:var(--petro);color:#fff;box-shadow:0 18px 44px rgba(5,22,19,.38);
+  visibility:hidden;transform:translate(-50%,160%);transition:transform .38s var(--tc-ease),visibility 0s linear .38s}
+.tc-cmpbar.on{visibility:visible;transform:translate(-50%,0);transition:transform .38s var(--tc-ease),visibility 0s}
+.tc-cmpbar span{font-size:14px;font-weight:600;white-space:nowrap}
+.tc-cmpbar .go{height:40px;padding:0 18px;border-radius:11px;background:var(--gg);color:#08231F;font-weight:700;font-size:13.5px}
+.tc-cmpbar .cl{height:40px;padding:0 12px;border-radius:11px;color:#C9D3CB;font-size:13px;font-weight:600}
+.tc-cmpbar .cl:hover{color:#fff;background:rgba(255,255,255,.08)}
+
+/* aviso flutuante */
+.tc-toast{position:fixed;z-index:260;left:50%;bottom:24px;max-width:min(92vw,460px);transform:translate(-50%,30px);opacity:0;pointer-events:none;
+  background:#0B2A26;color:#fff;border:1px solid rgba(232,204,139,.35);border-radius:14px;padding:13px 18px;font:500 14px/1.45 var(--sans);box-shadow:0 18px 44px rgba(5,22,19,.35);transition:opacity .25s,transform .3s var(--tc-ease)}
+.tc-toast.on{opacity:1;transform:translate(-50%,0)}
+.tc-cmpbar.on~.tc-toast{bottom:92px}
+
+/* mensagem da prévia */
+.tc-msg{background:#E7F6E9;border-radius:14px 14px 14px 4px;padding:14px 16px;font-size:14.5px;line-height:1.55;color:#0F2E21;border:1px solid #CFEBD4}
+
+/* ---------- RESPONSIVO ---------- */
+@media (max-width:1100px){
+  .tc-plan-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .tc-hero>.wrap{gap:40px}
+}
+@media (max-width:1179px){
+  .tc-tablewrap{overflow-x:auto}
+  .tc-table{min-width:1100px}
+  .tc-table thead th{position:static}
+}
+@media (max-width:900px){
+  .tc-hero>.wrap{grid-template-columns:1fr;gap:54px;padding-top:40px;padding-bottom:56px}
+  .tc-panel{max-width:560px}
+  .tc-steps{grid-template-columns:1fr}
+}
+@media (max-width:719px){
+  .tc-hero>.wrap{padding:30px 16px 44px;gap:46px}
+  .tc-hero h1{font-size:1.95rem}
+  .tc-hero .tc-lead{font-size:.95rem;line-height:1.65;margin-top:14px}
+  .tc-hero .tc-ctas{margin-top:22px;gap:10px}
+  .tc-hero .tc-ctas .btn{flex:1 1 0;padding:13px 12px;font-size:.9rem}
+  .tc-panel{padding:22px 20px 20px}
+  .tc-panel-big{font-size:3.1rem}
+  .tc-panel-row{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:18px;padding-top:14px}
+  .tc-panel-row>div{padding:0 10px}
+  .tc-panel-row b{font-size:1.1rem}
+  .tc-panel-row span{font-size:11px}
+  .tc-seal{width:96px;height:96px;top:-30px;right:-6px}
+  .tc-status .wrap{grid-template-columns:auto minmax(0,1fr);padding:12px 16px;font-size:12.5px;line-height:1.5;align-items:start}
+  .tc-status .tc-live{margin-top:6px}
+  .tc-status .tc-link{grid-column:2;justify-self:start}
+  .tc-cat{padding:24px 0 56px}
+  .tc-cat>.wrap{padding:0 16px}
+  .tc-segwrap{margin:0 -16px}
+  .tc-seg{display:flex;border-radius:0;border-left:0;border-right:0;padding:4px 16px;max-width:none}
+  .tc-plan{padding:16px 16px 16px;border-radius:16px}
+  .tc-plan-head{margin-bottom:14px}
+  .tc-plan-head h2{font-size:1.25rem}
+  .tc-plan-head p{font-size:12.5px}
+  .tc-plan-grid{grid-template-columns:1fr;gap:10px}
+  .tc-range{display:grid;grid-template-columns:104px 1fr;align-items:center;gap:10px}
+  .tc-range-l{margin:0;flex-direction:column;align-items:flex-start;gap:1px}
+  .tc-in,.tc-sel{height:44px;font-size:16px}
+  .tc-plan-foot{gap:10px;margin-top:12px}
+  .tc-plan-foot .tc-adm{flex:1 1 100%}
+  .tc-plan-foot .tc-go{flex:1 1 100%;height:48px;font-size:15px}
+  .tc-plan-foot .tc-help{order:3;flex-basis:100%;padding:0}
+  .tc-bar{margin:26px 0 12px;gap:10px}
+  .tc-count{flex:1 1 auto}
+  .tc-count b{font-size:1.8rem}
+  .tc-count span{font-size:12px}
+  .tc-chip{height:40px;padding:0 12px}
+  .tc-chip .lbl{display:none}
+  .tc-search{flex:1 1 100%;order:5}
+  .tc-sortw{flex:1 1 100%;order:6}
+  .tc-sortw .tc-sel{width:100%}
+  .tc-toggle{display:none}
+  .tc-cards{grid-template-columns:1fr;gap:12px}
+  .tc-card{padding:16px 16px 12px}
+  .tc-card-cred .tc-cred{font-size:1.7rem}
+  .tc-cmp-l{padding:0 10px;border:1px solid var(--tc-field);border-radius:10px;height:42px;gap:7px}
+  .tc-card-acts .tc-int{padding:0 12px}
+
+  /* bottom sheet */
+  .tc-sheet,.tc-sheet.w-lg,.tc-sheet.w-sm{left:0;right:0;top:auto;bottom:0;width:100%;max-height:92vh;border-radius:22px 22px 0 0;transform:translateY(102%);opacity:1}
+  .tc-sheet.on{transform:translateY(0)}
+  .tc-grab{display:block;width:40px;height:5px;border-radius:5px;background:#D3DCD7;margin:9px auto 0;flex:0 0 auto}
+  .tc-sh-head{padding:12px 18px 14px}
+  .tc-sh-head h2{font-size:1.3rem}
+  .tc-sh-body{padding:16px 18px 18px}
+  .tc-sh-foot{padding:12px 18px calc(12px + env(safe-area-inset-bottom));border-radius:0}
+  .tc-d-hero{padding:16px}
+  .tc-d-hero{grid-template-columns:1fr;gap:12px}
+  .tc-d-hero>div+div{border-left:0;padding-left:0;border-top:1px solid var(--tc-divider);padding-top:12px}
+  .tc-d-hero .tc-cred{font-size:1.7rem}
+  .tc-d-hero .ent{font-size:1.3rem}
+  .tc-total .v{font-size:1.65rem}
+  .tc-cmpwrap{margin:0 -18px;padding:0 18px}
+  .tc-cmpbar{left:12px;right:76px;bottom:14px;transform:translateY(160%);justify-content:space-between}
+  .tc-cmpbar.on{transform:translateY(0)}
+  .tc-cmpbar span{font-size:13px}
+  .tc-cmpbar .cl{display:none}
+  .tc-toast{bottom:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  .tc-seal,.tc-seal .s-spin,.tc-live,.tc-skel{animation:none!important}
+  .tc-seg-ind,.tc-sheet,.tc-scrim,.tc-cmpbar,.tc-toast{transition:none!important}
+  .tc-ico.pop svg,.tc-chip.bump .n{animation:none!important}
+}
+
+.tc-table .tc-ico{width:34px;height:34px;flex-basis:34px}
+.tc-count span{white-space:nowrap}
+.tc-table .tc-code{font-size:11px;letter-spacing:0}
+.tc-table .tc-who{gap:10px}
+
+/* números em Lora: algarismos proporcionais (os tabulares da Lora ficam largos demais) */
+.tc-d-hero .ent,.tc-total .v,.tc-panel-big,.tc-count b,.tc-cart-sum b,.tc-panel-row b{font-variant-numeric:lining-nums proportional-nums}
+.tc-card-line .tot{text-align:right}
+.tc-sheet:focus{outline:none}
+body.tc-cmp-on .tc-cat{padding-bottom:120px}
+
+</style>
+</head>
+<body>
+<a class="ag-skip-link" href="#ag-main">Ir para o conteúdo</a>
+<div class="topbar"><div class="wrap">
+  <a class="tb-num" href="https://wa.me/5551982034245?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Agion."><svg class="svg" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg> <span class="gold">(51) 98203-4245</span></a>
+  <a class="tb-hor">Atendimento online &middot; Seg a S&aacute;b</a>
+  <span class="tb-actions">
+    <a class="tb-pill tb-esp" href="https://wa.me/5551993078590?text=Ol%C3%A1!%20Quero%20falar%20com%20um%20especialista%20de%20vendas%20da%20Agion.">Falar com especialista</a>
+    <a class="tb-pill tb-wa" href="https://wa.me/5551982034245?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Agion."><svg class="svg" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg> Fale pelo WhatsApp</a>
+  </span>
+</div></div>
+<nav class="nav"><div class="wrap">
+  <a class="brand" href="/" aria-label="Início"><span class="brand-mark"><img src="/agion-logo-circular-144.webp" srcset="/agion-logo-circular-144.webp 144w, /agion-logo-circular-216.webp 216w" sizes="72px" alt="Agion" onerror="this.parentNode.style.display='none'" width="144" height="144" decoding="async" fetchpriority="high"></span><span class="brand-txt"><b>Agion</b><small>Consórcios · Planejamento · Consultoria</small></span></a>
+  <ul class="nav-links"><li><a href="/">Início</a></li><li><a href="/planejamento">Planejamento</a></li><li><a href="/consorcios">Consórcios</a></li><li><a href="/contempladas" aria-current="page">Contempladas</a></li><li><a href="/consultoria">Consultoria</a></li><li><a href="/exclusividades">Exclusividades</a></li><li><a href="/blog">Blog</a></li><li><a href="/sobre">Quem Somos</a></li></ul>
+  <a class="btn btn-ghost" href="/plataforma">Login</a>
+  <button class="nav-burger" aria-label="Abrir menu" onclick="document.getElementById('navMobile').classList.toggle('open')"><span></span><span></span><span></span></button>
+</div>
+<div class="nav-mobile" id="navMobile">
+  <a href="/">Início</a><a href="/planejamento">Planejamento</a><a href="/consorcios">Consórcios</a><a href="/contempladas" aria-current="page">Contempladas</a><a href="/consultoria">Consultoria</a><a href="/exclusividades">Exclusividades</a><a href="/blog">Blog</a><a href="/sobre">Quem Somos</a><a class="nm-login" href="/plataforma">Login</a>
+</div></nav>
+<div class="quicknav">
+  <a href="/consorcios"><svg class="svg" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><b>Consórcios</b></a>
+  <a href="/planejamento"><svg class="svg" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg><b>Planejamento</b></a>
+  <a href="/consultoria"><svg class="svg" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg><b>Consultoria</b></a>
+</div>
+
+<main class="tc" id="tc">
+
+<section class="tc-hero" id="ag-main" tabindex="-1" aria-labelledby="tcH1">
+  <div class="wrap">
+    <div>
+      <h1 id="tcH1">Cartas contempladas para imóveis e veículos.</h1>
+      <p class="tc-lead">Compare crédito, entrada, parcela e prazo em um só lugar. Quando encontrar a sua, a Alice confirma a disponibilidade e um especialista da Agion conduz a negociação com você.</p>
+      <div class="tc-ctas">
+        <button class="btn btn-gold" type="button" data-act="goto" data-to="catalogo">Ver as cartas</button>
+        <a class="btn btn-ghost" href="https://wa.me/5551982034245?text=Ol%C3%A1!%20Vim%20pelo%20cat%C3%A1logo%20de%20cartas%20contempladas%20da%20Agion." target="_blank" rel="noopener">Falar com a Alice</a>
+      </div>
+    </div>
+
+    <div class="tc-panel" aria-label="Resumo do catálogo">
+      <div class="tc-seal" aria-hidden="true">
+        <svg viewBox="0 0 140 140">
+          <defs>
+            <linearGradient id="tcGold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#A8853E"/><stop offset=".5" stop-color="#E8CC8B"/><stop offset="1" stop-color="#C5A059"/>
+            </linearGradient>
+            <path id="tcSealPath" d="M70,70 m-53,0 a53,53 0 1,1 106,0 a53,53 0 1,1 -106,0"/>
+          </defs>
+          <circle class="s-disc" cx="70" cy="70" r="69"/>
+          <circle class="s-ring" cx="70" cy="70" r="65.5"/>
+          <circle class="s-ring" cx="70" cy="70" r="43"/>
+          <g class="s-spin">
+            <text class="s-txt"><textPath href="#tcSealPath" textLength="331" lengthAdjust="spacingAndGlyphs">A MAIOR QUANTIDADE DE CARTAS CONTEMPLADAS DO BRASIL ✦</textPath></text>
+          </g>
+        </svg>
+        <img src="/agion-logo-circular-144.webp" alt="" width="144" height="144" decoding="async">
+      </div>
+      <span class="tc-sr">A maior quantidade de cartas contempladas do Brasil.</span>
+      <div class="tc-panel-k">Catálogo Agion</div>
+      <div class="tc-panel-big" id="tcTotal">—</div>
+      <div class="tc-panel-sub">cartas contempladas para comparar</div>
+      <div class="tc-panel-row">
+        <div><b id="tcSum">—</b><span>em crédito</span></div>
+        <div><b id="tcAdms">—</b><span>administradoras</span></div>
+        <div><b id="tcHora">—</b><span>atualizado</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="tc-status" id="tcStatus">
+  <div class="wrap">
+    <span class="tc-live" aria-hidden="true"></span>
+    <span id="tcStatusTxt">Carregando as cartas disponíveis…</span>
+    <button class="tc-link" type="button" data-act="faq">Como lemos os dados</button>
+  </div>
+</div>
+
+<section class="tc-cat" id="catalogo" aria-labelledby="tcCatH">
+  <div class="wrap">
+    <h2 id="tcCatH" class="tc-sr">Catálogo de cartas contempladas</h2>
+
+    <div class="tc-segwrap">
+      <div class="tc-seg" id="tcSeg" role="group" aria-label="Categorias"><span class="tc-seg-ind" id="tcSegInd" aria-hidden="true"></span></div>
+    </div>
+
+    <form class="tc-plan" id="tcPlan" autocomplete="off" novalidate>
+      <div class="tc-plan-head">
+        <div>
+          <h2>Encontre dentro do seu plano</h2>
+          <p>Defina seus limites. Pode deixar qualquer campo em branco.</p>
+        </div>
+        <button type="button" class="tc-clear" id="tcClear" data-act="clear">Limpar filtros</button>
+      </div>
+
+      <div class="tc-plan-grid">
+        <div class="tc-range" role="group" aria-labelledby="tcLcred">
+          <div class="tc-range-l" id="tcLcred">Crédito <small>R$</small></div>
+          <div class="tc-pair">
+            <input class="tc-in tc-num" data-f="cred" data-b="0" data-money inputmode="numeric" placeholder="De" aria-label="Crédito mínimo">
+            <input class="tc-in tc-num" data-f="cred" data-b="1" data-money inputmode="numeric" placeholder="Até" aria-label="Crédito máximo">
+          </div>
+        </div>
+        <div class="tc-range" role="group" aria-labelledby="tcLent">
+          <div class="tc-range-l" id="tcLent">Entrada <small>R$</small></div>
+          <div class="tc-pair">
+            <input class="tc-in tc-num" data-f="ent" data-b="0" data-money inputmode="numeric" placeholder="De" aria-label="Entrada mínima">
+            <input class="tc-in tc-num" data-f="ent" data-b="1" data-money inputmode="numeric" placeholder="Até" aria-label="Entrada máxima">
+          </div>
+        </div>
+        <div class="tc-range" role="group" aria-labelledby="tcLpct">
+          <div class="tc-range-l" id="tcLpct">% de entrada <small>do crédito</small></div>
+          <div class="tc-pair">
+            <input class="tc-in tc-num" data-f="pct" data-b="0" inputmode="decimal" placeholder="De" aria-label="Percentual mínimo de entrada">
+            <input class="tc-in tc-num" data-f="pct" data-b="1" inputmode="decimal" placeholder="Até" aria-label="Percentual máximo de entrada">
+          </div>
+        </div>
+        <div class="tc-range" role="group" aria-labelledby="tcLparc">
+          <div class="tc-range-l" id="tcLparc">Parcela <small>R$</small></div>
+          <div class="tc-pair">
+            <input class="tc-in tc-num" data-f="parc" data-b="0" data-money inputmode="numeric" placeholder="De" aria-label="Parcela mínima">
+            <input class="tc-in tc-num" data-f="parc" data-b="1" data-money inputmode="numeric" placeholder="Até" aria-label="Parcela máxima">
+          </div>
+        </div>
+        <div class="tc-range" role="group" aria-labelledby="tcLprazo">
+          <div class="tc-range-l" id="tcLprazo">Prazo <small>meses</small></div>
+          <div class="tc-pair">
+            <input class="tc-in tc-num" data-f="prazo" data-b="0" inputmode="numeric" placeholder="De" aria-label="Prazo mínimo em meses">
+            <input class="tc-in tc-num" data-f="prazo" data-b="1" inputmode="numeric" placeholder="Até" aria-label="Prazo máximo em meses">
+          </div>
+        </div>
+      </div>
+
+      <div class="tc-plan-foot">
+        <label class="tc-adm">
+          <span class="tc-range-l">Administradora</span>
+          <select class="tc-sel" id="tcAdm"><option value="">Todas as administradoras</option></select>
+        </label>
+        <button type="button" class="tc-go" data-act="goto" data-to="tcBar"><span>Ver <b id="tcGoN">0</b> <span id="tcGoW">cartas</span></span></button>
+        <p class="tc-help">Digite só números, por exemplo 400000. Cartas sem o valor informado ficam fora da faixa.</p>
+      </div>
+    </form>
+
+    <div class="tc-bar" id="tcBar">
+      <div class="tc-count" aria-live="polite"><b class="tc-num" id="tcN">0</b><span id="tcNw">cartas</span></div>
+      <label class="tc-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+        <span class="tc-sr">Buscar código TC ou administradora</span>
+        <input class="tc-in" id="tcQ" type="search" placeholder="Buscar código TC ou administradora">
+      </label>
+      <label class="tc-sortw">
+        <span class="tc-sr">Ordenar</span>
+        <select class="tc-sel" id="tcSort">
+          <option value="rel">Mais relevantes</option>
+          <option value="credDesc">Maior crédito</option>
+          <option value="credAsc">Menor crédito</option>
+          <option value="entAsc">Menor entrada</option>
+          <option value="entDesc">Maior entrada</option>
+          <option value="pctAsc">Menor % de entrada</option>
+          <option value="pctDesc">Maior % de entrada</option>
+          <option value="parcAsc">Menor parcela</option>
+          <option value="parcDesc">Maior parcela</option>
+          <option value="prazoAsc">Menor prazo</option>
+          <option value="prazoDesc">Maior prazo</option>
+        </select>
+      </label>
+      <div class="tc-toggle" role="group" aria-label="Visualização">
+        <button type="button" data-act="view" data-v="table" aria-pressed="true">Tabela</button>
+        <button type="button" data-act="view" data-v="cards" aria-pressed="false">Cartões</button>
+      </div>
+      <button type="button" class="tc-chip" id="tcSavedBtn" data-act="saved" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.5-9.2C1 7.6 3.2 4.5 6.6 4.5c2.2 0 3.7 1.3 4.4 2.6.7-1.3 2.2-2.6 4.4-2.6 3.4 0 5.6 3.1 4.1 6.8-2 4.6-9.5 9.2-9.5 9.2z"/></svg>
+        <span class="lbl">Salvas</span><span class="n" id="tcSavedN">0</span>
+      </button>
+      <button type="button" class="tc-chip" id="tcCartBtn" data-act="opencart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2.2l2.3 11.1a1.2 1.2 0 0 0 1.2.9h8.6a1.2 1.2 0 0 0 1.2-.9L20.4 8H6.1"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg>
+        <span class="lbl">Carrinho</span><span class="n" id="tcCartN">0</span>
+      </button>
+    </div>
+
+    <p class="tc-note" id="tcPreviewNote" hidden>Prévia com cartas de exemplo. No site, a lista vem ao vivo do catálogo e tira na hora as cartas vendidas ou reservadas.</p>
+    <div class="tc-filterpill" id="tcSavedPill" hidden>Mostrando só as cartas salvas <button type="button" data-act="saved" aria-label="Ver todas as cartas">✕</button></div>
+
+    <div id="tcList"></div>
+
+    <div class="tc-more" id="tcMore" hidden>
+      <button class="tc-morebtn" type="button" data-act="more">Mostrar mais</button>
+      <small id="tcMoreInfo"></small>
+    </div>
+  </div>
+</section>
+
+<section class="sec tc-how" style="background:var(--bg2)">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="tag">Compra segura</span>
+      <h2>Como comprar sua carta contemplada</h2>
+      <p>Do primeiro filtro ao contrato assinado, cada etapa é conferida com você.</p>
+    </div>
+    <ol class="tc-steps">
+      <li><h3>Escolha e compare</h3><p>Filtre pelo seu plano, salve as cartas que fizerem sentido e compare até quatro lado a lado.</p></li>
+      <li><h3>A Alice confirma</h3><p>Ao tocar em Tenho interesse, a Alice recebe o código da carta, confirma a disponibilidade e chama um especialista da Agion.</p></li>
+      <li><h3>Tudo por escrito</h3><p>Proposta, preço final, taxas e responsabilidades vão para o contrato. A transferência depende da anuência prévia da administradora.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="sec" id="tcFaq">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="tag">Perguntas frequentes</span>
+      <h2>Antes de escolher a sua carta</h2>
+    </div>
+    <div class="tc-faq">
+      <details id="tcFaqDados"><summary>As cartas da lista estão disponíveis agora?</summary><p>A lista mostra as cartas da última coleta, sem as vendidas, reservadas ou bloqueadas, e é atualizada ao longo do dia. Como o mercado muda rápido, a disponibilidade e o preço final são confirmados no atendimento antes de qualquer proposta.</p></details>
+      <details><summary>O que significa a entrada?</summary><p>É o valor pago para assumir a carta contemplada. O percentual mostra quanto essa entrada representa do crédito da carta.</p></details>
+      <details><summary>O valor total estimado inclui reajustes?</summary><p>Não. Ele soma a entrada às parcelas informadas hoje, sem projetar reajustes futuros nem taxas que não foram informadas no anúncio.</p></details>
+      <details><summary>Como é feita a transferência da carta?</summary><p>A cessão é feita por contrato e depende da análise e da anuência prévia da administradora. A equipe da Agion acompanha a documentação do início ao fim.</p></details>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="tc-layer" id="tcLayer">
+  <div class="tc-scrim" id="tcScrim" data-act="close"></div>
+  <div class="tc-sheet" id="tcSheet" role="dialog" aria-modal="true" aria-labelledby="tcShTitle" aria-hidden="true" tabindex="-1" inert></div>
+  <div class="tc-cmpbar" id="tcCmpBar" aria-live="polite">
+    <span id="tcCmpTxt"></span>
+    <button type="button" class="cl" data-act="cmpclear">Limpar</button>
+    <button type="button" class="go" id="tcCmpGo" data-act="cmpopen">Comparar</button>
+  </div>
+  <div class="tc-toast" id="tcToast" role="status" aria-live="polite"></div>
+</div>
+
+<!-- CTA -->
+<section class="ctaband sec"><div class="wrap">
+  <h2>Comece hoje a conquistar <em>o que é seu.</em></h2>
+  <p>Fale agora com um especialista Agion e receba um plano personalizado de consórcio + planejamento, sem compromisso.</p>
+  <a class="btn btn-gold" href="https://wa.me/5551982034245?text=Ol%C3%A1!%20Quero%20falar%20com%20um%20especialista%20Agion.">Falar com Especialista</a>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="cols">
+    <div><b class="fb">Agion</b><p style="margin-top:10px;max-width:340px">Consórcio imobiliário com planejamento financeiro integrado e consultoria de investimentos. O método que une as três disciplinas para a conquista do seu imóvel.</p></div>
+    <div><h5>Links rápidos</h5><a href="/blog">Blog</a><a href="/planejamento">Planejamento</a><a href="/consorcios">Consórcios</a><a href="/consultoria">Consultoria</a><a href="/exclusividades">Exclusividades</a><a href="/sobre">Quem Somos</a></div>
+    <div><h5>Contato</h5><a href="https://wa.me/5551982034245?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Agion.">(51) 98203-4245</a><a href="https://wa.me/5551993078590?text=Ol%C3%A1!%20Quero%20falar%20com%20um%20especialista%20de%20vendas%20da%20Agion.">Especialista de vendas</a><a href="mailto:contato@agionconsorcios.com.br">contato@agionconsorcios.com.br</a><a href="https://wa.me/5551982034245">Atendimento online</a></div>
+  </div>
+  <div class="base">© 2026 Agion Consórcios · CNPJ 62.777.516/0001-02 · Todos os direitos reservados. · <a href="/politica-de-privacidade" style="color:inherit;text-decoration:underline">Política de Privacidade</a></div>
+</div></footer>
+<a class="wfloat" href="https://wa.me/5551982034245?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Agion." aria-label="WhatsApp" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.042zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg></a>
+<script>
+(function(){
+ var b=document.getElementById('simBtn');if(!b)return;
+ b.addEventListener('click',function(){
+  var els=document.querySelectorAll('.form-card .f select,.form-card .f input');
+  var prod=els[0]?els[0].value:'';var val=els[1]?els[1].value:'';var nome=els[2]?els[2].value:'';var email=els[3]?els[3].value:'';var tel=els[4]?els[4].value:'';
+  var msg='Olá! Quero simular meu consórcio na Agion.';
+  if(nome&&nome.trim())msg+=' Nome: '+nome+'.';
+  if(prod&&prod!=='Selecione...')msg+=' Produto: '+prod+'.';
+  if(val&&val.trim())msg+=' Crédito: '+val+'.';
+  if(email&&email.trim())msg+=' E-mail: '+email+'.';
+  if(tel&&tel.trim())msg+=' Telefone: '+tel+'.';
+  window.open('https://wa.me/5551982034245?text='+encodeURIComponent(msg),'_blank');
+ });
+})();
+</script>
+<div id="ckbar" style="display:none;position:fixed;left:12px;right:12px;bottom:12px;z-index:90;background:#0B2A26;color:#eef5f3;border:1.5px solid rgba(232,204,139,.45);border-radius:14px;padding:14px 18px;box-shadow:0 14px 40px rgba(0,0,0,.35);font-family:'DM Sans',system-ui,sans-serif">
+<div style="max-width:1100px;margin:0 auto;display:flex;gap:14px;align-items:center;flex-wrap:wrap;justify-content:center">
+<span style="font-size:.9rem;flex:1;min-width:240px">Usamos cookies essenciais para o site funcionar e, com a sua permissão, cookies de análise para melhorar sua experiência. Você pode aceitar ou recusar os não essenciais. Saiba mais na <a href="/politica-de-privacidade" style="color:#E8CC8B;text-decoration:underline">Política de Privacidade</a>.</span>
+<button id="ckbno" style="background:transparent;color:#eef5f3;border:1.5px solid rgba(232,204,139,.5);border-radius:999px;font-weight:700;padding:10px 22px;cursor:pointer;font-size:.9rem">Recusar</button>
+<button id="ckbok" style="background:linear-gradient(115deg,#A8853E,#E8CC8B 50%,#C5A059 90%);color:#2a2113;border:none;border-radius:999px;font-weight:700;padding:11px 26px;cursor:pointer;font-size:.9rem">Aceitar</button>
+</div></div>
+<script>(function(){try{var v=localStorage.getItem('agion_ck');if(v!=='accept'&&v!=='reject'&&v!=='1'){var b=document.getElementById('ckbar');if(b){b.style.display='block';var done=function(val){try{localStorage.setItem('agion_ck',val)}catch(e){}b.style.display='none'};var k=document.getElementById('ckbok');if(k)k.onclick=function(){done('accept')};var n=document.getElementById('ckbno');if(n)n.onclick=function(){done('reject')}}}}catch(e){}})();</script>
+<script>
+/* Catálogo /contempladas: dados da Todas Contempladas via /api/contempladas (Vercel Function do site;
+   a chave fica só na Vercel). Sem API, a página mostra a prévia com cartas de exemplo. */
+window.TC_CONFIG = { API: "/api/contempladas", CHECK: "/api/contempladas" };
+</script>
+<script>
+/* ==========================================================
+   Catálogo de cartas contempladas — Agion  (/contempladas)
+   Dados: API da Todas Contempladas, servida pelo backend da Agion.
+   Sem window.TC_CONFIG.API a página roda em modo prévia, com cartas de exemplo.
+   ========================================================== */
+(function () {
+  'use strict';
+
+  var CFG = Object.assign({
+    API: '',                  // catálogo: /api/contempladas (Vercel Function do site)
+    CHECK: '',                // reconsulta: /api/contempladas?codigo=TC-…
+    ALICE: '5551982034245',   // WhatsApp de atendimento (Alice)
+    PAGE: 20,                 // cartas por lote ("Mostrar mais")
+    REFRESH_MS: 60000         // revalidação silenciosa
+  }, window.TC_CONFIG || {});
+  var PREVIEW = !CFG.API;
+
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var mqPhone = window.matchMedia('(max-width: 719px)');
+  var mqDesk = window.matchMedia('(min-width: 1024px)');
+
+  /* ---------- ícones ---------- */
+  var I = {
+    heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.5-9.2C1 7.6 3.2 4.5 6.6 4.5c2.2 0 3.7 1.3 4.4 2.6.7-1.3 2.2-2.6 4.4-2.6 3.4 0 5.6 3.1 4.1 6.8-2 4.6-9.5 9.2-9.5 9.2z"/></svg>',
+    cart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2.2l2.3 11.1a1.2 1.2 0 0 0 1.2.9h8.6a1.2 1.2 0 0 0 1.2-.9L20.4 8H6.1"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg>',
+    wa: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M.06 24l1.69-6.16A11.87 11.87 0 0 1 .16 11.9C.16 5.34 5.5 0 12.05 0a11.82 11.82 0 0 1 8.41 3.49 11.82 11.82 0 0 1 3.48 8.41c0 6.56-5.34 11.9-11.9 11.9a11.9 11.9 0 0 1-5.68-1.45L.06 24zm6.6-3.81c1.67 1 3.27 1.6 5.39 1.6 5.45 0 9.89-4.44 9.89-9.89 0-5.46-4.42-9.89-9.88-9.89-5.45 0-9.89 4.43-9.89 9.88 0 2.23.65 3.9 1.75 5.65l-1 3.65 3.74-.99zm11.39-5.46c-.07-.12-.27-.2-.57-.35-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41z"/></svg>',
+    x: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>'
+  };
+
+  /* ---------- formatação ---------- */
+  function brl(n) { return n == null || isNaN(n) ? '—' : Number(n).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+  function brlShort(n) {
+    if (n >= 1e9) return 'R$ ' + (n / 1e9).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' bi';
+    if (n >= 1e6) return 'R$ ' + (n / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mi';
+    if (n >= 1e3) return 'R$ ' + Math.round(n / 1e3).toLocaleString('pt-BR') + ' mil';
+    return brl(n);
+  }
+  function pct(n) { return n == null || isNaN(n) ? '—' : Number(n).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + '%'; }
+  function num(n) { return Number(n || 0).toLocaleString('pt-BR'); }
+  function plural(n, um, varios) { return n === 1 ? um : varios; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fold(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+  function hora(iso) { var d = new Date(iso); return isNaN(d) ? '' : d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
+  function dataHora(iso) { var d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' às ' + hora(iso); }
+  function prettyAdm(s) {
+    s = String(s || '').trim();
+    if (s !== s.toUpperCase()) return s;
+    return s.split(/\s+/).map(function (w) {
+      var l = w.toLowerCase();
+      if (/^(de|do|da|dos|das|e)$/.test(l)) return l;
+      if (w.length <= 3) return w;
+      return l.split('-').map(function (p) { return p.charAt(0).toUpperCase() + p.slice(1); }).join('-');
+    }).join(' ');
+  }
+  /* A coleta traz a mesma administradora escrita de vários jeitos ("HS", "HS Consórcios", "BRADESCO",
+     "Porto VP", "Bradesco, tem 41.800,00 pagos"). Aqui vira um nome só, para o filtro e os cartões. */
+  var ADM_ALIAS = {
+    'h s': 'hs', 'hs juncao': 'hs', 'porto': 'porto seguro', 'porto af': 'porto seguro', 'porto vp': 'porto seguro',
+    'porto seguro vp': 'porto seguro', 'porto bank': 'porto seguro', 'itau auto': 'itau', 'itau a': 'itau', 'itau m': 'itau',
+    'itau j': 'itau', 'itau motos': 'itau', 'cef': 'caixa', 'caixa xs5': 'caixa', 'xs5': 'caixa', 'caixa cnp': 'caixa',
+    'bco brasil': 'banco do brasil', 'bbrasil': 'banco do brasil', 'bb': 'banco do brasil', 'volks': 'volkswagen',
+    'magalu f': 'magalu', 'unicoob sicoob': 'unicoob', 'kasinsk': 'kasinski', 'bamaq gwm': 'bamaq', 'rondon daf': 'randon daf'
+  };
+  var ADM_NAME = {
+    'hs': 'HS Consórcios', 'porto seguro': 'Porto Seguro', 'itau': 'Itaú', 'caixa': 'Caixa', 'banco do brasil': 'Banco do Brasil',
+    'cnp': 'CNP', 'cnp embracon': 'CNP Embracon', 'mycon': 'Mycon', 'magalu': 'Magalu', 'br': 'BR Consórcios', 'caoa': 'CAOA',
+    'ancora': 'Âncora', 'nao informada': 'Não informada', 'bancorbras': 'Bancorbrás', 'tradicao': 'Tradição',
+    'uniao catarinense': 'União Catarinense', 'racon': 'Racon', 'unicoob': 'Unicoob', 'kasinski': 'Kasinski', 'bamaq': 'Bamaq',
+    'tagide': 'Tágide', 'volkswagen': 'Volkswagen', 'randon daf': 'Randon DAF'
+  };
+  var ADM_CACHE = {};
+  function admKey(raw) {
+    var k = fold(String(raw || '').split(',')[0]).replace(/[().]/g, '').replace(/\s*[-\/]\s*/g, ' ')
+      .replace(/\bconsorcios?\b/g, ' ').replace(/\s+/g, ' ').trim();
+    return ADM_ALIAS[k] || k;
+  }
+  function prepAdms(raws) {
+    var best = {};
+    raws.forEach(function (r) {
+      var base = String(r || '').split(',')[0].replace(/\s+/g, ' ').trim(), k = admKey(r);
+      var mixed = base !== base.toUpperCase() && base !== base.toLowerCase();
+      if (!best[k] || (mixed && !best[k].mixed)) best[k] = { name: base, mixed: mixed };
+    });
+    raws.forEach(function (r) {
+      var k = admKey(r), b = best[k];
+      ADM_CACHE[r] = ADM_NAME[k] || (b && b.mixed ? b.name : prettyAdm(b ? b.name : r)) || 'Não informada';
+    });
+  }
+  function admName(raw) {
+    if (!(raw in ADM_CACHE)) { var k = admKey(raw); ADM_CACHE[raw] = ADM_NAME[k] || prettyAdm(String(raw || '').split(',')[0]) || 'Não informada'; }
+    return ADM_CACHE[raw];
+  }
+  function initials(name) {
+    var w = name.split(/\s+/).filter(function (x) { return !/^(de|do|da|dos|das|e)$/i.test(x); });
+    if (w[0] && w[0].length <= 3 && w[0] === w[0].toUpperCase()) return w[0];
+    if (w.length > 1) return fold(w[0][0] + w[1][0]).toUpperCase();
+    return fold(name).slice(0, 2).toUpperCase();
+  }
+
+  /* ---------- categorias ---------- */
+  var CATS = ['Imóvel', 'Veículo', 'Pesados', 'Máquinas', 'Embarcações', 'Aeronaves', 'Energia solar', 'Outros'];
+  function catOf(t) {
+    var f = fold(t);
+    if (/imov|terren|constru|reforma/.test(f)) return 'Imóvel';
+    if (/pesad|caminh|onibus/.test(f)) return 'Pesados';
+    if (/veic|auto|carro|moto/.test(f)) return 'Veículo';
+    if (/maquin|agric|trator/.test(f)) return 'Máquinas';
+    if (/embarc|nautic|barco|lancha/.test(f)) return 'Embarcações';
+    if (/aeron|aviao|helic/.test(f)) return 'Aeronaves';
+    if (/solar|energia/.test(f)) return 'Energia solar';
+    return 'Outros';
+  }
+
+  /* ---------- normalização do contrato da API ---------- */
+  function norm(c) {
+    var p = c.parcelas || {};
+    var et = (Array.isArray(p.etapas) ? p.etapas : []).filter(function (e) { return e && +e.quantidade > 0 && +e.valor > 0; })
+      .map(function (e) { return { quantidade: +e.quantidade, valor: +e.valor }; });
+    var completo = !!p.planoCompleto && et.length > 0;
+    var soma = et.reduce(function (s, e) { return s + e.quantidade * e.valor; }, 0);
+    var adm = admName(c.administradora);
+    var credito = c.credito == null ? null : +c.credito;
+    var entrada = c.entrada == null ? null : +c.entrada;
+    var o = {
+      codigo: String(c.codigo || ''), tipo: c.tipo || 'Outros', cat: catOf(c.tipo), adm: adm, ini: initials(adm),
+      credito: credito, entrada: entrada,
+      pctE: c.percentualEntrada != null ? +c.percentualEntrada : (entrada != null && credito ? entrada / credito * 100 : null),
+      prazo: c.prazoMeses != null ? +c.prazoMeses : null,
+      etapas: et, completo: completo,
+      p0: p.valorInicial != null ? +p.valorInicial : (et[0] ? et[0].valor : null),
+      soma: completo ? soma : null,
+      total: completo && entrada != null ? entrada + soma : null,
+      qtd: et.reduce(function (s, e) { return s + e.quantidade; }, 0)
+    };
+    o.q = fold(o.codigo + ' ' + o.adm + ' ' + o.tipo);
+    return o;
+  }
+
+  /* Formato compacto entregue por /api/contempladas (agion-tc-1): uma linha por carta. */
+  function expand(j) {
+    if (!j || j.formato !== 'agion-tc-1') return j;
+    var T = j.tipos || [], A = j.administradoras || [];
+    prepAdms(A);
+    j.cartas = (j.cartas || []).map(function (r) {
+      var et = [], f = r[7] || [];
+      for (var i = 0; i + 1 < f.length; i += 2) et.push({ quantidade: f[i], valor: f[i + 1] });
+      return {
+        codigo: 'TC-' + r[0], tipo: T[r[1]], administradora: A[r[2]], credito: r[3], entrada: r[4],
+        percentualEntrada: r[5], prazoMeses: r[6],
+        parcelas: { etapas: et, planoCompleto: !!r[8], valorInicial: r.length > 9 ? r[9] : (et[0] ? et[0].valor : null) }
+      };
+    });
+    return j;
+  }
+
+  /* ---------- estado ---------- */
+  var KEYS = { saved: 'agion_tc_saved', cart: 'agion_tc_cart', cmp: 'agion_tc_cmp' };
+  function load(k) { try { return JSON.parse(localStorage.getItem(k)) || []; } catch (e) { return []; } }
+  function store(k, set) { try { localStorage.setItem(k, JSON.stringify(Array.from(set))); } catch (e) { } }
+  var EMPTY = function () { return { cat: 'Todas', adm: '', q: '', cred: [null, null], ent: [null, null], pct: [null, null], parc: [null, null], prazo: [null, null] }; };
+  var S = {
+    all: [], by: {}, version: null, coletadoEm: null, expiraEm: null, loaded: false, error: false, stale: false,
+    f: EMPTY(), sort: 'rel', view: null, limit: CFG.PAGE, soSalvas: false, built: false,
+    saved: new Set(load(KEYS.saved)), cart: new Set(load(KEYS.cart)), cmp: new Set(load(KEYS.cmp))
+  };
+
+  /* ---------- filtro e ordenação ---------- */
+  var RANGES = { cred: 'credito', ent: 'entrada', pct: 'pctE', parc: 'p0', prazo: 'prazo' };
+  function inR(v, r) { if (r[0] == null && r[1] == null) return true; if (v == null) return false; return (r[0] == null || v >= r[0]) && (r[1] == null || v <= r[1]); }
+  function matches(c, ignoreCat) {
+    var f = S.f;
+    if (S.soSalvas && !S.saved.has(c.codigo)) return false;
+    if (!ignoreCat && f.cat !== 'Todas' && c.cat !== f.cat) return false;
+    if (f.adm && c.adm !== f.adm) return false;
+    if (f.q && c.q.indexOf(f.q) < 0) return false;
+    for (var k in RANGES) { if (!inR(c[RANGES[k]], f[k])) return false; }
+    return true;
+  }
+  function lo(v) { return v == null ? Infinity : v; }
+  function hi(v) { return v == null ? -Infinity : v; }
+  var SORTS = {
+    credDesc: function (a, b) { return hi(b.credito) - hi(a.credito); }, credAsc: function (a, b) { return lo(a.credito) - lo(b.credito); },
+    entAsc: function (a, b) { return lo(a.entrada) - lo(b.entrada); }, entDesc: function (a, b) { return hi(b.entrada) - hi(a.entrada); },
+    pctAsc: function (a, b) { return lo(a.pctE) - lo(b.pctE); }, pctDesc: function (a, b) { return hi(b.pctE) - hi(a.pctE); },
+    parcAsc: function (a, b) { return lo(a.p0) - lo(b.p0); }, parcDesc: function (a, b) { return hi(b.p0) - hi(a.p0); },
+    prazoAsc: function (a, b) { return lo(a.prazo) - lo(b.prazo); }, prazoDesc: function (a, b) { return hi(b.prazo) - hi(a.prazo); }
+  };
+  var FIRST_DIR = { cred: 'Desc', ent: 'Asc', pct: 'Asc', prazo: 'Asc', parc: 'Asc' };
+  function list() {
+    var l = S.all.filter(function (c) { return matches(c); });
+    if (SORTS[S.sort]) l.sort(SORTS[S.sort]);
+    return l;
+  }
+  function anyFilter() {
+    var f = S.f;
+    if (f.adm || f.q || f.cat !== 'Todas') return true;
+    for (var k in RANGES) { if (f[k][0] != null || f[k][1] != null) return true; }
+    return false;
+  }
+  function curView() { return mqPhone.matches ? 'cards' : (S.view || (mqDesk.matches ? 'table' : 'cards')); }
+
+  /* ---------- pedaços de HTML ---------- */
+  function favBtn(c, extra) {
+    var on = S.saved.has(c.codigo);
+    return '<button type="button" class="tc-ico' + (extra || '') + '" data-act="fav" aria-pressed="' + on + '" aria-label="' + (on ? 'Tirar das salvas' : 'Salvar carta') + '">' + I.heart + '</button>';
+  }
+  function cartBtn(c) {
+    var on = S.cart.has(c.codigo);
+    return '<button type="button" class="tc-ico" data-act="cart" aria-pressed="' + on + '" aria-label="' + (on ? 'Tirar do carrinho' : 'Adicionar ao carrinho') + '">' + I.cart + '</button>';
+  }
+  function cmpInput(c) {
+    return '<span class="tc-check"><input type="checkbox" data-act="cmp"' + (S.cmp.has(c.codigo) ? ' checked' : '') + ' aria-label="Comparar a carta ' + esc(c.codigo) + '"><span></span></span>';
+  }
+  function who(c) {
+    return '<div class="tc-who"><span class="tc-badge" aria-hidden="true">' + esc(c.ini) + '</span><div><button type="button" class="tc-name" data-act="open" title="Ver os detalhes da carta">' + esc(c.adm) + '</button>' +
+      '<div class="tc-meta"><span class="tc-tag">' + esc(c.tipo) + '</span><button type="button" class="tc-code" data-act="copy" title="Copiar o código">' + esc(c.codigo) + '</button></div></div></div>';
+  }
+  function parcMain(c) { return c.completo ? c.etapas[0].quantidade + ' × ' + brl(c.etapas[0].valor) : 'A confirmar'; }
+  function parcRest(c) {
+    if (!c.completo) return 'no atendimento';
+    if (c.etapas.length < 2) return '';
+    return 'depois ' + c.etapas.slice(1).map(function (e) { return e.quantidade + ' × ' + brl(e.valor); }).join(', ');
+  }
+  function vtName(c, i) { return (i < 40 && document.startViewTransition) ? ' style="view-transition-name:tc-' + c.codigo.replace(/[^A-Za-z0-9_-]/g, '') + '"' : ''; }
+
+  function th(key, label) {
+    var asc = S.sort === key + 'Asc', desc = S.sort === key + 'Desc';
+    var aria = asc ? ' aria-sort="ascending"' : desc ? ' aria-sort="descending"' : '';
+    return '<th scope="col"' + aria + '><button type="button" class="tc-th" data-act="sort" data-k="' + key + '">' + label +
+      '<span class="ar" aria-hidden="true">' + (asc ? '↑' : desc ? '↓' : '↕') + '</span></button></th>';
+  }
+  function rowHTML(c) {
+    var rest = parcRest(c);
+    return '<tr data-code="' + esc(c.codigo) + '" tabindex="0" aria-label="Carta ' + esc(c.codigo) + ', ' + esc(c.adm) + ', crédito de ' + brl(c.credito) + '">' +
+      '<td class="c-cmp"><label title="Comparar">' + cmpInput(c) + '</label></td>' +
+      '<td class="c-carta">' + who(c) + '</td>' +
+      '<td><span class="tc-cred tc-num">' + brl(c.credito) + '</span></td>' +
+      '<td><span class="tc-ent tc-num">' + brl(c.entrada) + '</span></td>' +
+      '<td><span class="tc-pct tc-num">' + pct(c.pctE) + '</span></td>' +
+      '<td class="tc-num">' + (c.prazo != null ? c.prazo + ' meses' : '—') + '</td>' +
+      '<td class="tc-parc tc-num"><span>' + parcMain(c) + '</span>' + (rest ? '<em>' + rest + '</em>' : '') + '</td>' +
+      '<td><span class="tc-acts">' + favBtn(c) + cartBtn(c) +
+      '<button type="button" class="tc-int" data-act="int">' + I.wa + 'Tenho interesse</button></span></td></tr>';
+  }
+  function tableHTML(rows) {
+    return '<div class="tc-tablewrap"><table class="tc-table"><thead><tr>' +
+      '<th scope="col"><span class="tc-sr">Comparar</span></th><th scope="col"><span class="tc-th">Carta</span></th>' +
+      th('cred', 'Crédito') + th('ent', 'Entrada') + th('pct', '% entrada') + th('prazo', 'Prazo') + th('parc', 'Parcela') +
+      '<th scope="col"><span class="tc-sr">Ações</span></th></tr></thead><tbody>' + rows.map(rowHTML).join('') + '</tbody></table></div>';
+  }
+  function cardHTML(c, i) {
+    var rest = parcRest(c);
+    return '<article class="tc-card" data-code="' + esc(c.codigo) + '" tabindex="0" aria-label="Carta ' + esc(c.codigo) + ', ' + esc(c.adm) + ', crédito de ' + brl(c.credito) + '"' + vtName(c, i) + '>' +
+      who(c) + favBtn(c) +
+      '<div class="tc-card-cred"><span class="tc-k">Crédito</span><span class="tc-cred tc-num">' + brl(c.credito) + '</span></div>' +
+      '<div class="tc-card-grid">' +
+      '<div><span class="tc-k">Entrada</span><span class="v">' + brl(c.entrada) + '</span><span class="s">' + pct(c.pctE) + ' do crédito</span></div>' +
+      '<div><span class="tc-k">Parcela</span><span class="v">' + parcMain(c) + '</span>' + (rest ? '<span class="s">' + rest + '</span>' : '') + '</div>' +
+      '</div>' +
+      '<div class="tc-card-line"><span>Prazo <b class="tc-num">' + (c.prazo != null ? c.prazo + ' meses' : '—') + '</b></span><span class="tot">Total estimado <b class="tc-num">' + (c.total != null ? brl(c.total) : 'a confirmar') + '</b></span></div>' +
+      '<div class="tc-card-acts"><button type="button" class="tc-int" data-act="int">' + I.wa + 'Tenho interesse</button>' + cartBtn(c) +
+      '<label class="tc-cmp-l">' + cmpInput(c) + '<span class="t">Comparar</span></label></div>' +
+      '</article>';
+  }
+  function emptyHTML() {
+    if (S.error) {
+      return '<div class="tc-empty"><h3>As cartas não carregaram agora</h3><p>A conexão com o catálogo falhou. Tente de novo em instantes ou fale com a Alice, que mostra as opções do dia.</p>' +
+        '<button class="tc-morebtn" type="button" data-act="retry">Tentar de novo</button></div>';
+    }
+    if (S.soSalvas && !S.saved.size) {
+      return '<div class="tc-empty"><h3>Você ainda não salvou cartas</h3><p>Toque no coração de uma carta para guardá-la aqui e voltar a ela quando quiser.</p>' +
+        '<button class="tc-morebtn" type="button" data-act="saved">Ver todas as cartas</button></div>';
+    }
+    return '<div class="tc-empty"><h3>Nenhuma carta dentro desses limites</h3><p>Amplie a faixa de crédito ou de entrada, troque a categoria ou limpe os filtros para ver mais opções.</p>' +
+      '<button class="tc-morebtn" type="button" data-act="clear">Limpar filtros</button></div>';
+  }
+  function skeletonHTML() { var h = ''; for (var i = 0; i < 6; i++) h += '<div class="tc-skel"></div>'; return h; }
+
+  /* ---------- render ---------- */
+  function render() {
+    var box = $('#tcList'), more = $('#tcMore');
+    if (!S.loaded) { box.innerHTML = skeletonHTML(); more.hidden = true; return; }
+    var l = list(), n = l.length;
+    $('#tcN').textContent = num(n); $('#tcNw').textContent = plural(n, 'carta', 'cartas');
+    $('#tcGoN').textContent = num(n); $('#tcGoW').textContent = plural(n, 'carta', 'cartas');
+    if (!n) { box.innerHTML = emptyHTML(); more.hidden = true; renderChrome(); return; }
+    var shown = l.slice(0, S.limit), v = curView();
+    box.innerHTML = v === 'table' ? tableHTML(shown) : '<div class="tc-cards">' + shown.map(cardHTML).join('') + '</div>';
+    more.hidden = n <= S.limit;
+    if (n > S.limit) {
+      var next = Math.min(CFG.PAGE, n - S.limit);
+      more.querySelector('button').textContent = 'Mostrar mais ' + next + ' ' + plural(next, 'carta', 'cartas');
+      $('#tcMoreInfo').textContent = 'Mostrando ' + num(S.limit) + ' de ' + num(n);
+    }
+    $$('.tc-toggle button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.v === v)); });
+    renderChrome();
+  }
+  function renderChrome() {
+    // contagens por categoria (respeitam os demais filtros)
+    var m = { Todas: 0 };
+    S.all.forEach(function (c) { if (matches(c, true)) { m.Todas++; m[c.cat] = (m[c.cat] || 0) + 1; } });
+    $$('#tcSeg button').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.c === S.f.cat));
+      var n = b.querySelector('.n'); if (n) n.textContent = num(m[b.dataset.c] || 0);
+    });
+    $('#tcClear').classList.toggle('on', anyFilter());
+    $('#tcSavedN').textContent = num(S.saved.size);
+    $('#tcCartN').textContent = num(S.cart.size);
+    $('#tcSavedBtn').setAttribute('aria-pressed', String(S.soSalvas));
+    $('#tcSavedPill').hidden = !S.soSalvas;
+    renderCmpBar();
+  }
+  function renderStats(animate) {
+    var tot = S.all.length, soma = S.all.reduce(function (s, c) { return s + (c.credito || 0); }, 0);
+    var adms = new Set(S.all.map(function (c) { return c.adm; })).size;
+    $('#tcHora').textContent = S.coletadoEm ? hora(S.coletadoEm) : '—';
+    if (!animate || reduceMotion.matches) {
+      $('#tcTotal').textContent = num(tot); $('#tcSum').textContent = brlShort(soma); $('#tcAdms').textContent = num(adms); return;
+    }
+    var t0 = performance.now(), D = 1100;
+    (function step(t) {
+      var p = Math.min(1, (t - t0) / D), e = 1 - Math.pow(1 - p, 3);
+      $('#tcTotal').textContent = num(Math.round(tot * e));
+      $('#tcSum').textContent = brlShort(soma * e);
+      $('#tcAdms').textContent = num(Math.round(adms * e));
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  function renderStatus() {
+    var st = $('#tcStatus'), txt = $('#tcStatusTxt');
+    S.stale = !!(S.expiraEm && Date.now() > Date.parse(S.expiraEm) + 120000);
+    st.classList.toggle('is-stale', S.stale);
+    if (S.error && !S.all.length) { txt.textContent = 'Não foi possível carregar o catálogo agora.'; return; }
+    var quando = S.coletadoEm ? ', de ' + dataHora(S.coletadoEm) : '';
+    if (S.stale) {
+      txt.innerHTML = 'Atualizando a disponibilidade. As cartas abaixo são da coleta' + esc(quando) + (quando ? ',' : '') + ' e precisam ser confirmadas no atendimento.';
+    } else {
+      txt.innerHTML = '<b>' + num(S.all.length) + ' ' + plural(S.all.length, 'carta', 'cartas') + '</b> ' + plural(S.all.length, 'disponível', 'disponíveis') +
+        ' na última coleta' + esc(quando) + '. Preço final e disponibilidade são confirmados no atendimento.';
+    }
+  }
+  function buildSeg() {
+    var seg = $('#tcSeg'), ind = $('#tcSegInd');
+    seg.innerHTML = ''; seg.appendChild(ind);
+    ['Todas'].concat(CATS.filter(function (k) { return S.all.some(function (c) { return c.cat === k; }); })).forEach(function (k) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.dataset.act = 'cat'; b.dataset.c = k;
+      b.innerHTML = esc(k === 'Todas' ? 'Todas as categorias' : k) + ' <span class="n tc-num">0</span>';
+      seg.appendChild(b);
+    });
+  }
+  function moveInd(animate) {
+    var seg = $('#tcSeg'), ind = $('#tcSegInd'), b = seg.querySelector('button[aria-pressed="true"]');
+    if (!b) return;
+    if (!animate) ind.style.transition = 'none';
+    ind.style.width = b.offsetWidth + 'px';
+    ind.style.transform = 'translateX(' + b.offsetLeft + 'px)';
+    if (!animate) { void ind.offsetWidth; ind.style.transition = ''; }
+    if (seg.scrollWidth > seg.clientWidth) {
+      var target = b.offsetLeft - (seg.clientWidth - b.offsetWidth) / 2;
+      seg.scrollTo({ left: Math.max(0, target), behavior: animate && !reduceMotion.matches ? 'smooth' : 'auto' });
+    }
+  }
+  function buildAdm() {
+    var sel = $('#tcAdm'), cur = S.f.adm, m = {};
+    S.all.forEach(function (c) { m[c.adm] = (m[c.adm] || 0) + 1; });
+    var names = Object.keys(m).sort(function (a, b) { return a.localeCompare(b, 'pt-BR'); });
+    sel.innerHTML = '<option value="">Todas as administradoras</option>' + names.map(function (a) {
+      return '<option value="' + esc(a) + '"' + (a === cur ? ' selected' : '') + '>' + esc(a) + ' (' + num(m[a]) + ')</option>';
+    }).join('');
+    if (cur && !m[cur]) { S.f.adm = ''; sel.value = ''; }
+  }
+  function withVT(fn) {
+    if (document.startViewTransition && !reduceMotion.matches && S.loaded && curView() === 'cards') document.startViewTransition(fn);
+    else fn();
+  }
+
+  /* ---------- camadas (detalhe, carrinho, comparar, mensagem) ---------- */
+  var lastFocus = null;
+  function sheetHead(kicker, title, extra) {
+    return '<div class="tc-sh-head"><div style="min-width:0">' + (kicker ? '<div class="tc-sh-k">' + kicker + '</div>' : '') +
+      '<h2 id="tcShTitle">' + title + '</h2>' + (extra || '') + '</div>' +
+      '<button type="button" class="tc-x" data-act="close" aria-label="Fechar">' + I.x + '</button></div>';
+  }
+  function openSheet(html, size, code) {
+    var sh = $('#tcSheet');
+    lastFocus = document.activeElement;
+    sh.className = 'tc-sheet' + (size ? ' w-' + size : '');
+    sh.innerHTML = '<div class="tc-grab" aria-hidden="true"></div>' + html;
+    if (code) sh.dataset.code = code; else delete sh.dataset.code;
+    sh.removeAttribute('inert'); sh.setAttribute('aria-hidden', 'false');
+    document.documentElement.style.overflow = 'hidden';
+    requestAnimationFrame(function () {
+      $('#tcScrim').classList.add('on'); sh.classList.add('on');
+      var x = sh.querySelector('.tc-x'); if (S.kbd && x) x.focus({ preventScroll: true }); else sh.focus({ preventScroll: true });
+    });
+  }
+  function closeSheet() {
+    var sh = $('#tcSheet');
+    if (!sh.classList.contains('on')) return;
+    sh.classList.remove('on'); sh.style.transform = '';
+    $('#tcScrim').classList.remove('on');
+    sh.setAttribute('inert', ''); sh.setAttribute('aria-hidden', 'true');
+    document.documentElement.style.overflow = '';
+    if (lastFocus && lastFocus.focus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
+  }
+  function isOpen() { return $('#tcSheet').classList.contains('on'); }
+
+  function detailHTML(c) {
+    var kicker = '<span>Carta</span><button type="button" class="tc-code" data-act="copy" title="Copiar o código">' + esc(c.codigo) + '</button>';
+    var meta = '<div class="tc-meta" style="margin-top:8px"><span class="tc-tag">' + esc(c.tipo) + '</span>' +
+      '<span class="tc-k" style="display:inline-flex;gap:7px;align-items:center"><span class="tc-dot"></span>Disponível na última coleta</span></div>';
+    var body = '<div class="tc-sh-body">' +
+      '<div class="tc-d-hero"><div><span class="tc-k">Crédito</span><span class="tc-cred tc-num">' + brl(c.credito) + '</span></div>' +
+      '<div><span class="tc-k">Entrada</span><span class="ent tc-num">' + brl(c.entrada) + '</span><small>' + pct(c.pctE) + ' do crédito</small></div></div>' +
+      '<div class="tc-d-pair"><div><span class="tc-k">Prazo</span><b>' + (c.prazo != null ? c.prazo + ' meses' : '—') + '</b></div>' +
+      '<div><span class="tc-k">Parcelas</span><b>' + (c.completo ? c.etapas.map(function (e) { return e.quantidade + ' × ' + brl(e.valor); }).join('<br>') : 'A confirmar no atendimento') + '</b></div></div>';
+    if (c.total != null) {
+      body += '<div class="tc-total"><div class="k">Valor total estimado</div><div class="v tc-num">' + brl(c.total) + '</div>' +
+        '<div class="split"><div><span>Entrada</span><b>' + brl(c.entrada) + '</b></div><div><span>Soma das parcelas</span><b>' + brl(c.soma) + '</b></div></div>' +
+        '<p>' + c.qtd + ' parcelas somadas à entrada. Valores de hoje, sem projetar reajustes futuros nem taxas não informadas.</p></div>';
+    }
+    if (c.completo) {
+      body += '<div class="tc-et"><h3>Parcelas por etapa</h3><table><thead><tr><th>Etapa</th><th>Quantidade</th><th>Valor de cada parcela</th></tr></thead><tbody>' +
+        c.etapas.map(function (e, i) { return '<tr><td>' + (i + 1) + 'ª</td><td>' + e.quantidade + ' ' + plural(e.quantidade, 'parcela', 'parcelas') + '</td><td>' + brl(e.valor) + '</td></tr>'; }).join('') +
+        '</tbody></table></div>';
+    }
+    body += '<p class="tc-fine">' + (S.coletadoEm ? 'Referência da coleta de ' + dataHora(S.coletadoEm) + '. ' : '') +
+      'Disponibilidade, preço final e condições são confirmados no atendimento antes de qualquer proposta. Esta página não é uma reserva.</p></div>';
+    var foot = '<div class="tc-sh-foot">' + favBtn(c) + cartBtn(c) + '<button type="button" class="tc-int" data-act="int">' + I.wa + 'Tenho interesse</button></div>';
+    return sheetHead(kicker, esc(c.adm), meta) + body + foot;
+  }
+  function openDetail(code) { var c = S.by[code]; if (c) openSheet(detailHTML(c), '', code); }
+
+  function cartHTML() {
+    var items = Array.from(S.cart).map(function (k) { return S.by[k]; }).filter(Boolean);
+    var head = sheetHead('', 'Seu carrinho');
+    if (!items.length) {
+      return head + '<div class="tc-sh-body"><div class="tc-empty" style="padding:36px 18px"><h3>O carrinho está vazio</h3><p>Use o botão de carrinho nas cartas para juntar as que você quer conversar com a Alice de uma vez.</p></div></div>';
+    }
+    var sc = items.reduce(function (s, c) { return s + (c.credito || 0); }, 0), se = items.reduce(function (s, c) { return s + (c.entrada || 0); }, 0);
+    var body = '<div class="tc-sh-body">' + items.map(function (c) {
+      return '<div class="tc-cart-item" data-code="' + esc(c.codigo) + '"><span class="tc-badge" aria-hidden="true">' + esc(c.ini) + '</span>' +
+        '<div class="bd"><b>' + esc(c.adm) + ' · ' + esc(c.tipo) + '</b><span class="tc-code">' + esc(c.codigo) + '</span><br><span class="tc-cred tc-num">' + brl(c.credito) + '</span></div>' +
+        '<button type="button" class="tc-ico" data-act="cart" aria-pressed="true" aria-label="Tirar do carrinho">' + I.trash + '</button></div>';
+    }).join('') +
+      '<div class="tc-cart-sum"><div><span>Crédito somado</span><b class="tc-num">' + brl(sc) + '</b></div><div><span>Entrada somada</span><b class="tc-num">' + brl(se) + '</b></div></div>' +
+      '<p class="tc-fine">A Alice recebe os códigos das cartas, confirma a disponibilidade de cada uma e chama um especialista da Agion.</p></div>';
+    return head + body + '<div class="tc-sh-foot"><button type="button" class="tc-int" data-act="sendcart">' + I.wa + 'Enviar ' + items.length + ' ' + plural(items.length, 'carta', 'cartas') + ' para a Alice</button></div>';
+  }
+  function openCart() { openSheet(cartHTML(), 'sm'); }
+
+  function cmpHTML() {
+    var items = Array.from(S.cmp).map(function (k) { return S.by[k]; }).filter(Boolean);
+    function best(fn) { var vals = items.map(fn).filter(function (v) { return v != null; }); return vals.length > 1 ? Math.min.apply(null, vals) : null; }
+    var bEnt = best(function (c) { return c.entrada; }), bPct = best(function (c) { return c.pctE; }), bP = best(function (c) { return c.p0; }), bT = best(function (c) { return c.total; });
+    function cell(v, txt, b) { return '<td class="tc-num' + (b != null && v === b ? ' best' : '') + '">' + txt + '</td>'; }
+    var rows = [
+      ['Tipo', function (c) { return '<td>' + esc(c.tipo) + '</td>'; }],
+      ['Crédito', function (c) { return '<td class="tc-num"><span class="tc-cred">' + brl(c.credito) + '</span></td>'; }],
+      ['Entrada', function (c) { return cell(c.entrada, brl(c.entrada), bEnt); }],
+      ['% de entrada', function (c) { return cell(c.pctE, pct(c.pctE), bPct); }],
+      ['Prazo', function (c) { return '<td class="tc-num">' + (c.prazo != null ? c.prazo + ' meses' : '—') + '</td>'; }],
+      ['Parcela inicial', function (c) { return cell(c.p0, c.p0 != null ? brl(c.p0) : 'A confirmar', bP); }],
+      ['Valor total estimado', function (c) { return cell(c.total, c.total != null ? brl(c.total) : 'A confirmar', bT); }],
+      ['', function (c) { return '<td data-code="' + esc(c.codigo) + '"><button type="button" class="tc-int" data-act="int" style="height:36px;font-size:13px">' + I.wa + 'Tenho interesse</button></td>'; }]
+    ];
+    var html = '<div class="tc-sh-body"><div class="tc-cmpwrap"><table class="tc-cmp"><thead><tr><th></th>' +
+      items.map(function (c) { return '<th data-code="' + esc(c.codigo) + '"><b>' + esc(c.adm) + '</b><span class="tc-code">' + esc(c.codigo) + '</span></th>'; }).join('') +
+      '</tr></thead><tbody>' + rows.map(function (r) { return '<tr><th scope="row">' + r[0] + '</th>' + items.map(r[1]).join('') + '</tr>'; }).join('') +
+      '</tbody></table></div><p class="tc-fine"><span class="tc-dot" style="background:var(--gold);margin-right:6px"></span>Ponto dourado: menor valor da linha entre as cartas comparadas.</p></div>';
+    return sheetHead('', 'Comparar ' + items.length + ' ' + plural(items.length, 'carta', 'cartas')) + html;
+  }
+  function renderCmpBar() {
+    var n = S.cmp.size, bar = $('#tcCmpBar');
+    bar.classList.toggle('on', n > 0 && !S.cmpHidden);
+    document.body.classList.toggle('tc-cmp-on', n > 0);
+    $('#tcCmpTxt').textContent = n === 1 ? '1 carta para comparar. Escolha mais uma.' : n + ' cartas para comparar';
+    $('#tcCmpGo').disabled = n < 2; $('#tcCmpGo').style.opacity = n < 2 ? '.55' : '1';
+  }
+
+  function msgHTML(msg, url) {
+    return sheetHead('Prévia', 'Mensagem para a Alice') +
+      '<div class="tc-sh-body"><div class="tc-msg">' + esc(msg).replace(/\n/g, '<br>') + '</div>' +
+      '<p class="tc-fine">Na prévia as cartas são de exemplo. No site, antes de abrir o WhatsApp a página confere se a carta continua no catálogo; a Alice confirma a disponibilidade e chama um especialista da Agion.</p></div>' +
+      '<div class="tc-sh-foot"><a class="tc-int" href="' + esc(url) + '" target="_blank" rel="noopener">' + I.wa + 'Abrir no WhatsApp</a></div>';
+  }
+
+  /* ---------- ações ---------- */
+  var tT;
+  function toast(m) { var t = $('#tcToast'); t.textContent = m; t.classList.add('on'); clearTimeout(tT); tT = setTimeout(function () { t.classList.remove('on'); }, 2600); }
+  function pop(el) { if (!el || reduceMotion.matches) return; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+  function bump(sel) { var el = $(sel); if (!el || reduceMotion.matches) return; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+  function sync(code, act, on) {
+    var sel = '[data-code="' + (window.CSS && CSS.escape ? CSS.escape(code) : code) + '"] [data-act="' + act + '"]';
+    $$(sel).forEach(function (b) {
+      b.setAttribute('aria-pressed', String(on));
+      if (act === 'fav') b.setAttribute('aria-label', on ? 'Tirar das salvas' : 'Salvar carta');
+      if (act === 'cart' && !b.closest('.tc-cart-item')) b.setAttribute('aria-label', on ? 'Tirar do carrinho' : 'Adicionar ao carrinho');
+    });
+  }
+  function toggleFav(code, btn) {
+    var on = !S.saved.has(code);
+    if (on) S.saved.add(code); else S.saved.delete(code);
+    store(KEYS.saved, S.saved); sync(code, 'fav', on); pop(btn); bump('#tcSavedBtn');
+    toast(on ? 'Carta salva' : 'Carta removida das salvas');
+    if (S.soSalvas && !on) render(); else renderChrome();
+  }
+  function toggleCart(code, btn) {
+    var on = !S.cart.has(code);
+    if (on) S.cart.add(code); else S.cart.delete(code);
+    store(KEYS.cart, S.cart); sync(code, 'cart', on); pop(btn); bump('#tcCartBtn');
+    toast(on ? 'Adicionada ao carrinho' : 'Retirada do carrinho');
+    renderChrome();
+    if (isOpen() && btn && btn.closest('.tc-cart-item')) { $('#tcSheet').innerHTML = '<div class="tc-grab" aria-hidden="true"></div>' + cartHTML(); }
+  }
+  function toggleCmp(code, on, input) {
+    if (on && !S.cmp.has(code) && S.cmp.size >= 4) { input.checked = false; toast('Compare até 4 cartas por vez.'); return; }
+    if (on) S.cmp.add(code); else S.cmp.delete(code);
+    store(KEYS.cmp, S.cmp);
+    $$('[data-code="' + code + '"] input[data-act="cmp"]').forEach(function (i) { i.checked = on; });
+    S.cmpHidden = false; renderCmpBar();
+  }
+  function cmpClear() {
+    S.cmp.clear(); store(KEYS.cmp, S.cmp);
+    $$('input[data-act="cmp"]').forEach(function (i) { i.checked = false; });
+    renderCmpBar();
+  }
+  function copyCode(code) {
+    var done = function () { toast('Código ' + code + ' copiado'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(done, fallback); else fallback();
+    function fallback() { var t = document.createElement('textarea'); t.value = code; t.style.position = 'fixed'; t.style.opacity = '0'; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); done(); } catch (e) { } t.remove(); }
+  }
+  function waURL(msg) { return 'https://wa.me/' + CFG.ALICE + '?text=' + encodeURIComponent(msg); }
+  function msgFor(c) { return 'Olá! Tenho interesse na carta ' + c.codigo + ' (' + c.tipo + ', ' + c.adm + ', crédito de ' + brl(c.credito) + '), que vi no site da Agion.'; }
+
+  function interest(code) {
+    var c = S.by[code]; if (!c) return;
+    var msg = msgFor(c), url = waURL(msg);
+    if (PREVIEW) { openSheet(msgHTML(msg, url), 'sm'); return; }
+    if (!CFG.CHECK) { window.open(url, '_blank', 'noopener'); return; }
+    var w = window.open('about:blank', '_blank');            // abre já, para o navegador não bloquear
+    fetch(CFG.CHECK + (CFG.CHECK.indexOf('?') < 0 ? '?' : '&') + 'codigo=' + encodeURIComponent(code), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw r.status; return r.json(); })
+      .then(function (j) {
+        j = expand(j);
+        if (!j.cartas || !j.cartas.length) {
+          if (w) w.close();
+          removeCard(code);
+          toast('Essa carta acabou de sair do catálogo. Veja as outras opções.');
+          return;
+        }
+        go();
+      })
+      .catch(go);                                            // sem confirmação: segue para a Alice, que confirma no atendimento
+    function go() { if (w && !w.closed) w.location.href = url; else window.location.href = url; }
+  }
+  function sendCart() {
+    var items = Array.from(S.cart).map(function (k) { return S.by[k]; }).filter(Boolean);
+    if (!items.length) return;
+    var msg = 'Olá! Tenho interesse nestas cartas que vi no site da Agion:\n' + items.map(function (c) { return '• ' + c.codigo + ' (' + c.tipo + ', ' + c.adm + ', crédito de ' + brl(c.credito) + ')'; }).join('\n');
+    if (PREVIEW) { openSheet(msgHTML(msg, waURL(msg)), 'sm'); return; }
+    window.open(waURL(msg), '_blank', 'noopener');
+  }
+  function removeCard(code) {
+    S.all = S.all.filter(function (c) { return c.codigo !== code; }); delete S.by[code];
+    ['saved', 'cart', 'cmp'].forEach(function (k) { if (S[k].delete(code)) store(KEYS[k], S[k]); });
+    closeSheet(); renderStats(false); renderStatus(); render();
+  }
+  function sortBy(k) {
+    var a = k + 'Asc', d = k + 'Desc';
+    S.sort = S.sort === a ? d : S.sort === d ? a : k + FIRST_DIR[k];
+    $('#tcSort').value = S.sort;
+    render();
+  }
+  function setCat(c) { S.f.cat = c; S.limit = CFG.PAGE; renderChrome(); moveInd(true); withVT(render); }
+  function clearFilters() {
+    S.f = EMPTY(); S.limit = CFG.PAGE;
+    $$('#tcPlan .tc-in').forEach(function (i) { i.value = ''; i.classList.remove('has'); });
+    $('#tcAdm').value = ''; $('#tcQ').value = '';
+    renderChrome(); moveInd(true); withVT(render);
+  }
+  function scrollToId(id) {
+    var el = document.getElementById(id); if (!el) return;
+    el.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
+  }
+  function openFaq() { var d = $('#tcFaqDados'); if (d) { d.open = true; scrollToId('tcFaq'); } }
+
+  /* ---------- eventos ---------- */
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-act]');
+    var holder = e.target.closest('[data-code]');
+    var code = holder && holder.dataset.code;
+    if (t) {
+      var act = t.dataset.act;
+      if (act === 'cmp') return;                                   // tratado no "change"
+      switch (act) {
+        case 'fav': toggleFav(code, t); break;
+        case 'cart': toggleCart(code, t); break;
+        case 'open': openDetail(code); break;
+        case 'int': interest(code); break;
+        case 'copy': copyCode(t.textContent.trim()); break;
+        case 'sort': sortBy(t.dataset.k); break;
+        case 'view': S.view = t.dataset.v; render(); break;
+        case 'cat': setCat(t.dataset.c); break;
+        case 'clear': clearFilters(); break;
+        case 'goto': scrollToId(t.dataset.to); break;
+        case 'saved': S.soSalvas = !S.soSalvas; S.limit = CFG.PAGE; render(); if (S.soSalvas) scrollToId('tcBar'); break;
+        case 'opencart': openCart(); break;
+        case 'sendcart': sendCart(); break;
+        case 'cmpopen': if (S.cmp.size > 1) openSheet(cmpHTML(), 'lg'); break;
+        case 'cmpclear': cmpClear(); break;
+        case 'close': closeSheet(); break;
+        case 'more': S.limit += CFG.PAGE; render(); break;
+        case 'faq': openFaq(); break;
+        case 'retry': S.loaded = false; S.error = false; render(); fetchData(true); break;
+      }
+      return;
+    }
+    if (holder && holder.closest('#tcList') && !e.target.closest('a,button,input,label,select')) openDetail(code);
+  });
+  document.addEventListener('pointerdown', function () { S.kbd = false; }, true);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Tab' || e.key === 'Enter' || e.key === ' ') S.kbd = true; }, true);
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.dataset && t.dataset.act === 'cmp') { var h = t.closest('[data-code]'); if (h) toggleCmp(h.dataset.code, t.checked, t); }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && isOpen()) { closeSheet(); return; }
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('#tcList [data-code]')) { e.preventDefault(); openDetail(e.target.dataset.code); return; }
+    if (e.key === 'Tab' && isOpen()) {                               // mantém o foco dentro da janela aberta
+      var f = $$('#tcSheet button,#tcSheet a[href],#tcSheet input').filter(function (x) { return !x.disabled && x.offsetParent !== null; });
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  // arrastar para baixo fecha o bottom sheet no celular
+  (function () {
+    var sh = $('#tcSheet'), y0 = null, dy = 0;
+    sh.addEventListener('touchstart', function (e) {
+      if (!mqPhone.matches || !e.target.closest('.tc-grab,.tc-sh-head')) return;
+      y0 = e.touches[0].clientY; dy = 0; sh.style.transition = 'none';
+    }, { passive: true });
+    sh.addEventListener('touchmove', function (e) {
+      if (y0 == null) return; dy = Math.max(0, e.touches[0].clientY - y0); sh.style.transform = 'translateY(' + dy + 'px)';
+    }, { passive: true });
+    sh.addEventListener('touchend', function () {
+      if (y0 == null) return; sh.style.transition = ''; sh.style.transform = '';
+      if (dy > 90) closeSheet(); y0 = null;
+    });
+  })();
+
+  // filtros do plano
+  var tF;
+  function parseVal(s, k) {
+    s = String(s || '').trim(); if (!s) return null;
+    if (k === 'pct') { var x = parseFloat(s.replace(',', '.').replace(/[^\d.]/g, '')); return isNaN(x) ? null : x; }
+    var d = s.replace(/\D/g, ''); return d ? Number(d) : null;
+  }
+  $$('#tcPlan .tc-in').forEach(function (inp) {
+    inp.addEventListener('input', function () {
+      var k = inp.dataset.f, b = +inp.dataset.b, v = parseVal(inp.value, k);
+      S.f[k][b] = v; inp.classList.toggle('has', v != null); S.limit = CFG.PAGE;
+      clearTimeout(tF); tF = setTimeout(render, 140);
+    });
+    if (inp.hasAttribute('data-money')) {
+      inp.addEventListener('blur', function () { var v = parseVal(inp.value, 'money'); inp.value = v == null ? '' : v.toLocaleString('pt-BR'); });
+      inp.addEventListener('focus', function () { var v = parseVal(inp.value, 'money'); inp.value = v == null ? '' : String(v); });
+    }
+  });
+  $('#tcPlan').addEventListener('submit', function (e) { e.preventDefault(); scrollToId('tcBar'); });
+  $('#tcAdm').addEventListener('change', function () { S.f.adm = this.value; S.limit = CFG.PAGE; render(); });
+  $('#tcSort').addEventListener('change', function () { S.sort = this.value; withVT(render); });
+  var tQ;
+  $('#tcQ').addEventListener('input', function () { var v = fold(this.value.trim()); clearTimeout(tQ); tQ = setTimeout(function () { S.f.q = v; S.limit = CFG.PAGE; render(); }, 160); });
+
+  function onLayout() { render(); moveInd(false); }
+  (mqPhone.addEventListener ? mqPhone.addEventListener('change', onLayout) : mqPhone.addListener(onLayout));
+  (mqDesk.addEventListener ? mqDesk.addEventListener('change', onLayout) : mqDesk.addListener(onLayout));
+  var tR; window.addEventListener('resize', function () { clearTimeout(tR); tR = setTimeout(function () { moveInd(false); }, 120); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { moveInd(false); });
+
+  /* ---------- dados ---------- */
+  function setData(j, first) {
+    j = expand(j);
+    var seen = {}, arr = (j.cartas || []).map(norm).filter(function (c) {
+      if (!c.codigo || !c.credito || seen[c.codigo]) return false; seen[c.codigo] = 1; return true;
+    });
+    S.all = arr; S.by = {}; arr.forEach(function (c) { S.by[c.codigo] = c; });
+    S.version = j.version || null; S.coletadoEm = j.coletadoEm || S.coletadoEm; S.expiraEm = j.expiraEm || null;
+    S.loaded = true; S.error = false;
+    ['saved', 'cart', 'cmp'].forEach(function (k) { S[k].forEach(function (code) { if (!S.by[code]) S[k].delete(code); }); store(KEYS[k], S[k]); });
+    if (!S.built) { buildSeg(); S.built = true; }
+    buildAdm(); renderStats(!!first); renderStatus(); render(); moveInd(false);
+  }
+  function sep(u) { return u.indexOf('?') < 0 ? '?' : '&'; }
+  function fetchData(first, version) {
+    return fetch(CFG.API + (version ? sep(CFG.API) + 'v=' + encodeURIComponent(version) : ''), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw r.status; return r.json(); })
+      .then(function (j) { setData(j, first); })
+      .catch(function () {
+        if (!S.loaded) { S.loaded = true; S.error = true; render(); }
+        renderStatus();
+      });
+  }
+  /* A cada minuto confere só a versão da coleta (leve). Se mudou, baixa o catálogo novo;
+     se não mudou, renova o prazo de validade. Antes de abrir a Alice, a carta é sempre reconsultada. */
+  var ticks = 0;
+  function refresh() {
+    ticks++;
+    // a cada 5 minutos baixa a lista inteira de novo (cartas vendidas ou reservadas saem mesmo sem coleta nova)
+    if (!S.loaded || S.error || !S.version || ticks % 5 === 0) return fetchData(false);
+    return fetch(CFG.API + sep(CFG.API) + 'meta=1', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw r.status; return r.json(); })
+      .then(function (m) {
+        if (m.version && m.version !== S.version) return fetchData(false, m.version);
+        if (m.expiraEm) S.expiraEm = m.expiraEm;
+        if (m.coletadoEm) S.coletadoEm = m.coletadoEm;
+        renderStatus();
+      })
+      .catch(function () { renderStatus(); });
+  }
+
+  /* ---------- amostra para a prévia (1ª carta = exemplo real do contrato) ---------- */
+  var SAMPLE_ROWS = [
+    ['TC-M00093A5DD42A50689', 'Veículo', 'ITAÚ', 20036.5, 6791.46, 46, [[46, 440]]],
+    ['TC-M2B71C09E4A6D3F18', 'Imóvel', 'BRADESCO', 1120000, 645990, 73, [[73, 9462]]],
+    ['TC-M5E09A7D21C84B6F0', 'Imóvel', 'PORTO SEGURO', 1005000, 490190, 162, [[162, 6480]]],
+    ['TC-M9C3F51A0E7B2D488', 'Imóvel', 'CAIXA', 994000, 455120, 188, [[188, 5160]]],
+    ['TC-M41D8E62B0F9A7C13', 'Imóvel', 'RODOBENS', 860000, 401500, 151, [[24, 5890], [127, 6120]]],
+    ['TC-M0A6B3E9F2D17C845', 'Imóvel', 'HS CONSÓRCIOS', 720000, 252000, 200, [[200, 3860]]],
+    ['TC-M7F2C0D94E1B6A350', 'Imóvel', 'EMBRACON', 640000, 211200, 176, [[176, 3870]]],
+    ['TC-M3D95B1A8C0E46F27', 'Imóvel', 'SANTANDER', 600000, 210000, 196, [[196, 3520]]],
+    ['TC-M6E1A07F3B9D24C58', 'Imóvel', 'ITAÚ', 500000, 170000, 184, null],
+    ['TC-M8B4D2C6E0A193F71', 'Imóvel', 'BANCO DO BRASIL', 480000, 172800, 165, [[165, 3190]]],
+    ['TC-M1C7F9E05D3A8B264', 'Imóvel', 'BRADESCO', 420000, 138600, 192, [[60, 2310], [132, 2590]]],
+    ['TC-M2E8A4B71F06C9D35', 'Imóvel', 'HS CONSÓRCIOS', 350000, 122500, 200, [[48, 1980], [152, 2240]]],
+    ['TC-M5A0D63C9B18E4F72', 'Imóvel', 'ADEMICON', 300000, 96000, 180, [[180, 1640]]],
+    ['TC-M9F4B27E1A0C8D536', 'Imóvel', 'PORTO SEGURO', 210000, 63000, 180, [[180, 1345]]],
+    ['TC-M4B6C8E20D7F1A395', 'Imóvel', 'HS CONSÓRCIOS', 172077.83, 56180, 103, [[103, 1632.67]]],
+    ['TC-M0E3F5A9C27B6D184', 'Imóvel', 'CAIXA', 160000, 48000, 170, [[170, 1060]]],
+    ['TC-M7A9D1B4F03E2C658', 'Veículo', 'BRADESCO', 250000, 92500, 80, [[80, 2410]]],
+    ['TC-M3C2E8F60A9D4B171', 'Veículo', 'ITAÚ', 130000, 41600, 84, [[84, 1420]]],
+    ['TC-M6D0B5A3E8F17C924', 'Veículo', 'RODOBENS', 98000, 33320, 70, [[70, 1180]]],
+    ['TC-M8F1A6C4D2B90E357', 'Veículo', 'PORTO SEGURO', 90000, 27900, 80, [[80, 1040]]],
+    ['TC-M2A7E0D9C5F43B816', 'Veículo', 'CAIXA', 75000, 24000, 70, [[70, 920]]],
+    ['TC-M5B3F8A1E06D2C479', 'Veículo', 'HS CONSÓRCIOS', 60000, 18000, 60, [[60, 690]]],
+    ['TC-M1F6C3B9A4E07D582', 'Veículo', 'EMBRACON', 48000, 15840, 52, [[52, 780]]],
+    ['TC-M9D2A5E7C1B36F048', 'Pesados', 'RANDON', 380000, 114000, 100, [[100, 4180]]],
+    ['TC-M4E8B0C6F2A91D735', 'Pesados', 'MERCEDES-BENZ', 520000, 176800, 96, [[36, 5150], [60, 5480]]],
+    ['TC-M7C5D3A0B8E64F219', 'Máquinas', 'BRADESCO', 250000, 77500, 90, [[90, 3050]]],
+    ['TC-M0B9E4F1D7C28A563', 'Embarcações', 'ITAÚ', 300000, 105000, 120, [[120, 2980]]],
+    ['TC-M3F7A2D8B5C06E914', 'Energia solar', 'HS CONSÓRCIOS', 85000, 25500, 72, [[72, 1020]]],
+    ['TC-M6A4C9E2F1D83B750', 'Aeronaves', 'BANCO DO BRASIL', 1650000, 742500, 110, [[110, 9870]]],
+    ['TC-M8E0D7B3A6F25C148', 'Serviços', 'EMBRACON', 30000, 9600, 36, [[36, 720]]]
+  ];
+  function sample() {
+    return {
+      coletadoEm: new Date(Date.now() - 23 * 60000).toISOString(),
+      cartas: SAMPLE_ROWS.map(function (r) {
+        var et = r[6] ? r[6].map(function (e) { return { quantidade: e[0], valor: e[1] }; }) : [];
+        return {
+          codigo: r[0], tipo: r[1], administradora: r[2], credito: r[3], entrada: r[4],
+          percentualEntrada: Math.round(r[4] / r[3] * 1000) / 10, prazoMeses: r[5],
+          parcelas: { etapas: et, planoCompleto: !!r[6], valorInicial: et[0] ? et[0].valor : null },
+          status: 'disponivel_na_coleta'
+        };
+      })
+    };
+  }
+
+  /* ---------- início ---------- */
+  renderChrome(); render();
+  if (PREVIEW) {
+    $('#tcPreviewNote').hidden = false;
+    setTimeout(function () { setData(sample(), true); }, 350);
+  } else {
+    fetchData(true).then(function () { if (S.stale) refresh(); });
+    setInterval(function () { if (!document.hidden) refresh(); }, CFG.REFRESH_MS);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && S.stale) refresh(); });
+  }
+})();
+
+</script>
+</body></html>
