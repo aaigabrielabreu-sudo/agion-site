@@ -22,6 +22,7 @@ const LIMIT = 500;        // máximo por página no contrato
 const CONC = 8;           // páginas buscadas ao mesmo tempo
 const TRIES = 3;          // recomeços da coleta inteira
 const FRESH_MS = 55000;   // dentro disso, reaproveita a versão montada nesta instância
+const STALE_MAX_MS = 6 * 3600 * 1000;  // até isso, entrega a versão anterior enquanto monta a nova
 
 let memo = null;          // { body, at }
 let building = null;      // coleta em andamento (uma por instância)
@@ -130,7 +131,8 @@ function pack(pages) {
 }
 
 async function catalog(key) {
-  if (memo && Date.now() - memo.at < FRESH_MS) return { body: memo.body, fresh: true };
+  const age = memo ? Date.now() - memo.at : Infinity;
+  if (age < FRESH_MS) return { body: memo.body, fresh: true };
   if (!building) {
     building = (async () => {
       let err;
@@ -143,6 +145,12 @@ async function catalog(key) {
       }
       throw err;
     })().finally(() => { building = null; });
+  }
+  // Já existe uma versão completa nesta instância: entrega na hora (com o expiraEm original, a página
+  // avisa que a disponibilidade está sendo atualizada) e a coleta nova segue em segundo plano.
+  if (memo && age < STALE_MAX_MS) {
+    building.catch(() => {});
+    return { body: memo.body, fresh: false };
   }
   try {
     const m = await building;
@@ -198,7 +206,7 @@ export default async function handler(req, res) {
   /* Catálogo completo (?v=<version> só muda a chave de cache da CDN quando a coleta muda) */
   try {
     const r = await catalog(key);
-    return send(res, 200, r.fresh ? 'public, s-maxage=60, stale-while-revalidate=86400' : 'public, s-maxage=10', r.body);
+    return send(res, 200, r.fresh ? 'public, s-maxage=60, stale-while-revalidate=86400' : 'public, s-maxage=5, stale-while-revalidate=86400', r.body);
   } catch (e) {
     return send(res, 502, 'no-store', { erro: 'CATALOGO_INDISPONIVEL' });
   }
