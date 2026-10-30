@@ -831,6 +831,8 @@ body.tc-cmp-on .tc-cat{padding-bottom:120px}
 .tc-table td{padding-left:9px;padding-right:9px}
 .tc-th{padding-left:9px;padding-right:9px}
 .tc-table .tc-int{padding:0 12px}
+/* o atributo hidden sempre esconde (o display das classes não pode vencer) */
+:where(.tc,.tc-layer) [hidden]{display:none!important}
 
 </style>
 </head>
