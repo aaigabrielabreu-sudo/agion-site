@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="UTF-8">
+<script>/* catálogo /contempladas: download antecipado */window.__tcPre=(function(){try{var p=fetch("/api/contempladas",{cache:"no-store"}).then(function(r){if(!r.ok)throw r.status;return r.text();});p.catch(function(){});return p;}catch(e){return null;}})();</script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-WKBZ2R04SM"></script>
 <script>
@@ -1273,6 +1274,63 @@ window.TC_CONFIG = { API: "/api/contempladas", CHECK: "/api/contempladas" };
     return j;
   }
 
+  /* Caminho rápido: monta as cartas direto das linhas compactas, sem objetos intermediários
+     e sem normalizar texto carta por carta (tipos e administradoras são poucos). */
+  function fastRows(j) {
+    var T = j.tipos || [], A = j.administradoras || [];
+    prepAdms(A);
+    var TI = T.map(function (t) { return { tipo: t || 'Outros', cat: catOf(t), f: fold(t || 'Outros') }; });
+    var AI = A.map(function (a) { var n = admName(a); return { adm: n, ini: initials(n), f: fold(n) }; });
+    var T0 = { tipo: 'Outros', cat: 'Outros', f: 'outros' }, A0 = { adm: 'Não informada', ini: 'NI', f: 'nao informada' };
+    var rows = j.cartas || [], out = new Array(rows.length), n = 0, seen = Object.create(null);
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i], code = 'TC-' + r[0];
+      if (!r[3] || seen[code]) continue;
+      seen[code] = 1;
+      var t = TI[r[1]] || T0, a = AI[r[2]] || A0, f = r[7] || [], et = [], soma = 0, qtd = 0;
+      for (var k = 0; k + 1 < f.length; k += 2) {
+        if (f[k] > 0 && f[k + 1] > 0) { et.push({ quantidade: f[k], valor: f[k + 1] }); soma += f[k] * f[k + 1]; qtd += f[k]; }
+      }
+      var completo = !!r[8] && et.length > 0, credito = r[3], entrada = r[4] == null ? null : r[4];
+      out[n++] = {
+        codigo: code, tipo: t.tipo, cat: t.cat, adm: a.adm, ini: a.ini, credito: credito, entrada: entrada,
+        pctE: r[5] != null ? r[5] : (entrada != null && credito ? entrada / credito * 100 : null),
+        prazo: r[6] == null ? null : r[6], etapas: et, completo: completo,
+        p0: r.length > 9 ? r[9] : (et[0] ? et[0].valor : null),
+        soma: completo ? soma : null, total: completo && entrada != null ? entrada + soma : null, qtd: qtd,
+        q: code.toLowerCase() + ' ' + a.f + ' ' + t.f
+      };
+    }
+    out.length = n;
+    return out;
+  }
+
+  /* Cópia local do último catálogo (IndexedDB): quem volta à página vê as cartas na hora,
+     com o aviso de que a disponibilidade está sendo atualizada, enquanto a versão nova chega. */
+  function idb() {
+    return new Promise(function (ok, no) {
+      try {
+        var q = indexedDB.open('agion-tc', 1);
+        q.onupgradeneeded = function () { q.result.createObjectStore('kv'); };
+        q.onsuccess = function () { ok(q.result); };
+        q.onerror = function () { no(q.error); };
+      } catch (e) { no(e); }
+    });
+  }
+  function cacheGet() {
+    return idb().then(function (db) {
+      return new Promise(function (ok) {
+        try {
+          var g = db.transaction('kv').objectStore('kv').get('catalogo');
+          g.onsuccess = function () { ok(g.result || null); }; g.onerror = function () { ok(null); };
+        } catch (e) { ok(null); }
+      });
+    }).catch(function () { return null; });
+  }
+  function cachePut(v) {
+    idb().then(function (db) { try { db.transaction('kv', 'readwrite').objectStore('kv').put(v, 'catalogo'); } catch (e) { } }).catch(function () { });
+  }
+
   /* ---------- estado ---------- */
   var KEYS = { saved: 'agion_tc_saved', cart: 'agion_tc_cart', cmp: 'agion_tc_cmp' };
   function load(k) { try { return JSON.parse(localStorage.getItem(k)) || []; } catch (e) { return []; } }
@@ -1811,10 +1869,14 @@ window.TC_CONFIG = { API: "/api/contempladas", CHECK: "/api/contempladas" };
 
   /* ---------- dados ---------- */
   function setData(j, first) {
-    j = expand(j);
-    var seen = {}, arr = (j.cartas || []).map(norm).filter(function (c) {
-      if (!c.codigo || !c.credito || seen[c.codigo]) return false; seen[c.codigo] = 1; return true;
-    });
+    var arr;
+    if (j && j.formato === 'agion-tc-1') arr = fastRows(j);
+    else {
+      var seen = {};
+      arr = (j.cartas || []).map(norm).filter(function (c) {
+        if (!c.codigo || !c.credito || seen[c.codigo]) return false; seen[c.codigo] = 1; return true;
+      });
+    }
     S.all = arr; S.by = {}; arr.forEach(function (c) { S.by[c.codigo] = c; });
     S.version = j.version || null; S.coletadoEm = j.coletadoEm || S.coletadoEm; S.expiraEm = j.expiraEm || null;
     S.loaded = true; S.error = false;
@@ -1823,10 +1885,25 @@ window.TC_CONFIG = { API: "/api/contempladas", CHECK: "/api/contempladas" };
     buildAdm(); renderStats(!!first); renderStatus(); render(); moveInd(false);
   }
   function sep(u) { return u.indexOf('?') < 0 ? '?' : '&'; }
+  var cacheV = null, fromCache = false;
   function fetchData(first, version) {
-    return fetch(CFG.API + (version ? sep(CFG.API) + 'v=' + encodeURIComponent(version) : ''), { cache: 'no-store' })
-      .then(function (r) { if (!r.ok) throw r.status; return r.json(); })
-      .then(function (j) { setData(j, first); })
+    // na 1ª carga, aproveita o download que o <head> já começou
+    var pre = first && !version && window.__tcPre;
+    window.__tcPre = null;
+    return (pre || fetch(CFG.API + (version ? sep(CFG.API) + 'v=' + encodeURIComponent(version) : ''), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw r.status; return r.text(); }))
+      .then(function (txt) {
+        var j = JSON.parse(txt);
+        if (fromCache && j.version && j.version === S.version) {
+          // mesma coleta que já está na tela: só renova os horários
+          S.coletadoEm = j.coletadoEm || S.coletadoEm; S.expiraEm = j.expiraEm || S.expiraEm; S.error = false;
+          renderStats(false); renderStatus();
+        } else {
+          setData(j, first && !S.loaded);
+        }
+        fromCache = false;
+        if (j.formato === 'agion-tc-1' && j.version && j.version !== cacheV) { cacheV = j.version; cachePut({ v: j.version, t: txt }); }
+      })
       .catch(function () {
         if (!S.loaded) { S.loaded = true; S.error = true; render(); }
         renderStatus();
@@ -1904,7 +1981,12 @@ window.TC_CONFIG = { API: "/api/contempladas", CHECK: "/api/contempladas" };
     $('#tcPreviewNote').hidden = false;
     setTimeout(function () { setData(sample(), true); }, 350);
   } else {
-    fetchData(true).then(function () { if (S.stale) refresh(); });
+    var netDone = false;
+    cacheGet().then(function (c) {
+      if (!c || !c.t || netDone || (S.loaded && !S.error)) return;
+      try { cacheV = c.v; setData(JSON.parse(c.t), true); fromCache = true; } catch (e) { }
+    });
+    fetchData(true).then(function () { if (!S.error) netDone = true; if (S.stale) refresh(); });
     setInterval(function () { if (!document.hidden) refresh(); }, CFG.REFRESH_MS);
     document.addEventListener('visibilitychange', function () { if (!document.hidden && S.stale) refresh(); });
   }
